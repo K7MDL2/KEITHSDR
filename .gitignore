@@ -6,3 +6,4 @@
 .vsteensy
 .lib
 .*.zip
+**/lib/**
