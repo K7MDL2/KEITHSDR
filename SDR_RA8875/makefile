@@ -12,7 +12,7 @@
 SHELL            := cmd.exe
 export SHELL
 
-SKETCH_NAME      := SDR1_RA8875-K7MDL.ino
+SKETCH_NAME      := SDR1_RA8875.ino
 
 BOARD_ID         := TEENSY41
 MCU              := imxrt1062
@@ -20,8 +20,8 @@ MCU              := imxrt1062
 BUILDER_BASE     := C:\Progra~2\Arduino
 FLAGS            := -verbose=1 -warnings=all
 FQBN             := teensy:avr:teensy41:usb=serial,speed=600,opt=o2std,keys=en-us
-BUILD_PATH       := "D:\Documents\GitHub\SDRProjects\SDR1_RA8875-K7MDL\.vsteensy\build"
-BUILD_CACHE      := "D:\Documents\GitHub\SDRProjects\SDR1_RA8875-K7MDL\.vsteensy\cache"
+BUILD_PATH       := "D:\Documents\GitHub\SDRProjects\SDR1_RA8875\.vsteensy\build"
+BUILD_CACHE      := "D:\Documents\GitHub\SDRProjects\SDR1_RA8875\.vsteensy\cache"
 HARDWARE         := -hardware="C:\Progra~2\Arduino/hardware"
 TOOLS            := -tools="C:\Progra~2\Arduino\tools-builder"
 
