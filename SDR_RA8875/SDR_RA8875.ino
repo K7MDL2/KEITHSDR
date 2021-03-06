@@ -133,7 +133,7 @@ String increment="";
 String agc="";
 //
 //================================================ Frequency Set =============================================================
-volatile uint32_t Freq = 7074000;        //I used 7850000  frequency CHU  Time Signal Canada
+volatile uint32_t Freq = 4000000;        //I used 7850000  frequency CHU  Time Signal Canada
 //================================================ Frequency Set =============================================================
 //
 volatile uint32_t Fc = -566; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly

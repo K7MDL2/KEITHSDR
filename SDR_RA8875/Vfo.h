@@ -6,10 +6,10 @@ extern volatile uint32_t Fc;
 void initVfo()
 {
 delay(100);
-si5351.init(25000000, SI5351_CRYSTAL_LOAD_8PF);   // Si5351mcu library modified by K7MDL to accept load capacitor setting.
+si5351.init(10000000, SI5351_CRYSTAL_LOAD_10PF);   // Si5351mcu library modified by K7MDL to accept load capacitor setting.
 // use the below statement for unmodified library.
 //si5351.init(25000000);
-si5351.correction(1330);
+//si5351.correction(1330);
 si5351.setPower(0, SIOUT_8mA);   // 0 is Clock 0
 si5351.setFreq(0, (Freq+Fc)*4);  
 si5351.enable(0);   // these enable/disables are optional
