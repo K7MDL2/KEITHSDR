@@ -67,6 +67,7 @@ extern AudioAnalyzeFFT256_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
+extern volatile uint32_t        Freq;                     
 
 #define FFT_SIZE                256        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE*2];            // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
@@ -222,7 +223,7 @@ void spectrum_update(int16_t s)
     //for testing alignments
     //tft.drawRect(spectrum_x, spectrum_y, spectrum_width, spectrum_height, myBLUE);  // x start, y start, width, height, array of colors w x h
     //tft.drawRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLUE);  // x start, y start, width, height, array of colors w x h
-    
+     
     int16_t i;
     float avg = 0.0;
     float pixelnew[FFT_SIZE*2];           //  Stores current pixel fopr spectrum portion only
@@ -376,8 +377,8 @@ void spectrum_update(int16_t s)
             pixelnew[i] = abs(pixelnew[i]);
             
             // Offset the pixel position relative to the bottom of the window
-            pixelnew[i] += ptr->sp_bottom_line-2 + ptr->spect_floor;     // spect_floor;
-            
+            pixelnew[i] += ptr->sp_bottom_line-2 + ptr->spect_floor;            
+
             // Now scale it            
             //pixelnew[i] = map(pixelnew[i], ptr->spect_floor, ptr->spect_floor+ptr->spect_sp_scale, ptr->sp_bottom_line-2, ptr->sp_top_line+1);    
             //pixelnew[i] = pixelnew[i] * (ptr->spect_sp_scale/10); // - ptr->spect_floor;
@@ -421,16 +422,16 @@ void spectrum_update(int16_t s)
             //------------------------ Code below is writing only in the active spectrum window ----------------------
             //
 
-            if (i < ptr->c_graph-5 || i > ptr->c_graph+5)   // blank the DC carrier noise at Fc
+            if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
             {    
                 if ((i < ptr->wf_sp_width-2) && (pix_n16 > ptr->sp_top_line+2) && (pix_n16 < ptr->sp_bottom_line-2)  ) // will blank out the center spike
                 {   
                     if (pixelnew[i] <  ptr->sp_bottom_line + 40) // arbitrary cutoff to look for low level avg to act as AGC for noise floor adjustment.
                     {
                         sp_floor_avg += pixelnew[i];             // accumulate the next low sig level value
-                        sp_floor_avg /= ptr->wf_sp_width-2;     // first run through wil be off but rest will be OK after
-                        sp_floor_avg -= (sp_floor_avg - ptr-> sp_bottom_line-2)/2;
-                        //Serial.println(sp_floor_avg);
+                        sp_floor_avg /= (ptr->wf_sp_width-2);     // first run through wil be off but rest will be OK after
+                        sp_floor_avg -= (ptr-> sp_bottom_line-2 - sp_floor_avg)/2;                                                
+                        Serial.println(sp_floor_avg);
                     }
                     if (ptr->spect_dot_bar_mode == 0)   // BAR Mode 
                     {
@@ -502,7 +503,7 @@ void spectrum_update(int16_t s)
             }
             
             // Draw Grid Lines
-            if (i == (ptr->wf_sp_width-2)/2)
+            if (i == (ptr->wf_sp_width/2))
             {
             // draw a grid line for XX dB level             
                 tft.setTextColor(myLT_GREY);
