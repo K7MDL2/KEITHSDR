@@ -1,0 +1,62 @@
+{
+  "tasks": [
+    {
+      "label": "Build",
+      "group": "build",
+      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "args": [
+        "all",
+        "",
+        ""
+      ]
+    },
+    {
+      "label": "Clean",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "args": [
+        "clean"
+      ]
+    },
+    {
+      "label": "Upload (teensy.exe)",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "args": [
+        "upload",
+        "",
+        ""
+      ]
+    },
+    {
+      "label": "Upload (TyCommander)",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "args": [
+        "uploadTy",
+        "",
+        ""
+      ]
+    }
+  ],
+  "version": "2.0.0",
+  "type": "shell",
+  "problemMatcher": "$gcc",
+  "presentation": {
+    "echo": true,
+    "clear": true,
+    "reveal": "always",
+    "focus": false,
+    "panel": "shared",
+    "showReuseMessage": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"git.ignoreLimitWarning": true,
+		"files.exclude": {
+			"**/.vteensy/**": true
+		},
+		"files.watcherExclude": {
+			"**/.vteensy/*/**": true
+		},
+		"C_Cpp.default.includePath": []
+	}
+}

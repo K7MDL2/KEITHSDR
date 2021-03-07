@@ -50,16 +50,10 @@ const int myInput = AUDIO_INPUT_LINEIN;
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024, 187.5/bin for 256 FFTiq
-<<<<<<< Updated upstream
 //float sample_rate_Hz = 51200.0f;    // 50Hz/bin for 1024, 200Hz/bin for 256 FFT
 float sample_rate_Hz = 102400.0f;  // 100Hz/bin
 //float sample_rate_Hz = 192000.0f;  // 200Hz/bin
 //float sample_rate_Hz = 204800.0f;  // x/bin
-=======
-float sample_rate_Hz = 51200.0f;    // 50Hz/bin for 1024, 200Hz/bin for 256 FFT
-//float sample_rate_Hz = 102400.0f;  // 100Hz/bin
-//float sample_rate_Hz = 192000.0f;  // 200Hz/bin
->>>>>>> Stashed changes
 const int   audio_block_samples = 128;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
@@ -143,11 +137,7 @@ String agc="";
 volatile uint32_t Freq = 7074000;        //I used 7850000  frequency CHU  Time Signal Canada
 //================================================ Frequency Set =============================================================
 //
-<<<<<<< Updated upstream
 volatile uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
-=======
-volatile uint32_t Fc = -566; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
->>>>>>> Stashed changes
 volatile uint32_t fstep = 10   ; // sets the tuning increment to 10Hz
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
