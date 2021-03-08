@@ -5,14 +5,15 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 ## 3/8/2021
 
     1. Removed redundant folder level.
-    2. Converted form FFT256IQ to FFT1024IQ
-    3. makefile (for VS Code users) modified to use a .vsteensy build folder 2 levels in attempt to remove from VS Code search path and keep propject folder clean for source control.
-    4. With the display going full width, buttons need to relocate. Likely make context sensitive pop-up button panels and/or fixed panel on bottom row area under spectrum.
-    5. Moved touch lcoations to the labels themselved in most cases.  Mode, BW, Ts, AGC, now just touch them to cycle through options
+    2. Converted from FFT256_IQ_F32 to FFT1024_IQ_F32 and added preset record 10 to go full width hiding the button panels.
+    3. makefile (for VS Code users) modified to use a .vsteensy build folder 2 levels up to keep project folder clean for source control and file more portable.
+    4. With the display going full width, buttons needed to relocate. Likely make context sensitive pop-up button panels and/or fixed panel on bottom row area under spectrum.
+    5. Moved touch locations to the labels themselves in most cases.  Mode, BW, Ts, AGC, now just touch them to cycle through options
     6. Attn and Preamp not handled yet.
     7. Swipe left and right to increment Frequency by 100K steps.
     8. Swipe up and down to change band (for now 1MHz)
     9. Pinch changes scale for now.
+
 
 ## 3/6/2021
 
