@@ -224,44 +224,97 @@ void Gesture_Handler(uint8_t gesture)
 {   
     switch (gesture) 
     {
+        ////------------------ SWIPE -------------------------------------------
         case 1:  // must be a swipe or drag.  Get direction vertical or horizontal
         { 
-                int16_t T1_X = touch_evt.distance[0][0];  
-                int16_t T1_Y = touch_evt.distance[0][1];
+            int16_t T1_X = touch_evt.distance[0][0];  
+            int16_t T1_Y = touch_evt.distance[0][1];
 
-                //#define DBG_GESTURE
+            //#define DBG_GESTURE
 
-                #ifdef DBG_GESTURE
-                Serial.print(" T1_X="); Serial.print(T1_X);
-                Serial.print(" T1_Y="); Serial.print(T1_Y);                
-                #endif
+            #ifdef DBG_GESTURE
+            Serial.print(" T1_X="); Serial.print(T1_X);
+            Serial.print(" T1_Y="); Serial.print(T1_Y);                
+            #endif
 
-                if ( abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe
+            ////------------------ SWIPE UP UP -------------------------------------------
+            if ( abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
+            {               
+                //Serial.println("\nSwipe Vertical");
+                if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
                 {
-                    //Serial.println("\nSwipe Vertical");
-                    if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
+                    //Serial.println(" Swipe DOWN");
+                    //Set_Spectrum_RefLvl(-1);  // swipe down    
+                    fndx=fndx-1;
+                    if(fndx<0)
                     {
-                        //Serial.println(" Swipe DOWN");
-                        Set_Spectrum_RefLvl(-1);  // swipe down                        
-                    }                
-                    else
-                    {
-                        //Serial.println(" Swipe UP");
-                        Set_Spectrum_RefLvl(1);   // Swipe up                        
-                    }
+                        fndx=0;
+                    }                      
+                    selectStep(fndx);
+                    return;                                        
                 } 
-                else  // X moved, not Y, horiznatal swipe
+                ////------------------ SWIPE DOWN DOWN  -------------------------------------------
+                else
                 {
-                    //Serial.println("\nSwipe Horizontal");
-                    if (T1_X < 0)  // y is negative so must be vertical swipe down direction                    
-                        //  will use for span zoom OUT
-                        Serial.println(" Swipe LEFT");
-                    else  // Swipe 
-                        Serial.println(" Swipe RIGHT");
-                          //  will use for span zoom in   
-                }                                 
-                break;
+                    //Serial.println(" Swipe UP");
+                    //Set_Spectrum_RefLvl(1);   // Swipe up    
+                    fndx=fndx+1;
+                    if(fndx>5)
+                    {
+                        fndx=5;
+                    }
+                    selectStep(fndx);
+                    return;                                          
+                }
+            } 
+            ////------------------ SWIPE LEFT  -------------------------------------------
+            else  // X moved, not Y, horiznatal swipe
+            {
+                //Serial.println("\nSwipe Horizontal");
+                if (T1_X < 0)  // y is negative so must be vertical swipe down direction                    
+                    //  will use for span zoom OUT                        
+                {
+                    //    Serial.println("Band -");
+                    Freq -= 100000;
+                    if (Freq < 1800000) 
+                        Freq =1800000;
+                    fndx = 4;
+                    selectStep(fndx);
+                    displayStep();
+                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+                    selectFrequency(); 
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+                    if (Freq < 10000000)
+                        mndx = 1;
+                    else
+                        mndx = 2;
+                    selectMode();
+                    return; 
+                }
+                ////------------------ SWIPE RIGHT  -------------------------------------------
+                else  // Swipe 
+                {
+                //    Serial.println("Band +");
+                    Freq += 100000;
+                    if (Freq > 32000000) 
+                        Freq =1000000;
+                    fndx = 4;
+                    selectStep(fndx);
+                    displayStep();
+                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+                    selectFrequency(); 
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+                    if (Freq < 10000000)
+                        mndx = 1;
+                    else
+                        mndx = 2;
+                    selectMode(); 
+                    return;    
+                }
+            }                                 
+            break;
         }
+        ////------------------ PINCH -------------------------------------------
         case 2: // look for T1 going in opposite directiom compared to T2. If T1-T2 closer to 0 it is a Pinch IN            
         {       
                 int16_t t1_x_s = touch_evt.start_coordinates[0][0];
@@ -305,29 +358,32 @@ void Button_Handler(int16_t x, uint16_t y)
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
     B_num = 1;
-    if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>0&&x<100)&&(y>60&&y<120))
+    //if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
+    if((x>0&&x<80)&&(y>0&&y<80))
     {
-
+        // Delect MODE
         selectMode();
         return;
     }
     B_num = 2;
-    if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>0&&x<100)&&(y>152&&y<200))
+    //if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
+    if((x>100&&x<200)&&(y>0&&y<80))
     {
+        // Change Bandwidth
         bndx=bndx+1;
         if(bndx>8)
         {
-            bndx=8;
+            bndx=4;
         } 
         selectBandwidth(bndx);
-        return;
+        return; 
     }  
     B_num = 3;
     if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
     //if((x>0&&x<100)&&(y>242&&y<290))
     {
+        /*
+        // Change Bandwidth
         bndx=bndx-1;
         if(bndx<0)
         {
@@ -335,11 +391,13 @@ void Button_Handler(int16_t x, uint16_t y)
         } 
         selectBandwidth(bndx);
         return;
+        */
     }
     B_num = 4;
     if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
     //if((x>0&&x<100)&&(y>270&&y<350))
     {
+        /*
         fndx=fndx+1;
         if(fndx>5)
         {
@@ -347,15 +405,17 @@ void Button_Handler(int16_t x, uint16_t y)
         } 
         selectStep(fndx);
         return;
+        */
     }
     B_num = 5;
-    if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>0&&x<100)&&(y>330&&y<410))
+    //if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
+    if((x>520&&x<690)&&(y>0&&y<80))
     {
+        // Change Tune Step Rate
         fndx=fndx-1;
         if(fndx<0)
         {
-            fndx=0;
+            fndx=5;
         } 
         selectStep(fndx);
         return;
@@ -397,8 +457,8 @@ void Button_Handler(int16_t x, uint16_t y)
         return;
     }
     B_num = 3;
-    if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>700&&x<800)&&(y>235&&y<290))
+    //if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
+    if((x>700&&x<800)&&(y>0&&y<80))
     {      
         selectAgc();
         delay(300);
@@ -438,6 +498,7 @@ void Button_Handler(int16_t x, uint16_t y)
     if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
     //if((x>700&&x<800)&&(y>330&&y<410))
     {
+        /*
     //    Serial.println("Band +");
         Freq += 1000000;
         if (Freq > 32000000) 
@@ -453,12 +514,14 @@ void Button_Handler(int16_t x, uint16_t y)
         else
             mndx = 2;
         selectMode(); 
-        return;         
+        return;     
+        */    
     }
     B_num = 6;
     if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
     //if((x>700&&x<800)&&(y>420&&y<480))
     {
+        /*
         //    Serial.println("Band -");
         Freq -= 1000000;
         if (Freq < 1800000) 
@@ -475,6 +538,7 @@ void Button_Handler(int16_t x, uint16_t y)
             mndx = 2;
         selectMode();
         return;         
+        */
     }     
 }
 
