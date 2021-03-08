@@ -1,9 +1,10 @@
 # KEITHSDR
+
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 <<<<<<< Updated upstream
     3/8/2021
     1. Convertred from FFT256iq to FFT1024iq
-    
+
     3/6/2021
     Created initial upload for SDR with RA8875 display based on latest K7MDL build.
     1. Changed from FFT1024 to FFT256iq in preparaton for FFT1024.  
