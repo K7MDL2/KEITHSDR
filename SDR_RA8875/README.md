@@ -6,6 +6,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
     1. Removed redundant folder level.
     2. Converted form FFT256IQ to FFT1024IQ
+    3. makefile (for VS Code users) modified to use a .vsteensy build folder 2 levels in attempt to remove from VS Code search path and keep propject folder clean for source control. 
 
 ## 3/6/2021
 
