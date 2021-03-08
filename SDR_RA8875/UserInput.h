@@ -237,34 +237,53 @@ void Gesture_Handler(uint8_t gesture)
             Serial.print(" T1_Y="); Serial.print(T1_Y);                
             #endif
 
-            ////------------------ SWIPE UP UP -------------------------------------------
+            ////------------------ SWIPE -------------------------------------------
             if ( abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
             {               
                 //Serial.println("\nSwipe Vertical");
+                ////------------------ SWIPE DOWN  -------------------------------------------
                 if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
                 {
                     //Serial.println(" Swipe DOWN");
-                    //Set_Spectrum_RefLvl(-1);  // swipe down    
-                    fndx=fndx-1;
-                    if(fndx<0)
-                    {
-                        fndx=0;
-                    }                      
+                    //Set_Spectrum_RefLvl(-1);  // swipe down  
+                    //    Serial.println("Band -");
+                    Freq -= 1000000;
+                    if (Freq < 1800000) 
+                        Freq =1800000;
+                    fndx = 4;
                     selectStep(fndx);
-                    return;                                        
+                    displayStep();
+                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+                    selectFrequency(); 
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+                    if (Freq < 10000000)
+                        mndx = 1;
+                    else
+                        mndx = 2;
+                    selectMode();
+                    return;                                      
                 } 
-                ////------------------ SWIPE DOWN DOWN  -------------------------------------------
+                ////------------------ SWIPE UP  -------------------------------------------
                 else
                 {
                     //Serial.println(" Swipe UP");
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
-                    fndx=fndx+1;
-                    if(fndx>5)
-                    {
-                        fndx=5;
-                    }
+                //    Serial.println("Band +");
+                    Freq += 1000000;
+                    if (Freq > 32000000) 
+                        Freq =1000000;
+                    fndx = 4;
                     selectStep(fndx);
-                    return;                                          
+                    displayStep();
+                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+                    selectFrequency(); 
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+                    if (Freq < 10000000)
+                        mndx = 1;
+                    else
+                        mndx = 2;
+                    selectMode(); 
+                    return;                                        
                 }
             } 
             ////------------------ SWIPE LEFT  -------------------------------------------
