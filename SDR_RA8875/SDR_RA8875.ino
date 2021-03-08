@@ -1,6 +1,6 @@
-//  Updated 3/6/2021
+//  Updated 3/8/2021
 //
-// Spectrum, Display, full F32 library conversion completed 2/19/2021.   
+// Spectrum, Display, full F32 library conversion completed 3/2021.  Using FFT1024_IQ_F32.   
 // Spectrum not calibrated, need t be scaled to full width, bar disp not working, work in progress.
 // Spectrum code moved to spectrum.h.  Band up and Band down button configure in lower right corner.  
 // Spectrum DOT plot is working.  Bars are not yet.  Scales are not accurate, no zoom/span yet.  Resizing is working.
@@ -49,11 +49,11 @@ const int myInput = AUDIO_INPUT_LINEIN;
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024, 187.5/bin for 256 FFTiq
+float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024, 187.5/bin for 256 FFTiq
 //float sample_rate_Hz = 51200.0f;    // 50Hz/bin for 1024, 200Hz/bin for 256 FFT
-float sample_rate_Hz = 102400.0f;  // 100Hz/bin
-//float sample_rate_Hz = 192000.0f;  // 200Hz/bin
-//float sample_rate_Hz = 204800.0f;  // x/bin
+//float sample_rate_Hz = 102400.0f;  // 100Hz/bin
+//float sample_rate_Hz = 192000.0f;  // 190Hz/bin
+//float sample_rate_Hz = 204800.0f;  // 200/bin
 const int   audio_block_samples = 128;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
@@ -61,9 +61,9 @@ AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 //============================================  Start of Spectrum Setup Section =====================================================
 //
 // used for spectrum object
-//#define FFT_SIZE            256           // need a constant for array size declarion so manually set this value here   Could try a macro later
+//#define FFT_SIZE            1024           // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 or FFT_SIZE for iq version
-float fft_bin_size = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE*2 for iq
+float fft_bin_size = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 
 extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
 int16_t waterfall_speed     = 60;    // window update rate in ms.  25 is fast enough to see dit and dahs well
@@ -85,8 +85,8 @@ AudioAnalyzePeak_F32    Q_Peak;
 AudioAnalyzePeak_F32    I_Peak;
 AudioAnalyzePeak_F32    CW_Peak;
 AudioAnalyzeRMS_F32     CW_RMS;  
-//AudioAnalyzeFFT1024_F32 myFFT;
-AudioAnalyzeFFT256_IQ_F32 myFFT;
+AudioAnalyzeFFT1024_IQ_F32  myFFT;
+//AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
 
 //#define TEST_SINEWAVE_SIG
@@ -167,7 +167,7 @@ void setup()
 	tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
 	#endif    
 	initSpectrum_RA8875();    // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
-	initDisplay();    // Draw main screen  Call after initSpectrum_RA8875()
+	//initDisplay();    // Draw main screen  Call after initSpectrum_RA8875()
 	initVfo();        // initialize the si5351 vfo
 	SetFreq();        // just run this for something to do
 	displayFreq(); // display frequency
@@ -176,7 +176,7 @@ void setup()
 	selectStep(fndx);    
 	displayAgc();
 
-    // TODO: Move this to set mode and/or bandwidth sectoin when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
+    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
     RX_Summer.gain(0,-3.0);   // Leave at 1.0
     RX_Summer.gain(1,3.0);  // -1 for LSB out
     bndx = 8;
@@ -192,9 +192,9 @@ void setup()
     delay(500);
     codec1.dacVolumeRampDisable();    // Turn off the sound for now
     codec1.inputSelect(myInput);    
-    codec1.lineInLevel(15,15);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
-    codec1.lineOutLevel(20,20);    // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    codec1.volume(0.7);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+    codec1.lineInLevel(8);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
+    codec1.lineOutLevel(13);    // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    codec1.volume(1.0);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
     codec1.autoVolumeControl(2,0,0,-36.0,12,6); // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
     //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
