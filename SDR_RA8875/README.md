@@ -1,9 +1,5 @@
 # KEITHSDR
-
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
-<<<<<<< Updated upstream
-    3/8/2021
-    1. Convertred from FFT256iq to FFT1024iq
 
     3/6/2021
     Created initial upload for SDR with RA8875 display based on latest K7MDL build.
@@ -20,5 +16,3 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     11. Broke the horizontal grid line generation
     12. Began work on band up and down using band memory settings
     13. Thickened the dot mode spectrum line by averaging a few adjacxent bins and drawing a 2 pixel line.
-=======
->>>>>>> Stashed changes
