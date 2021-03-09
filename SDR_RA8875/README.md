@@ -13,6 +13,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     7. Swipe left and right to increment Frequency by 100K steps.
     8. Swipe up and down to change band (for now 1MHz)
     9. Pinch changes scale for now.
+    10. Created some wiki pages, particularly a Libraries page with links to the external libraries we use. 
 
 
 ## 3/6/2021
