@@ -48,8 +48,8 @@ const int myInput = AUDIO_INPUT_LINEIN;
 // Audio Library setup stuff
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-//float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024, 187.5/bin for 256 FFTiq
+float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024, 187.5/bin for 256 FFTiq
 //float sample_rate_Hz = 51200.0f;    // 50Hz/bin for 1024, 200Hz/bin for 256 FFT
 //float sample_rate_Hz = 102400.0f;  // 100Hz/bin
 //float sample_rate_Hz = 192000.0f;  // 190Hz/bin
@@ -85,7 +85,8 @@ AudioAnalyzePeak_F32    Q_Peak;
 AudioAnalyzePeak_F32    I_Peak;
 AudioAnalyzePeak_F32    CW_Peak;
 AudioAnalyzeRMS_F32     CW_RMS;  
-AudioAnalyzeFFT1024_IQ_F32  myFFT;
+AudioAnalyzeFFT2048_IQ_F32  myFFT;
+//AudioAnalyzeFFT1024_IQ_F32  myFFT;
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
 
@@ -134,7 +135,7 @@ String increment="";
 String agc="";
 //
 //================================================ Frequency Set =============================================================
-volatile uint32_t Freq = 14074000;        //I used 7850000  frequency CHU  Time Signal Canada
+volatile uint32_t Freq = 7074000;        //I used 7850000  frequency CHU  Time Signal Canada
 //================================================ Frequency Set =============================================================
 //
 volatile uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly

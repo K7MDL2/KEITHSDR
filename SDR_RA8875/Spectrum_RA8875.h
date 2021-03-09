@@ -76,13 +76,13 @@ Metro fftFreq_timestamp = Metro(fftFreq_refresh);
     //  The default is 3 (requires no call)               2
 
 // From main file where sampling rate and other audio library features are set
-extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
+extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
 extern volatile uint32_t        Freq;                     
 
-#define FFT_SIZE                1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
+#define FFT_SIZE                2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
 int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
 int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
@@ -261,7 +261,7 @@ void spectrum_update(int16_t s)
         {      // If our display area is less then our data width, fill in the outside areas with low values.
             //L_EDGE = (ptr->wf_sp_width - FFT_SIZE - )/2;
             //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
-/*
+            /*
             for (i=0; i< FFT_SIZE/4; i++)        
                 tempfft[i] = -500;
             for (i=(FFT_SIZE/4)*3; i< FFT_SIZE; i++)        
@@ -294,7 +294,7 @@ void spectrum_update(int16_t s)
               case 1: avg = *(pout+((i*16/10)))*0.5 + *(pout+((i-1)*16/10))*0.18 + *(pout+((i-2)*16/10))*0.07 + *(pout+((i+1)*16/10))*0.18 + *(pout+((i+2)*16/10))*0.07;                
                       line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrt (abs(avg)*ptr->spect_wf_scale) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);
                       line_buffer[i] = colorMap(line_buffer[i]/1000, ptr->spect_wf_colortemp);
-                      Serial.println(line_buffer[i]);    
+                      //Serial.println(line_buffer[i]);    
                       break;                  
               case 2: avg = line_buffer[i] = colorMap(abs(*(pout+i)) * 1.8 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);                      
                       break;
