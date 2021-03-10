@@ -2,7 +2,12 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
-## 3/92021 to 3/10/2021
+## 3/10/2021
+
+    1. Fixed CW filter lockup issue.
+    2. Press lower left corner hot spot for a suprise feature experiment.
+
+## 3/9/2021 to 3/10/2021
 
     1. Converted to 2048_IQ FFT.  Display will center the carrier frequency and trim off unused FFT data to fit the available screen area your layout is using.
     2. Created a 800 pixel wide layout to show 800 pixels of the 2048 bins available with 1:1 bin /pixel mapping.
