@@ -564,13 +564,13 @@ void pop_win(uint8_t init)
     {
         popup_timer.interval(300);
         tft.setActiveWindow(200, 600, 160, 450);
-        tft.fillWindow();
+        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_LIGHT_GREY);
         tft.drawRoundRect(200,160, 400, 290, 20, RA8875_RED);
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("this is a future keyboard");
         delay(3000);
-        tft.fillWindow();
+        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_LIGHT_ORANGE);
         tft.drawRoundRect(200,160, 400, 290, 20, RA8875_RED);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("Thanks for watching, GoodBye!");
@@ -579,7 +579,7 @@ void pop_win(uint8_t init)
    // }
    // else 
    // {
-        tft.fillWindow();
+        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_BLACK);
         tft.setActiveWindow();
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
