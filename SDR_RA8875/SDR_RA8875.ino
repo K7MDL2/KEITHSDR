@@ -195,20 +195,28 @@ void setup()
     codec1.inputSelect(myInput);    
     codec1.lineInLevel(8);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
     codec1.lineOutLevel(13);    // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    if (bandmem[0].spkr_en == ON)
-        codec1.volume(bandmem[0].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
     codec1.autoVolumeControl(2,0,0,-36.0,12,6); // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
     //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
     codec1.autoVolumeEnable();// let the volume control itself..... poor mans agc
     //codec1.autoVolumeDisable();// Or don't let the volume control itself
-    codec1.unmuteHeadphone();
     codec1.unmuteLineout(); //unmute the audio output
     codec1.adcHighPassFilterDisable();
     codec1.dacVolume(0);    // set the "dac" volume (extra control)
     // Now turn on the sound    
-    RampVolume(1.0, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-
+	if (bandmem[0].spkr_en == ON)
+    {
+        codec1.volume(bandmem[0].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+        codec1.unmuteHeadphone();
+        displayMute(OFF);
+		RampVolume(1.0, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+    }
+    else 
+    {
+        codec1.muteHeadphone();
+        displayMute(ON);
+    }
+    
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
     AudioNoInterrupts();
     FFT_Switch1.gain(0,1.0f);   //  1 is Input source before filtering, 0 is off,

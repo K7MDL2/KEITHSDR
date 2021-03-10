@@ -336,14 +336,15 @@ void Gesture_Handler(uint8_t gesture)
             //Serial.println("\n3 point swipe Vertical");
             ////------------------ SWIPE DOWN  -------------------------------------------
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
-            {
-                Serial.println("3-point Volume DOWN");
-                codec1.volume(bandmem[0].spkr_Vol_last-0.05);  // was 3 finger swipe down
+            {                
+                codec1.volume(bandmem[0].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
+                
+                Serial.print("3-point Volume DOWN  "); Serial.println(bandmem[0].spkr_Vol_last);
             }
             else
             {
-                Serial.println("3-point Volume UP");
-                codec1.volume(bandmem[0].spkr_Vol_last+0.05);  // was 3 finger swipe up
+                codec1.volume(bandmem[0].spkr_Vol_last += 0.1);  // was 3 finger swipe up
+                Serial.print("3-point Volume UP  "); Serial.println(bandmem[0].spkr_Vol_last);
             }                
             break;
         }        
@@ -367,7 +368,7 @@ void Button_Handler(int16_t x, uint16_t y)
         popup_timer.reset();
 
     // MODE
-    if((x>0&&x<100)&&(y>0&&y<50))
+    if ((x>0&&x<100)&&(y>0&&y<50))
     {
         // Select MODE
         selectMode(bandmem[curr_band].mode+1); 
@@ -375,7 +376,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // BANDWIDTH
-    if((x>120&&x<280)&&(y>0&&y<50))
+    if ((x>120&&x<280)&&(y>0&&y<50))
     {
         // Change Bandwidth  - cycle down then back to the top
         selectBandwidth(bandmem[curr_band].bandwidth - 1);  // send index to bw table
@@ -383,15 +384,36 @@ void Button_Handler(int16_t x, uint16_t y)
     }  
 
     // TUNE STEP
-    if((x>520&&x<680)&&(y>0&&y<50))
+    if ((x>520&&x<680)&&(y>0&&y<50))
     {
         // Change Tune Step Rate - Cycle up then to the bottom 
         selectStep();
         return;
     }
+    
+    // MUTE
+    if ((x>230&&x<340)&&(y>60&&y<100))
+    {
+        static uint8_t mute = OFF;
+        if (bandmem[0].spkr_en)
+        {
+            if (!mute)
+            {
+                RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+                mute = ON;
+            }
+            else    
+            {    //codec1.muteHeadphone();
+                RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
+                mute = OFF;            
+            }
+            displayMute(mute);
+        }        
+        return;
+    }
 
     // SETTINGS (hidden button for testing for now)
-    if((x>0&&x<100)&&(y>420&&y<480))
+    if ((x>0&&x<100)&&(y>420&&y<480))
     {
         // Settings Button
         popup = 1;
@@ -405,7 +427,7 @@ void Button_Handler(int16_t x, uint16_t y)
     } 
 
     // ATTENUATOR button
-    if((x>0&&x<100)&&(y>60&&y<100))
+    if ((x>0&&x<100)&&(y>60&&y<100))
     {
         if (bandmem[curr_band].attenuator == ATTEN_ON)
             bandmem[curr_band].attenuator = ATTEN_OFF;
@@ -418,7 +440,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // PREAMP button
-    if((x>110&&x<220)&&(y>60&&y<100))
+    if ((x>110&&x<220)&&(y>60&&y<100))
     {
         if (bandmem[curr_band].preamp == PREAMP_ON)
             bandmem[curr_band].preamp = PREAMP_OFF;
@@ -431,7 +453,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // AGC button
-    if((x>700&&x<800)&&(y>0&&y<50))
+    if ((x>700&&x<800)&&(y>0&&y<50))
     {      
         selectAgc(bandmem[curr_band].agc_mode + 1);
         Serial.print("Set AGC to ");
@@ -440,7 +462,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // DISPLAY Test button (hidden area)
-    if((x>700&&x<800)&&(y>440&&y<480))
+    if ((x>700&&x<800)&&(y>440&&y<480))
     {
         // DISPLAY BUTTON  - test usage today for spectum mostly
         //Draw a black box where the old window was

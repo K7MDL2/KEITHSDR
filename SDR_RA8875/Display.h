@@ -28,47 +28,47 @@ int textcolor = tft.Color565(128, 128, 128);
 //////////////////////////////////////////////////////////////
 void displayMode()
 {
-  tft.fillRect(0, 0, 100, 30, RA8875_BLACK );
-  tft.setFont(Arial_18);
-  tft.setCursor(10,6);
-  tft.setTextColor(RA8875_LIGHT_ORANGE);
-  tft.print(Mode[bandmem[curr_band].mode]);    // use MODE{band][mode] to retrieve the text}
+	tft.fillRect(0, 0, 100, 30, RA8875_BLACK );
+	tft.setFont(Arial_18);
+	tft.setCursor(10,6);
+	tft.setTextColor(RA8875_LIGHT_ORANGE);
+	tft.print(Mode[bandmem[curr_band].mode]);    // use MODE{band][mode] to retrieve the text}
 }
 
 void displayBandwidth()
 {
- tft.fillRect(120, 0, 160, 30, RA8875_BLACK);
- tft.setFont(Arial_18);
- tft.setCursor(130, 6 );
- tft.setTextColor(RA8875_LIGHT_ORANGE);
- tft.print(bw[bandmem[curr_band].bandwidth].bw_name);   // use bw[current band.bandwidth index] to retrieve the text}
+	tft.fillRect(120, 0, 160, 30, RA8875_BLACK);
+	tft.setFont(Arial_18);
+	tft.setCursor(130, 6 );
+	tft.setTextColor(RA8875_LIGHT_ORANGE);
+	tft.print(bw[bandmem[curr_band].bandwidth].bw_name);   // use bw[current band.bandwidth index] to retrieve the text}
 }
 
 void displayFreq()
 { 
- tft.fillRect(305, 0, 215, 40, RA8875_BLACK);
- tft.setFont(Arial_32);
- tft.setCursor(306,6);
- tft.setTextColor(RA8875_LIGHT_ORANGE);
- tft.print(float(VFOA)/1000,3);
+	tft.fillRect(305, 0, 215, 40, RA8875_BLACK);
+	tft.setFont(Arial_32);
+	tft.setCursor(306,6);
+	tft.setTextColor(RA8875_LIGHT_ORANGE);
+	tft.print(float(VFOA)/1000,3);
 }
 
 void displayStep()
 {
-  tft.fillRect(520, 0, 150, 30, RA8875_BLACK);
-  tft.setFont(Arial_18);
-  tft.setCursor(525,6);
-  tft.setTextColor(RA8875_LIGHT_ORANGE);
-  tft.print(tstep[bandmem[curr_band].tune_step].ts_name);
+	tft.fillRect(520, 0, 150, 30, RA8875_BLACK);
+	tft.setFont(Arial_18);
+	tft.setCursor(525,6);
+	tft.setTextColor(RA8875_LIGHT_ORANGE);
+	tft.print(tstep[bandmem[curr_band].tune_step].ts_name);
 }
 
 void displayAgc()
 {
-  tft.fillRect(688, 0, 120, 40, RA8875_BLACK);
-  tft.setFont(Arial_18);
-  tft.setCursor(680,6);
-  tft.setTextColor(RA8875_LIGHT_ORANGE);
-  tft.print(agc_set[bandmem[curr_band].agc_mode].agc_name);
+	tft.fillRect(688, 0, 120, 40, RA8875_BLACK);
+	tft.setFont(Arial_18);
+	tft.setCursor(680,6);
+	tft.setTextColor(RA8875_LIGHT_ORANGE);
+	tft.print(agc_set[bandmem[curr_band].agc_mode].agc_name);
 }
 
 void displayAttn(uint8_t attenuator)
@@ -80,15 +80,15 @@ void displayAttn(uint8_t attenuator)
 	int bh = bb*4;
 	int br = 10;
 
-    tft.fillRect(bx,by,bw,bh, RA8875_BLACK );
-    tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
+  	tft.fillRoundRect(bx,by,bw,bh, br, RA8875_BLACK );
+  	tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
 	//tft.fillRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
 	
 	tft.setFont(Arial_18);
     tft.setCursor(bx+bb*2,by+bb);
-	if (attenuator==0)
+	if (attenuator == 0)
  		tft.setTextColor(RA8875_LIGHT_GREY); 
- 	if (attenuator==1)
+ 	if (attenuator == 1)
  		tft.setTextColor(RA8875_GREEN); 
 	tft.print("Attn");
 }
@@ -102,16 +102,37 @@ void displayPreamp(uint8_t preamp)
 	int bh = bb*4;
 	int br = 10;
 
-    tft.fillRect(bx,by,bw,bh, RA8875_BLACK );
+  	tft.fillRoundRect(bx,by,bw,bh, br, RA8875_BLACK );
     
-	if(preamp==1)
+	if(preamp == 1)
 		tft.fillRoundRect(bx,by,bw,bh,br,RA8875_BLUE);
-	if(preamp==0)
+	if(preamp == 0)
 		tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
 	tft.setFont(Arial_18);
 	tft.setTextColor(RA8875_LIGHT_GREY); 
     tft.setCursor(bx+bb+1,by+bb);
     tft.print("Preamp");
+}
+
+void displayMute(uint8_t mute)
+{
+	int bx = 230;
+	int by = 60;
+	int bb = 10;
+	int bw = bb*11;
+	int bh = bb*4;
+	int br = 10;
+
+  	tft.fillRoundRect(bx,by,bw,bh, br, RA8875_BLACK );
+    
+	if(mute == ON)
+		tft.fillRoundRect(bx,by,bw,bh,br,RA8875_BLUE);
+	if(mute == OFF)
+		tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
+	tft.setFont(Arial_18);
+	tft.setTextColor(RA8875_LIGHT_GREY); 
+    tft.setCursor(bx+bb+1,by+bb);
+    tft.print(" Mute ");
 }
 
 //
