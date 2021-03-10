@@ -6,6 +6,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
     1. Fixed CW filter lockup issue.
     2. Press lower left corner hot spot for a suprise feature experiment.
+    3. Added Mute button, works when speaker is ENABLED. If Speaker is OFF, then MUTE is always ON.
 
 ## 3/9/2021 to 3/10/2021
 
