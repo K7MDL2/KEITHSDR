@@ -413,7 +413,7 @@ void Button_Handler(int16_t x, uint16_t y)
         uint8_t s = spectrum_preset;
         tft.fillRect(Sp_Parms_Def[s].spect_x, Sp_Parms_Def[s].spect_y, Sp_Parms_Def[s].spect_width, Sp_Parms_Def[s].spect_height, RA8875_BLACK);  // x start, y start, width, height, array of colors w x h
         spectrum_preset += 1;
-        if (spectrum_preset > 8)
+        if (spectrum_preset > PRESETS-1)
             spectrum_preset = 0;         
         drawSpectrumFrame(spectrum_preset);
         spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
