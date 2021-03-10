@@ -24,7 +24,8 @@
 #define BUTTON_TOUCH    40  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
 //#define MAXTOUCHLIMIT    2  //1...5
 
-Metro gesture_timer=Metro(700);  // Change this to tune the button press timing. A drag will be > than this time.
+Metro gesture_timer=Metro(200);  // Change this to tune the button press timing. A drag will be > than this time.
+extern Metro popup_timer; // used to check for popup screen request
 
 // Our  extern declarations. Mostly needed for button activities.
 //extern RA8875   tft;
@@ -37,6 +38,7 @@ extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st bo
 extern volatile uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern AudioControlSGTL5000 codec1;
+extern uint8_t popup;
 
 // The below are fixed numbers based on screen size and other screen object edges
 // These will also be be need to declared as extern variables in other files to leverage.
@@ -58,6 +60,7 @@ void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
 void Gesture_Handler(uint8_t gesture);
 void changeBands(int8_t direction);
+void pop_win(uint8_t init);
 
 // structure to record the touch event info used to determine if there is a button press or a gesture.
 struct Touch_Control{            
@@ -360,6 +363,9 @@ void Button_Handler(int16_t x, uint16_t y)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
+    if (popup)
+        popup_timer.reset();
+
     // MODE
     if((x>0&&x<100)&&(y>0&&y<50))
     {
@@ -388,7 +394,8 @@ void Button_Handler(int16_t x, uint16_t y)
     if((x>0&&x<100)&&(y>420&&y<480))
     {
         // Settings Button
-        
+        popup = 1;
+        pop_win(1);
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
              Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
@@ -549,4 +556,33 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectStep();
     selectAgc(bandmem[curr_band].agc_mode);
     RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+}
+
+void pop_win(uint8_t init)
+{
+    if(init)
+    {
+        popup_timer.interval(300);
+        tft.setActiveWindow(200, 600, 160, 450);
+        tft.fillWindow();
+        tft.drawRoundRect(200,160, 400, 290, 20, RA8875_RED);
+        tft.setTextColor(RA8875_BLUE);
+        tft.setCursor(CENTER, CENTER, true);
+        tft.print("this is a future keyboard");
+        delay(3000);
+        tft.fillWindow();
+        tft.drawRoundRect(200,160, 400, 290, 20, RA8875_RED);
+        tft.setCursor(CENTER, CENTER, true);
+        tft.print("Thanks for watching, GoodBye!");
+        delay(1000);
+        popup = 0;
+   // }
+   // else 
+   // {
+        tft.fillWindow();
+        tft.setActiveWindow();
+        popup = 0;   // resume our normal schedule broadcast
+        popup_timer.interval(65000);
+        drawSpectrumFrame(spectrum_preset);
+    }
 }
