@@ -13,7 +13,7 @@
 #define RA8875_INT        14  //any pin
 #define RA8875_CS         10  //any digital pin
 #define RA8875_RESET      9   //any pin or nothing!
-#define MAXTOUCHLIMIT     2   //1...5
+#define MAXTOUCHLIMIT     3   //1...5
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
@@ -193,7 +193,8 @@ void setup()
     codec1.inputSelect(myInput);    
     codec1.lineInLevel(8);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
     codec1.lineOutLevel(13);    // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    codec1.volume(1.0);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+    if (bandmem[0].spkr_en == ON)
+        codec1.volume(bandmem[0].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
     codec1.autoVolumeControl(2,0,0,-36.0,12,6); // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
     //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
