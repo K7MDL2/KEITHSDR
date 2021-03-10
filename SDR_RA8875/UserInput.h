@@ -36,6 +36,7 @@ extern uint8_t curr_band;   // global tracks our current band setting.
 extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern volatile uint32_t VFOB;
 extern struct Band_Memory bandmem[];
+extern AudioControlSGTL5000 codec1;
 
 // The below are fixed numbers based on screen size and other screen object edges
 // These will also be be need to declared as extern variables in other files to leverage.
@@ -223,15 +224,25 @@ void Touch( void)
 *
 */
 void Gesture_Handler(uint8_t gesture)
-{   
+{
+    // Get our various coordinates
+    int16_t T1_X = touch_evt.distance[0][0];  
+    int16_t T1_Y = touch_evt.distance[0][1];   
+    int16_t t1_x_s = touch_evt.start_coordinates[0][0];
+    int16_t t1_y_s = touch_evt.start_coordinates[0][1];
+    int16_t t2_x_s = touch_evt.start_coordinates[1][0];
+    int16_t t2_y_s = touch_evt.start_coordinates[1][1];
+
+    int16_t t1_x_e = touch_evt.last_coordinates[0][0];
+    int16_t t1_y_e = touch_evt.last_coordinates[0][1];
+    int16_t t2_x_e = touch_evt.last_coordinates[1][0];
+    int16_t t2_y_e = touch_evt.last_coordinates[1][1];
+
     switch (gesture) 
     {
         ////------------------ SWIPE -------------------------------------------
-        case 1:  // must be a swipe or drag.  Get direction vertical or horizontal
+        case 1:  // only 1 touch so must be a swipe or drag.  Get direction vertical or horizontal
         { 
-            int16_t T1_X = touch_evt.distance[0][0];  
-            int16_t T1_Y = touch_evt.distance[0][1];
-
             //#define DBG_GESTURE
 
             #ifdef DBG_GESTURE
@@ -293,30 +304,46 @@ void Gesture_Handler(uint8_t gesture)
         ////------------------ PINCH -------------------------------------------
         case 2: // look for T1 going in opposite directiom compared to T2. If T1-T2 closer to 0 it is a Pinch IN            
         {       
-                int16_t t1_x_s = touch_evt.start_coordinates[0][0];
-                int16_t t1_y_s = touch_evt.start_coordinates[0][1];
-                int16_t t2_x_s = touch_evt.start_coordinates[1][0];
-                int16_t t2_y_s = touch_evt.start_coordinates[1][1];
-
-                int16_t t1_x_e = touch_evt.last_coordinates[0][0];
-                int16_t t1_y_e = touch_evt.last_coordinates[0][1];
-                int16_t t2_x_e = touch_evt.last_coordinates[1][0];
-                int16_t t2_y_e = touch_evt.last_coordinates[1][1];
-
-                // Calculate the distance between T1 and T2 at the start
-                int16_t dist_start  = sqrt(pow(t2_x_s - t1_x_s, 2) + pow(t2_y_s - t1_y_s, 2));
-                int16_t dist_end    = sqrt(pow(t2_x_e - t1_x_e, 2) + pow(t2_y_e - t1_y_e, 2));
-                #ifdef DBG_GESTURE
-                Serial.print("Dist Start ="); Serial.println(dist_start);
-                Serial.print("Dist End   ="); Serial.println(dist_end);
-                #endif
-                // Calculate the distance between T1 and T2 at the end   
-                if (dist_end < dist_start)                        
-                    Set_Spectrum_Scale(-1); // Was a pinch in.  Just pass on direction, the end function can look for distance if needed
-                else
-                    Set_Spectrum_Scale(1); // was a pinch out   
-                break;
+            // Calculate the distance between T1 and T2 at the start
+            int16_t dist_start  = sqrt(pow(t2_x_s - t1_x_s, 2) + pow(t2_y_s - t1_y_s, 2));
+            int16_t dist_end    = sqrt(pow(t2_x_e - t1_x_e, 2) + pow(t2_y_e - t1_y_e, 2));
+            #ifdef DBG_GESTURE
+            Serial.print("Dist Start ="); Serial.println(dist_start);
+            Serial.print("Dist End   ="); Serial.println(dist_end);
+            #endif
+            // Calculate the distance between T1 and T2 at the end   
+            if (dist_start - dist_end > 200 )                        
+                Set_Spectrum_Scale(-1); // Was a pinch in.  Just pass on direction, the end function can look for distance if needed
+            if (dist_end - dist_start > 200)                        
+                Set_Spectrum_Scale(1); // was a pinch out   
+            if (dist_end - dist_start <= 200  && abs(t1_x_s - t1_x_e) < 200  && abs(t1_y_s - t1_y_e) > 200)
+            {
+                Serial.println("Volume UP");
+                //codec1.volume(bandmem[0].spkr_Vol_last+0.2);  // was 2 finger swipe down
+            }
+            else if (dist_start - dist_end <= 200)
+            {
+                Serial.println("Volume DOWN");
+                //codec1.volume(bandmem[0].spkr_Vol_last-0.2);  // was 2 finger swipe up
+            }
+            break;
         }
+        case 3: if (abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
+        {               
+            //Serial.println("\n3 point swipe Vertical");
+            ////------------------ SWIPE DOWN  -------------------------------------------
+            if (T1_Y > 0)  // y is negative so must be vertical swipe do
+            {
+                Serial.println("3-point Volume DOWN");
+                codec1.volume(bandmem[0].spkr_Vol_last-0.05);  // was 3 finger swipe down
+            }
+            else
+            {
+                Serial.println("3-point Volume UP");
+                codec1.volume(bandmem[0].spkr_Vol_last+0.05);  // was 3 finger swipe up
+            }                
+            break;
+        }        
         case 0: // nothing applicable, leave
        default: Serial.println(" Gesture = 0 : Should not be here!");
                 return;  // leave, should not be here
