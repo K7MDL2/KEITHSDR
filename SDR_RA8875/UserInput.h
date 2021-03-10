@@ -219,7 +219,7 @@ void Touch( void)
 /*
 *   The built in gesture detection rarely works.
 *   Only pinch and swipe up are ever reported on my test display and swipe up is a rare event.
-*   So we will track the touch point time and cordinates and figure it out on our own.
+*   So we will track the touch point time and coordinates and figure it out on our own.
 *
 */
 void Gesture_Handler(uint8_t gesture)
@@ -239,7 +239,7 @@ void Gesture_Handler(uint8_t gesture)
             Serial.print(" T1_Y="); Serial.print(T1_Y);                
             #endif
 
-            ////------------------ SWIPE -------------------------------------------
+            ////------------------ SWIPE ----------------------------------------------------////
             if ( abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
             {               
                 //Serial.println("\nSwipe Vertical");
@@ -247,7 +247,7 @@ void Gesture_Handler(uint8_t gesture)
                 if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
                 {                    
                     //Serial.println(" Swipe DOWN"); 
-                    //    Serial.println("Band -");
+                    //Serial.println("Band -");
                     changeBands(-1);                                     
                 } 
                 ////------------------ SWIPE UP  -------------------------------------------
@@ -255,15 +255,16 @@ void Gesture_Handler(uint8_t gesture)
                 {
                     //Serial.println(" Swipe UP");
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
-                //    Serial.println("Band +");
+                    //Serial.println("Band +");
                     changeBands(1);                                     
                 }
             } 
-            ////------------------ SWIPE LEFT  -------------------------------------------
-            else  // X moved, not Y, horiznatal swipe
+            ////------------------ SWIPE LEFT & RIGHT -------------------------------------------////
+            else  // X moved, not Y, horizontal swipe
             {
+                ////------------------ SWIPE LEFT  -------------------------------------------
                 //Serial.println("\nSwipe Horizontal");
-                if (T1_X < 0)  // y is negative so must be vertical swipe down direction
+                if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {
                     Serial.println("-100KHz");
                     VFOA -= 100000;
@@ -275,7 +276,7 @@ void Gesture_Handler(uint8_t gesture)
                     return; 
                 }
                 ////------------------ SWIPE RIGHT  -------------------------------------------
-                else  // Swipe Right
+                else  // or larger so a Swipe Right
                 {
                     Serial.println("+100KHz");
                     VFOA += 100000;
