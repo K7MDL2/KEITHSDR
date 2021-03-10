@@ -32,7 +32,9 @@ void selectBandwidth(int bndx)
         //bandwidth="Bw 250 Hz";
         Hilbert1.begin(Hilbert_Plus45_500,151);
         Hilbert2.begin(Hilbert_Minus45_500,151);
-        //CW_Filter.setBandpass(0,250.0f,9.0f);                     
+        CW_Filter.end();
+        CW_Filter.setBandpass(0,250.0f,9.0f);   
+        CW_Filter.begin();                  
     }
 
     if(bndx==1)
@@ -40,7 +42,9 @@ void selectBandwidth(int bndx)
         //bandwidth="Bw 500 Hz";
         Hilbert1.begin(Hilbert_Plus45_500,151);
         Hilbert2.begin(Hilbert_Minus45_500,151);
-        //CW_Filter.setBandpass(0,500.0f,9.0f);
+        CW_Filter.end();
+        CW_Filter.setBandpass(0,500.0f,9.0f);
+        CW_Filter.begin();
     }
     
     if(bndx==2)
@@ -48,7 +52,9 @@ void selectBandwidth(int bndx)
         //bandwidth="Bw 700 Hz";
         Hilbert1.begin(Hilbert_Plus45_700,151);
         Hilbert2.begin(Hilbert_Minus45_700,151);
-        //CW_Filter.setBandpass(0,700.0f,9.0f);
+        CW_Filter.end();
+        CW_Filter.setBandpass(0,700.0f,9.0f);
+        CW_Filter.begin();
     }
 
     if(bndx==3)
@@ -56,7 +62,9 @@ void selectBandwidth(int bndx)
         //bandwidth="Bw 1.0 kHz";
         Hilbert1.begin(Hilbert_Plus45_1K,151);
         Hilbert2.begin(Hilbert_Minus45_1K,151);
-        //CW_Filter.setBandpass(0,1000.0f,9.0f);
+        CW_Filter.end();
+        CW_Filter.setBandpass(0,1000.0f,9.0f);
+        CW_Filter.begin();
     }
 
     if(bndx==4)
