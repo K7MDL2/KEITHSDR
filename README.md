@@ -17,4 +17,6 @@ The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 
 See the README file in each project for specifics about that build.
 
 UI as of 3/10/2021
-<https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/3-10-2021%20ScreenShot.jpg
+
+![UI Screenshot 3-10-2021](SDR_RA8875/Pictures/3-10-2021 ScreenShot.jpg)
+
