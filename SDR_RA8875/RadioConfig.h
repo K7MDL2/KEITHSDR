@@ -51,7 +51,8 @@
 #define XVTR10      10
 #define XVTR11      11
 #define XVTR12      12
-#define BAND1       1       // Band slot ID
+#define BAND0       0       // Band slot ID
+#define BAND1       1       
 #define BAND2       2
 #define BAND3       3
 #define BAND4       4
@@ -69,53 +70,65 @@
 #define AGC_FAST    3
 #define MIC_OFF     0
 #define MIC_ON      1
+#define BW0_25       0
+#define BW0_5       1
+#define BW0_7       2
+#define BW1_0       3
+#define BW1_8       4
+#define BW2_3       5
+#define BW2_8       6
+#define BW3_2       7
+#define BW4_0       8
 
-
-// Function declarations
-void NextBand(void);
-
-// Our Database of settings
+// Our Database of settings. This is the "factory default".  A user copy wil be stored in EEPROM with user changes
 #define BANDS   11
 struct Band_Memory {
-    char        band_name[20];
-    float       edge_lower;
-    float       edge_upper;
-    float       vfo_A_last;
-    float       vfo_B_last;
-    uint8_t     mode;           // CW, LSB, USB, DATA
-    uint8_t     band_num;
-    uint8_t     tune_step;
-    uint8_t     agc_mode;       // index to group of AGC settings in antoehr table
-    uint8_t     split;
-    float       RIT;
-    float       XIT;
-    uint8_t     tuner;          // enable ATU or not
-    uint8_t     ant_sw;         // antenna selector switch
-    uint8_t     preselector;    // preselector band set value
-    uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set
-    uint8_t     preamp; 
+    char        band_name[20];  // Freindly name or label.  Default here but can be changed by user.
+    uint32_t    edge_lower;     // band edge limits for TX and for when to change to next band when tuning up or down.
+    uint32_t    edge_upper;
+    uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
+    uint32_t    vfo_B_last;
+    uint8_t     mode;           // CW, LSB, USB, DATA.  255 = ignore and use current mode
+    uint8_t     bandwidth;      // index to Bandwidth selection for this band.
+    uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
+    uint16_t    tune_step;      // last step rate on this band.  Index to Tune step table  255 = ignore and use current
+    uint8_t     agc_mode;       // index to group of AGC settings in another table
+    uint8_t     split;          // split active or not. 255 is feature disabled
+    uint32_t    RIT;            // RIT active.  255 is feature disabled
+    uint32_t    XIT;            // XIT active.  255 is feature disabled
+    uint8_t     ATU;            // enable ATU or not. 255 is feature disabled
+    uint8_t     ant_sw;         // antenna selector switch. 255 is feature disabled
+    uint8_t     preselector;    // preselector band set value. 255 is feature disabled
+    uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set. 255 is feature disabled
+    uint8_t     preamp;         // 0-off, 1 is level 2, level 2, 255 is feature disabled
     uint8_t     mic_input_en;   // mic on or off
-    float       mic_Gain_last;
+    float       mic_Gain_last;  // last used mic gain on this band
     uint8_t     lineIn_en;      // line in on or off
-    float       lineIn_Vol_last;
-    uint8_t     spkr_en;        // 0 is disable or mute
-    float       spkr_Vol_last;  // last seting for unmut or power on (Wen we store in EEPROM)
+    uint8_t     lineIn_Vol_last;// last used line in setting on this band. 255 is ignore and use current value
+    uint8_t     spkr_en;        // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
+    float       spkr_Vol_last;  // last setting for unmute or power on (When we store in EEPROM)
     uint8_t     lineOut_en;     // line out on or off
-    float       lineOut_Vol_last;
-    uint8_t     xvtr_en;   // use Tranverter Table or not
-    uint8_t     xvtr_num;  // index to Transverter Table 
-} static bandmem[BANDS] = {
-    {"160M", 1800.0, 2000.0, 1840.0, 1860.0, LSB, BAND1,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "80M", 3500.0, 4000.0, 3573.0, 3830.0, LSB, BAND2,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "60M", 5000.0, 5000.0, 5000.0, 5000.0, USB, BAND3,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "40M", 7000.0, 7300.0, 7040.0, 7200.0,DATA, BAND4,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "30M",10000.0,10200.0,10136.0,10136.0,DATA, BAND5,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "20M",14000.0,14350.0,21074.0,14200.0,DATA, BAND6,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "17M",18000.0,18150.0,18000.0,18000.0, USB, BAND7,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "15M",21000.0,21450.0,21074.0,21350.0,DATA, BAND8,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "12M",24890.0,25000.0,24890.0,24920.0, USB, BAND9,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    { "10M",28000.0,29600.0,28100.0,28074.0,DATA,BAND10,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 },
-    {  "6M",50000.0,54000.0,50125.0,50313.0, USB,BAND11,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0 }
+    uint8_t     lineOut_Vol_last;// last line out setting used on this band. 255 is ignore and use the current value.
+    uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
+    uint8_t     xvtr_num;       // index to Transverter Table.  
+    uint8_t     spectrum_idx;   // index to spectrum settings table for per band settings like ref level and span
+} bandmem[BANDS] = { 
+    // name    lower   upper    VFOA     VFOB    mode bw     band step  agc SPLIT RIT XIT ATU ANT PRESELECT   ATTEN     PREAMP     MIC   MG  LI LG SP VOL LO LOG X XV SPC
+    {"160M", 1800000, 2000000, 1840000, 1860000, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 0 },
+    { "80M", 3500000, 4000000, 3573000, 3830000, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 1 },
+    { "60M", 5000000, 5000000, 5000000, 5000000, USB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 2 },
+    { "40M", 7000000, 7300000, 7074000, 7200000,DATA, BW4_0, BAND3,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 3 },
+    { "30M",10000000,10200000,10136000,10136000,DATA, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 4 },
+    { "20M",14000000,14350000,14074000,14200000,DATA, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 5 },
+    { "17M",18000000,18150000,18135000,18100000, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 6 },
+    { "15M",21000000,21450000,21074000,21350000,DATA, BW4_0, BAND7,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 7 },
+    { "12M",24890000,25000000,24915000,24904000,  CW, BW1_8, BAND8,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 8 },
+    { "10M",28000000,29600000,28074000,28074000,DATA, BW3_2, BAND9,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 9 },
+    {  "6M",50000000,54000000,50125000,50313000, USB, BW3_2,BAND10,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0,10 }
+};
+
+struct AudioSettings {
+
 };
 
 #define XVTRS 12
@@ -143,7 +156,7 @@ struct Transverter {
     {"47100",   OFF, XVTR12, 47100, 1296, 0.50, 0.0, XVTR12}
 };
 
-#define AGS_SET_NUM 4
+#define AGC_SET_NUM 4
 struct AGC {
     char        agc_name[10];
     uint8_t     agc_maxGain;
@@ -152,71 +165,68 @@ struct AGC {
     float       agc_threshold;
     float       agc_attack;
     float       agc_decay;
-} agc_set[AGS_SET_NUM] = {
-    { "AGC OFF",2,0,0,-36.0,12.0,6.0},
-    {"AGC SLOW",2,0,0,-36.0,12.0,6.0},
-    { "AGC MED",2,0,0,-36.0,12.0,6.0},
-    {"AGC FAST",2,0,0,-36.0,12.0,6.0}
+} agc_set[AGC_SET_NUM] = {
+    {"AGC-OFF",2,0,0,-36.0,12.0,6.0},
+    {"AGC-S  ",2,0,0,-36.0,12.0,6.0},
+    {"AGC-M  ",2,0,0,-36.0,12.0,6.0},
+    {"AGC-F  ",2,0,0,-36.0,12.0,6.0}
 };
 
 #define USER_SETTINGS_NUM 3
 struct User_Settings {
     char        configset_name[20]; // friendly anme for this record
-    uint16_t    spectrum_preset;    // Sets the Spectrum module layout preset
+    uint16_t    sp_preset;    // Sets the Spectrum module layout preset
     uint8_t     main_page;          // stores index to page settings table
-    uint8_t     band_popup;         // index to band selection pop-up page layout
+    uint8_t     band_popup;         // index to band selection pop-up page layout preference
     uint8_t     usrcfgpage_1;       // index to user configuration page layout
     uint8_t     usrcfgpage_2;       // index to user configuration page layout
     uint8_t     usrcfgpage_3;       // index to user configuration page layout
     uint8_t     last_band;          // index into band memeory table to recall last settings  - this might get moved out later
 } usr_set[USER_SETTINGS_NUM] = {
-    {"User Config #1", 9, 0, 0, 0, 0, 0, BAND1},
+    {"User Config #1", 10, 0, 0, 0, 0, 0, BAND3},
     {"User Config #2", 1, 0, 0, 0, 0, 0, BAND2},
     {"User Config #3", 6, 0, 0, 0, 0, 0, BAND6}
 };
 
 
-//
-//----------------------------------- Skip to Ham Bands only ---------------------------------
-//
-// Increment band up or down from present.   To be used with touch or physical band UP/DN buttons.
-// A alternate method (not in this function) is to use a band button or gesture to do a pop up selection map.  
-// A rotary encoder can cycle through the choices and push to select or just touch the desired band.
-//
+// per-band settings for common user adjsutments that are band dependent. The index is the band number.
+struct Spectrum_Settings {
+    uint16_t    Ref_level;      //Spectrum common adjustments due to noise level and scale/gain choices during operation.
+    uint16_t    Span;
+    float       scale;
+};
 
+#define BWSTEPS 9
+struct Bandwidth_Settings {
+    char        bw_name[12];    // display name for UI
+    uint16_t    bw;             //bandwidth in HZ
+    uint8_t     pref_mode;      // preferred mode when enabled (future use)
+} bw[BWSTEPS] = {
+    {"BW 250Hz ", 250, CW},
+    {"BW 500Hz ", 500, CW},
+    {"BW 700Hz ", 700, CW},
+    {"BW 1.0KHz", 500, CW},
+    {"BW 1.8KHz", 500, CW},
+    {"BW 2.3KHz", 500, USB},
+    {"BW 2.8KHz", 500, USB},
+    {"BW 3.2KHz", 500, USB},
+    {"BW 4.0KHz",4000, DATA}
+};
 
-//  TODO   Revamp this to use the new band settings structures
-void NextBand(void)
-{
-    float new_band_freq = 0;
-    //float offset = 0;
-    float band = 0;                              
-                // non-direct band change commands, usually from sources like WSJT-X where a frequency is provided rather than specific band info.
-    if (band < 1800000)
-        new_band_freq = 1800000.0f;
-    else if ( 1800000 < band && band < 3500000)
-        new_band_freq = 1800000.0f;
-    else if ( 3500000 < band && band < 5000000)
-        new_band_freq = 3500000.0f;
-    else if ( 5000000 < band && band < 7000000)
-        new_band_freq = 5000000.0f;
-    else if ( 7000000 < band && band < 10000000)
-        new_band_freq = 7000000.0f;
-    else if (10000000 < band && band < 14000000)
-        new_band_freq = 10000000.0f;
-    else if (14000000 < band && band < 18000000)
-        new_band_freq = 14000000.0f;
-    else if (18000000 < band && band < 21000000)
-        new_band_freq = 18000000.0f;
-    else if (21000000 < band && band < 24800000)
-     new_band_freq = 21000000.0f;
-    else if (24800000 < band && band < 28000000)
-        new_band_freq = 24800000.0f;
-    else if (28000000 < band && band < 32000000)
-        new_band_freq = 28000000.0f;
-    else if (band > 32000000)
-        new_band_freq = 32000000;
-    
-    return;
+char Mode[4][5] = {"CW", "LSB", "USB", "DATA"};
 
-}
+#define TS_STEPS 8
+struct TuneSteps {
+    char        ts_name[12];    // display name for UI
+    uint16_t    step;             //bandwidth in HZ
+    uint8_t     pref_mode;      // preferred mode when enabled (future use)
+} tstep[TS_STEPS] = {
+    {"Ts 1Hz ",       1,  CW},
+    {"Ts 10Hz ",     10,  CW},
+    {"Ts 100Hz ",   100,  CW},
+    {"Ts 250Hz ",   250,  CW},
+    {"Ts 1.0KHz",  1000,  CW},
+    {"Ts 2.5KHz",  2500, USB},
+    {"Ts 5.0KHz",  5000, USB},
+    {"Ts 10.0KHz",10000, USB}
+};

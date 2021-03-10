@@ -1,44 +1,15 @@
 #include <Audio.h> 
-extern AudioMixer4_F32              RX_Summer; 
-extern int andx;
-extern String agc;
+extern AudioMixer4_F32    RX_Summer; 
+extern struct Band_Memory bandmem[];
 
-void selectAgc()
+void selectAgc(uint8_t andx)
 {
- // String mode;
-  
-  if(andx==0)
-  {
-            Serial.println("Lets set the AGC to off");
-            agc="AGC-Off";
-  }
-      
-  if(andx==1)
-  {
-            Serial.println("Lets set the AGC to Slow");
-            agc="AGC-S";
-  }
+    if (andx >= AGC_SET_NUM)
+      	andx = AGC_OFF; 		// Cycle around
 
-  if(andx==2)
-  {
-            Serial.println("Lets set the AGC to Medium");
-            agc="AGC-M";
-  }
-  
-  if(andx==3)
-  {
-            Serial.println("Lets set the AGC to Fast");
-            agc="AGC-F";
-  }
-  
-
-  if(andx==4)
-  {
-    andx=0;
-  }
-  else
-  {
-    andx= andx+1;
-  }
-  displayAgc();
+	if (andx <  AGC_OFF)
+    	andx = AGC_SET_NUM - 1;		// Cycle around
+		
+  	bandmem[curr_band].agc_mode = andx;
+ 	displayAgc();
 }

@@ -80,7 +80,7 @@ extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
-extern volatile uint32_t        Freq;                     
+extern volatile uint32_t        VFOA;                     
 
 #define FFT_SIZE                2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
@@ -584,7 +584,7 @@ void spectrum_update(int16_t s)
             tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
             tft.print("F: "); 
             tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
-            float pk_temp = Freq/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
+            float pk_temp = VFOA/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
             tft.print(pk_temp,1);
             fft_pk_bin_last = fft_pk_bin;
             fftFreq_timestamp.reset();  // reset the timer sicne we have new good data
@@ -620,21 +620,21 @@ void spectrum_update(int16_t s)
             spect_ref_last = sp_floor_avg;   // update memory
         }    
             
-        // Update the span labels with current frequencies    
+        // Update the span labels with current VFOAuencies    
         tft.setTextColor(myLT_GREY);
         tft.setFont(Arial_12);
 
         tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-        tft.print( (float) (Freq/1000) - (ptr->wf_sp_width*fft_bin_size/1000),1);       // Write left side of graph Freq
+        tft.print( (float) (VFOA/1000) - (ptr->wf_sp_width*fft_bin_size/1000),1);       // Write left side of graph Freq
         
         tft.fillRect( ptr->c_graph-27, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
         tft.setCursor(ptr->c_graph-27, ptr->sp_txt_row);
-        tft.print( (float) (Freq/1000),1);   // Write center of graph Freq   
+        tft.print( (float) (VFOA/1000),1);   // Write center of graph Freq   
         
         tft.fillRect( ptr->r_graph_edge - 60, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
         tft.setCursor(ptr->r_graph_edge - 60, ptr->sp_txt_row);
-        tft.print( (float) (Freq/1000) + (ptr->wf_sp_width*fft_bin_size/1000),1);  // Write right side of graph Freq
+        tft.print( (float) (VFOA/1000) + (ptr->wf_sp_width*fft_bin_size/1000),1);  // Write right side of graph Freq
         
         // Write the dB range of the window 
         tft.setTextColor(myLT_GREY);

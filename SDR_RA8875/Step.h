@@ -1,46 +1,41 @@
-extern int fndx;
-extern volatile uint32_t fstep;
-extern String increment;
+//
+// Step.h
+//
 
-void selectStep(int ndx)
-{
-  if(fndx==0)
-  {
-            Serial.println("Lets set the step to 1 Hz");
-            increment="Ts 1 Hz";
-            fstep=1;
-  }
-  if(fndx==1)
-  {
-            Serial.println("Lets set the step to 10 Hz");
-            increment="Ts 10 Hz";
-            fstep=10;
-  }
-  if(fndx==2)
-  {
-            Serial.println("Lets set the step to 100 Hz");
-            increment="Ts 100 Hz";
-            fstep=100;
-  }
- if(fndx==3)
-  {
-            Serial.println("Lets set the step to 250 Hz");
-            increment="Ts 250 Hz";
-            fstep=250;
-  }
+extern struct TuneSteps tstep[];
+extern struct Band_Memory bandmem[];
 
-  if(fndx==4)
-  {
-            Serial.println("Lets set the step to 1000 Hz");
-            increment="Ts 1 kHz";
-            fstep=1000;
-  }
+void selectStep()
+{ 
+	
+	static int direction = 1;
+	int fndx = bandmem[curr_band].tune_step;
+	
+	// 1. Limit to allowed step range
+	// 2. Cycle up and at top, cycle back down, do nto roll over.
+  	if (fndx <= 0)
+ 	{
+   		fndx = 0;
+		direction = 1;   // cycle upwards
+	}
 
-  if(fndx==5)
-  {
-            Serial.println("Lets set the step to 10 KHz");
-            increment="Ts 10 kHz";
-            fstep=10000;
-  }
-  displayStep();
+	if (fndx >= TS_STEPS-1)
+	{
+      	fndx = TS_STEPS-1;
+		direction = -1;
+	}
+	
+	fndx += direction; // Index our step up or down
+
+	if (fndx > TS_STEPS-1)   // ensure we are still in range
+		fndx = TS_STEPS - 1;  // just in case it over ranges, bad stuff happens when it does
+	if (fndx < 0)
+		fndx = 0;  // just in case it over ranges, bad stuff happens when it does		
+
+
+	bandmem[curr_band].tune_step = fndx;
+
+	Serial.print("Set Tune Step to ");
+	Serial.println(tstep[bandmem[curr_band].tune_step].ts_name);
+	displayStep();
 }

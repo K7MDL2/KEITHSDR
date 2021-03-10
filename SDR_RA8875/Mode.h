@@ -1,79 +1,72 @@
-#include <Audio.h> 
+//
+//	 Mode.h
+//
+
 extern AudioMixer4_F32  RX_Summer; 
 extern AudioMixer4_F32  FFT_Switch1;
 extern AudioMixer4_F32  FFT_Switch2;
-extern int mndx;
-extern String mode;
 
-void selectMode()
+void selectMode(uint8_t mndx)
 {
- // String mode;
-  
-  if(mndx==0)
-  {
-      Serial.println("Lets set the mode to CW");
-      mode="CW";
-      AudioNoInterrupts();
-        RX_Summer.gain(0,1);
-        RX_Summer.gain(1,-1);
-        FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
-        FFT_Switch2.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch2.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
-      AudioInterrupts();
-  }
+  	if (mndx > DATA)
+   		mndx=0;
+	if (mndx < CW)
+		mndx = CW;
+
+	if(mndx == CW)
+	{
+		//mode="CW";
+		AudioNoInterrupts();
+		RX_Summer.gain(0,1);
+		RX_Summer.gain(1,-1);
+		FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
+		FFT_Switch2.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch2.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
+		AudioInterrupts();
+  	}
       
-  if(mndx==1)
-  {
-      Serial.println("Lets set the mode to LSB");
-      mode="LSB";
-      AudioNoInterrupts();
-        RX_Summer.gain(0,1);
-        RX_Summer.gain(1,-1);
-        FFT_Switch1.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT          
-        FFT_Switch2.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT       
-      AudioInterrupts(); 
-  }
+	if(mndx == LSB)
+	{
+		//mode="LSB";
+		AudioNoInterrupts();
+		RX_Summer.gain(0,1);
+		RX_Summer.gain(1,-1);
+		FFT_Switch1.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT          
+		FFT_Switch2.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT       
+		AudioInterrupts(); 
+	}
 
-  if(mndx==2)
-  {
-      Serial.println("Lets set the mode to USB");
-      mode="USB";          
-      AudioNoInterrupts();
-        RX_Summer.gain(0,1);
-        RX_Summer.gain(1,1);
-        FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-        FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-      AudioInterrupts();
-  }
+	if(mndx == USB)
+	{
+		//mode="USB";          
+		AudioNoInterrupts();
+		RX_Summer.gain(0,1);
+		RX_Summer.gain(1,1);
+		FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
+		FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
+		AudioInterrupts();
+	}
 
-  if(mndx==3)
-  {
-      Serial.println("Lets set the mode to DATA at 4KHz BW");
-      mode="DATA";          
-      AudioNoInterrupts();
-        RX_Summer.gain(0,1);
-        RX_Summer.gain(1,1);
-        FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-        FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-        FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-      AudioInterrupts();
-  }
-  
-  displayMode();
-   
-  if(mndx==3)
-  {
-      mndx=0;
-  }
-  else
-  {
-      mndx= mndx+1;
-  }
-  
+	if(mndx == DATA)
+	{
+		//mode="DATA";          
+		AudioNoInterrupts();
+		RX_Summer.gain(0,1);
+		RX_Summer.gain(1,1);
+		FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
+		FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
+		FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
+		AudioInterrupts();
+	}
+
+	bandmem[curr_band].mode = mndx;
+	Serial.print("Lets set the mode to ");
+	Serial.println(bw[bandmem[curr_band].mode].bw_name);  	
+  	displayMode();
 }

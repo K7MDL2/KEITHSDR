@@ -32,6 +32,10 @@ Metro gesture_timer=Metro(700);  // Change this to tune the button press timing.
 extern void RampVolume(float vol, int16_t rampType);
 //extern void Spectrum_Parm_Generator(int);
 //extern struct Spectrum_Parms Sp_Parms_Def[];
+extern uint8_t curr_band;   // global tracks our current band setting.  
+extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern volatile uint32_t VFOB;
+extern struct Band_Memory bandmem[];
 
 // The below are fixed numbers based on screen size and other screen object edges
 // These will also be be need to declared as extern variables in other files to leverage.
@@ -52,7 +56,7 @@ void Button_Handler(int16_t x, uint16_t y);
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
 void Gesture_Handler(uint8_t gesture);
-uint32_t HamBands(uint32_t band);
+void changeBands(int8_t direction);
 
 // structure to record the touch event info used to determine if there is a button press or a gesture.
 struct Touch_Control{            
@@ -62,8 +66,6 @@ struct Touch_Control{
     uint16_t    last_coordinates[MAXTOUCHLIMIT][2];   // updated to curent or end of event location
 int16_t         distance[MAXTOUCHLIMIT][2];  // signed value used for direction.  5 touch points with X and Y values each.
 } static touch_evt;   // create a static instance of the structure to remember between events
-
-
 
 //
 // _______________________________________ Touch() ____________________________
@@ -243,25 +245,10 @@ void Gesture_Handler(uint8_t gesture)
                 //Serial.println("\nSwipe Vertical");
                 ////------------------ SWIPE DOWN  -------------------------------------------
                 if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
-                {
-                    //Serial.println(" Swipe DOWN");
-                    //Set_Spectrum_RefLvl(-1);  // swipe down  
+                {                    
+                    //Serial.println(" Swipe DOWN"); 
                     //    Serial.println("Band -");
-                    Freq -= 1000000;
-                    if (Freq < 1800000) 
-                        Freq =1800000;
-                    fndx = 4;
-                    selectStep(fndx);
-                    displayStep();
-                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-                    selectFrequency(); 
-                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-                    if (Freq < 10000000)
-                        mndx = 1;
-                    else
-                        mndx = 2;
-                    selectMode();
-                    return;                                      
+                    changeBands(-1);                                     
                 } 
                 ////------------------ SWIPE UP  -------------------------------------------
                 else
@@ -269,65 +256,34 @@ void Gesture_Handler(uint8_t gesture)
                     //Serial.println(" Swipe UP");
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
                 //    Serial.println("Band +");
-                    Freq += 1000000;
-                    if (Freq > 32000000) 
-                        Freq =1000000;
-                    fndx = 4;
-                    selectStep(fndx);
-                    displayStep();
-                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-                    selectFrequency(); 
-                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-                    if (Freq < 10000000)
-                        mndx = 1;
-                    else
-                        mndx = 2;
-                    selectMode(); 
-                    return;                                        
+                    changeBands(1);                                     
                 }
             } 
             ////------------------ SWIPE LEFT  -------------------------------------------
             else  // X moved, not Y, horiznatal swipe
             {
                 //Serial.println("\nSwipe Horizontal");
-                if (T1_X < 0)  // y is negative so must be vertical swipe down direction                    
-                    //  will use for span zoom OUT                        
+                if (T1_X < 0)  // y is negative so must be vertical swipe down direction
                 {
-                    //    Serial.println("Band -");
-                    Freq -= 100000;
-                    if (Freq < 1800000) 
-                        Freq =1800000;
-                    fndx = 4;
-                    selectStep(fndx);
-                    displayStep();
+                    Serial.println("-100KHz");
+                    VFOA -= 100000;
+                    if (VFOA < bandmem[curr_band].edge_lower) 
+                        VFOA = bandmem[curr_band].edge_lower;                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
                     selectFrequency(); 
-                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-                    if (Freq < 10000000)
-                        mndx = 1;
-                    else
-                        mndx = 2;
-                    selectMode();
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
                     return; 
                 }
                 ////------------------ SWIPE RIGHT  -------------------------------------------
-                else  // Swipe 
+                else  // Swipe Right
                 {
-                //    Serial.println("Band +");
-                    Freq += 100000;
-                    if (Freq > 32000000) 
-                        Freq =1000000;
-                    fndx = 4;
-                    selectStep(fndx);
-                    displayStep();
+                    Serial.println("+100KHz");
+                    VFOA += 100000;
+                    if (VFOA < bandmem[curr_band].edge_lower) 
+                        VFOA = bandmem[curr_band].edge_lower;                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
                     selectFrequency(); 
-                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-                    if (Freq < 10000000)
-                        mndx = 1;
-                    else
-                        mndx = 2;
-                    selectMode(); 
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
                     return;    
                 }
             }                                 
@@ -370,78 +326,38 @@ void Gesture_Handler(uint8_t gesture)
 //
 //   Input:     X and Y coordinates for normal button push events.
 //  Output:     None.  Acts on specified button.  
-//   Usage:     Called from teh touch sensor broker Touch().
+//   Usage:     Called from the touch sensor broker Touch().
 //
 void Button_Handler(int16_t x, uint16_t y)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
-    B_num = 1;
-    //if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    if((x>0&&x<80)&&(y>0&&y<80))
+    // MODE
+    if((x>0&&x<100)&&(y>0&&y<50))
     {
-        // Delect MODE
-        selectMode();
+        // Select MODE
+        selectMode(bandmem[curr_band].mode+1); 
         return;
     }
-    B_num = 2;
-    //if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    if((x>100&&x<200)&&(y>0&&y<80))
+
+    // BANDWIDTH
+    if((x>120&&x<280)&&(y>0&&y<50))
     {
-        // Change Bandwidth
-        bndx=bndx+1;
-        if(bndx>8)
-        {
-            bndx=4;
-        } 
-        selectBandwidth(bndx);
+        // Change Bandwidth  - cycle down then back to the top
+        selectBandwidth(bandmem[curr_band].bandwidth - 1);  // send index to bw table
         return; 
     }  
-    B_num = 3;
-    if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>0&&x<100)&&(y>242&&y<290))
+
+    // TUNE STEP
+    if((x>520&&x<680)&&(y>0&&y<50))
     {
-        /*
-        // Change Bandwidth
-        bndx=bndx-1;
-        if(bndx<0)
-        {
-            bndx=0;
-        } 
-        selectBandwidth(bndx);
-        return;
-        */
-    }
-    B_num = 4;
-    if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>0&&x<100)&&(y>270&&y<350))
-    {
-        /*
-        fndx=fndx+1;
-        if(fndx>5)
-        {
-            fndx=5;
-        } 
-        selectStep(fndx);
-        return;
-        */
-    }
-    B_num = 5;
-    //if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    if((x>520&&x<690)&&(y>0&&y<80))
-    {
-        // Change Tune Step Rate
-        fndx=fndx-1;
-        if(fndx<0)
-        {
-            fndx=5;
-        } 
-        selectStep(fndx);
+        // Change Tune Step Rate - Cycle up then to the bottom 
+        selectStep();
         return;
     }
-    B_num = 6;
-    if ((x > L_frame_left && x < L_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>0&&x<100)&&(y>420&&y<480))
+
+    // SETTINGS (hidden button for testing for now)
+    if((x>0&&x<100)&&(y>420&&y<480))
     {
         // Settings Button
         
@@ -449,43 +365,47 @@ void Button_Handler(int16_t x, uint16_t y)
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
              Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
         Serial.print("spectrum_wf_colortemp = ");
-        Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp);
-        
-        
+        Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
         return;  
     } 
 
-        ///////////////////////Right Side//////////////////////////////////      
+    // ATTENUATOR button
+    if((x>0&&x<100)&&(y>60&&y<100))
+    {
+        if (bandmem[curr_band].attenuator == ATTEN_ON)
+            bandmem[curr_band].attenuator = ATTEN_OFF;
+        else if (bandmem[curr_band].attenuator == ATTEN_OFF)
+            bandmem[curr_band].attenuator = ATTEN_ON;
+        displayAttn(bandmem[curr_band].attenuator);
+        Serial.print("Set Attenuator to ");
+        Serial.println(bandmem[curr_band].attenuator,DEC);
+        return;
+    }
 
-    B_num = 1;
-    if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>700&&x<800)&&(y>60&&y<120))
+    // PREAMP button
+    if((x>110&&x<220)&&(y>60&&y<100))
     {
-        displayAttn();
-        // preamp=1;
-        // displayPreamp();
+        if (bandmem[curr_band].preamp == PREAMP_ON)
+            bandmem[curr_band].preamp = PREAMP_OFF;
+        else if (bandmem[curr_band].preamp == PREAMP_OFF)
+            bandmem[curr_band].preamp = PREAMP_ON;
+        displayPreamp(bandmem[curr_band].preamp);
+        Serial.print("Set Preamp to ");
+        Serial.println(bandmem[curr_band].preamp,DEC);
         return;
     }
-    B_num = 2;
-    if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>700&&x<800)&&(y>152&&y<200))
-    {
-        displayPreamp();
-        // attenuator=1;
-        //    displayAttn();
-        return;
-    }
-    B_num = 3;
-    //if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    if((x>700&&x<800)&&(y>0&&y<80))
+
+    // AGC button
+    if((x>700&&x<800)&&(y>0&&y<50))
     {      
-        selectAgc();
-        delay(300);
+        selectAgc(bandmem[curr_band].agc_mode + 1);
+        Serial.print("Set AGC to ");
+        Serial.println(bandmem[curr_band].agc_mode,DEC);
         return;
     }
-    B_num = 4;
-    if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>700&&x<800)&&(y>270&&y<350))
+
+    // DISPLAY Test button (hidden area)
+    if((x>700&&x<800)&&(y>440&&y<480))
     {
         // DISPLAY BUTTON  - test usage today for spectum mostly
         //Draw a black box where the old window was
@@ -512,53 +432,7 @@ void Button_Handler(int16_t x, uint16_t y)
             */
         Spectrum_Parm_Generator(spectrum_preset);  // Generate values for current display (on the fly) or filling in teh ddefauil table for Presets.  value of 0 to PRESETS.
         return;
-    } 
-    B_num = 5;
-    if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>700&&x<800)&&(y>330&&y<410))
-    {
-        /*
-    //    Serial.println("Band +");
-        Freq += 1000000;
-        if (Freq > 32000000) 
-            Freq =1000000;
-        fndx = 4;
-        selectStep(fndx);
-        displayStep();
-        RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-        selectFrequency(); 
-        RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-        if (Freq < 10000000)
-            mndx = 1;
-        else
-            mndx = 2;
-        selectMode(); 
-        return;     
-        */    
-    }
-    B_num = 6;
-    if ((x > R_frame_left && x < R_frame_right) && (y > Top_frame+(B_height*(B_num-1)) && y < Top_frame+(B_height*(B_num))))
-    //if((x>700&&x<800)&&(y>420&&y<480))
-    {
-        /*
-        //    Serial.println("Band -");
-        Freq -= 1000000;
-        if (Freq < 1800000) 
-            Freq =1800000;
-        fndx = 4;
-        selectStep(fndx);
-        displayStep();
-        RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-        selectFrequency(); 
-        RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-        if (Freq < 10000000)
-            mndx = 1;
-        else
-            mndx = 2;
-        selectMode();
-        return;         
-        */
-    }     
+    }   
 }
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -602,4 +476,49 @@ void Set_Spectrum_RefLvl(int8_t zoom_dir)
         Sp_Parms_Def[spectrum_preset].spect_floor = -400; 
     if (Sp_Parms_Def[spectrum_preset].spect_floor > 400)
         Sp_Parms_Def[spectrum_preset].spect_floor = 400;
+}
+//
+//----------------------------------- Skip to Ham Bands only ---------------------------------
+//
+// Increment band up or down from present.   To be used with touch or physical band UP/DN buttons.
+// A alternate method (not in this function) is to use a band button or gesture to do a pop up selection map.  
+// A rotary encoder can cycle through the choices and push to select or just touch the desired band.
+//
+//
+// --------------------- Change bands using database -----------------------------------
+// Returns 0 if cannot change bands
+// Returns 1 if success
+
+void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
+{
+    // TODO search bands column for match toaccount for mapping that does not start with 0 and bands could be in odd order and disabled.
+    //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
+    bandmem[curr_band].vfo_A_last = VFOA;
+    bandmem[curr_band].vfo_B_last = VFOB;
+
+    // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
+    int8_t target_band = bandmem[curr_band + direction].band_num;
+    
+    Serial.print("\nTarget Band is "); Serial.println(target_band);
+
+    if (target_band > BAND9)    // go to bottom band
+        target_band = BAND0;    // 0 is not used
+    if (target_band < BAND0)    // go to top most band  -  
+        target_band = BAND9;    // 0 is not used so do not have to adjsut with a -1 here
+
+    Serial.print("\nCorrected Target Band is "); Serial.println(target_band);    
+    
+//TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
+    
+    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    curr_band = target_band;    // Set out new band
+    VFOA = bandmem[curr_band].vfo_A_last;
+    VFOB = bandmem[curr_band].vfo_B_last;
+    Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
+    selectFrequency(); 
+    selectBandwidth(bandmem[curr_band].bandwidth);
+    selectMode(bandmem[curr_band].mode);
+    selectStep();
+    selectAgc(bandmem[curr_band].agc_mode);
+    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
 }

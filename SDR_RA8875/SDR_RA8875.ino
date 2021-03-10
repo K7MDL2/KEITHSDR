@@ -24,6 +24,7 @@
 #include <Audio.h>            // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 
+#include "RadioConfig.h"
 #include "hilbert.h"          // This and below are local project files
 #include "Vfo.h"
 #include "Display.h"
@@ -36,8 +37,7 @@
 #include "CW_Tune.h"
 #include "Quadrature.h"
 #include "Spectrum_RA8875.h"
-#include "RadioConfig.h"
-#include "UserInput.h"   // include after Spectrun_RA8875.h abd Display.h
+#include "UserInput.h"   // include after Spectrum_RA8875.h and Display.h
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
@@ -48,12 +48,12 @@ const int myInput = AUDIO_INPUT_LINEIN;
 // Audio Library setup stuff
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024, 187.5/bin for 256 FFTiq
-//float sample_rate_Hz = 51200.0f;    // 50Hz/bin for 1024, 200Hz/bin for 256 FFT
-//float sample_rate_Hz = 102400.0f;  // 100Hz/bin
-//float sample_rate_Hz = 192000.0f;  // 190Hz/bin
-//float sample_rate_Hz = 204800.0f;  // 200/bin
+//float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+//float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
+//float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 const int   audio_block_samples = 128;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
@@ -66,7 +66,7 @@ int16_t fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_S
 float fft_bin_size = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 
 extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
-int16_t waterfall_speed     = 60;    // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t waterfall_speed     = 30;    // window update rate in ms.  25 is fast enough to see dit and dahs well
 Metro spectrum = Metro(waterfall_speed);
 int16_t FFT_Source          = 0;
 //
@@ -125,65 +125,63 @@ AudioConnection_F32     patchCord4g(FFT_Switch2,0, myFFT,1);
 AudioControlSGTL5000    codec1;
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
-int mndx=3; // sets the index to cycle through the modes ..
-int bndx=8; // sets the bandwidth initial index
-int fndx=4; // sets tuning step increment
-int andx=0; // AGC setting
+
 String mode="";
 String bandwidth="";
 String increment="";
 String agc="";
-//
-//================================================ Frequency Set =============================================================
-volatile uint32_t Freq = 7074000;        //I used 7850000  frequency CHU  Time Signal Canada
-//================================================ Frequency Set =============================================================
-//
-volatile uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
-volatile uint32_t fstep = 10   ; // sets the tuning increment to 10Hz
+
+// These should be saved in EEPROM periodically along with several other parameters
+uint8_t curr_band = BAND4;   // global tracks our current band setting.  
+volatile uint32_t VFOA = 0;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+volatile uint32_t VFOB = 0;
+volatile uint32_t Fc = 300; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+volatile uint32_t fstep = 10; // sets the tuning increment to 10Hz
+extern struct User_Settings usr_set[];
+
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 long newFreq=0;
 long oldFreq=0;
-int attenuator=1;
-int preamp=1;
-Metro touch=Metro(350);
-Metro meter=Metro(200);
-Metro tune=Metro(125);
+uint8_t user_Profile = 0;
+
+Metro touch=Metro(150);
+Metro meter=Metro(400);
+Metro tune=Metro(150);
 //
 // _______________________________________ Setup_____________________________________________
 //
 void setup() 
 {
-	//Wire.setClock(400000);  // Increase i2C bus transfer data rate from default of 100KHz 
-	//Serial.begin(115200);
-	tft.begin(RA8875_800x480);
-	tft.setRotation(0);
-	#if defined(USE_FT5206_TOUCH)
-	tft.useCapINT(RA8875_INT);
-	tft.setTouchLimit(MAXTOUCHLIMIT);
-	tft.enableCapISR(true);
-	tft.setTextColor(RA8875_WHITE,RA8875_BLACK);
-	#else
-	tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
-	#endif    
-	initSpectrum_RA8875();    // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
-	//initDisplay();    // Draw main screen  Call after initSpectrum_RA8875()
-	initVfo();        // initialize the si5351 vfo
-	SetFreq();        // just run this for something to do
-	displayFreq(); // display frequency
-	displayAttn();
-	displayStep();
-	selectStep(fndx);    
-	displayAgc();
-
-    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
-    RX_Summer.gain(0,-3.0);   // Leave at 1.0
-    RX_Summer.gain(1,3.0);  // -1 for LSB out
-    bndx = 8;
-    selectBandwidth(bndx);
-    selectAgc();
-    selectMode(); 
+    //Wire.setClock(400000);  // Increase i2C bus transfer data rate from default of 100KHz 
+    //Serial.begin(115200);
+    tft.begin(RA8875_800x480);
+    tft.setRotation(0);
+    #if defined(USE_FT5206_TOUCH)
+    tft.useCapINT(RA8875_INT);
+    tft.setTouchLimit(MAXTOUCHLIMIT);
+    tft.enableCapISR(true);
+    tft.setTextColor(RA8875_WHITE,RA8875_BLACK);
+    #else
+    tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
+    #endif    
+    initSpectrum_RA8875();    // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    //initDisplay();    // Draw main screen  Call after initSpectrum_RA8875()    
+    curr_band = usr_set[user_Profile].last_band;  // get last band used from user profile.  
+    spectrum_preset = usr_set[user_Profile].sp_preset;
+    //
+    //================================================ Frequency Set =============================================================
+    VFOA = bandmem[curr_band].vfo_A_last;    //I used 7850000  frequency CHU  Time Signal Canada
+    //================================================ Frequency Set =============================================================
+    //
+    initVfo();        // initialize the si5351 vfo
+    SetFreq();        // Set frequency in VFO
+    displayFreq();    // display frequency
+    displayAttn(bandmem[curr_band].attenuator);
+    displayPreamp(bandmem[curr_band].preamp);
+    selectStep();
+    selectAgc(bandmem[curr_band].agc_mode);
     
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(50, audio_settings);
@@ -207,10 +205,7 @@ void setup()
     codec1.dacVolume(0);    // set the "dac" volume (extra control)
     // Now turn on the sound    
     RampVolume(1.0, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-	mndx=3;
-	bndx = 8;
-    selectMode();
-	selectBandwidth(bndx);
+
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
     AudioNoInterrupts();
     FFT_Switch1.gain(0,1.0f);   //  1 is Input source before filtering, 0 is off,
@@ -248,6 +243,13 @@ void setup()
     sinewave3.frequency(12800.000);   //
     #endif
    
+    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
+    RX_Summer.gain(0,-3.0);   // Leave at 1.0
+    RX_Summer.gain(1,3.0);  // -1 for LSB out
+ 
+    selectBandwidth(bandmem[curr_band].bandwidth);
+    selectMode(bandmem[curr_band].mode); 
+
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS);  // FFT_RMS or FFT_POWER or FFT_DBFS
     
@@ -265,7 +267,9 @@ void setup()
             // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
             // Generator never modifies the globals so never affects the layout itself.
      // Print out our starting frequency for testing
-    Serial.print("\nInitial Dial Frequency is "); Serial.print(Freq); Serial.println("MHz");
+    Serial.print("\nInitial Dial Frequency is "); 
+    Serial.print(VFOA); 
+    Serial.println("MHz");
     
     //finish the setup by printing the help menu to the serial connections
     printHelp();
@@ -292,6 +296,7 @@ void loop()
         newFreq = Position.read();
         if(newFreq!=oldFreq)
         {
+          Serial.println();
             selectFrequency(); // need to get the tuner working //
         }
     }
