@@ -145,10 +145,12 @@ void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPU
 long newFreq=0;
 long oldFreq=0;
 uint8_t user_Profile = 0;
+uint8_t popup = 0;   // experimental flag for pop up windows
 
-Metro touch=Metro(150);
-Metro meter=Metro(400);
-Metro tune=Metro(150);
+Metro touch       = Metro(100); // used to check for touch events
+Metro meter       = Metro(400); // used to updae the meters
+Metro tune        = Metro(110); // used to check for VFO encoder changes
+Metro popup_timer = Metro(500); // used to check for popup screen request
 //
 // _______________________________________ Setup_____________________________________________
 //
@@ -271,7 +273,7 @@ void setup()
     Serial.print("\nInitial Dial Frequency is "); 
     Serial.print(VFOA); 
     Serial.println("MHz");
-    
+
     //finish the setup by printing the help menu to the serial connections
     printHelp();
 }
@@ -284,15 +286,17 @@ void loop()
     
     if (spectrum.check() == 1)
     {   
-        spectrum_update(spectrum_preset);   // valid numbers are 0 through PRESETS to index the record of predefined window layouts 
+        if (!popup)   // do not draw in the screen space while the pop up has the screen focus.
+                      // a popup must call drawSpectrumFrame when it is done and clear this flag.
+          spectrum_update(spectrum_preset);   // valid numbers are 0 through PRESETS to index the record of predefined window layouts 
     }
 
-    if(touch.check()==1) ////// touch interrupt runs wayyy tooo fast .. so scheduled it up
+    if (touch.check()==1) ////// touch interrupt runs wayyy tooo fast .. so scheduled it up
     {
-        Touch(); // need to get the touch working //
+        Touch(); // touch points and gestures        
     }
  
-    if(tune.check()==1)
+    if (tune.check()==1)   // look for VFO changes
     {
         newFreq = Position.read();
         if(newFreq!=oldFreq)
@@ -302,15 +306,20 @@ void loop()
         }
     }
     
-    if(meter.check()==1)
+    if (meter.check()==1)  // update our meers
     {
         Peak();
         // Code_Peak();
         // Quad_Check();
     }
 
+    if ( popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
+      {
+          // Service popup window
+      }
+
     //respond to Serial commands
-    while(Serial.available())
+    while (Serial.available())
     {
         respondToByte((char)Serial.read());
     }
