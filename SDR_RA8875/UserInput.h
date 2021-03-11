@@ -392,7 +392,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
     
     // MUTE
-    if ((x>230&&x<340)&&(y>60&&y<100))
+    if ((x>240&&x<350)&&(y>60&&y<100))
     {
         static uint8_t mute = OFF;
         if (bandmem[0].spkr_en)

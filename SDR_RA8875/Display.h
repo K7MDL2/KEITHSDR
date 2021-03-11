@@ -73,7 +73,7 @@ void displayAgc()
 
 void displayAttn(uint8_t attenuator)
 {
-	int bx = 8;
+	int bx = 0;
 	int by = 60;
 	int bb = 10;
 	int bw = bb*9;
@@ -116,7 +116,7 @@ void displayPreamp(uint8_t preamp)
 
 void displayMute(uint8_t mute)
 {
-	int bx = 230;
+	int bx = 240;
 	int by = 60;
 	int bb = 10;
 	int bw = bb*11;
