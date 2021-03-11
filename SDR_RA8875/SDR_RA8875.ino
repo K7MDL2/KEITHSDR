@@ -25,6 +25,8 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 
 #include "RadioConfig.h"
+#include "Spectrum_RA8875.h"
+
 #include "hilbert.h"          // This and below are local project files
 #include "Vfo.h"
 #include "Display.h"
@@ -36,7 +38,6 @@
 #include "Smeter.h"
 #include "CW_Tune.h"
 #include "Quadrature.h"
-#include "Spectrum_RA8875.h"
 #include "UserInput.h"   // include after Spectrum_RA8875.h and Display.h
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -137,7 +138,9 @@ volatile uint32_t VFOA = 0;  // 0 value should never be used more than 1st boot 
 volatile uint32_t VFOB = 0;
 volatile uint32_t Fc = 300; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 volatile uint32_t fstep = 10; // sets the tuning increment to 10Hz
-extern struct User_Settings usr_set[];
+extern struct User_Settings user_settings[];
+extern struct Band_Memory bandmem[];
+
 
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
@@ -170,8 +173,8 @@ void setup()
     #endif    
     initSpectrum_RA8875();    // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
     //initDisplay();    // Draw main screen  Call after initSpectrum_RA8875()    
-    curr_band = usr_set[user_Profile].last_band;  // get last band used from user profile.  
-    spectrum_preset = usr_set[user_Profile].sp_preset;
+    curr_band = user_settings[user_Profile].last_band;  // get last band used from user profile.  
+    spectrum_preset = user_settings[user_Profile].sp_preset;
     //
     //================================================ Frequency Set =============================================================
     VFOA = bandmem[curr_band].vfo_A_last;    //I used 7850000  frequency CHU  Time Signal Canada
@@ -204,17 +207,19 @@ void setup()
     codec1.adcHighPassFilterDisable();
     codec1.dacVolume(0);    // set the "dac" volume (extra control)
     // Now turn on the sound    
-	if (bandmem[0].spkr_en == ON)
-    {
-        codec1.volume(bandmem[0].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
-        codec1.unmuteHeadphone();
-        displayMute(OFF);
+	if (user_settings[user_Profile].spkr_en == ON)
+    {   
+		codec1.volume(user_settings[user_Profile].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+    	codec1.unmuteHeadphone();
+    	displayMute(OFF);
+		user_settings[user_Profile].mute = OFF;
 		RampVolume(1.0, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
     }
     else 
     {
         codec1.muteHeadphone();
         displayMute(ON);
+		user_settings[user_Profile].mute = ON;
     }
     
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)

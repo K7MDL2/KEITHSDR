@@ -101,30 +101,21 @@ struct Band_Memory {
     uint8_t     preselector;    // preselector band set value. 255 is feature disabled
     uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set. 255 is feature disabled
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2, 255 is feature disabled
-    uint8_t     mic_input_en;   // mic on or off
-    float       mic_Gain_last;  // last used mic gain on this band
-    uint8_t     lineIn_en;      // line in on or off
-    uint8_t     lineIn_Vol_last;// last used line in setting on this band. 255 is ignore and use current value
-    uint8_t     spkr_en;        // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
-    float       spkr_Vol_last;  // last setting for unmute or power on (When we store in EEPROM)
-    uint8_t     lineOut_en;     // line out on or off
-    uint8_t     lineOut_Vol_last;// last line out setting used on this band. 255 is ignore and use the current value.
     uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
     uint8_t     xvtr_num;       // index to Transverter Table.  
-    uint8_t     spectrum_idx;   // index to spectrum settings table for per band settings like ref level and span
 } bandmem[BANDS] = { 
     // name    lower   upper    VFOA     VFOB    mode bw     band step  agc SPLIT RIT XIT ATU ANT PRESELECT   ATTEN     PREAMP     MIC   MG  LI LG SP VOL LO LOG X XV SPC
-    {"160M", 1800000, 2000000, 1840000, 1860000, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.5,ON,20,OFF,0, 0 },
-    { "80M", 3500000, 4000000, 3573000, 3830000, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 1 },
-    { "60M", 5000000, 5000000, 5000000, 5000000, USB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 2 },
-    { "40M", 7000000, 7300000, 7074000, 7200000,DATA, BW4_0, BAND3,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 3 },
-    { "30M",10000000,10200000,10136000,10136000,DATA, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 4 },
-    { "20M",14000000,14350000,14074000,14200000,DATA, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 5 },
-    { "17M",18000000,18150000,18135000,18100000, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 6 },
-    { "15M",21000000,21450000,21074000,21350000,DATA, BW4_0, BAND7,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 7 },
-    { "12M",24890000,25000000,24915000,24904000,  CW, BW1_8, BAND8,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 8 },
-    { "10M",28000000,29600000,28074000,28074000,DATA, BW3_2, BAND9,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0, 9 },
-    {  "6M",50000000,54000000,50125000,50313000, USB, BW3_2,BAND10,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF,MIC_OFF,1.0,ON,15,ON,0.7,ON,20,OFF,0,10 }
+    {"160M", 1800000, 2000000, 1840000, 1860000, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF, 0, 0 },
+    { "80M", 3500000, 4000000, 3573000, 3830000, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0, 1 },
+    { "60M", 5000000, 5000000, 5000000, 5000000, USB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0, 2 },
+    { "40M", 7000000, 7300000, 7074000, 7200000,DATA, BW4_0, BAND3,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0, 3 },
+    { "30M",10000000,10200000,10136000,10136000,DATA, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0, 4 },
+    { "20M",14000000,14350000,14074000,14200000,DATA, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0, 5 },
+    { "17M",18000000,18150000,18135000,18100000, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0, 6 },
+    { "15M",21000000,21450000,21074000,21350000,DATA, BW4_0, BAND7,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF, 0, 7 },
+    { "12M",24890000,25000000,24915000,24904000,  CW, BW1_8, BAND8,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF, 0, 8 },
+    { "10M",28000000,29600000,28074000,28074000,DATA, BW3_2, BAND9,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF, 0, 9 },
+    {  "6M",50000000,54000000,50125000,50313000, USB, BW3_2,BAND10,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF, 0,10 }
 };
 
 struct AudioSettings {
@@ -172,23 +163,6 @@ struct AGC {
     {"AGC-F  ",2,0,0,-36.0,12.0,6.0}
 };
 
-#define USER_SETTINGS_NUM 3
-struct User_Settings {
-    char        configset_name[20]; // friendly anme for this record
-    uint16_t    sp_preset;    // Sets the Spectrum module layout preset
-    uint8_t     main_page;          // stores index to page settings table
-    uint8_t     band_popup;         // index to band selection pop-up page layout preference
-    uint8_t     usrcfgpage_1;       // index to user configuration page layout
-    uint8_t     usrcfgpage_2;       // index to user configuration page layout
-    uint8_t     usrcfgpage_3;       // index to user configuration page layout
-    uint8_t     last_band;          // index into band memeory table to recall last settings  - this might get moved out later
-} usr_set[USER_SETTINGS_NUM] = {
-    {"User Config #1", 10, 0, 0, 0, 0, 0, BAND3},
-    {"User Config #2", 1, 0, 0, 0, 0, 0, BAND2},
-    {"User Config #3", 6, 0, 0, 0, 0, 0, BAND6}
-};
-
-
 // per-band settings for common user adjsutments that are band dependent. The index is the band number.
 struct Spectrum_Settings {
     uint16_t    Ref_level;      //Spectrum common adjustments due to noise level and scale/gain choices during operation.
@@ -202,15 +176,15 @@ struct Bandwidth_Settings {
     uint16_t    bw;             //bandwidth in HZ
     uint8_t     pref_mode;      // preferred mode when enabled (future use)
 } bw[BWSTEPS] = {
-    {"BW 250Hz ", 250, CW},
-    {"BW 500Hz ", 500, CW},
-    {"BW 700Hz ", 700, CW},
-    {"BW 1.0KHz", 500, CW},
-    {"BW 1.8KHz", 500, CW},
-    {"BW 2.3KHz", 500, USB},
-    {"BW 2.8KHz", 500, USB},
-    {"BW 3.2KHz", 500, USB},
-    {"BW 4.0KHz",4000, DATA}
+    {"BW 250Hz ",  250,   CW},
+    {"BW 500Hz ",  500,   CW},
+    {"BW 700Hz ",  700,   CW},
+    {"BW 1.0KHz", 1000,   CW},
+    {"BW 1.8KHz", 1800,   CW},
+    {"BW 2.3KHz", 2300,  USB},
+    {"BW 2.8KHz", 2800,  USB},
+    {"BW 3.2KHz", 3200,  USB},
+    {"BW 4.0KHz", 4000, DATA}
 };
 
 char Mode[4][5] = {"CW", "LSB", "USB", "DATA"};
@@ -229,4 +203,31 @@ struct TuneSteps {
     {"Ts 2.5KHz",  2500, USB},
     {"Ts 5.0KHz",  5000, USB},
     {"Ts 10.0KHz",10000, USB}
+};
+
+#define USER_SETTINGS_NUM 3
+struct User_Settings {
+    char        configset_name[20]; // friendly anme for this record
+    uint16_t    sp_preset;    // Sets the Spectrum module layout preset
+    uint8_t     main_page;          // stores index to page settings table
+    uint8_t     band_popup;         // index to band selection pop-up page layout preference
+    uint8_t     usrcfgpage_1;       // index to user configuration page layout
+    uint8_t     usrcfgpage_2;       // index to user configuration page layout
+    uint8_t     usrcfgpage_3;       // index to user configuration page layout
+    uint8_t     last_band;          // index into band memeory table to recall last settings  - this might get moved out later
+    uint8_t     mute;               // Current status of Mute 
+    uint8_t     mic_input_en;   // mic on or off
+    float       mic_Gain_last;  // last used mic gain on this band
+    uint8_t     lineIn_en;      // line in on or off
+    uint8_t     lineIn_Vol_last;// last used line in setting on this band. 255 is ignore and use current value
+    uint8_t     spkr_en;        // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
+    float       spkr_Vol_last;  // last setting for unmute or power on (When we store in EEPROM)
+    uint8_t     lineOut_en;     // line out on or off
+    uint8_t     lineOut_Vol_last;// last line out setting used on this band. 255 is ignore and use the current value.
+};
+
+struct User_Settings user_settings[USER_SETTINGS_NUM] = {
+    {"User Config #1", 10, 0, 0, 0, 0, 0, BAND3, OFF, MIC_OFF,1.0,ON,15,ON,0.5,ON,20},
+    {"User Config #2",  1, 0, 0, 0, 0, 0, BAND2, OFF, MIC_OFF,1.0,ON,15,ON,0.5,ON,20},
+    {"User Config #3",  6, 0, 0, 0, 0, 0, BAND6, OFF, MIC_OFF,1.0,ON,15,ON,0.5,ON,20}
 };

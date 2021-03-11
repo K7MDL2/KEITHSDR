@@ -192,17 +192,17 @@ struct Spectrum_Parms {
     int16_t spect_floor;        // Slides the data up and down relative to the specrum bottom box line. The noise floor may be above or below and if outside the box is simply not drawn.
 } Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
     //W        LE  RE  CG                                            x   y   w  h   x  span   st clr  sc     mode scal reflvl
-    {512,2,43,143,655,399,14,8, 74, 96, 96,479,471,225,150,321,321,100, 70,599,410,60,25000.0,3,2160,1.7,0.9,0,40,-210},   // Main full size window
-    {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25000.0,2,550,1.0,0.9,1,30,-80}, // hal
-    {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25000.0,2,340,1.7,0.9,0,60,-250},  // Small wide bottom screen area to fit under pop up wndows.
-    {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25000.0,2,310,1.7,0.9,0,60,-220},    //smaller centered
-    {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25000.0,3,950,2.0,0.7,1,40,-245},  // low wide high gain
-    {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25000.0,2,320,1.0,0.9,1,30,-100},     //60-100 good
-    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,0, 90,0.7,0.9,1,40,  40},     //60-100 good
-    {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25000.0,2,310,1.7,0.9,0,60,-200},
-    {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25000.0,2,310,1.7,0.9,0,40,-220},
-    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,2,450,0.7,0.9,1,40,30},
-    {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,2,450,0.7,0.9,1,40,30}
+    {512,2,43,143,655,399,14,8, 74, 96, 96,479,471,225,150,321,321,100, 70,599,410,60,25000.0,3,2160,1.7,0.9,0,40,-180},   // Main full size window
+    {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25000.0,2,550,1.0,0.9,1,30,-180}, // hal
+    {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25000.0,2,340,1.7,0.9,0,60,-180},  // Small wide bottom screen area to fit under pop up wndows.
+    {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25000.0,2,310,1.7,0.9,0,60,-180},    //smaller centered
+    {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25000.0,3,950,2.0,0.7,1,40,-185},  // low wide high gain
+    {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25000.0,2,320,1.0,0.9,1,30,-180},     //60-100 good
+    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,1,130,0.7,0.9,1,40,-180},     //60-100 good
+    {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25000.0,2,310,1.7,0.9,0,60,-180},
+    {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25000.0,2,310,1.7,0.9,0,40,-180},
+    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,2,450,0.7,0.9,1,40,-180},
+    {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];
@@ -269,13 +269,11 @@ void spectrum_update(int16_t s)
             //L_EDGE = FFT_center - GRAPH_center;
             */
         }
-
         
         for (i = 2; i < ptr->wf_sp_width; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
         { 
             if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
             {
-                //tft.print(" FFT Out of Bounds   ");
                 Serial.println("FFT Invalid Data INF or NaN");
                 //Serial.println(*(pout+i));                
                 pixelnew[i] = -200;   // fill in the missing value with somting harmless
@@ -287,23 +285,23 @@ void spectrum_update(int16_t s)
             // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
             switch (ptr->spect_wf_style)
             { 
-              case 0: avg = *(pout+((i*16/10)))*0.5 + *(pout+((i-1)*16/10))*0.18 + *(pout+((i-2)*16/10))*0.07 + *(pout+((i+1)*16/10))*0.18 + *(pout+((i+2)*16/10))*0.07;                
+              case 0: avg = *(pout+(i*16/10))*0.5 + *(pout+(i-1)*16/10)*0.18 + *(pout+(i-2)*16/10)*0.07 + *(pout+(i+1)*16/10)*0.18 + *(pout+(i+2)*16/10)*0.07;                
                       //line_buffer[i] = (LPFcoeff * 8 * sqrt (100+(abs(avg)*wf_scale)) + (1 - LPFcoeff) * line_buffer[i]);
-                      line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrt (100+(abs(*(pout+i)*ptr->spect_wf_scale))) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);                      
+                      line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrtf(abs(avg)) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);                      
                       break;
-              case 1: avg = *(pout+((i*16/10)))*0.5 + *(pout+((i-1)*16/10))*0.18 + *(pout+((i-2)*16/10))*0.07 + *(pout+((i+1)*16/10))*0.18 + *(pout+((i+2)*16/10))*0.07;                
-                      line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrt (abs(avg)*ptr->spect_wf_scale) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);
-                      line_buffer[i] = colorMap(line_buffer[i]/1000, ptr->spect_wf_colortemp);
+              case 1: avg = *(pout+i)*0.5 + *(pout+i-1)*0.18 + *(pout+i-2)*0.07 + *(pout+i+1)*0.18 + *(pout+i+2)*0.07;                
+                      line_buffer[i] = ptr->spect_LPFcoeff * 8 * sqrtf(abs(avg)) + (1 - ptr->spect_LPFcoeff);
+                      line_buffer[i] = colorMap(line_buffer[i], ptr->spect_wf_colortemp);
                       //Serial.println(line_buffer[i]);    
                       break;                  
-              case 2: avg = line_buffer[i] = colorMap(abs(*(pout+i)) * 1.8 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);                      
+              case 2: avg = line_buffer[i] = colorMap(abs(*(pout+i)) * 1.9 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
                       break;
               case 3: avg = line_buffer[i] = colorMap(abs(*(pout+i)) * 0.4 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
                       break;
               case 4: avg = line_buffer[i] = colorMap(16000 - abs(*(pout+i)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale;
                       break;
               case 5:
-             default: avg = line_buffer[i] = colorMap(abs(*(pout+i)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale * 0.1;                          
+             default: avg = line_buffer[i] = colorMap(abs(*(pout+i)), ptr->spect_wf_colortemp);                          
                       break; 
             };
 
@@ -399,7 +397,7 @@ void spectrum_update(int16_t s)
 
             // Invert the sign since the display is also inverted, Increasing value = weaker signal strength, they are now going the same direction.  
             // Small value = bigger signal, closer to 0 on the display coordinates
-            pixelnew[i] = abs(pixelnew[i]);
+            pixelnew[i] = abs(pixelnew[i]) * 2.0;
             
             // Offset the pixel position relative to the bottom of the window
             pixelnew[i] += ptr->sp_bottom_line-2 + ptr->spect_floor;            
@@ -407,14 +405,7 @@ void spectrum_update(int16_t s)
             // Now scale it            
             //pixelnew[i] = map(pixelnew[i], ptr->spect_floor, ptr->spect_floor+ptr->spect_sp_scale, ptr->sp_bottom_line-2, ptr->sp_top_line+1);    
             //pixelnew[i] = pixelnew[i] * (ptr->spect_sp_scale/10); // - ptr->spect_floor;
-            pixelnew[i] *= ptr->spect_wf_scale;
-            //Serial.println(pixelnew[i]);
-            // Various averaging  effects.  Ultimately need an averaging feature as well as peak hold but needs calibration to be most useful                            
-            //avg = myFFT.output[(i)*16/10]*0.5 + myFFT.output[(i-1)*16/10]*0.18 + myFFT.output[(i-2)*16/10]*0.07 + myFFT.output[(i+1)*16/10]*0.18 + myFFT.output[(i+2)*16/10]*0.07;
-            //pixelnew[i] = (20*(abs(LPFcoeff * 0.1 * sqrt (abs(avg)*wf_scale) + (1 - LPFcoeff) * pixelold[i])));
-            //pixelnew[i] = ptr->spect_LPFcoeff * 1 * sqrt (abs(avg)*ptr->spect_wf_scale) + (1 - ptr->spect_LPFcoeff) * pixelold[i];
-            //pixelnew[i] = ptr->spect_LPFcoeff * 1 * line_buffer[i] * pixelold[i];
-            //pixelnew[i] = avg;
+            ///pixelnew[i] *= ptr->spect_wf_scale;
             
             #ifdef DBG_SPECTRUM_WINDOWLIMITS
             //Serial.print("  win-ht:"); Serial.print(ptr->sp_height-4);
@@ -564,28 +555,31 @@ void spectrum_update(int16_t s)
         
         // Calculate and print the power of the strongest signal if possible
         fftPower_pk = fftMaxPower;
+               
+        //Serial.print("Ppk="); Serial.println((fftPower_pk+fftPower_pk_last)/2-ptr->spect_sp_scale);       
+        tft.fillRect(ptr->l_graph_edge+39,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
+        tft.setCursor(ptr->l_graph_edge+40,        ptr->sp_txt_row+30); // Write the legend
+        tft.print("P: "); 
+        tft.setCursor(ptr->l_graph_edge+56,        ptr->sp_txt_row+30);  // write the value
+        tft.print((fftPower_pk * -1 * ptr->spect_sp_scale) - ptr->spect_sp_scale,1);
+        
         if (fftPower_pk != fftPower_pk_last)  // filter out invalid data and DC noise
-        {           
-            //Serial.print("Ppk="); Serial.println((fftPower_pk+fftPower_pk_last)/2-ptr->spect_sp_scale);       
-            tft.fillRect(ptr->l_graph_edge+39,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
-            tft.setCursor(ptr->l_graph_edge+40,        ptr->sp_txt_row+30); // Write the legend
-            tft.print("P: "); 
-            tft.setCursor(ptr->l_graph_edge+56,        ptr->sp_txt_row+30);  // write the value
-            tft.print((fftPower_pk * -1 * ptr->spect_sp_scale) - ptr->spect_sp_scale,1);
+        {       
             fftPower_pk_last = fftPower_pk;        
             fftFreq_timestamp.reset();  // reset the timer since we have new good data
         }
                 
         // Calculate and print the frequency of the strongest signal if possible 
+        //Serial.print("Freq="); Serial.println(fftFrequency, 3); 
+        tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 90, 13, RA8875_BLACK);
+        tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
+        tft.print("F: "); 
+        tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
+        float pk_temp = VFOA/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
+        tft.print(pk_temp,1);
+        
         if (fft_pk_bin != 0.0f && fft_pk_bin != fft_pk_bin_last)  // filter out invalid data and DC noise
         {
-            //Serial.print("Freq="); Serial.println(fftFrequency, 3); 
-            tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 90, 13, RA8875_BLACK);
-            tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
-            tft.print("F: "); 
-            tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
-            float pk_temp = VFOA/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
-            tft.print(pk_temp,1);
             fft_pk_bin_last = fft_pk_bin;
             fftFreq_timestamp.reset();  // reset the timer sicne we have new good data
         }
@@ -597,25 +591,29 @@ void spectrum_update(int16_t s)
         }    
         
         // Write the Scale value 
+    
+        tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);
+        tft.print("S:   "); // actual value is updated elsewhere   
+        tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);       
+        tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30);
+        tft.print(ptr->spect_sp_scale);     
+        
         if (spect_scale_last != ptr->spect_sp_scale)
-        {         
-            tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);
-            tft.print("S:   "); // actual value is updated elsewhere   
-            tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);       
-            tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30);
-            tft.print(ptr->spect_sp_scale);        
+        {      
             spect_scale_last = ptr->spect_sp_scale;   // update memory
         }
         
         // Write the Reference Level to top line area
+
+        tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+100, ptr->sp_txt_row+30);
+        tft.print("R:   ");  // actual value is updated elsewhere            
+        tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
+        tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
+        //tft.print(ptr->spect_floor);
+        tft.print(sp_floor_avg,0);
+        
         if (spect_ref_last != ptr->spect_floor)
         {
-            tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+100, ptr->sp_txt_row+30);
-            tft.print("R:   ");  // actual value is updated elsewhere            
-            tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
-            tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
-            //tft.print(ptr->spect_floor);
-            tft.print(sp_floor_avg,0);
             //spect_ref_last = ptr->spect_floor;   // update memory
             spect_ref_last = sp_floor_avg;   // update memory
         }    
@@ -655,7 +653,7 @@ int16_t colorMap(int16_t val, int16_t color_temp)
     float green;
     float blue;
     float temp = val / 65536.0 * color_temp;
-  
+  //Serial.print("temp="); Serial.println(temp);
     if (temp < 0.5) 
     {
         red = 0.0;
@@ -668,8 +666,7 @@ int16_t colorMap(int16_t val, int16_t color_temp)
         green = (1.0 - color_temp);
         blue = 0.0;
     }
-    //Serial.print("  CM="); Serial.print(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val="); Serial.println(val);
-    //return tft.color565(red * 256, green * 256, blue * 256);
+    //Serial.print("  CM="); Serial.print(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val="); Serial.println(val);Color24To565
     return tft.Color565(red * 256, green * 256, blue * 256);
 }
 //

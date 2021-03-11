@@ -132,7 +132,7 @@ void displayMute(uint8_t mute)
 	tft.setFont(Arial_18);
 	tft.setTextColor(RA8875_LIGHT_GREY); 
     tft.setCursor(bx+bb+1,by+bb);
-    tft.print(" Mute ");
+    tft.print("   Mute");
 }
 
 //

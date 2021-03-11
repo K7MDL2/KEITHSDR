@@ -37,6 +37,8 @@ extern uint8_t curr_band;   // global tracks our current band setting.
 extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern volatile uint32_t VFOB;
 extern struct Band_Memory bandmem[];
+extern struct User_Settings user_settings[];
+extern uint8_t user_Profile;
 extern AudioControlSGTL5000 codec1;
 extern uint8_t popup;
 
@@ -337,14 +339,14 @@ void Gesture_Handler(uint8_t gesture)
             ////------------------ SWIPE DOWN  -------------------------------------------
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
             {                
-                codec1.volume(bandmem[0].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
+                codec1.volume(user_settings[user_Profile].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
                 
-                Serial.print("3-point Volume DOWN  "); Serial.println(bandmem[0].spkr_Vol_last);
+                Serial.print("3-point Volume DOWN  "); Serial.println(user_settings[user_Profile].spkr_Vol_last);
             }
             else
             {
-                codec1.volume(bandmem[0].spkr_Vol_last += 0.1);  // was 3 finger swipe up
-                Serial.print("3-point Volume UP  "); Serial.println(bandmem[0].spkr_Vol_last);
+                codec1.volume(user_settings[user_Profile].spkr_Vol_last += 0.1);  // was 3 finger swipe up
+                Serial.print("3-point Volume UP  "); Serial.println(user_settings[user_Profile].spkr_Vol_last);
             }                
             break;
         }        
@@ -394,20 +396,19 @@ void Button_Handler(int16_t x, uint16_t y)
     // MUTE
     if ((x>240&&x<350)&&(y>60&&y<100))
     {
-        static uint8_t mute = OFF;
-        if (bandmem[0].spkr_en)
+        if (user_settings[user_Profile].spkr_en)
         {
-            if (!mute)
+            if (!user_settings[user_Profile].mute)
             {
-                RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-                mute = ON;
+                RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"           
+                user_settings[user_Profile].mute = ON;
             }
             else    
             {    //codec1.muteHeadphone();
-                RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
-                mute = OFF;            
+                RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
+                user_settings[user_Profile].mute = OFF;        
             }
-            displayMute(mute);
+            displayMute(user_settings[user_Profile].mute);
         }        
         return;
     }
@@ -462,7 +463,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // DISPLAY Test button (hidden area)
-    if ((x>700&&x<800)&&(y>440&&y<480))
+    if ((x>700&&x<800)&&(y>430&&y<480))
     {
         // DISPLAY BUTTON  - test usage today for spectum mostly
         //Draw a black box where the old window was
@@ -474,7 +475,9 @@ void Button_Handler(int16_t x, uint16_t y)
             spectrum_preset = 0;         
         drawSpectrumFrame(spectrum_preset);
         spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
-        
+        displayMute(user_settings[user_Profile].mute);
+        displayPreamp(bandmem[curr_band].preamp);
+        displayAttn(bandmem[curr_band].attenuator);
         /*
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
