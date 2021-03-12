@@ -107,7 +107,7 @@ float find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 ///******************************************************************************************************************************
 //   *************  Set Preset to select your configuration record to use.  The rest are ignored for operation ******************
 ///
-int16_t spectrum_preset         = 10;   // <<<==== Set this value.  Range is 0-PRESETS.  Specify the default layout option for spectrum window placement and size.
+int16_t spectrum_preset         = 11;   // <<<==== Set this value.  Range is 0-PRESETS.  Specify the default layout option for spectrum window placement and size.
 ///
 //
 ///******************************************************************************************************************************
@@ -115,7 +115,7 @@ int16_t spectrum_preset         = 10;   // <<<==== Set this value.  Range is 0-P
 // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
 int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-int16_t spectrum_y              = 179;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+int16_t spectrum_y              = 109;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
 int16_t spectrum_height         = 300;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
 int16_t spectrum_center         = 40;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
@@ -125,13 +125,13 @@ float   spectrum_span           = 25000;    // UNUSED for now.  Value in Hz.  Th
                                             // Max value and resolutoin (pixels per bin) is dependent on sample frequency
                                             // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
                                             // 12500 would result in 2 pixels per bin. Bad numbers here should be corrected to best fit by the function
-int16_t spectrum_wf_style       = 2;        // Range 1- 6. Specifies the Waterfall style.
-int16_t spectrum_wf_colortemp   = 90;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
-float   spectrum_wf_scale       = 0.7;      // 0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
+int16_t spectrum_wf_style       = 5;        // Range 1- 6. Specifies the Waterfall style.
+int16_t spectrum_wf_colortemp   = 440;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
+float   spectrum_wf_scale       = 1.0;      // 0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
 float   spectrum_LPFcoeff       = 0.9;      // 1.0f to 0.0f. Data smoothing
-int16_t spectrum_dot_bar_mode   = 1;        // 0=bar, 1=DOT, 3=Line. Spectrum box . Line mode is experimental
+int16_t spectrum_dot_bar_mode   = 0;        // 0=bar, 1=DOT, 3=Line. Spectrum box . Line mode is experimental
 int16_t spectrum_sp_scale       = 40;       // 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
-int16_t spectrum_floor          = -154;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
+int16_t spectrum_floor          = -180;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
 /*
  *   Copy some or all of this section to your main file to gain access to any or all of these for user controls   
  *   If just using the database predefined parameters, you can ignore these.  
@@ -155,7 +155,7 @@ extern int16_t spectrum_floor;
 
 // use the generator finction to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
-#define PRESETS 11  // number of parameter records with our preset spectrum window values
+#define PRESETS 12  // number of parameter records with our preset spectrum window values
 
 struct Spectrum_Parms {
     int16_t wf_sp_width;        // User specified active graphing area width with no padding. Max is fft_bins, can be smaller.
@@ -202,7 +202,8 @@ struct Spectrum_Parms {
     {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25000.0,2,310,1.7,0.9,0,60,-180},
     {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25000.0,2,310,1.7,0.9,0,40,-180},
     {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,2,450,0.7,0.9,1,40,-180},
-    {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180}
+    {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180},
+    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];

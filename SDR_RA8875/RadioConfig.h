@@ -231,3 +231,29 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
     {"User Config #2",  1, 0, 0, 0, 0, 0, BAND2, OFF, MIC_OFF,1.0,ON,15,ON,0.5,ON,20},
     {"User Config #3",  6, 0, 0, 0, 0, 0, BAND6, OFF, MIC_OFF,1.0,ON,15,ON,0.5,ON,20}
 };
+
+
+struct Standard_Button {
+	uint16_t bx;
+	uint16_t by;
+	uint16_t bw;
+	uint16_t bh;            // height 
+	uint16_t br;            // radius of roundRect corners
+    uint16_t outline_color; // used for button outline color
+    uint16_t txtclr;        // used for button text color
+    uint16_t on_color;      // fill color when button is ON state
+    uint16_t off_color;     // fill color when button is OFF state
+    char     label[11];     // Tesxt to display for the button label  Use spaces to center
+};
+
+#define STD_BTN_NUM 3       // number of buttons in the table
+#define ATTEN_BTN   0       // index to button
+#define PREAMP_BTN  1
+#define MUTE_BTN    2
+struct Standard_Button std_btn[STD_BTN_NUM] = {
+    // x   y    w    h   r   outline_color      txtcolor           on_color     off_color         label
+    {  0, 419, 110, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Atten\0"},
+    {120, 419, 110, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "Preamp\0"},
+    {240, 419, 110, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Mute\0"}
+};
+

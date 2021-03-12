@@ -6,6 +6,12 @@ extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st bo
 extern volatile uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct Bandwidth_Settings bw[];
+extern struct Standard_Button std_btn[];
+extern struct User_Settings user_settings[];
+extern uint8_t user_Profile;
+
+// function declaration
+void draw_Std_Button(uint8_t button, uint8_t *function_ptr);
 
 // The below are fixed numbers based on screen size and other screen object edges
 // These will also be be need to declared as extern variables in other files to leverage.
@@ -71,158 +77,59 @@ void displayAgc()
 	tft.print(agc_set[bandmem[curr_band].agc_mode].agc_name);
 }
 
-void displayAttn(uint8_t attenuator)
+void displayAttn()
 {
-	int bx = 0;
-	int by = 60;
-	int bb = 10;
-	int bw = bb*9;
-	int bh = bb*4;
-	int br = 10;
-
-  	tft.fillRoundRect(bx,by,bw,bh, br, RA8875_BLACK );
-  	tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
-	//tft.fillRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
-	
-	tft.setFont(Arial_18);
-    tft.setCursor(bx+bb*2,by+bb);
-	if (attenuator == 0)
- 		tft.setTextColor(RA8875_LIGHT_GREY); 
- 	if (attenuator == 1)
- 		tft.setTextColor(RA8875_GREEN); 
-	tft.print("Attn");
+    draw_Std_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
 
-void displayPreamp(uint8_t preamp)
+void displayPreamp()
 {
-	int bx = 110;
-	int by = 60;
-	int bb = 10;
-	int bw = bb*11;
-	int bh = bb*4;
-	int br = 10;
-
-  	tft.fillRoundRect(bx,by,bw,bh, br, RA8875_BLACK );
-    
-	if(preamp == 1)
-		tft.fillRoundRect(bx,by,bw,bh,br,RA8875_BLUE);
-	if(preamp == 0)
-		tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
-	tft.setFont(Arial_18);
-	tft.setTextColor(RA8875_LIGHT_GREY); 
-    tft.setCursor(bx+bb+1,by+bb);
-    tft.print("Preamp");
+    draw_Std_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
 }
 
-void displayMute(uint8_t mute)
+void displayMute()
 {
-	int bx = 240;
-	int by = 60;
-	int bb = 10;
-	int bw = bb*11;
-	int bh = bb*4;
-	int br = 10;
-
-  	tft.fillRoundRect(bx,by,bw,bh, br, RA8875_BLACK );
-    
-	if(mute == ON)
-		tft.fillRoundRect(bx,by,bw,bh,br,RA8875_BLUE);
-	if(mute == OFF)
-		tft.drawRoundRect(bx,by,bw,bh,br,RA8875_LIGHT_GREY);
-	tft.setFont(Arial_18);
-	tft.setTextColor(RA8875_LIGHT_GREY); 
-    tft.setCursor(bx+bb+1,by+bb);
-    tft.print("   Mute");
+    draw_Std_Button(MUTE_BTN, &user_settings[user_Profile].mute);
 }
+
 
 //
-//--------------------------------------------------  initDisplay ------------------------------------------------------------------------
+//------------------------------------  drawButton ------------------------------------------------------------------------
 //
-void initDisplay()
+//  Input:  1. Button ID
+//          2. pointer to structure where state is stored
+//
+//  Usage:  The structure table has teh button properties.  Just pass the index and state.
+//
+//  Notes:  Only handles 2 states today.  
+//
+// TODO: change to handle multiple states such as RF gain, AF gain, or triple state, maybe info text like level.  Could be a new function.
+//
+void draw_Std_Button(uint8_t button, uint8_t *function_ptr) 
 {
-    //tft.begin(RA8875_800x480);      // usually done in setup() already.  Do not call here if using spectrum object which is called before this function.
-    tft.setTextColor(textcolor);
-    tft.setFont(Arial_18);
-    tft.setRotation(0); //rotate text and graphics
-    int display_width = tft.width();
-    int display_height = tft.height();
-    Serial.print("Display Type: RA8875_800x480 ");Serial.print("Display Size: ");Serial.print(display_width);Serial.print("x");Serial.println(display_height);    
-    
-    // Outer Button Frames lines
-    tft.drawRect(R_frame_left,Top_frame,R_frame_right,Bottom_frame,displayColor);   // Draw Right side button stack outer frame
-    tft.drawRect(L_frame_left,Top_frame,L_frame_right,Bottom_frame,displayColor);   // Draw Left side button stack outer frame
-    //tft.drawLine(L_frame_right,Bottom_frame,R_frame_left,Bottom_frame,displayColor);   //Fill in the bottom
-    
-    // If used draw a divider line over the top of the spectrum object
-    //tft.drawLine(L_frame_right,Center_window_divider_line,R_frame_left,Center_window_divider_line,displayColor);   //Fill in the bottom
+    struct Standard_Button *ptr = std_btn + button;     // pointer to button object passed by calling function
+	uint16_t bx     = ptr->bx;
+	uint16_t by     = ptr->by;
+	uint16_t bw     = ptr->bw;
+	uint16_t bh     = ptr->bh;
+	uint16_t br     = ptr->br;
+    uint16_t ol_clr = ptr->outline_color;
+    uint16_t txtclr = ptr->txtclr; 
+    uint16_t on_clr = ptr->on_color;
+    uint16_t off_clr= ptr->off_color;
 
-    //tft.setCursor(L_frame_right+200, Top_frame + 10);
-    //tft.print(" Add Cool Stuff Here");
-  
-    //for screen test and maintenance
-    //tft.drawLine(400+x,0+y,400+x,460+y,RA8875_GREEN); 
-    // tft.drawLine(50+x,0+y,50+x,430+y,RA8875_GREEN); 
-  
-/////////////////////////Display left side/////////////////////////////
-    B_num = 1;
-    tft.setCursor(19, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Mode"); 
-    tft.drawLine(L_frame_left,Top_frame+(B_height*B_num),L_frame_right-1,Top_frame+(B_height*B_num),displayColor);
-  
-    B_num = 2;
-    tft.setCursor(12, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Bw Up"); 
-    tft.drawLine(L_frame_left,Top_frame+(B_height*B_num),L_frame_right-1,Top_frame+(B_height*B_num),displayColor);
-  
-    B_num = 3;
-    tft.setCursor(12, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Bw Dn");
-    tft.drawLine(L_frame_left,Top_frame+(B_height*B_num),L_frame_right-1,Top_frame+(B_height*B_num),displayColor);
-  
-    B_num = 4;
-    tft.setCursor(16, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Ts Up"); 
-    tft.drawLine(L_frame_left,Top_frame+(B_height*B_num),L_frame_right-1,Top_frame+(B_height*B_num),displayColor); 
-  
-    B_num = 5;
-    tft.setCursor(16, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Ts Dn");
-    tft.drawLine(L_frame_left,Top_frame+(B_height*B_num),L_frame_right-1,Top_frame+(B_height*B_num),displayColor);
-  
-    B_num = 6;
-    tft.setCursor(18, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Setup");
-  
-  ///////////////////////////Right Side/////////////////////////////////////////
-    B_num = 1;
-    tft.setCursor(726, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Attn");
-    tft.drawLine(R_frame_left,Top_frame+(B_height*B_num),R_frame_right,Top_frame+(B_height*B_num),displayColor);
-    
-    B_num = 2;
-    tft.setCursor(730, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    //tft.print("Pre");  
-    tft.drawLine(R_frame_left,Top_frame+(B_height*B_num),R_frame_right,Top_frame+(B_height*B_num),displayColor);
-    displayPreamp(bandmem[curr_band].preamp);
-     
-    B_num = 3;  
-    tft.setCursor(722, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("AGC");  
-    tft.drawLine(R_frame_left,Top_frame+(B_height*B_num),R_frame_right,Top_frame+(B_height*B_num),displayColor);
-    
-    B_num = 4;  
-    tft.setCursor(716, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    //tft.setCursor(716,375);
-    tft.print("Dsply");   
-    tft.drawLine(R_frame_left,Top_frame+(B_height*B_num),R_frame_right,Top_frame+(B_height*B_num),displayColor);
-    
-    B_num = 5;
-    tft.setCursor(710, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Band +");  
-    tft.drawLine(R_frame_left,Top_frame+(B_height*B_num),R_frame_right,Top_frame+(B_height*B_num),displayColor);
-    
-    B_num = 6;
-    tft.setCursor(710, Top_frame+(B_height*B_num)-(B_height/2)-10);
-    tft.print("Band -");
+	if(*function_ptr == 1)
+		tft.fillRoundRect(bx,by,bw,bh,br,on_clr);
+	if(*function_ptr == 0)
+    {
+  	    tft.fillRoundRect(bx,by,bw,bh, br, off_clr );
+		tft.drawRoundRect(bx,by,bw,bh,br,ol_clr);
+    }
+    tft.setTextColor(txtclr);
+	tft.setFont(Arial_18);
+	tft.setTextColor(txtclr); 
+    tft.setCursor(bx+10,by+20);
+    tft.print(ptr->label);
 }
+
  

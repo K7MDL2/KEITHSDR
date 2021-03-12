@@ -366,6 +366,8 @@ void Button_Handler(int16_t x, uint16_t y)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
+    struct Standard_Button *ptr = std_btn;              // pointer to stanard button layout table
+
     if (popup)
         popup_timer.reset();
 
@@ -394,7 +396,8 @@ void Button_Handler(int16_t x, uint16_t y)
     }
     
     // MUTE
-    if ((x>240&&x<350)&&(y>60&&y<100))
+    ptr = std_btn + MUTE_BTN;     // pointer to buttom object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
         if (user_settings[user_Profile].spkr_en)
         {
@@ -408,13 +411,13 @@ void Button_Handler(int16_t x, uint16_t y)
                 RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
                 user_settings[user_Profile].mute = OFF;        
             }
-            displayMute(user_settings[user_Profile].mute);
+            displayMute();
         }        
         return;
     }
 
     // SETTINGS (hidden button for testing for now)
-    if ((x>0&&x<100)&&(y>420&&y<480))
+    if ((x>0 && x<100) && (y>300 && y<400))
     {
         // Settings Button
         popup = 1;
@@ -428,26 +431,28 @@ void Button_Handler(int16_t x, uint16_t y)
     } 
 
     // ATTENUATOR button
-    if ((x>0&&x<100)&&(y>60&&y<100))
+    ptr = std_btn + ATTEN_BTN;     // pointer to buttom object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
         if (bandmem[curr_band].attenuator == ATTEN_ON)
             bandmem[curr_band].attenuator = ATTEN_OFF;
         else if (bandmem[curr_band].attenuator == ATTEN_OFF)
             bandmem[curr_band].attenuator = ATTEN_ON;
-        displayAttn(bandmem[curr_band].attenuator);
+        displayAttn();
         Serial.print("Set Attenuator to ");
         Serial.println(bandmem[curr_band].attenuator,DEC);
         return;
     }
 
     // PREAMP button
-    if ((x>110&&x<220)&&(y>60&&y<100))
+    ptr = std_btn + PREAMP_BTN;     // pointer to buttom object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
         if (bandmem[curr_band].preamp == PREAMP_ON)
             bandmem[curr_band].preamp = PREAMP_OFF;
         else if (bandmem[curr_band].preamp == PREAMP_OFF)
             bandmem[curr_band].preamp = PREAMP_ON;
-        displayPreamp(bandmem[curr_band].preamp);
+        displayPreamp();
         Serial.print("Set Preamp to ");
         Serial.println(bandmem[curr_band].preamp,DEC);
         return;
@@ -463,7 +468,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // DISPLAY Test button (hidden area)
-    if ((x>700&&x<800)&&(y>430&&y<480))
+    if ((x>700 && x<800)&&(y>300 && y<400))
     {
         // DISPLAY BUTTON  - test usage today for spectum mostly
         //Draw a black box where the old window was
@@ -475,9 +480,9 @@ void Button_Handler(int16_t x, uint16_t y)
             spectrum_preset = 0;         
         drawSpectrumFrame(spectrum_preset);
         spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
-        displayMute(user_settings[user_Profile].mute);
-        displayPreamp(bandmem[curr_band].preamp);
-        displayAttn(bandmem[curr_band].attenuator);
+        displayMute();
+        displayPreamp();
+        displayAttn();
         /*
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
@@ -570,7 +575,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     
-    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    RampVolume(0.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     curr_band = target_band;    // Set out new band
     VFOA = bandmem[curr_band].vfo_A_last;
     VFOB = bandmem[curr_band].vfo_B_last;
@@ -579,8 +584,9 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectBandwidth(bandmem[curr_band].bandwidth);
     selectMode(bandmem[curr_band].mode);
     selectStep();
+    delay(25);
     selectAgc(bandmem[curr_band].agc_mode);
-    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+    //RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
 }
 
 void pop_win(uint8_t init)

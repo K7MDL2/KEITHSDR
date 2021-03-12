@@ -136,18 +136,17 @@ String agc="";
 uint8_t curr_band = BAND4;   // global tracks our current band setting.  
 volatile uint32_t VFOA = 0;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 volatile uint32_t VFOB = 0;
-volatile uint32_t Fc = 300; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+volatile uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 volatile uint32_t fstep = 10; // sets the tuning increment to 10Hz
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
-
+uint8_t user_Profile = 0;
 
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 long newFreq=0;
 long oldFreq=0;
-uint8_t user_Profile = 0;
 uint8_t popup = 0;   // experimental flag for pop up windows
 
 Metro touch       = Metro(100); // used to check for touch events
@@ -172,8 +171,8 @@ void setup()
     tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
     #endif    
     initSpectrum_RA8875();    // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
-    //initDisplay();    // Draw main screen  Call after initSpectrum_RA8875()    
-    curr_band = user_settings[user_Profile].last_band;  // get last band used from user profile.  
+    curr_band = user_settings[user_Profile].last_band;  // get last band used from user profile. 
+    user_settings[user_Profile].sp_preset = spectrum_preset;  // uncomment this line to update user profile layout choice
     spectrum_preset = user_settings[user_Profile].sp_preset;
     //
     //================================================ Frequency Set =============================================================
@@ -183,8 +182,8 @@ void setup()
     initVfo();        // initialize the si5351 vfo
     SetFreq();        // Set frequency in VFO
     displayFreq();    // display frequency
-    displayAttn(bandmem[curr_band].attenuator);
-    displayPreamp(bandmem[curr_band].preamp);
+    displayAttn();
+    displayPreamp();
     selectStep();
     selectAgc(bandmem[curr_band].agc_mode);
     
@@ -211,15 +210,15 @@ void setup()
     {   
 		codec1.volume(user_settings[user_Profile].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
     	codec1.unmuteHeadphone();
-    	displayMute(OFF);
 		user_settings[user_Profile].mute = OFF;
+      	displayMute();
 		RampVolume(1.0, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
     }
     else 
     {
         codec1.muteHeadphone();
-        displayMute(ON);
 		user_settings[user_Profile].mute = ON;
+		displayMute();
     }
     
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
@@ -278,7 +277,7 @@ void setup()
     Spectrum_Parm_Generator(spectrum_preset); // use this to generate new set of params for the current window size values.
             // calling generator before drawSpectrum() will create a new set of values based on the globals
             // Generator only reads the global values, it does not change them or the database, just prints the new params             
-    drawSpectrumFrame(spectrum_preset);  // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
+    drawSpectrumFrame(user_settings[user_Profile].sp_preset);  // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
             // DrawSpectrum does not read the globals but does update them to match the current preset.
             // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
             // Generator never modifies the globals so never affects the layout itself.

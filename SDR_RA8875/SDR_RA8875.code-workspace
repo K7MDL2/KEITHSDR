@@ -12,6 +12,9 @@
 		"files.watcherExclude": {
 			"**/.vteensy/*/**": true
 		},
-		"C_Cpp.default.includePath": []
+		"C_Cpp.default.includePath": [],
+		"files.associations": {
+			"functional": "cpp"
+		}
 	}
 }
