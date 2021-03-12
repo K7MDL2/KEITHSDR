@@ -4,7 +4,7 @@ extern Si5351mcu si5351;
 extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern volatile uint32_t Fc;
 
-#define TCXO_24MHZ   // used for user installed TCXO instead of crystal wired into standard si5351a chip.
+//#define TCXO_24MHZ   // used for user installed TCXO instead of crystal wired into standard si5351a chip.
 
 //////////////////////////Initialize VFO/DDS//////////////////////////////////////////////////////
 void initVfo()
