@@ -283,7 +283,7 @@ void Gesture_Handler(uint8_t gesture)
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {
                     Serial.println("-100KHz");
-                    newFreq -= 100000;
+                    newFreq -= 10000;
                    // if (newFreq < bandmem[curr_band].edge_lower) 
                     //   newFreq = bandmem[curr_band].edge_lower;                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
