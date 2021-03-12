@@ -12,7 +12,14 @@ extern struct Bandwidth_Settings bw[];
 ////////////////////////////////////////////////////////////////////////////////////
 void selectBandwidth(int bndx)
 {
-    if (bandmem[curr_band].mode == CW)  // CW modes
+    uint8_t mode;
+
+    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+        mode = bandmem[curr_band].mode_A;
+    else
+        mode = bandmem[curr_band].mode_B;
+
+    if (mode == CW)  // CW modes
     {
         if (bndx > BW4_0)    // go to bottom band   
             bndx = BW0_25;    // 0 is not used

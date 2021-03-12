@@ -372,35 +372,35 @@ void Button_Handler(int16_t x, uint16_t y)
         popup_timer.reset();
 
     // MODE
-    if ((x>0 && x<110)&&(y>0 && y<80))
+    if ((x>0 && x<110) && (y>0 && y<80))
     {
         // Select MODE
-        selectMode(bandmem[curr_band].mode+1); 
+        selectMode(1);   // Increment the mode for the Active VFO        
         return;
     }
 
     // BANDWIDTH
-    if ((x>120 && x<280) && (y>0 && y<80))
+    if ((x>170 && x<330) && (y>0 && y<80))
     {
         // Change Bandwidth  - cycle down then back to the top
         selectBandwidth(bandmem[curr_band].bandwidth - 1);  // send index to bw table
         return; 
     }  
-
-    // TUNE STEP
-    if ((x>520 && x<680) && (y>0 && y<80))
-    {
-        // Change Tune Step Rate - Cycle up then to the bottom 
-        selectStep();
-        return;
-    }
     
         // AGC button
-    if ((x>0 && x<140)&&(y>90&&y<190))
+    if ((x>0 && x<140) && (y>90 && y<190))
     {      
         selectAgc(bandmem[curr_band].agc_mode + 1);
         Serial.print("Set AGC to ");
         Serial.println(bandmem[curr_band].agc_mode,DEC);
+        return;
+    }
+
+        // TUNE STEP
+    if ((x>170 && x<330) && (y>90 && y<190))
+    {
+        // Change Tune Step Rate - Cycle up then to the bottom 
+        selectStep();
         return;
     }
 
@@ -438,6 +438,28 @@ void Button_Handler(int16_t x, uint16_t y)
         Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
         return;  
     } 
+
+    // VFO A and B Switching button
+    ptr = std_btn + VFO_AB_BTN;     // pointer to buttom object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+        {
+            bandmem[curr_band].VFO_AB_Active = VFO_B;
+        }
+        else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
+        {
+            bandmem[curr_band].VFO_AB_Active = VFO_A;
+        }
+        VFOA = bandmem[curr_band].vfo_A_last;
+        VFOB = bandmem[curr_band].vfo_B_last;
+        selectFrequency();
+        selectMode(0);  // No change to mode, jsut set for active VFO
+        displayVFO_AB();
+        Serial.print("Set VFO_AB_Active to ");
+        Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
+        return;
+    }
 
     // ATTENUATOR button
     ptr = std_btn + ATTEN_BTN;     // pointer to buttom object passed by calling function
@@ -587,7 +609,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
     selectFrequency(); 
     selectBandwidth(bandmem[curr_band].bandwidth);
-    selectMode(bandmem[curr_band].mode);
+    selectMode(0);  // no change just set for the active VFO
     selectStep();
     delay(25);
     selectAgc(bandmem[curr_band].agc_mode);
@@ -599,15 +621,15 @@ void pop_win(uint8_t init)
     if(init)
     {
         popup_timer.interval(300);
-        tft.setActiveWindow(200, 600, 160, 450);
-        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_LIGHT_GREY);
-        tft.drawRoundRect(200,160, 400, 290, 20, RA8875_RED);
+        tft.setActiveWindow(200, 600, 160, 360);
+        tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_GREY);
+        tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("this is a future keyboard");
         delay(3000);
-        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_LIGHT_ORANGE);
-        tft.drawRoundRect(200,160, 400, 290, 20, RA8875_RED);
+        tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_ORANGE);
+        tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("Thanks for watching, GoodBye!");
         delay(1000);

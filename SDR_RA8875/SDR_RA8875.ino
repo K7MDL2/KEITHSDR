@@ -177,10 +177,12 @@ void setup()
     //
     //================================================ Frequency Set =============================================================
     VFOA = bandmem[curr_band].vfo_A_last;    //I used 7850000  frequency CHU  Time Signal Canada
+	VFOB = bandmem[curr_band].vfo_B_last;
     //================================================ Frequency Set =============================================================
     //
     initVfo();        // initialize the si5351 vfo
-    SetFreq();        // Set frequency in VFO
+	selectFrequency();
+    //SetFreq(VFOA);        // Set frequency in VFO
     displayFreq();    // display frequency
     displayAttn();
     displayPreamp();
@@ -191,7 +193,7 @@ void setup()
 	displayATU();
 	displayAGC1();
 	displaySplit();
-	displayXVTR();
+	displayVFO_AB();
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(50, audio_settings);
@@ -269,7 +271,7 @@ void setup()
     RX_Summer.gain(1,3.0);  // -1 for LSB out
  
     selectBandwidth(bandmem[curr_band].bandwidth);
-    selectMode(bandmem[curr_band].mode); 
+    selectMode(0);  // set mode of thge Active VFO using last recorded value (0 = no change) 
 
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS);  // FFT_RMS or FFT_POWER or FFT_DBFS

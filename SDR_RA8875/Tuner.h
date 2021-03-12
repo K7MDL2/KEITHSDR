@@ -16,7 +16,12 @@ static const long bottomFreq = 1000000; // sets the receiver lower frequency lim
 void selectFrequency()
 {
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
-	uint32_t Freq = VFOA;
+	uint32_t Freq;
+
+	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+		Freq = VFOA;
+	else
+		Freq = VFOB;	
 
     if (newFreq>oldFreq || newFreq<oldFreq) 
     {
@@ -34,8 +39,17 @@ void selectFrequency()
               	Freq = bottomFreq;            
       	}
     }
-	VFOA = Freq;
+	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+	{
+		VFOA = Freq;
+		bandmem[curr_band].vfo_A_last = VFOA;
+	}
+	else
+	{
+		VFOB = Freq;
+		bandmem[curr_band].vfo_B_last = VFOB;
+	}
     displayFreq(); // show freq on display
-    SetFreq(); // send freq to SI5351
+    SetFreq(Freq); // send freq to SI5351
     oldFreq=newFreq; //update oldFreq 
 }

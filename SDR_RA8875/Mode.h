@@ -6,9 +6,18 @@ extern AudioMixer4_F32  RX_Summer;
 extern AudioMixer4_F32  FFT_Switch1;
 extern AudioMixer4_F32  FFT_Switch2;
 
-void selectMode(uint8_t mndx)
+void selectMode(uint8_t delta)   // Change Mode of the current active VFO by increment delta.
 {
-  	if (mndx > DATA)
+	uint8_t mndx;
+
+	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
+		mndx = bandmem[curr_band].mode_A;			
+	else
+		mndx = bandmem[curr_band].mode_B;
+	
+	mndx += delta; // Make the change
+
+  	if (mndx > DATA)		// Validate change anb fix if needed
    		mndx=0;
 	if (mndx < CW)
 		mndx = CW;
@@ -65,8 +74,11 @@ void selectMode(uint8_t mndx)
 		AudioInterrupts();
 	}
 
-	bandmem[curr_band].mode = mndx;
+	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+		bandmem[curr_band].mode_A = mndx;
+	else	
+		bandmem[curr_band].mode_B = mndx;
 	Serial.print("Lets set the mode to ");
-	Serial.println(bw[bandmem[curr_band].mode].bw_name);  	
+	Serial.println(bw[mndx].bw_name);  	
   	displayMode();
 }

@@ -79,6 +79,8 @@
 #define BW2_8       6
 #define BW3_2       7
 #define BW4_0       8
+#define VFO_A       1
+#define VFO_B       0
 
 // Our Database of settings. This is the "factory default".  A user copy wil be stored in EEPROM with user changes
 #define BANDS   11
@@ -88,7 +90,9 @@ struct Band_Memory {
     uint32_t    edge_upper;
     uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
     uint32_t    vfo_B_last;
-    uint8_t     mode;           // CW, LSB, USB, DATA.  255 = ignore and use current mode
+    uint8_t     VFO_AB_Active;  // Flag to track which has focus. Usesd in RX.  Used in TX for split
+    uint8_t     mode_A;           // CW, LSB, USB, DATA.  255 = ignore and use current mode
+    uint8_t     mode_B;           // CW, LSB, USB, DATA.  255 = ignore and use current mode
     uint8_t     bandwidth;      // index to Bandwidth selection for this band.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
     uint16_t    tune_step;      // last step rate on this band.  Index to Tune step table  255 = ignore and use current
@@ -102,20 +106,20 @@ struct Band_Memory {
     uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set. 255 is feature disabled
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2, 255 is feature disabled
     uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
-    uint8_t     xvtr_num;       // index to Transverter Table.  
+    uint8_t     xvtr_num;       // index to Transverter Table.   
 } bandmem[BANDS] = { 
-    // name    lower   upper    VFOA     VFOB    mode bw     band step  agc SPLIT RIT XIT ATU ANT PRESELECT   ATTEN     PREAMP     MIC   MG  LI LG SP VOL LO LOG X XV SPC
-    {"160M", 1800000, 2000000, 1840000, 1860000, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF, 0, 0 },
-    { "80M", 3500000, 4000000, 3573000, 3830000, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0, 1 },
-    { "60M", 5000000, 5000000, 5000000, 5000000, USB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0, 2 },
-    { "40M", 7000000, 7300000, 7074000, 7200000,DATA, BW4_0, BAND3,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0, 3 },
-    { "30M",10000000,10200000,10136000,10136000,DATA, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0, 4 },
-    { "20M",14000000,14350000,14074000,14200000,DATA, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0, 5 },
-    { "17M",18000000,18150000,18135000,18100000, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0, 6 },
-    { "15M",21000000,21450000,21074000,21350000,DATA, BW4_0, BAND7,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF, 0, 7 },
-    { "12M",24890000,25000000,24915000,24904000,  CW, BW1_8, BAND8,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF, 0, 8 },
-    { "10M",28000000,29600000,28074000,28074000,DATA, BW3_2, BAND9,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF, 0, 9 },
-    {  "6M",50000000,54000000,50125000,50313000, USB, BW3_2,BAND10,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF, 0,10 }
+    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB bw    band step  agc SPLIT RIT XIT ATU ANT PRESELECT   ATTEN     PREAMP     MIC   MG  LI LG SP VOL LO LOG X XV SPC
+    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF, 0, 0 },
+    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A, LSB, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0, 1 },
+    { "60M", 5000000, 5000000, 5000000, 5000000,VFO_B, USB, LSB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0, 2 },
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0, 3 },
+    { "30M",10000000,10200000,10136000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0, 4 },
+    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0, 5 },
+    { "17M",18000000,18150000,18135000,18100000,VFO_A, USB, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0, 6 },
+    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF, 0, 7 },
+    { "12M",24890000,25000000,24915000,24904000,VFO_A,  CW, USB, BW1_8, BAND8,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF, 0, 8 },
+    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF, 0, 9 },
+    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB, USB, BW3_2,BAND10,4,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF, 0,10 }
 };
 
 struct AudioSettings {
@@ -250,10 +254,11 @@ struct Standard_Button {
 #define ATTEN_BTN   0       // index to button
 #define PREAMP_BTN  1
 #define MUTE_BTN    2
-#define ATU_BTN    3
+#define ATU_BTN     3
 #define AGC_BTN     4
 #define SPLIT_BTN   5
-#define XVTR_BTN    6
+#define VFO_AB_BTN  6
+#define XVTR_BTN    7
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
     // x   y    w    h   r   outline_color      txtcolor           on_color     off_color         label
@@ -263,7 +268,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     {330, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  ATU\0"},
     {440, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  AGC\0"},
     {550, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Split\0"},
-    {660, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, " XVTR\0"}
+    {660, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "   A/B\0"}
 
 
 };
