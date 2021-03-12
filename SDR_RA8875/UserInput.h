@@ -480,9 +480,14 @@ void Button_Handler(int16_t x, uint16_t y)
             spectrum_preset = 0;         
         drawSpectrumFrame(spectrum_preset);
         spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
-        displayMute();
-        displayPreamp();
         displayAttn();
+        displayPreamp();
+        displayMute();
+        // dummy buttons for test
+        displayATU();
+        displayAGC1();
+        displaySplit();
+        displayXVTR();
         /*
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
@@ -614,6 +619,6 @@ void pop_win(uint8_t init)
         tft.setActiveWindow();
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
-        drawSpectrumFrame(spectrum_preset);
+        drawSpectrumFrame(user_settings[user_Profile].sp_preset);
     }
 }

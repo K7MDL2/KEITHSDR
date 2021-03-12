@@ -92,6 +92,26 @@ void displayMute()
     draw_Std_Button(MUTE_BTN, &user_settings[user_Profile].mute);
 }
 
+void displayATU()
+{
+    draw_Std_Button(ATU_BTN, &bandmem[curr_band].ATU);
+}
+
+void displayAGC1()
+{
+    draw_Std_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
+}
+
+void displaySplit()
+{
+    draw_Std_Button(SPLIT_BTN, &bandmem[curr_band].split);
+}
+
+void displayXVTR()
+{
+    draw_Std_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);
+}
+
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------

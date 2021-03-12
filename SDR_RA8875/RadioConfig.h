@@ -246,14 +246,25 @@ struct Standard_Button {
     char     label[11];     // Tesxt to display for the button label  Use spaces to center
 };
 
-#define STD_BTN_NUM 3       // number of buttons in the table
+#define STD_BTN_NUM 7       // number of buttons in the table
 #define ATTEN_BTN   0       // index to button
 #define PREAMP_BTN  1
 #define MUTE_BTN    2
+#define ATU_BTN    3
+#define AGC_BTN     4
+#define SPLIT_BTN   5
+#define XVTR_BTN    6
+
 struct Standard_Button std_btn[STD_BTN_NUM] = {
     // x   y    w    h   r   outline_color      txtcolor           on_color     off_color         label
-    {  0, 419, 110, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Atten\0"},
-    {120, 419, 110, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "Preamp\0"},
-    {240, 419, 110, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Mute\0"}
+    {  0, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Atten\0"},
+    {110, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "Preamp\0"},
+    {220, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Mute\0"},
+    {330, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Mode\0"},
+    {440, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  AGC\0"},
+    {550, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Split\0"},
+    {660, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "XVTR\0"}
+
+
 };
 

@@ -187,6 +187,12 @@ void setup()
     selectStep();
     selectAgc(bandmem[curr_band].agc_mode);
     
+	// dummy buttons for test
+	displayATU();
+	displayAGC1();
+	displaySplit();
+	displayXVTR();
+
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(50, audio_settings);
 
