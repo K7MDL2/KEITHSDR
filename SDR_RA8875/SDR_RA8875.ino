@@ -140,7 +140,7 @@ uint32_t VFOB = 0;
 uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 uint32_t fstep = 10; // sets the tuning increment to 10Hz
 int32_t newFreq=0;
-float enc_ppr_response = 0.1;   // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+uint8_t enc_ppr_response = 60;   // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 uint8_t user_Profile = 0;
@@ -317,11 +317,14 @@ void loop()
         Touch(); // touch points and gestures        
     }
  
-    newFreq = Position.readAndReset();   // faster to poll for change since last read
-    if(newFreq != 0)  // newFreq is a positive or negative number of counts since last read.
+    newFreq += Position.read();   // faster to poll for change since last read
+    // accumulate conts until we have enough to act on for scaling factor to work right.
+    if(newFreq != 0 && abs(newFreq) > enc_ppr_response)  // newFreq is a positive or negative number of counts since last read.
     {
-        newFreq *= enc_ppr_response;   // adjust for high vs low PPR encoders.  600ppr is too fast!
+        newFreq /= enc_ppr_response;   // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
+        Position.readAndReset();   // zero out counter fo rnext read.
+        newFreq = 0;
     }
         
     if (meter.check()==1)  // update our meters
