@@ -56,6 +56,6 @@ void Peak()
 		else 
 			sprintf(string,"      S-9+%02.0f",dbuv);
 		
-		tft.ringMeter(s, 0, 9, 686, 40, 50, string, 3, 1, 90, 8);		
+		tft.ringMeter(s, 0, 9, 680, 10, 50, string, 3, 1, 90, 8);		
 	}
 }

@@ -372,7 +372,7 @@ void Button_Handler(int16_t x, uint16_t y)
         popup_timer.reset();
 
     // MODE
-    if ((x>0&&x<100)&&(y>0&&y<50))
+    if ((x>0 && x<110)&&(y>0 && y<80))
     {
         // Select MODE
         selectMode(bandmem[curr_band].mode+1); 
@@ -380,7 +380,7 @@ void Button_Handler(int16_t x, uint16_t y)
     }
 
     // BANDWIDTH
-    if ((x>120&&x<280)&&(y>0&&y<50))
+    if ((x>120 && x<280) && (y>0 && y<80))
     {
         // Change Bandwidth  - cycle down then back to the top
         selectBandwidth(bandmem[curr_band].bandwidth - 1);  // send index to bw table
@@ -388,13 +388,22 @@ void Button_Handler(int16_t x, uint16_t y)
     }  
 
     // TUNE STEP
-    if ((x>520&&x<680)&&(y>0&&y<50))
+    if ((x>520 && x<680) && (y>0 && y<80))
     {
         // Change Tune Step Rate - Cycle up then to the bottom 
         selectStep();
         return;
     }
     
+        // AGC button
+    if ((x>0 && x<140)&&(y>90&&y<190))
+    {      
+        selectAgc(bandmem[curr_band].agc_mode + 1);
+        Serial.print("Set AGC to ");
+        Serial.println(bandmem[curr_band].agc_mode,DEC);
+        return;
+    }
+
     // MUTE
     ptr = std_btn + MUTE_BTN;     // pointer to buttom object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
@@ -455,15 +464,6 @@ void Button_Handler(int16_t x, uint16_t y)
         displayPreamp();
         Serial.print("Set Preamp to ");
         Serial.println(bandmem[curr_band].preamp,DEC);
-        return;
-    }
-
-    // AGC button
-    if ((x>700&&x<800)&&(y>0&&y<50))
-    {      
-        selectAgc(bandmem[curr_band].agc_mode + 1);
-        Serial.print("Set AGC to ");
-        Serial.println(bandmem[curr_band].agc_mode,DEC);
         return;
     }
 

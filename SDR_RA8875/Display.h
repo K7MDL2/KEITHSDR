@@ -13,39 +13,24 @@ extern uint8_t user_Profile;
 // function declaration
 void draw_Std_Button(uint8_t button, uint8_t *function_ptr);
 
-// The below are fixed numbers based on screen size and other screen object edges
-// These will also be be need to declared as extern variables in other files to leverage.
-int L_frame_left = 0;
-int L_frame_right = 99;
-int R_frame_left = 700;
-int R_frame_right = 799;
-int Bottom_frame = 479;
-int Top_frame = 70;
-int Center_window_divider_line = 120;   // A line that can be drawn between the two button stack frames if desired.
-
-// These define the button height and stack position and number of buttons, all equal size
-int number_of_buttons = 6;                                         // Number of buttons
-int B_height = (Bottom_frame - Top_frame) / number_of_buttons;    // scales the vertical column of buttons on each side, all equal size.
-int B_num = 1;                                                    // button number to scale.  Use B_num * B_height
-
 int displayColor = RA8875_LIGHT_GREY;
 int textcolor = tft.Color565(128, 128, 128);
 
 //////////////////////////////////////////////////////////////
 void displayMode()
 {
-	tft.fillRect(0, 0, 100, 30, RA8875_BLACK );
+	tft.fillRect(19, 30, 100, 30, RA8875_BLACK );
 	tft.setFont(Arial_18);
-	tft.setCursor(10,6);
+	tft.setCursor(20,36);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(Mode[bandmem[curr_band].mode]);    // use MODE{band][mode] to retrieve the text}
 }
 
 void displayBandwidth()
 {
-	tft.fillRect(120, 0, 160, 30, RA8875_BLACK);
+	tft.fillRect(129, 30, 160, 30, RA8875_BLACK);
 	tft.setFont(Arial_18);
-	tft.setCursor(130, 6 );
+	tft.setCursor(130, 36 );
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(bw[bandmem[curr_band].bandwidth].bw_name);   // use bw[current band.bandwidth index] to retrieve the text}
 }
@@ -54,25 +39,25 @@ void displayFreq()
 { 
 	tft.fillRect(305, 0, 215, 40, RA8875_BLACK);
 	tft.setFont(Arial_32);
-	tft.setCursor(306,6);
+	tft.setCursor(306,36);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(float(VFOA)/1000,3);
 }
 
 void displayStep()
 {
-	tft.fillRect(520, 0, 150, 30, RA8875_BLACK);
+	tft.fillRect(524, 30, 150, 30, RA8875_BLACK);
 	tft.setFont(Arial_18);
-	tft.setCursor(525,6);
+	tft.setCursor(525,36);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(tstep[bandmem[curr_band].tune_step].ts_name);
 }
 
 void displayAgc()
 {
-	tft.fillRect(688, 0, 120, 40, RA8875_BLACK);
+	tft.fillRect(19, 70, 120, 40, RA8875_BLACK);
 	tft.setFont(Arial_18);
-	tft.setCursor(680,6);
+	tft.setCursor(20,80);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(agc_set[bandmem[curr_band].agc_mode].agc_name);
 }
