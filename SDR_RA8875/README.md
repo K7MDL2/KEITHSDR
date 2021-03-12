@@ -18,6 +18,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     11. The spectrum region gain was increased so strong signals will nearly touch the top of the window. Bar chart is working again.  
     12. Slight tweaks continue to improve the waterfall color temperature intensity presentations.  
     13. Preselector will be automatically changed with band, there is no UI for that hardware. The Preamp and Attenutor are switching in and out with the preselector relays. Support will be provided for the PE4302 variable solid state attenutor. You can use a fixed attenuator (or none) if desired.
+    14. Can tap the VFO display area to invoke the A/B toggle function, works same as the button does.
 
 ## 3/10/2021
 
