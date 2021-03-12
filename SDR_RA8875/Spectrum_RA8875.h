@@ -80,7 +80,8 @@ extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
-extern volatile uint32_t        VFOA;                     
+extern uint32_t                 VFOA;
+extern uint32_t                 VFOB;
 
 #define FFT_SIZE                2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 

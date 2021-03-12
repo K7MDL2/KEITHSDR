@@ -34,8 +34,8 @@ extern void RampVolume(float vol, int16_t rampType);
 //extern void Spectrum_Parm_Generator(int);
 //extern struct Spectrum_Parms Sp_Parms_Def[];
 extern uint8_t curr_band;   // global tracks our current band setting.  
-extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern volatile uint32_t VFOB;
+extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
@@ -283,9 +283,9 @@ void Gesture_Handler(uint8_t gesture)
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {
                     Serial.println("-100KHz");
-                    VFOA -= 100000;
-                    if (VFOA < bandmem[curr_band].edge_lower) 
-                        VFOA = bandmem[curr_band].edge_lower;                    
+                    newFreq -= 100000;
+                   // if (newFreq < bandmem[curr_band].edge_lower) 
+                    //   newFreq = bandmem[curr_band].edge_lower;                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
                     selectFrequency(); 
                     RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
@@ -295,9 +295,9 @@ void Gesture_Handler(uint8_t gesture)
                 else  // or larger so a Swipe Right
                 {
                     Serial.println("+100KHz");
-                    VFOA += 100000;
-                    if (VFOA < bandmem[curr_band].edge_lower) 
-                        VFOA = bandmem[curr_band].edge_lower;                    
+                    newFreq += 100000;
+                    //if (newFreq < bandmem[curr_band].edge_upper) 
+                    //    newFreq = bandmem[curr_band].edge_upper;                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
                     selectFrequency(); 
                     RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
@@ -441,7 +441,7 @@ void Button_Handler(int16_t x, uint16_t y)
 
     // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
     ptr = std_btn + VFO_AB_BTN;     // pointer to buttom object passed by calling function
-    if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x>400 && x<600) && (y>0 && y<90)))
+    if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x>400 && x<640) && (y>0 && y<90)))
     {
         if (bandmem[curr_band].VFO_AB_Active == VFO_A)
         {

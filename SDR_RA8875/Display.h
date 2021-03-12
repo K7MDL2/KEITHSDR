@@ -2,8 +2,8 @@
 extern RA8875 tft;
 
 extern uint8_t curr_band;   // global tracks our current band setting.  
-extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern volatile uint32_t VFOB;
+extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct Bandwidth_Settings bw[];
 extern struct Standard_Button std_btn[];
@@ -46,7 +46,7 @@ void displayFreq()
 	uint16_t bx = 400;			// position
 	uint16_t by = 0;
 	
-	tft.fillRect(bx, by, 225, 90, RA8875_BLACK);
+	tft.fillRect(bx, by, 240, 90, RA8875_BLACK);
 
 	tft.setFont(Arial_20);
 	tft.setCursor(bx, by+12);

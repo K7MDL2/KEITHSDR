@@ -2,7 +2,6 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
-
 ## 3/12/2021
 
     1. Rearranged the screen layout to make room for buttons across the bottom and 2nd VFO. Looking for comments. The spectrum wide screen layout is the default and is immediately above the buttons. Eventually the buttons presented will rotate out to context sensitive or lesser used button, if they do not appear in a pop up window. They should work with optional multifunction knobs soon.
@@ -19,6 +18,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     12. Slight tweaks continue to improve the waterfall color temperature intensity presentations.  
     13. Preselector will be automatically changed with band, there is no UI for that hardware. The Preamp and Attenutor are switching in and out with the preselector relays. Support will be provided for the PE4302 variable solid state attenutor. You can use a fixed attenuator (or none) if desired.
     14. Can tap the VFO display area to invoke the A/B toggle function, works same as the button does.
+    15. Reworked VFO encoder handling to be very resposive.  Use the enc_ppr_response vriable to scale down or up the number of counts per Hz.  600ppr is very fast and needs to be slowed down. 
+    16. Fixed left/right swipe 100KHz change up/down to work again.
 
 ## 3/10/2021
 

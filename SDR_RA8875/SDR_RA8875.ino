@@ -26,7 +26,6 @@
 
 #include "RadioConfig.h"
 #include "Spectrum_RA8875.h"
-
 #include "hilbert.h"          // This and below are local project files
 #include "Vfo.h"
 #include "Display.h"
@@ -41,7 +40,9 @@
 #include "UserInput.h"   // include after Spectrum_RA8875.h and Display.h
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+//Encoder Position(40,39); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
 Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
+Encoder Multi(40,39);
 Si5351mcu si5351;
 const int myInput = AUDIO_INPUT_LINEIN;
 //const int myInput = AUDIO_INPUT_MIC;
@@ -134,10 +135,12 @@ String agc="";
 
 // These should be saved in EEPROM periodically along with several other parameters
 uint8_t curr_band = BAND4;   // global tracks our current band setting.  
-volatile uint32_t VFOA = 0;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-volatile uint32_t VFOB = 0;
-volatile uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
-volatile uint32_t fstep = 10; // sets the tuning increment to 10Hz
+uint32_t VFOA = 0;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+uint32_t VFOB = 0;
+uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+uint32_t fstep = 10; // sets the tuning increment to 10Hz
+int32_t newFreq=0;
+float enc_ppr_response = 0.1;   // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 uint8_t user_Profile = 0;
@@ -145,13 +148,11 @@ uint8_t user_Profile = 0;
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
-long newFreq=0;
-long oldFreq=0;
 uint8_t popup = 0;   // experimental flag for pop up windows
 
-Metro touch       = Metro(100); // used to check for touch events
+Metro touch       = Metro(50); // used to check for touch events
 Metro meter       = Metro(400); // used to updae the meters
-Metro tune        = Metro(110); // used to check for VFO encoder changes
+Metro tune        = Metro(10); // used to check for VFO encoder changes
 Metro popup_timer = Metro(500); // used to check for popup screen request
 //
 // _______________________________________ Setup_____________________________________________
@@ -190,10 +191,10 @@ void setup()
     selectAgc(bandmem[curr_band].agc_mode);
     
 	// dummy buttons for test
-	displayATU();
-	displayAGC1();
-	displaySplit();
-	displayVFO_AB();
+    displayATU();
+    displayAGC1();
+    displaySplit();
+    displayVFO_AB();
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(50, audio_settings);
@@ -316,17 +317,14 @@ void loop()
         Touch(); // touch points and gestures        
     }
  
-    if (tune.check()==1)   // look for VFO changes
+    newFreq = Position.readAndReset();   // faster to poll for change since last read
+    if(newFreq != 0)  // newFreq is a positive or negative number of counts since last read.
     {
-        newFreq = Position.read();
-        if(newFreq!=oldFreq)
-        {
-          Serial.println();
-            selectFrequency(); // need to get the tuner working //
-        }
+        newFreq *= enc_ppr_response;   // adjust for high vs low PPR encoders.  600ppr is too fast!
+        selectFrequency();
     }
-    
-    if (meter.check()==1)  // update our meers
+        
+    if (meter.check()==1)  // update our meters
     {
         Peak();
         // Code_Peak();
@@ -357,20 +355,20 @@ void loop()
 void RampVolume(float vol, int16_t rampType)
 {
     const char *rampName[] = {
-    "No Ramp (instant)",  // loud pop due to instant change
-    "Normal Ramp",        // graceful transition between volume levels
-      "Linear Ramp"         // slight click/chirp
+    	"No Ramp (instant)",  // loud pop due to instant change
+    	"Normal Ramp",        // graceful transition between volume levels
+      	"Linear Ramp"         // slight click/chirp
     };
     
     Serial.println(rampName[rampType]);
 
     // configure which type of volume transition to use
     if (rampType == 0) {
-      codec1.dacVolumeRampDisable();
+      	codec1.dacVolumeRampDisable();
     } else if (rampType == 1) {
-      codec1.dacVolumeRamp();
+      	codec1.dacVolumeRamp();
     } else {
-      codec1.dacVolumeRampLinear();
+      	codec1.dacVolumeRampLinear();
     }
 
     // set the dacVolume.  The actual change may take place over time, if ramping

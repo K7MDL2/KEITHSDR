@@ -1,8 +1,8 @@
 #include <si5351mcu.h> 
 extern Si5351mcu si5351;
 //extern volatile uint32_t Freq;
-extern volatile uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern volatile uint32_t Fc;
+extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern uint32_t Fc;
 
 //#define TCXO_24MHZ   // used for user installed TCXO instead of crystal wired into standard si5351a chip.
 
@@ -16,11 +16,12 @@ void initVfo()
         si5351.init(24000000);
             /// Si5351mcu library modified by K7MDL to accept load capacitor setting.  Comment this out for standard library
         si5351.load_c(SI5351_CRYSTAL_LOAD_10PF);
+         si5351.correction(0);
     #else
         si5351.init(25000000);
+        si5351.correction(1300);
     #endif
 
-    si5351.correction(0);
     si5351.setPower(0, SIOUT_8mA);   // 0 is Clock 0
     si5351.setFreq(0, (VFOA+Fc)*4);  
     si5351.enable(0);   // these enable/disables are optional
