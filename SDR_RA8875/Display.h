@@ -20,18 +20,18 @@ int textcolor = tft.Color565(128, 128, 128);
 //////////////////////////////////////////////////////////////
 void displayMode()
 {
-	tft.fillRect(19, 30, 100, 30, RA8875_BLACK );
+	tft.fillRect(19, 20, 100, 30, RA8875_BLACK );
 	tft.setFont(Arial_18);
-	tft.setCursor(20,36);
+	tft.setCursor(20,26);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(Mode[bandmem[curr_band].mode]);    // use MODE{band][mode] to retrieve the text}
 }
 
 void displayBandwidth()
 {
-	tft.fillRect(129, 30, 160, 30, RA8875_BLACK);
+	tft.fillRect(129, 20, 160, 30, RA8875_BLACK);
 	tft.setFont(Arial_18);
-	tft.setCursor(130, 36 );
+	tft.setCursor(130, 26 );
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(bw[bandmem[curr_band].bandwidth].bw_name);   // use bw[current band.bandwidth index] to retrieve the text}
 }
@@ -47,9 +47,9 @@ void displayFreq()
 
 void displayStep()
 {
-	tft.fillRect(524, 30, 150, 30, RA8875_BLACK);
+	tft.fillRect(524, 20, 150, 30, RA8875_BLACK);
 	tft.setFont(Arial_18);
-	tft.setCursor(525,36);
+	tft.setCursor(525,26);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(tstep[bandmem[curr_band].tune_step].ts_name);
 }
