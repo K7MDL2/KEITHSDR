@@ -74,11 +74,11 @@ void selectMode(uint8_t delta)   // Change Mode of the current active VFO by inc
 		AudioInterrupts();
 	}
 
-	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+	if (bandmem[curr_band].VFO_AB_Active == VFO_A)   // Store our mode for the active VFO
 		bandmem[curr_band].mode_A = mndx;
 	else	
 		bandmem[curr_band].mode_B = mndx;
 	Serial.print("Lets set the mode to ");
-	Serial.println(bw[mndx].bw_name);  	
+	Serial.println(Mode[mndx]);  	
   	displayMode();
 }
