@@ -12,6 +12,7 @@ extern uint8_t user_Profile;
 
 // function declaration
 void draw_Std_Button(uint8_t button, uint8_t *function_ptr);
+void displayAGC1();
 
 int displayColor = RA8875_LIGHT_GREY;
 int textcolor = tft.Color565(128, 128, 128);
@@ -39,7 +40,7 @@ void displayFreq()
 { 
 	tft.fillRect(305, 0, 215, 40, RA8875_BLACK);
 	tft.setFont(Arial_32);
-	tft.setCursor(306,36);
+	tft.setCursor(306,6);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(float(VFOA)/1000,3);
 }
@@ -60,6 +61,7 @@ void displayAgc()
 	tft.setCursor(20,80);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	tft.print(agc_set[bandmem[curr_band].agc_mode].agc_name);
+	displayAGC1();
 }
 
 void displayAttn()
