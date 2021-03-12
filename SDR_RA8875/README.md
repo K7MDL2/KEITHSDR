@@ -8,16 +8,16 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     1. Rearranged the screen layout to make room for buttons across the bottom and 2nd VFO. Looking for comments. The spectrum wide screen layout is the default and is immediately above the buttons. Eventually the buttons presented will rotate out to context sensitive or lesser used button, if they do not appear in a pop up window. They should work with optional multifunction knobs soon.
     2. Added VFO A and VFO B. Each VFO has last mode used associated with it. VFOs are same band only today.
     3. Mute button is working. The AGC button at bottom will show AGC on or off but controls nothing. Use the upper area AGC label as before.
-    4. All the buttons except Atten, Preamp, Mute, and A/B are non functional placeholders for testing or future use.  need to decide on what buttons are needed overall and where and when they wll appear.
+    4. All the buttons except Atten, Preamp, Mute, and A/B are non functional placeholders for testing or future use. Need to decide on what buttons are needed overall and where and when they wll appear.
     5. The Atten and Preamp buttons work but have no hardware IO pins assigned yet.
     6. A/B button switches active VFO and the Mode associated with it last.  VFOs remember their last frequency used. 
-    7. Split will use VFO B when implmented later.
-    8. The new buttons are "Standard Button" objects with properties like X, Y and text.  They can be easily moved around and the touch system uses those same properties. These are 2 state buttons.  Other complex buttons will be created to handle multiple states and lists of info (like tune step).
-    9. Display.h is now very thin and wil get thinner as conversion to button properties continues.
-    10. User asettings wil leventually record the X,Y positions of each object like the buttons.  It already stores band independent data like the spectrum layout, last band used, speaker enabled/volume, and mic gain and more.
-    11. The spectrum region gain was increased so strong signals will nearly touch teh top of the window.  Bar chart is working again.  
+    7. Split will use VFO B fro transmit when implemented later.
+    8. The new buttons are "Standard Button" objects with properties like X, Y and text. They can be easily moved around and the touch system uses those same properties. These are 2 state buttons. Other complex buttons will be created to handle multiple states and lists of info (like tune step).
+    9. Display.h is now very thin and will get thinner as conversion to button properties continues.
+    10. User settings will eventually record the X,Y positions of each object like the buttons. It already stores band independent data like the spectrum layout, last band used, speaker enabled/volume, and mic gain and more.
+    11. The spectrum region gain was increased so strong signals will nearly touch the top of the window. Bar chart is working again.  
     12. Slight tweaks continue to improve the waterfall color temperature intensity presentations.  
-    13. Preselector will be automatically changed with band, there is no UI for that hardware. The Preamp and Attenutor are switching in and out with that preselector relays. Support will be provided for the PE4302 variable solid state attenutor. You can use a fixed attenuator (or none) if desired.
+    13. Preselector will be automatically changed with band, there is no UI for that hardware. The Preamp and Attenutor are switching in and out with the preselector relays. Support will be provided for the PE4302 variable solid state attenutor. You can use a fixed attenuator (or none) if desired.
 
 ## 3/10/2021
 
