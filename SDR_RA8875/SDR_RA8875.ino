@@ -182,7 +182,7 @@ void setup()
     //================================================ Frequency Set =============================================================
     //
     initVfo();        // initialize the si5351 vfo
-	selectFrequency();
+	selectFrequency(0);
     //SetFreq(VFOA);        // Set frequency in VFO
     displayFreq();    // display frequency
     displayAttn();
@@ -321,7 +321,7 @@ void loop()
     if(newFreq != 0)  // newFreq is a positive or negative number of counts since last read.
     {
         newFreq *= enc_ppr_response;   // adjust for high vs low PPR encoders.  600ppr is too fast!
-        selectFrequency();
+        selectFrequency(newFreq);
     }
         
     if (meter.check()==1)  // update our meters

@@ -281,25 +281,43 @@ void Gesture_Handler(uint8_t gesture)
                 ////------------------ SWIPE LEFT  -------------------------------------------
                 //Serial.println("\nSwipe Horizontal");
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
-                {
-                    Serial.println("-100KHz");
-                    newFreq -= 10000;
-                   // if (newFreq < bandmem[curr_band].edge_lower) 
-                    //   newFreq = bandmem[curr_band].edge_lower;                    
+                {                
+                    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+                    {
+                        VFOA -= 100000;
+                        if ( VFOA < bandmem[curr_band].edge_lower) 
+                            VFOA = bandmem[curr_band].edge_lower;                    
+                    }
+                    else 
+                    {
+                        VFOB -= 100000;    
+                        if ( VFOB < bandmem[curr_band].edge_lower) 
+                            VFOB = bandmem[curr_band].edge_lower;      
+                    }
+                    Serial.println("VFO - 100KHz");                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-                    selectFrequency(); 
+                    selectFrequency(0);     // 0 forces fucntion to useteh current VFO values 
                     RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
                     return; 
                 }
                 ////------------------ SWIPE RIGHT  -------------------------------------------
                 else  // or larger so a Swipe Right
                 {
-                    Serial.println("+100KHz");
-                    newFreq += 100000;
-                    //if (newFreq < bandmem[curr_band].edge_upper) 
-                    //    newFreq = bandmem[curr_band].edge_upper;                    
+                    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+                    {
+                        VFOA += 100000;
+                        if ( VFOA > bandmem[curr_band].edge_upper) 
+                            VFOA = bandmem[curr_band].edge_upper; 
+                    }
+                    else 
+                    {
+                        VFOB += 100000;    
+                        if ( VFOB > bandmem[curr_band].edge_upper) 
+                            VFOB = bandmem[curr_band].edge_upper;      
+                    }
+                    Serial.println("VFO + 100KHz");                    
                     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-                    selectFrequency(); 
+                    selectFrequency(0);     // 0 forces fucntion to useteh current VFO values 
                     RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                     
                     return;    
                 }
@@ -453,7 +471,7 @@ void Button_Handler(int16_t x, uint16_t y)
         }
         VFOA = bandmem[curr_band].vfo_A_last;
         VFOB = bandmem[curr_band].vfo_B_last;
-        selectFrequency();
+        selectFrequency(0);
         selectMode(0);  // No change to mode, jsut set for active VFO
         displayVFO_AB();
         Serial.print("Set VFO_AB_Active to ");
@@ -594,9 +612,9 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     Serial.print("\nTarget Band is "); Serial.println(target_band);
 
     if (target_band > BAND9)    // go to bottom band
-        target_band = BAND0;    // 0 is not used
+        target_band = BAND9;    // 0 is not used
     if (target_band < BAND0)    // go to top most band  -  
-        target_band = BAND9;    // 0 is not used so do not have to adjsut with a -1 here
+        target_band = BAND0;    // 0 is not used so do not have to adjsut with a -1 here
 
     Serial.print("\nCorrected Target Band is "); Serial.println(target_band);    
     
@@ -607,7 +625,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     VFOA = bandmem[curr_band].vfo_A_last;
     VFOB = bandmem[curr_band].vfo_B_last;
     Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
-    selectFrequency(); 
+    selectFrequency(0); 
     selectBandwidth(bandmem[curr_band].bandwidth);
     selectMode(0);  // no change just set for the active VFO
     selectStep();

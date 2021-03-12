@@ -1,7 +1,6 @@
 #include <Encoder.h>
 
 extern Encoder Position;
-extern int32_t newFreq;   // neg or pos according to direction
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
@@ -11,7 +10,11 @@ static const uint32_t topFreq = 54000000;  // sets receiver upper  frequency lim
 static const uint32_t bottomFreq = 1000000; // sets the receiver lower frequency limit 1.6 MHz
 
 ///////////////////////////spin the encoder win a frequency!!////////////////////////////
-void selectFrequency()
+//   Input: Counts from encoder to change the current VFO by the current step rate.  
+//			If newFreq is 0, then just use VFOx which may have been set elsewhere to a desired frequency
+//			use this fucntion rather than setFreq() since this tracks VFOs and updates their memories.
+//
+void selectFrequency(uint32_t newFreq)
 {
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
 	uint32_t Freq;
