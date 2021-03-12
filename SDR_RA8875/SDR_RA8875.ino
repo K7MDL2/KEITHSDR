@@ -141,6 +141,9 @@ uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from
 uint32_t fstep = 10; // sets the tuning increment to 10Hz
 int32_t newFreq=0;
 uint8_t enc_ppr_response = 60;   // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+// I find a value of 60 works good for 600ppr.   
+// 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders.  
+// Best to use even numbers above 1. 
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 uint8_t user_Profile = 0;
