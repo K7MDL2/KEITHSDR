@@ -26,13 +26,13 @@
 
 #include "RadioConfig.h"
 #include "Spectrum_RA8875.h"
-#include "hilbert.h"          // This and below are local project files
+#include "Hilbert.h"          // This and below are local project files
 #include "Vfo.h"
 #include "Display.h"
 #include "Tuner.h"
 #include "AGC.h"
 #include "Mode.h"
-#include "BandWidth2.h"
+#include "Bandwidth2.h"
 #include "Step.h"
 #include "Smeter.h"
 #include "CW_Tune.h"
