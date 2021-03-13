@@ -154,7 +154,7 @@ void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPU
 uint8_t popup = 0;   // experimental flag for pop up windows
 
 Metro touch       = Metro(40); // used to check for touch events
-Metro tuner       = Metro(200); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro tuner       = Metro(400); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
 Metro meter       = Metro(400); // used to updae the meters
 Metro popup_timer = Metro(500); // used to check for popup screen request
 //
