@@ -154,6 +154,7 @@ void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPU
 uint8_t popup = 0;   // experimental flag for pop up windows
 
 Metro touch       = Metro(40); // used to check for touch events
+Metro tuner       = Metro(200); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
 Metro meter       = Metro(400); // used to updae the meters
 Metro popup_timer = Metro(500); // used to check for popup screen request
 //
@@ -319,6 +320,9 @@ void loop()
         Touch(); // touch points and gestures        
     }
  
+    if (tuner.check() == 1 && newFreq < enc_ppr_response)  // dump counts accumulated over time but < minimum for a step to count.
+        newFreq = 0;
+    
     newFreq += Position.read();   // faster to poll for change since last read
     // accumulate conts until we have enough to act on for scaling factor to work right.
     if(newFreq != 0 && abs(newFreq) > enc_ppr_response)  // newFreq is a positive or negative number of counts since last read.
