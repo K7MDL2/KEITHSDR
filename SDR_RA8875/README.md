@@ -21,7 +21,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     15. Reworked VFO encoder handling to be very responsive.  Use the "enc_ppr_response" variable to scale down or up the number of counts per Hz.  600ppr is very fast and needs to be slowed down.  I find a value of 60 works good for 600ppr.   30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders.  Best to use even numbers above 1. 
     16. Fixed left/right swipe 100KHz change up/down to work again.
     17. Tuned touch some more, 3 finger swipes work better now for volume control.
-    18. Removed timer for VFO encoder, not required.  
+    18. Removed timer for VFO encoder, not required. Dump counts accumulated but less than enc_ppr_response values after a longish timeout to prevent VFO drift.
     19. Fixed spectrum frequency label to track active VFO.
 
 ## 3/10/2021
