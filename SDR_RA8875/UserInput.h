@@ -24,7 +24,7 @@
 #define BUTTON_TOUCH    40  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
 //#define MAXTOUCHLIMIT    2  //1...5
 
-Metro gesture_timer=Metro(200);  // Change this to tune the button press timing. A drag will be > than this time.
+Metro gesture_timer=Metro(700);  // Change this to tune the button press timing. A drag will be > than this time.
 extern Metro popup_timer; // used to check for popup screen request
 
 // Our  extern declarations. Mostly needed for button activities.
@@ -631,7 +631,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectStep();
     delay(25);
     selectAgc(bandmem[curr_band].agc_mode);
-    //RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+    RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
 }
 
 void pop_win(uint8_t init)

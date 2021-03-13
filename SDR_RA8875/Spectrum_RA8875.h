@@ -51,7 +51,7 @@
 #include <ili9488_t3_font_ArialBold.h>
 
 int16_t wf_time_line = 5000;
-int16_t fftFreq_refresh = 500;
+int16_t fftFreq_refresh = 1000;
 Metro waterfall_timestamp=Metro(wf_time_line);  // Used to draw a time stamp line across the waterfall window.  Cha
 Metro fftFreq_timestamp = Metro(fftFreq_refresh);
 
@@ -82,6 +82,8 @@ extern float                    fft_bin_size;
 extern RA8875                   tft;
 extern uint32_t                 VFOA;
 extern uint32_t                 VFOB;
+extern struct Band_Memory bandmem[];
+extern uint8_t curr_band;   // global tracks our current band setting.
 
 #define FFT_SIZE                2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
@@ -555,6 +557,12 @@ void spectrum_update(int16_t s)
 
         fft_pk_bin = find_FFT_Max(L_EDGE, L_EDGE+ptr->wf_sp_width);   // get new frequency and power values for streongest signal 
         
+        uint32_t _VFO_;   // Get active VFO frequency
+        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+            _VFO_ = VFOA;
+        else    
+            _VFO_ = VFOB;
+
         // Calculate and print the power of the strongest signal if possible
         fftPower_pk = fftMaxPower;
                
@@ -577,7 +585,7 @@ void spectrum_update(int16_t s)
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
-        float pk_temp = VFOA/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
+        float pk_temp = _VFO_/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
         tft.print(pk_temp,1);
         
         if (fft_pk_bin != 0.0f && fft_pk_bin != fft_pk_bin_last)  // filter out invalid data and DC noise
@@ -620,21 +628,21 @@ void spectrum_update(int16_t s)
             spect_ref_last = sp_floor_avg;   // update memory
         }    
             
-        // Update the span labels with current VFOAuencies    
+        // Update the span labels with current VFO frequencies    
         tft.setTextColor(myLT_GREY);
         tft.setFont(Arial_12);
 
         tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-        tft.print( (float) (VFOA/1000) - (ptr->wf_sp_width*fft_bin_size/1000),1);       // Write left side of graph Freq
+        tft.print( (float) (_VFO_/1000) - (ptr->wf_sp_width*fft_bin_size/1000),1);       // Write left side of graph Freq
         
         tft.fillRect( ptr->c_graph-27, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
         tft.setCursor(ptr->c_graph-27, ptr->sp_txt_row);
-        tft.print( (float) (VFOA/1000),1);   // Write center of graph Freq   
+        tft.print( (float) (_VFO_/1000),1);   // Write center of graph Freq   
         
         tft.fillRect( ptr->r_graph_edge - 60, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
         tft.setCursor(ptr->r_graph_edge - 60, ptr->sp_txt_row);
-        tft.print( (float) (VFOA/1000) + (ptr->wf_sp_width*fft_bin_size/1000),1);  // Write right side of graph Freq
+        tft.print( (float) (_VFO_/1000) + (ptr->wf_sp_width*fft_bin_size/1000),1);  // Write right side of graph Freq
         
         // Write the dB range of the window 
         tft.setTextColor(myLT_GREY);

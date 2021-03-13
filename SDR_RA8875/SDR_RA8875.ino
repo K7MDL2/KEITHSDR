@@ -153,9 +153,8 @@ bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t popup = 0;   // experimental flag for pop up windows
 
-Metro touch       = Metro(50); // used to check for touch events
+Metro touch       = Metro(40); // used to check for touch events
 Metro meter       = Metro(400); // used to updae the meters
-Metro tune        = Metro(10); // used to check for VFO encoder changes
 Metro popup_timer = Metro(500); // used to check for popup screen request
 //
 // _______________________________________ Setup_____________________________________________
@@ -207,8 +206,8 @@ void setup()
     delay(500);
     codec1.dacVolumeRampDisable();    // Turn off the sound for now
     codec1.inputSelect(myInput);    
-    codec1.lineInLevel(8);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
-    codec1.lineOutLevel(13);    // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    codec1.lineInLevel(user_settings[user_Profile].lineIn_Vol_last);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
+    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last);    // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     codec1.autoVolumeControl(2,0,0,-36.0,12,6); // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
     //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
@@ -315,7 +314,7 @@ void loop()
           spectrum_update(spectrum_preset);   // valid numbers are 0 through PRESETS to index the record of predefined window layouts 
     }
 
-    if (touch.check()==1) ////// touch interrupt runs wayyy tooo fast .. so scheduled it up
+    if (touch.check()==1)
     {
         Touch(); // touch points and gestures        
     }

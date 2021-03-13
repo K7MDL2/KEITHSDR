@@ -14,7 +14,7 @@ static const uint32_t bottomFreq = 1000000; // sets the receiver lower frequency
 //			If newFreq is 0, then just use VFOx which may have been set elsewhere to a desired frequency
 //			use this fucntion rather than setFreq() since this tracks VFOs and updates their memories.
 //
-void selectFrequency(uint32_t newFreq)
+void selectFrequency(int32_t newFreq)
 {
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
 	uint32_t Freq;
@@ -29,7 +29,6 @@ void selectFrequency(uint32_t newFreq)
 		Freq = topFreq;        
 	if (Freq <= bottomFreq)            
 		Freq = bottomFreq;   
-	Serial.println(Freq);	Serial.println(newFreq);         
 	
 	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
 	{
