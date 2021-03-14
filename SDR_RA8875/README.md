@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/14/2021
+
+    1. Tuned up the VFO encoder behavior more.
+    2. Added a multifunction encoder for UI functions to use
+    3. Updated to run 4096 FFT I and Q.
+    4. Fixed the Peak signal detection frequency and power indication.
+    5. Evenly spaced the bottom buttons and made them more rounded.  Added padx and pady to help align text within the button width and height.  Changed the button struct name to describe it better as draw_2_state_button vs draw_std_button.
+
 ## 3/12/2021
 
     1. Rearranged the screen layout to make room for buttons across the bottom and 2nd VFO. Looking for comments. The spectrum wide screen layout is the default and is immediately above the buttons. Eventually the buttons presented will rotate out to context sensitive or lesser used button, if they do not appear in a pop up window. They should work with optional multifunction knobs soon.

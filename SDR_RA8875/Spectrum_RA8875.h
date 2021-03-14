@@ -231,7 +231,7 @@ void spectrum_update(int16_t s)
     int16_t pix_n16;
     static int16_t spect_scale_last = 0;
     static int16_t spect_ref_last   = 0;
-    static float fft_pk_bin_last    = 0;
+    //static float fft_pk_bin_last    = 0;
     float fft_pk_bin                = 0;
     static float fftPower_pk        = ptr->spect_floor;
     static float fftPower_pk_last   = ptr->spect_floor;
@@ -604,7 +604,7 @@ void spectrum_update(int16_t s)
         if (fftFreq_timestamp.check() == 1)   // clear after no recent data
         {
             fftPower_pk = ptr->spect_floor;
-            fft_pk_bin_last = 0.0f;
+            //fft_pk_bin_last = 0.0f;
         }    
         
         // Write the Scale value 
