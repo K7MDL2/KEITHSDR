@@ -11,8 +11,9 @@ extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
 
 // function declaration
-void draw_Std_Button(uint8_t button, uint8_t *function_ptr);
+void draw_2_state_Button(uint8_t button, uint8_t *function_ptr);
 void displayAGC1();
+void refreshScreen(void);
 
 int displayColor = RA8875_LIGHT_GREY;
 int textcolor = tft.Color565(128, 128, 128);
@@ -106,43 +107,43 @@ void displayAgc()
 
 void displayVFO_AB()
 {
-    draw_Std_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);
+    draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);
 	displayFreq();
 }
 
 void displayAttn()
 {
-    draw_Std_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
+    draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
 
 void displayPreamp()
 {
-    draw_Std_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
+    draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
 }
 
 void displayMute()
 {
-    draw_Std_Button(MUTE_BTN, &user_settings[user_Profile].mute);
+    draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);
 }
 
 void displayATU()
 {
-    draw_Std_Button(ATU_BTN, &bandmem[curr_band].ATU);
+    draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
 }
 
 void displayAGC1()
 {
-    draw_Std_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
+    draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
 }
 
 void displaySplit()
 {
-    draw_Std_Button(SPLIT_BTN, &bandmem[curr_band].split);
+    draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
 }
 
 void displayXVTR()
 {
-    draw_Std_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);
+    draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);
 }
 
 
@@ -158,7 +159,7 @@ void displayXVTR()
 //
 // TODO: change to handle multiple states such as RF gain, AF gain, or triple state, maybe info text like level.  Could be a new function.
 //
-void draw_Std_Button(uint8_t button, uint8_t *function_ptr) 
+void draw_2_state_Button(uint8_t button, uint8_t *function_ptr) 
 {
     struct Standard_Button *ptr = std_btn + button;     // pointer to button object passed by calling function
 	uint16_t bx     = ptr->bx;
@@ -170,6 +171,8 @@ void draw_Std_Button(uint8_t button, uint8_t *function_ptr)
     uint16_t txtclr = ptr->txtclr; 
     uint16_t on_clr = ptr->on_color;
     uint16_t off_clr= ptr->off_color;
+	uint16_t padx   = ptr->padx;
+	uint16_t pady   = ptr->pady;
 
 	if(*function_ptr == 1)
 		tft.fillRoundRect(bx,by,bw,bh,br,on_clr);
@@ -181,8 +184,29 @@ void draw_Std_Button(uint8_t button, uint8_t *function_ptr)
     tft.setTextColor(txtclr);
 	tft.setFont(Arial_18);
 	tft.setTextColor(txtclr); 
-    tft.setCursor(bx+10,by+20);
+    tft.setCursor(bx+padx,by+pady);
     tft.print(ptr->label);
+}
+
+//
+//----------------------------------- Refresh screen -----------------------------------
+//
+void refreshScreen(void)
+{
+    displayFreq();    // display frequency
+    displayAttn();
+    displayPreamp();
+	displayBandwidth();
+	displayMode();
+    displayAgc();
+	displayMute();
+	displayStep();
+    
+	// dummy buttons for test
+    displayATU();
+    displayAGC1();
+    displaySplit();
+    displayVFO_AB();
 }
 
  

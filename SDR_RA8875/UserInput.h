@@ -520,14 +520,7 @@ void Button_Handler(int16_t x, uint16_t y)
             spectrum_preset = 0;         
         drawSpectrumFrame(spectrum_preset);
         spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
-        displayAttn();
-        displayPreamp();
-        displayMute();
-        // dummy buttons for test
-        displayATU();
-        displayAGC1();
-        displaySplit();
-        displayXVTR();
+        refreshScreen();   // redraw the rest of the screen and buttons
         /*
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)

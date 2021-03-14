@@ -76,7 +76,8 @@ Metro fftFreq_timestamp = Metro(fftFreq_refresh);
     //  The default is 3 (requires no call)               2
 
 // From main file where sampling rate and other audio library features are set
-extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
+extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
+//extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
@@ -85,7 +86,7 @@ extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
 
-#define FFT_SIZE                2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
+#define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
 int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
 int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
@@ -564,19 +565,25 @@ void spectrum_update(int16_t s)
             _VFO_ = VFOB;
 
         // Calculate and print the power of the strongest signal if possible
-        fftPower_pk = fftMaxPower;
-               
-        //Serial.print("Ppk="); Serial.println((fftPower_pk+fftPower_pk_last)/2-ptr->spect_sp_scale);       
-        tft.fillRect(ptr->l_graph_edge+39,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
-        tft.setCursor(ptr->l_graph_edge+40,        ptr->sp_txt_row+30); // Write the legend
-        tft.print("P: "); 
-        tft.setCursor(ptr->l_graph_edge+56,        ptr->sp_txt_row+30);  // write the value
-        tft.print((fftPower_pk * -1 * ptr->spect_sp_scale) - ptr->spect_sp_scale,1);
-        
-        if (fftPower_pk != fftPower_pk_last)  // filter out invalid data and DC noise
-        {       
-            fftPower_pk_last = fftPower_pk;        
-            fftFreq_timestamp.reset();  // reset the timer since we have new good data
+        // Start by getting the highest power within a period of time
+        if (fftMaxPower > fftPower_pk_last)
+        { 
+            fftPower_pk_last = fftMaxPower;
+            //Serial.print("Ppk="); Serial.println(fftPower_pk_last);
+            tft.fillRect(ptr->l_graph_edge+39,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
+            tft.setCursor(ptr->l_graph_edge+40,        ptr->sp_txt_row+30); // Write the legend
+            tft.print("P: "); 
+            tft.setCursor(ptr->l_graph_edge+56,        ptr->sp_txt_row+30);  // write the value
+            tft.print(fftPower_pk_last,1);
+            //fftFreq_timestamp.reset();  // reset the timer since we have new good data
+        }
+
+        //(fftMaxPower < fftPower_pk_last)  // filter out invalid data and DC noise
+                         
+        if (fftFreq_timestamp.check() == 1)
+        {
+            fftPower_pk_last = -200;  // reset the timer since we have new good data
+            //Serial.println("Reset");
         }
                 
         // Calculate and print the frequency of the strongest signal if possible 
@@ -585,14 +592,14 @@ void spectrum_update(int16_t s)
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
-        float pk_temp = _VFO_/1000 + (2 * (fft_bin_size/1000 * (fft_pk_bin - FFT_SIZE/2)));   // relate the peak bin to the center bin
+        float pk_temp = _VFO_/1000 + (2 * (fft_bin_size/1000 * fft_pk_bin));   // relate the peak bin to the center bin
         tft.print(pk_temp,1);
         
-        if (fft_pk_bin != 0.0f && fft_pk_bin != fft_pk_bin_last)  // filter out invalid data and DC noise
-        {
-            fft_pk_bin_last = fft_pk_bin;
-            fftFreq_timestamp.reset();  // reset the timer sicne we have new good data
-        }
+        //if (fft_pk_bin != 0.0f && fft_pk_bin != fft_pk_bin_last)  // filter out invalid data and DC noise
+        //{
+          //  fft_pk_bin_last = fft_pk_bin;
+           // fftFreq_timestamp.reset();  // reset the timer sicne we have new good data
+        //}
         
         if (fftFreq_timestamp.check() == 1)   // clear after no recent data
         {
@@ -930,46 +937,53 @@ void Spectrum_Parm_Generator(int16_t parm_set)
   //              f = (L - (2-R)/(1+R))*f_sample/1024  "
 float find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and max bins to look at based on display width.
 {
-    float specMax = 0.0f;
+    float specMax = -200.0f;
     uint16_t iiMax = 0;
     float f_peak = 0.0f;
+    
+    uint16_t bin_center = (bin_max-bin_min)/2 + bin_min;
 
-    myFFT.setOutputType(FFT_POWER);   // change to power, return it to FFT_DBFS at end
+    //myFFT.setOutputType(FFT_POWER);   // change to power, return it to FFT_DBFS at end
     myFFT.windowFunction(AudioWindowHanning1024);
-    myFFT.setXAxis(FFT_AXIS);
     // Get pointer to data array of powers, float output[512];
     // setAxis(FFT_AXIS=2) is called in drawSpectrumFrame() to set the bin order to lowest frequency at 0 bin and highest at bin 1023
     float *pPwr = myFFT.getData();
     // Find biggest bin
     for(int ii=bin_min; ii<bin_max; ii++)  
-    {
-        if (*(pPwr + ii) > specMax) 
+    {        
+        if (ii == bin_center -1)        
+            ii += 3;   // advance ii to skip the center few bins around our center frequency.
+
+//Serial.print("ii="); Serial.print(ii); Serial.print("  binval="); Serial.println(*(pPwr + ii));  
+        if (*(pPwr + ii) > specMax && *(pPwr + ii) < -1.0)   // filter out periodic blocks of 0 values 
         { // Find highest peak of range
           specMax = *(pPwr + ii);
-          iiMax = ii;
+          iiMax = ii;         
         }
     }
-    if (specMax > 0.0)
+//Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" specMax="); Serial.println(specMax);   
+    if (specMax != 0.0)
     {
-        float vm = sqrtf( *(pPwr + iiMax - 1) );
-        float vc = sqrtf( *(pPwr + iiMax) );
-        float vp = sqrtf( *(pPwr + iiMax + 1) );
+        float vm =  *(pPwr + iiMax - 1);
+        float vc =  *(pPwr + iiMax);
+        float vp =  *(pPwr + iiMax + 1);
+        float R=0;
 
         if(vp > vm)  
         {
-            // set global fftMaxPower = Power of the strongest signal if possible
-            float R = fftMaxPower = vc/vp;
-            // return a frequency value adjusted to be relative to the center bin
-            f_peak = (float32_t)iiMax +  (2-R)/(1+R);   // *44100.0f/1024.0f;
+         // set global fftMaxPower = Power of the strongest signal if possible
+           R = vc/vp;
         }
         else  
         {          
-            // set global fftMaxPower = Power of the strongest signal if possible
-            float R = fftMaxPower = vc/vm;
-            f_peak = (float32_t)iiMax + (2-R)/(1+R);  
+            R = vc/vm;
         }
+        // return a frequency value adjusted to be relative to the center bin
+        fftMaxPower = iiMax + (2-R)/(1+R);
+        f_peak = fftMaxPower - bin_center;   //adjust for center
+        fftMaxPower = myFFT.read((uint16_t) fftMaxPower); // set global fftMaxPower = Power of the strongest signal if possible
     }
-    myFFT.setOutputType(FFT_DBFS);   // return it to FFT_DBFS       
-    return f_peak;    
+    //Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" fftMaxPower="); Serial.println(fftMaxPower); 
+    return f_peak;    // return -200 unless there is a good value to send out
 }
 

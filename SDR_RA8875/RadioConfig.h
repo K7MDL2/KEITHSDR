@@ -248,7 +248,9 @@ struct Standard_Button {
     uint16_t txtclr;        // used for button text color
     uint16_t on_color;      // fill color when button is ON state
     uint16_t off_color;     // fill color when button is OFF state
-    char     label[11];     // Tesxt to display for the button label  Use spaces to center
+    uint16_t padx;       // # of pixels to pad label text horizontally shifting right to center the text 
+    uint16_t pady;       // # of pixels to pad label text vertically shifting text down to center the text 
+    char     label[20];     // Tesxt to display for the button label  Use spaces to center
 };
 
 #define STD_BTN_NUM 7       // number of buttons in the table
@@ -262,13 +264,13 @@ struct Standard_Button {
 #define XVTR_BTN    7
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
-    // x   y    w    h   r   outline_color      txtcolor           on_color     off_color         label
-    {  0, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Atten\0"},
-    {110, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "   Pre\0"},
-    {220, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Mute\0"},
-    {330, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  ATU\0"},
-    {440, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  AGC\0"},
-    {550, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "  Split\0"},
-    {660, 419, 100, 60, 10, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, "   A/B\0"}    
+    // x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
+    {  1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 21, 20, "Atten\0"},
+    {118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 31, 20, "Pre\0"},
+    {235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Mute\0"},
+    {350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 26, 20, "ATU\0"},
+    {467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "AGC\0"},
+    {583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Split\0"},
+    {699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 30, 20, "A/B\0"}    
 };
 

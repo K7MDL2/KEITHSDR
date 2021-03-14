@@ -68,7 +68,7 @@ int16_t fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_S
 float fft_bin_size = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 
 extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
-int16_t waterfall_speed     = 30;    // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t waterfall_speed     = 60;    // window update rate in ms.  25 is fast enough to see dit and dahs well
 Metro spectrum = Metro(waterfall_speed);
 int16_t FFT_Source          = 0;
 //
@@ -87,7 +87,8 @@ AudioAnalyzePeak_F32    Q_Peak;
 AudioAnalyzePeak_F32    I_Peak;
 AudioAnalyzePeak_F32    CW_Peak;
 AudioAnalyzeRMS_F32     CW_RMS;  
-AudioAnalyzeFFT2048_IQ_F32  myFFT;
+AudioAnalyzeFFT4096_IQ_F32  myFFT;
+//AudioAnalyzeFFT2048_IQ_F32  myFFT;
 //AudioAnalyzeFFT1024_IQ_F32  myFFT;
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
@@ -137,9 +138,8 @@ String agc="";
 uint8_t curr_band = BAND4;   // global tracks our current band setting.  
 uint32_t VFOA = 0;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t VFOB = 0;
-uint32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+int32_t Fc = 0; //9;   //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 uint32_t fstep = 10; // sets the tuning increment to 10Hz
-int32_t newFreq=0;
 uint8_t enc_ppr_response = 60;   // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr.   
 // 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders.  
@@ -153,9 +153,9 @@ bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t popup = 0;   // experimental flag for pop up windows
 
-Metro touch       = Metro(40); // used to check for touch events
-Metro tuner       = Metro(400); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
-Metro meter       = Metro(400); // used to updae the meters
+Metro touch       = Metro(100);  // used to check for touch events
+Metro tuner       = Metro(1000); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro meter       = Metro(400); // used to update the meters
 Metro popup_timer = Metro(500); // used to check for popup screen request
 //
 // _______________________________________ Setup_____________________________________________
@@ -186,21 +186,12 @@ void setup()
     //
     initVfo();        // initialize the si5351 vfo
 	selectFrequency(0);
-    //SetFreq(VFOA);        // Set frequency in VFO
-    displayFreq();    // display frequency
-    displayAttn();
-    displayPreamp();
     selectStep();
     selectAgc(bandmem[curr_band].agc_mode);
-    
-	// dummy buttons for test
-    displayATU();
-    displayAGC1();
-    displaySplit();
-    displayVFO_AB();
+    refreshScreen();  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
-    AudioMemory_F32(50, audio_settings);
+    AudioMemory_F32(100, audio_settings);
 
     //TODO: Many of these need to be called in other places also such as when changing bands or AGC to mute and unmute, during TX for another example  
     codec1.enable();  // MUST be before inputSelect()
@@ -306,6 +297,8 @@ void setup()
 //
 void loop() 
 {
+    static int32_t newFreq = 0;
+
     // Update spectrum and waterfall based on timer
     
     if (spectrum.check() == 1)
@@ -321,8 +314,11 @@ void loop()
     }
  
     if (tuner.check() == 1 && newFreq < enc_ppr_response)  // dump counts accumulated over time but < minimum for a step to count.
+    {
+        Position.readAndReset();
         newFreq = 0;
-    
+    }
+
     newFreq += Position.read();   // faster to poll for change since last read
     // accumulate conts until we have enough to act on for scaling factor to work right.
     if(newFreq != 0 && abs(newFreq) > enc_ppr_response)  // newFreq is a positive or negative number of counts since last read.
@@ -332,7 +328,7 @@ void loop()
         Position.readAndReset();   // zero out counter fo rnext read.
         newFreq = 0;
     }
-        
+
     if (meter.check()==1)  // update our meters
     {
         Peak();
@@ -341,9 +337,9 @@ void loop()
     }
 
     if ( popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
-      {
+    {
           // Service popup window
-      }
+    }
 
     //respond to Serial commands
     while (Serial.available())
@@ -407,10 +403,6 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
         Serial.print(AudioMemoryUsage_F32());
         Serial.print("/");
         Serial.println(AudioMemoryUsageMax_F32());
-        Serial.print(" Audio MEM Int16 Cur/Peak: ");
-        Serial.print(AudioMemoryUsage());
-        Serial.print("/");
-        Serial.println(AudioMemoryUsageMax());
         
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
     }
@@ -447,4 +439,32 @@ void printHelp(void)
     Serial.println("Help: Available Commands:");
     Serial.println("   h: Print this help");
     Serial.println("   C: Toggle printing of CPU and Memory usage");
+}
+//
+// ---------------------------------  multiKnob() -----------------------------------------------
+//
+//  Handles a detented incremental encoder for any calling function returning the count, if any, 
+//          positive or negative until a reset is requested to 0.
+//
+//  Input:  uint8_t clear.  If clear == 1 then reset the encoder to ready it for a next read.
+//
+//  Usage:  A consumer function will call this with clear flag set at the start of use. 
+//          It will poll this function for counts acting on any in any way it needs to.
+//          It will celar the count to look for next action.
+//          If a clear is not performed then the consumer function must deal with figuring out how
+//          the value has changed and what to do with it.
+//          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
+//
+uint32_t multiKnob(uint8_t clear)
+{
+    static uint32_t mf_count = 0;
+    
+    if (clear)
+    {
+        Multi.readAndReset();   // toss results, zero the encoder
+        mf_count = 0;
+    }
+    else
+        mf_count = Multi.read();  // read and reset the Multifunction knob.  Apply results to any in-focus function, if any.
+    return mf_count;
 }
