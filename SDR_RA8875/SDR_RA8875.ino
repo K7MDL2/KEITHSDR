@@ -451,11 +451,6 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
         Serial.print(AudioMemoryUsage_F32());
         Serial.print("/");
         Serial.println(AudioMemoryUsageMax_F32());
-        Serial.print("CPU Temperature: ");
-        Serial.print(InternalTemperature.readTemperatureF(), 1);
-        Serial.print("°F    ");
-        Serial.print(InternalTemperature.readTemperatureC(), 1);
-        Serial.println("°C");
         
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
