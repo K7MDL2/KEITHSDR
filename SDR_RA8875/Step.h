@@ -37,5 +37,5 @@ void selectStep()
 
 	Serial.print("Set Tune Step to ");
 	Serial.println(tstep[bandmem[curr_band].tune_step].ts_name);
-	displayStep();
+	displayRate();
 }

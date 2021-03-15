@@ -384,7 +384,7 @@ void Button_Handler(int16_t x, uint16_t y)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
-    struct Standard_Button *ptr = std_btn;              // pointer to stanard button layout table
+    struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
 
     if (popup)
         popup_timer.reset();
@@ -405,7 +405,7 @@ void Button_Handler(int16_t x, uint16_t y)
         return; 
     }  
     
-        // AGC button
+    // AGC button
     if ((x>0 && x<140) && (y>90 && y<190))
     {      
         selectAgc(bandmem[curr_band].agc_mode + 1);
@@ -414,97 +414,338 @@ void Button_Handler(int16_t x, uint16_t y)
         return;
     }
 
-        // TUNE STEP
+    // TUNE RATE
     if ((x>170 && x<330) && (y>90 && y<190))
     {
-        // Change Tune Step Rate - Cycle up then to the bottom 
+        // Change Tune Rate (Step)- Cycle up then to the bottom 
         selectStep();
         return;
     }
 
     // MUTE
-    ptr = std_btn + MUTE_BTN;     // pointer to buttom object passed by calling function
+    ptr = std_btn + MUTE_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (user_settings[user_Profile].spkr_en)
-        {
-            if (!user_settings[user_Profile].mute)
+        if (ptr->enabled)
+        {    
+            if (user_settings[user_Profile].spkr_en)
             {
-                RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"           
-                user_settings[user_Profile].mute = ON;
-            }
-            else    
-            {    //codec1.muteHeadphone();
-                RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
-                user_settings[user_Profile].mute = OFF;        
-            }
-            displayMute();
-        }        
-        return;
+                if (!user_settings[user_Profile].mute)
+                {
+                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"           
+                    user_settings[user_Profile].mute = ON;
+                }
+                else    
+                {    //codec1.muteHeadphone();
+                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
+                    user_settings[user_Profile].mute = OFF;        
+                }
+                displayMute();
+            }        
+            return;
+        }
     }
 
-    // SETTINGS (hidden button for testing for now)
-    if ((x>0 && x<100) && (y>300 && y<400))
-    {
-        // Settings Button
-        popup = 1;
-        pop_win(1);
-        Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
-        if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
-             Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
-        Serial.print("spectrum_wf_colortemp = ");
-        Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
-        return;  
-    } 
+    // MENU button
+    ptr = std_btn + MENU_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {   
+        if (ptr->enabled)
+        {
+            popup = 1;
+            pop_win(1);
+            Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
+            if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
+                Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
+            Serial.print("spectrum_wf_colortemp = ");
+            Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
+            displayMenu();
+            Serial.println("Menu Pressed");
+            return;
+        }
+    }
 
     // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
-    ptr = std_btn + VFO_AB_BTN;     // pointer to buttom object passed by calling function
+    ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
     if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x>400 && x<640) && (y>0 && y<90)))
     {
-        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-        {
-            bandmem[curr_band].VFO_AB_Active = VFO_B;
+        if (ptr->enabled) 
+        {       
+            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+            {
+                bandmem[curr_band].VFO_AB_Active = VFO_B;
+            }
+            else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
+            {
+                bandmem[curr_band].VFO_AB_Active = VFO_A;
+            }
+            VFOA = bandmem[curr_band].vfo_A_last;
+            VFOB = bandmem[curr_band].vfo_B_last;
+            selectFrequency(0);
+            selectMode(0);  // No change to mode, jsut set for active VFO
+            displayVFO_AB();
+            Serial.print("Set VFO_AB_Active to ");
+            Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
+            return;
         }
-        else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
-        {
-            bandmem[curr_band].VFO_AB_Active = VFO_A;
-        }
-        VFOA = bandmem[curr_band].vfo_A_last;
-        VFOB = bandmem[curr_band].vfo_B_last;
-        selectFrequency(0);
-        selectMode(0);  // No change to mode, jsut set for active VFO
-        displayVFO_AB();
-        Serial.print("Set VFO_AB_Active to ");
-        Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
-        return;
     }
 
     // ATTENUATOR button
-    ptr = std_btn + ATTEN_BTN;     // pointer to buttom object passed by calling function
+    ptr = std_btn + ATTEN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (bandmem[curr_band].attenuator == ATTEN_ON)
-            bandmem[curr_band].attenuator = ATTEN_OFF;
-        else if (bandmem[curr_band].attenuator == ATTEN_OFF)
-            bandmem[curr_band].attenuator = ATTEN_ON;
-        displayAttn();
-        Serial.print("Set Attenuator to ");
-        Serial.println(bandmem[curr_band].attenuator,DEC);
-        return;
+    {   
+        if (ptr->enabled)
+        {
+            if (bandmem[curr_band].attenuator == ATTEN_ON)
+                bandmem[curr_band].attenuator = ATTEN_OFF;
+            else if (bandmem[curr_band].attenuator == ATTEN_OFF)
+                bandmem[curr_band].attenuator = ATTEN_ON;
+            displayAttn();
+            Serial.print("Set Attenuator to ");
+            Serial.println(bandmem[curr_band].attenuator,DEC);
+            return;
+        }
     }
 
     // PREAMP button
-    ptr = std_btn + PREAMP_BTN;     // pointer to buttom object passed by calling function
+    ptr = std_btn + PREAMP_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (bandmem[curr_band].preamp == PREAMP_ON)
-            bandmem[curr_band].preamp = PREAMP_OFF;
-        else if (bandmem[curr_band].preamp == PREAMP_OFF)
-            bandmem[curr_band].preamp = PREAMP_ON;
-        displayPreamp();
-        Serial.print("Set Preamp to ");
-        Serial.println(bandmem[curr_band].preamp,DEC);
-        return;
+        if (ptr->enabled)
+        {
+            if (bandmem[curr_band].preamp == PREAMP_ON)
+                bandmem[curr_band].preamp = PREAMP_OFF;
+            else if (bandmem[curr_band].preamp == PREAMP_OFF)
+                bandmem[curr_band].preamp = PREAMP_ON;
+            displayPreamp();
+            Serial.print("Set Preamp to ");
+            Serial.println(bandmem[curr_band].preamp,DEC);
+            return;
+        }
+    }
+
+    // RIT button
+    ptr = std_btn + RIT_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        { 
+            if (bandmem[curr_band].RIT_en == ON)
+                bandmem[curr_band].RIT_en = OFF;
+            else if (bandmem[curr_band].RIT_en == OFF)
+                bandmem[curr_band].RIT_en = ON;
+            displayRIT();
+            Serial.print("Set RIT to ");
+            Serial.println(bandmem[curr_band].RIT_en);
+            return;
+        }
+    }
+    
+    // SPLIT button
+    ptr = std_btn + SPLIT_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            if (bandmem[curr_band].split == ON)
+                bandmem[curr_band].split = OFF;
+            else if (bandmem[curr_band].split == OFF)
+                bandmem[curr_band].split = ON;
+            displaySplit();
+            Serial.print("Set Split to ");
+            Serial.println(bandmem[curr_band].split);
+            return;
+        }
+    }
+    
+    // XVTR button
+    ptr = std_btn + XVTR_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            if (bandmem[curr_band].xvtr_en== ON)
+                bandmem[curr_band].xvtr_en = OFF;
+            else if (bandmem[curr_band].xvtr_en == OFF)
+                bandmem[curr_band].xvtr_en = ON;
+            displayXVTR();
+            Serial.print("Set Xvtr Enable to ");
+            Serial.println(bandmem[curr_band].xvtr_en);
+            return;
+        }
+    }
+
+    // ATU button
+    ptr = std_btn + ATU_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            if (bandmem[curr_band].ATU== ON)
+                bandmem[curr_band].ATU = OFF;
+            else if (bandmem[curr_band].ATU == OFF)
+                bandmem[curr_band].ATU = ON;
+            displayATU();
+            Serial.print("Set ATU to ");
+            Serial.println(bandmem[curr_band].ATU);
+            return;
+        }
+    }
+
+    // NB button
+    ptr = std_btn + NB_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            if (bandmem[curr_band].nb_en== ON)
+                bandmem[curr_band].nb_en = OFF;
+            else if (bandmem[curr_band].nb_en == OFF)
+                bandmem[curr_band].nb_en = ON;
+            displayNB();
+            Serial.print("Set NB to ");
+            Serial.println(bandmem[curr_band].nb_en);
+            return;
+        }
+    }
+
+    // BAND UP button
+    ptr = std_btn + BANDUP_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            changeBands(1);
+            displayBandUp();
+            Serial.print("Set Band UP to ");
+            Serial.println(bandmem[curr_band].band_num,DEC);
+            return;
+        }
+    }
+
+    // BAND DOWN button
+    ptr = std_btn + BANDDN_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            Serial.println("BAND DN");
+            changeBands(-1);
+            displayBandDn();
+            Serial.print("Set Band DN to ");
+            Serial.println(bandmem[curr_band].band_num,DEC);
+            return;
+        }
+    }
+    
+    // BAND button
+    ptr = std_btn + BAND_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            popup = 1;
+            pop_win(1);
+            changeBands(1);  // increment up 1 band for now until the pop up windows buttons and/or MF are working
+            displayBand();
+            Serial.print("Set Band to ");
+            Serial.println(bandmem[curr_band].band_num,DEC);
+            return;
+        }
+    }
+
+    // DISPLAY button
+    ptr = std_btn + DISPLAY_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {        
+            if (display_state)
+                display_state = 0;
+            else 
+                display_state = 1;
+            popup = 1;
+            pop_win(1);
+            displayDisplay();
+            Serial.print("Set Display Button to ");
+            Serial.println(display_state);
+            return;
+        }
+    }
+
+    // FN button  - Cycles out a list (panel) of buttons
+    ptr = std_btn + FN_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        std_btn[FN_BTN].enabled += 1;
+        if (std_btn[FN_BTN].enabled > PANEL_ROWS-1)
+            std_btn[FN_BTN].enabled = 2;
+
+        if (1)  // ptr->enabled)   For now this button is always active.
+        {   
+            if (std_btn[FN_BTN].enabled == 3)   // Panel 2 buttons
+            {
+                strcpy(std_btn[FN_BTN].label, "Fn 2\0");
+                // Turn OFF Panel 1 buttons
+                std_btn[DISPLAY_BTN].enabled = OFF;
+                std_btn[RIT_BTN].enabled     = OFF;
+                std_btn[BANDUP_BTN].enabled  = OFF;
+                std_btn[BANDDN_BTN].enabled  = OFF;
+                // Turn ON Panel 2 buttons
+                std_btn[ATTEN_BTN].enabled   = ON;
+                std_btn[PREAMP_BTN].enabled  = ON;
+                std_btn[SPLIT_BTN].enabled   = ON;
+                std_btn[BAND_BTN].enabled    = ON;
+                // Turn OFF Panel 3 buttons
+                std_btn[ATU_BTN].enabled     = OFF;
+                std_btn[NB_BTN].enabled      = OFF;
+                std_btn[XVTR_BTN].enabled    = OFF;
+                std_btn[VFO_AB_BTN].enabled  = OFF;
+            }
+            else if (std_btn[FN_BTN].enabled == 4)// Panel 3 buttons
+            {           
+                strcpy(std_btn[FN_BTN].label, "Fn 3\0");
+                // Turn OFF Panel 1 buttons
+                std_btn[DISPLAY_BTN].enabled = OFF;
+                std_btn[RIT_BTN].enabled     = OFF;
+                std_btn[BANDUP_BTN].enabled  = OFF;
+                std_btn[BANDDN_BTN].enabled  = OFF;
+
+                // Turn OFF Panel 2 buttons
+                std_btn[ATTEN_BTN].enabled   = OFF;
+                std_btn[PREAMP_BTN].enabled  = OFF;
+                std_btn[SPLIT_BTN].enabled   = OFF;
+                std_btn[BAND_BTN].enabled    = OFF;
+                
+                // Turn ON Panel 3 buttons
+                std_btn[ATU_BTN].enabled     = ON;
+                std_btn[NB_BTN].enabled      = ON;
+                std_btn[XVTR_BTN].enabled    = ON;
+                std_btn[VFO_AB_BTN].enabled  = ON;
+            }
+            else    // if (std_btn[FN_BTN].enabled == 1)
+            {
+                strcpy(std_btn[FN_BTN].label, "Fn 1\0");
+                //Turn ON Panel 1 buttons
+                std_btn[DISPLAY_BTN].enabled = ON;
+                std_btn[RIT_BTN].enabled     = ON;
+                std_btn[BANDUP_BTN].enabled  = ON;
+                std_btn[BANDDN_BTN].enabled  = ON;
+                // Turn OFF Panel 2 buttons
+                std_btn[ATTEN_BTN].enabled   = OFF;
+                std_btn[PREAMP_BTN].enabled  = OFF;
+                std_btn[SPLIT_BTN].enabled   = OFF;
+                std_btn[BAND_BTN].enabled    = OFF;   
+                // Turn OFF Panel 3 buttons
+                std_btn[ATU_BTN].enabled     = OFF;
+                std_btn[NB_BTN].enabled      = OFF;
+                std_btn[XVTR_BTN].enabled    = OFF;
+                std_btn[VFO_AB_BTN].enabled  = OFF;             
+            }
+            displayRefresh(1);   // redraw button to show new ones and hide old ones.  Set arg =1 to skip calling ourself
+            Serial.print("Fn Pressed ");  Serial.println(std_btn[FN_BTN].enabled);
+            return;
+        }
     }
 
     // DISPLAY Test button (hidden area)
@@ -520,7 +761,7 @@ void Button_Handler(int16_t x, uint16_t y)
             spectrum_preset = 0;         
         drawSpectrumFrame(spectrum_preset);
         spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
-        refreshScreen();   // redraw the rest of the screen and buttons
+        displayRefresh(0);   // redraw the rest of the screen and buttons
         /*
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
         if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
@@ -594,6 +835,7 @@ void Set_Spectrum_RefLvl(int8_t zoom_dir)
 
 void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
 {
+    
     // TODO search bands column for match toaccount for mapping that does not start with 0 and bands could be in odd order and disabled.
     //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
     bandmem[curr_band].vfo_A_last = VFOA;
@@ -610,9 +852,8 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
         target_band = BAND0;    // 0 is not used so do not have to adjsut with a -1 here
 
     Serial.print("\nCorrected Target Band is "); Serial.println(target_band);    
-    
+  
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
-    
     RampVolume(0.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     curr_band = target_band;    // Set out new band
     VFOA = bandmem[curr_band].vfo_A_last;
@@ -622,7 +863,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectBandwidth(bandmem[curr_band].bandwidth);
     selectMode(0);  // no change just set for the active VFO
     selectStep();
-    delay(25);
+    delay(2);
     selectAgc(bandmem[curr_band].agc_mode);
     RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
 }
@@ -638,12 +879,12 @@ void pop_win(uint8_t init)
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("this is a future keyboard");
-        delay(3000);
+        delay(1000);
         tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_ORANGE);
         tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("Thanks for watching, GoodBye!");
-        delay(1000);
+        delay(600);
         popup = 0;
    // }
    // else 

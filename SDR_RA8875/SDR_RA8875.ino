@@ -68,7 +68,7 @@ int16_t fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_S
 float fft_bin_size = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 
 extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
-int16_t waterfall_speed     = 60;    // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t waterfall_speed     = 100;    // window update rate in ms.  25 is fast enough to see dit and dahs well
 Metro spectrum = Metro(waterfall_speed);
 int16_t FFT_Source          = 0;
 //
@@ -152,6 +152,7 @@ uint8_t user_Profile = 0;
 bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t popup = 0;   // experimental flag for pop up windows
+int32_t multiKnob(uint8_t clear);  // consumer features use this for control input
 
 Metro touch       = Metro(100);  // used to check for touch events
 Metro tuner       = Metro(1000); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
@@ -188,7 +189,7 @@ void setup()
 	selectFrequency(0);
     selectStep();
     selectAgc(bandmem[curr_band].agc_mode);
-    refreshScreen();  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
+    displayRefresh(0);  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(100, audio_settings);
@@ -455,7 +456,7 @@ void printHelp(void)
 //          the value has changed and what to do with it.
 //          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
 //
-uint32_t multiKnob(uint8_t clear)
+int32_t multiKnob(uint8_t clear)
 {
     static uint32_t mf_count = 0;
     

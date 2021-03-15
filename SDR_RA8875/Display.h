@@ -7,6 +7,8 @@ extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct Bandwidth_Settings bw[];
 extern struct Standard_Button std_btn[];
+extern struct Complex_Button complex_btn[];
+extern struct Frequency_Display disp_Freq[];
 extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
 
@@ -44,49 +46,66 @@ void displayBandwidth()
 
 void displayFreq()
 { 
-	uint16_t bx = 400;			// position
-	uint16_t by = 0;
+	struct Frequency_Display *ptr = disp_Freq;     // pointer to button object passed by calling function
+	// bx					// X - upper left corner anchor point
+	// by					// Y - upper left corner anchor point
+	// bw					// width of whole box
+	// bh					// height of whole box
+	// br					// radius of corners
+    // ol_clr	  			// outline color
+	// bg_clr    			// background color
+	// vfoActive_clr  		// color of Active VFO numbers
+	// vfoActive_LabelFont 	// size of Active VFO Label text
+    // vfoActive_Font  		// size of Active VFO numbers
+    // vfoStandby_clr  		// color of Standby VFO numbers
+	// vfoStandby_LabelFont // size of Standby VFO label text
+    // vfoStanby_Font  		// size of Standby VFO numbers
+    // TX_clr    			// Color when active VFO is in transmit
+	// padx					// horizonal padding from left side of box
+	// pady					// vertical padding form top of box
 	
-	tft.fillRect(bx, by, 240, 90, RA8875_BLACK);
+	tft.fillRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->bg_clr);
 
-	tft.setFont(Arial_20);
-	tft.setCursor(bx, by+12);
-	tft.setTextColor(RA8875_LIGHT_GREY);
+	// Write the Active VFO
+	tft.setFont(ptr->vfoActive_LabelFont);
+	tft.setCursor(ptr->bx, ptr->by+12);
+	tft.setTextColor(ptr->vfoActive_clr);
 	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
 	{
 		tft.print("A:");		
-		tft.setFont(Arial_32);
-		tft.setCursor(bx+28, by+6);
+		tft.setFont(ptr->vfoActive_Font);
+		tft.setCursor(ptr->bx+28, ptr->by+6);
 		tft.print(float(VFOA)/1000,3);
 	}
 	else
 	{
 		tft.print("B:");		
-		tft.setFont(Arial_32);
-		tft.setCursor(bx+28, by+6);
+		tft.setFont(ptr->vfoActive_Font);
+		tft.setCursor(ptr->bx+28, ptr->by+6);
 		tft.print(float(VFOB)/1000,3);
 	}
 	
-	tft.setFont(Arial_16);
-	tft.setCursor(bx, by+58);
-	tft.setTextColor(RA8875_MAGENTA);	
+	// Write the standby VFO
+	tft.setFont(ptr->vfoStandby_LabelFont);
+	tft.setCursor(ptr->bx, ptr->by+58);
+	tft.setTextColor(ptr->vfoStandby_clr);	
 	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
 	{		
 		tft.print("B:");
-		tft.setFont(Arial_20);
-		tft.setCursor(bx+28, by+56);
+		tft.setFont(ptr->vfoStandby_Font);
+		tft.setCursor(ptr->bx+28, ptr->by+56);
 		tft.print(float(VFOB)/1000,3);
 	}
 	else 
 	{
 		tft.print("A:");
-		tft.setFont(Arial_20);
-		tft.setCursor(bx+28, by+56);
+		tft.setFont(ptr->vfoStandby_Font);
+		tft.setCursor(ptr->bx+28, ptr->by+56);
 		tft.print(float(VFOA)/1000,3);
 	}
 }
 
-void displayStep()
+void displayRate()
 {
 	tft.fillRect(170, 80, 150, 30, RA8875_BLACK);
 	tft.setFont(Arial_18);
@@ -105,47 +124,22 @@ void displayAgc()
 	displayAGC1();
 }
 
-void displayVFO_AB()
-{
-    draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);
-	displayFreq();
-}
-
-void displayAttn()
-{
-    draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
-}
-
-void displayPreamp()
-{
-    draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
-}
-
-void displayMute()
-{
-    draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);
-}
-
-void displayATU()
-{
-    draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
-}
-
-void displayAGC1()
-{
-    draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
-}
-
-void displaySplit()
-{
-    draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
-}
-
-void displayXVTR()
-{
-    draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);
-}
-
+void displayMenu(){draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);}
+void displayFn(){draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);}
+void displayVFO_AB(){draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);}
+void displayBandUp(){draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);}
+void displayBand(){draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);}
+void displayBandDn(){draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);}
+void displayDisplay(){draw_2_state_Button(DISPLAY_BTN, &display_state);}
+void displayRIT(){draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);}
+void displayAttn(){draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);}
+void displayPreamp(){draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);}
+void displayMute(){draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);}
+void displayATU(){draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);}
+void displayNB(){draw_2_state_Button(NB_BTN, &bandmem[curr_band].nb_en);}
+void displayAGC1(){draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);}
+void displaySplit(){draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);}
+void displayXVTR(){draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);}
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------
@@ -162,36 +156,31 @@ void displayXVTR()
 void draw_2_state_Button(uint8_t button, uint8_t *function_ptr) 
 {
     struct Standard_Button *ptr = std_btn + button;     // pointer to button object passed by calling function
-	uint16_t bx     = ptr->bx;
-	uint16_t by     = ptr->by;
-	uint16_t bw     = ptr->bw;
-	uint16_t bh     = ptr->bh;
-	uint16_t br     = ptr->br;
-    uint16_t ol_clr = ptr->outline_color;
-    uint16_t txtclr = ptr->txtclr; 
-    uint16_t on_clr = ptr->on_color;
-    uint16_t off_clr= ptr->off_color;
-	uint16_t padx   = ptr->padx;
-	uint16_t pady   = ptr->pady;
+	
+	if(ptr->enabled == 0)
+		return;
 
 	if(*function_ptr == 1)
-		tft.fillRoundRect(bx,by,bw,bh,br,on_clr);
-	if(*function_ptr == 0)
+	{
+		tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->on_color);
+		tft.drawRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->outline_color);
+	}	
+	else  //(*function_ptr == 0)
     {
-  	    tft.fillRoundRect(bx,by,bw,bh, br, off_clr );
-		tft.drawRoundRect(bx,by,bw,bh,br,ol_clr);
+  	    tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh, ptr->br, ptr->off_color );
+		tft.drawRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->outline_color);
     }
-    tft.setTextColor(txtclr);
+    tft.setTextColor(ptr->txtclr);
 	tft.setFont(Arial_18);
-	tft.setTextColor(txtclr); 
-    tft.setCursor(bx+padx,by+pady);
+	tft.setTextColor(ptr->txtclr); 
+    tft.setCursor(ptr->bx+ptr->padx,ptr->by+ptr->pady);
     tft.print(ptr->label);
 }
 
 //
 //----------------------------------- Refresh screen -----------------------------------
 //
-void refreshScreen(void)
+void displayRefresh(uint8_t fn)
 {
     displayFreq();    // display frequency
     displayAttn();
@@ -199,14 +188,29 @@ void refreshScreen(void)
 	displayBandwidth();
 	displayMode();
     displayAgc();
+	// Bottom Panel Anchor buttons
+	displayMenu();
 	displayMute();
-	displayStep();
+	if (!fn) displayFn();   // make fn=1 to call displayFn() to prevent calling itself
+	// Panel 1 buttons
+	displayDisplay();
+	displayRIT();
+	displayBandUp();
+	displayBandDn();
+	//Panel 2 buttons
+	displayAttn();
+	displayPreamp();
+	displaySplit();
+	displayBand();
+	//Panel 3 buttons
+	displayATU();
+	displayNB();
+	displayXVTR();
+	displayVFO_AB();
     
-	// dummy buttons for test
-    displayATU();
-    displayAGC1();
-    displaySplit();
-    displayVFO_AB();
+    //displayAGC1();
+    
+    
 }
 
  
