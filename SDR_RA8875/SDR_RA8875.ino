@@ -10,7 +10,8 @@
 #include <Wire.h>             // included with Arduino
 #include <WireIMXRT.h>        // gets installed with wire.h
 #include <WireKinetis.h>      // included with Arduino
-//#include <EEPROM.h>
+#include <InternalTemperature.h>
+
 #define RA8875_INT        14  //any pin
 #define RA8875_CS         10  //any digital pin
 #define RA8875_RESET      9   //any pin or nothing!
@@ -441,6 +442,11 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
         Serial.print("%/");
         Serial.print(audio_settings.processorUsageMax());
         Serial.println("%");
+        Serial.print("CPU Temperature:");
+        Serial.print(InternalTemperature.readTemperatureF(), 1);
+        Serial.print("F ");
+        Serial.print(InternalTemperature.readTemperatureC(), 1);
+        Serial.println("C");
         Serial.print(" Audio MEM Float32 Cur/Peak: ");
         Serial.print(AudioMemoryUsage_F32());
         Serial.print("/");
