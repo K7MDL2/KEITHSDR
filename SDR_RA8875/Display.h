@@ -180,6 +180,13 @@ void draw_2_state_Button(uint8_t button, uint8_t *function_ptr)
 //
 //----------------------------------- Refresh screen -----------------------------------
 //
+//  Usage: This function calls all of the displayXXX() functions to easily refresh the
+//			screen except for the spectrum display module.
+// 
+//  Input: 1. fn=0 is normal value to refresh all objects. 
+// 		   2. fn=1 to refresh all but the displayFn() since that is the one function that 
+// 		        calls this routine and would result in a circular loop.
+// 
 void displayRefresh(uint8_t fn)
 {
     displayFreq();    // display frequency
@@ -208,8 +215,6 @@ void displayRefresh(uint8_t fn)
 	displayVFO_AB();
     
     //displayAGC1();
-    
-    
 }
 
  
