@@ -85,7 +85,10 @@ extern uint32_t                 VFOA;
 extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
-
+#ifdef ENET
+extern uint8_t enet_write(uint8_t *tx_buffer);
+extern uint8_t tx_buffer[BUFFER_SIZE];
+#endif
 #define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
 int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
@@ -207,7 +210,7 @@ struct Spectrum_Parms {
     {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25000.0,2,310,1.7,0.9,0,40,-180},
     {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,2,450,0.7,0.9,1,40,-180},
     {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180},
-    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180}
+    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25000.0,5,440,1.0,0.9,3,40,-170}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];
@@ -248,8 +251,7 @@ void spectrum_update(int16_t s)
     float avg = 0.0;
     float pixelnew[FFT_SIZE];           //  Stores current pixel fopr spectrum portion only
     static float pixelold[FFT_SIZE];    //  Stores copy of current pixel so it can be erased in next update
-
-    //float tempfft[FFT_SIZE];    
+    float full_FFT[FFT_SIZE];    
 
     if (myFFT.available()) 
     {                
@@ -274,8 +276,26 @@ void spectrum_update(int16_t s)
             //L_EDGE = FFT_center - GRAPH_center;
             */
         }
-        
-        for (i = 2; i < ptr->wf_sp_width; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
+        #ifdef ENET
+        memcpy(tx_buffer, myFFT.getData(), 4096);
+        enet_write(tx_buffer);
+        #endif
+
+        if (ptr->spect_span == 25000)
+        {            
+            int wd = ptr->wf_sp_width;
+            //int div = ptr->spect_span;
+            int binsz = round(FFT_SIZE/wd);  // bins that will be compressed into 1 pixel to fit the screen
+            for (i = 0; i < ptr->wf_sp_width; i++)
+            {        
+                full_FFT[i] = myFFT.read(binsz+i);
+            }
+            pout = full_FFT;
+            Serial.print("Zoom Out =");
+            Serial.println(binsz,DEC);
+        }
+
+        for (i = 2; i < ptr->wf_sp_width-1; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
         { 
             if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
             {
@@ -318,7 +338,6 @@ void spectrum_update(int16_t s)
                     line_buffer[i] = myLT_GREY;  // draw center Fc line in waterfall
             }
         }   // Done with copying the FFT output array
-
 
         // Takes a snapshot of the current window without the bottom row. Stores it in Layer 2 then brings it back beginning at the 2nd row. 
         //    Then write new row data into the missing top row to get a scroll effect using display hardware, not the CPU.
@@ -444,7 +463,7 @@ void spectrum_update(int16_t s)
             //
 
             if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
-            {    
+            {
                 if ((i < ptr->wf_sp_width-2) && (pix_n16 > ptr->sp_top_line+2) && (pix_n16 < ptr->sp_bottom_line-2)  ) // will blank out the center spike
                 {   
                     if (pixelnew[i] <  ptr->sp_bottom_line + 40) // arbitrary cutoff to look for low level avg to act as AGC for noise floor adjustment.
@@ -457,7 +476,7 @@ void spectrum_update(int16_t s)
                     if (ptr->spect_dot_bar_mode == 0)   // BAR Mode 
                     {
                         if (pix_o16 != pix_n16) 
-                        {                               
+                        {                          
                             if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
                             {
                                 //common way: draw bars                                                                        
@@ -503,7 +522,7 @@ void spectrum_update(int16_t s)
                         }
                     }
                     // Under Dev - attempting to draw connecting line between dots  Lines are drawn all over for some reason TBD.
-                    else if (pix_o16 != pix_n16) 
+                    else if (ptr->spect_dot_bar_mode == 2 && pix_o16 != pix_n16) 
                     { 
                         //if ((pix_n16 > ptr->sp_top_line+10 && pix_n16 < ptr->sp_bottom_line-10) && 
                          //       (pix_o16 > ptr->sp_top_line+10 && pix_o16 < ptr->sp_bottom_line-10))
@@ -981,7 +1000,8 @@ float find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and ma
         // return a frequency value adjusted to be relative to the center bin
         fftMaxPower = iiMax + (2-R)/(1+R);
         f_peak = fftMaxPower - bin_center;   //adjust for center
-        fftMaxPower = myFFT.read((uint16_t) fftMaxPower); // set global fftMaxPower = Power of the strongest signal if possible
+        fftMaxPower = myFFT.read((uint16_t) fftMaxPower)-20; // set global fftMaxPower = Power of the strongest signal if possible
+                                                            // -20 is a cal factor experimentally determined
     }
     //Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" fftMaxPower="); Serial.println(fftMaxPower); 
     return f_peak;    // return -200 unless there is a good value to send out

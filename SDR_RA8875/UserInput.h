@@ -863,6 +863,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectBandwidth(bandmem[curr_band].bandwidth);
     selectMode(0);  // no change just set for the active VFO
     selectStep();
+    displayRefresh(0);
     delay(2);
     selectAgc(bandmem[curr_band].agc_mode);
     RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
@@ -894,5 +895,6 @@ void pop_win(uint8_t init)
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
         drawSpectrumFrame(user_settings[user_Profile].sp_preset);
+        displayRefresh(0);
     }
 }

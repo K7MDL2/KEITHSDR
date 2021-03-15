@@ -183,11 +183,10 @@ void draw_2_state_Button(uint8_t button, uint8_t *function_ptr)
 void displayRefresh(uint8_t fn)
 {
     displayFreq();    // display frequency
-    displayAttn();
-    displayPreamp();
 	displayBandwidth();
 	displayMode();
     displayAgc();
+	displayRate();
 	// Bottom Panel Anchor buttons
 	displayMenu();
 	displayMute();

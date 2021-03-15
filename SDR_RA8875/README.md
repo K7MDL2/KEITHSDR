@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/15/2021
+
+    1. Added ethernet init, read and write functions, dumping FFT output to a desktop UDP receive app succewssfully. Use #define ENET to enable to disable this feature.  Normally it shouldd be off by default.  This is for future remote control head operation.
+    2. Loop timer added, prints out max time in ms every 1 second.
+    3. Disabled spectrum portion of display and increased update rate for waterfall update rate test.
+    4. Added temeprature readout in F and C units to the CPU usage report (for you overclockers who shall be unamed)
+    5. Attempted a span zoom with max zoom out compressing 4096 data points into the screen width.
+
 ## 3/14-15/2021
 
     1. Added buttons (keys) for 15 functions.  These are individual buttons now grouped in 3 "Panels". They can be enabled or diabled. They will get a Hide/Show property next. Using enable/disable to hide a button was not a good idea.

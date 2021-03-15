@@ -120,7 +120,7 @@ struct Band_Memory {
     {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF, 0,  0, 0},
     { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A, LSB, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0,  1, 0},
     { "60M", 5000000, 5000000, 5000000, 5000000,VFO_B, USB, LSB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0,  2, 0},
-    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0,  3, 0},
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,3,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0,  3, 0},
     { "30M",10000000,10200000,10136000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0,  4, 0},
     { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0,  5, 0},
     { "17M",18000000,18150000,18135000,18100000,VFO_A, USB, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0,  6, 0},
@@ -370,3 +370,43 @@ struct Frequency_Display {
 };
 
  uint8_t display_state;   // something to hold the button state for the display pop-up window later.
+
+//#define ENET              // Include support for ethernet
+
+#ifdef ENET
+#include <NativeEthernet.h>
+#include <NativeEthernetUdp.h>
+
+#define BUFFER_SIZE         (4200)
+#define LINE_STR_LENGTH     (20u)
+    
+uint8_t enet_ready = 0;
+unsigned long enet_start_fail_time = 0;
+uint8_t rx_buffer[BUFFER_SIZE];
+uint8_t tx_buffer[BUFFER_SIZE];
+uint8_t rx_count = 0;
+uint8_t tx_count = 0;
+uint8_t enet_data_out = 0;
+static uint8_t sdata[BUFFER_SIZE], *pSdata=sdata, *pSdata1=sdata, *pSdata2=sdata;
+    
+// Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
+// The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
+//byte mac[] = {
+//  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
+//};
+IPAddress ip(192, 168, 1, 237);    // Our static IP address.  OUdl use DHCP but preferring static address.
+unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
+unsigned int localPort_Nex = 7945;     // local port to LISTEN for the remote display/Desktop app Nextion data
+
+// buffers for receiving and sending data
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
+char ReplyBuffer[] = "Random Reply";        // a string to send back
+
+//Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+IPAddress remote_ip(192, 168, 1, 7);  // destination  IP (desktop app or remote display Arduino
+unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
+unsigned int remoteport_Nex = 7944;    // the destination port to SENDTO (a remote display or Desktop app) Nextion data
+
+// An EthernetUDP instance to let us send and receive packets over UDP
+EthernetUDP Udp;
+#endif
