@@ -252,20 +252,33 @@ void spectrum_update(int16_t s)
     float pixelnew[FFT_SIZE];           //  Stores current pixel fopr spectrum portion only
     static float pixelold[FFT_SIZE];    //  Stores copy of current pixel so it can be erased in next update
     float full_FFT[FFT_SIZE];    
+    float *pout = myFFT.getData();  // Get pointer to data array of powers, float output[512]; 
 
     if (myFFT.available()) 
-    {                
+    {     
+        if (ptr->spect_span == 25000)
+        {            
+            int wd = ptr->wf_sp_width;
+            //int div = ptr->spect_span;
+            int binsz = round(FFT_SIZE/wd);  // bins that will be compressed into 1 pixel to fit the screen
+            for (i = 0; i < ptr->wf_sp_width; i++)
+            {        
+                full_FFT[i] = myFFT.read(binsz+i);
+            }
+            pout = full_FFT;
+            Serial.print("Zoom Out =");
+            Serial.println(binsz,DEC);
+        }           
         // Calculate center then if FFT is larger than graph area width, trim ends evently
-        int16_t L_EDGE = 0;
-        float *pout = myFFT.getData();  // Get pointer to data array of powers, float output[512];        
+        int16_t L_EDGE = 0;       
         
-        if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
-        {
-            L_EDGE = (FFT_SIZE - ptr->wf_sp_width)/2;
-            pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
-        }
-        else   // When FFT data is < available graph area
-        {      // If our display area is less then our data width, fill in the outside areas with low values.
+       // if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
+        //{
+       //     L_EDGE = (FFT_SIZE - ptr->wf_sp_width)/2;
+       //     pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
+       // }
+       // else   // When FFT data is < available graph area
+      //  {      // If our display area is less then our data width, fill in the outside areas with low values.
             //L_EDGE = (ptr->wf_sp_width - FFT_SIZE - )/2;
             //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
             /*
@@ -275,7 +288,7 @@ void spectrum_update(int16_t s)
                  tempfft[i] = -500;
             //L_EDGE = FFT_center - GRAPH_center;
             */
-        }
+      //  }
         #ifdef ENET
         memcpy(tx_buffer, myFFT.getData(), 4096);
         enet_write(tx_buffer);

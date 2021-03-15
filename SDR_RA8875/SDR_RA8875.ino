@@ -71,7 +71,7 @@ int16_t fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_S
 float fft_bin_size = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 
 extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
-int16_t waterfall_speed     = 100;    // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t waterfall_speed     = 120;    // window update rate in ms.  25 is fast enough to see dit and dahs well
 Metro spectrum = Metro(waterfall_speed);
 int16_t FFT_Source          = 0;
 //
