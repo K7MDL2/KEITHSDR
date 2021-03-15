@@ -4,15 +4,16 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/14-15/2021
 
-    1. Added buttons (keys) for 15 functions.  These are individual buttons now groups in 3 "Panels",  htey can be enavbled or diabled.  They will get a Hide/Show property next.  Using enable/diable to hide a button was not a good idea.
-    2. The Menu, Mute, and Fn X keys are always displayed on the bottom row.  The remaining space to the right holds about 4 keys on a 4.3" display with 100px wide keys. Any smaller and touch accuracy gets iffy.
-    3. Fn X key:  This cycles through available panels (groups) of keys. There are presently 4 keys per panel. These will certainly change over time, and for larger and wider displays, but this is a starting point.
-    4. These keys are all 2 state keys today.  Coming up are multi-state keys for controls like Tune Rate, AGC, Mode, and Filter selection. 
+    1. Added buttons (keys) for 15 functions.  These are individual buttons now grouped in 3 "Panels". They can be enabled or diabled. They will get a Hide/Show property next. Using enable/disable to hide a button was not a good idea.
+    2. The Menu, Mute, and Fn X keys are always displayed on the bottom row. The remaining space to the right holds about 4 keys on a 4.3" display with 100px wide keys. Any smaller and touch accuracy gets iffy.
+    3. Fn X key: This cycles through available panels (groups) of keys. There are presently 4 keys per panel. These will certainly change over time, and for larger and wider displays, but this is a starting point.
+    4. These keys are all 2 state keys today. Coming up are multi-state keys for controls like Tune Rate, AGC, Mode, and Filter selection. 
     5. The VFO A/B "window" now has properties like the keys do with the added feature of font style (i.e. Arial_32). Will add that to the keys properties later now that I have figured out how to do this.
     6. Band + and Band: These are the same as swipe up and down today. 
-    7. Band: The Band key pops up a window meant to show all bands and then either touch or MF knob can be used to select one. 8. Menu:  Like the Band key, it pops up a window also. Windows are blank at this point.
-    9. When a button is not visible, it is disabled today. Therefore when the A/B button is hidden, it is disabled. Tapping on the VFO window to swap the active VFO won't until the key is visible again.  Need to add a Hide/Show property.
-    10. Keys that you turn on while on a given band the first time will turn to off when you change bands. This is normal because many settings are per-band. They all start as off, and only change when you are on that band. Those are not yet saved in EEPROM so after a reset you loose your changes today.
+    7. Band: The Band key pops up a window meant to later show all bands and then either use touch or the MF knob can be used to select one. 
+    8. Menu:  Like the Band key, it pops up a window also. Windows are blank at this point.
+    9. When a button is not visible, it is disabled today. Therefore when the A/B button is hidden, it is disabled. Tapping on the VFO window to swap the active VFOs won't work until the key is visible again. Need to add a Hide/Show property.
+    10. Keys that you turn on while on a given band the first time will turn to off when you change bands. This is normal because many settings are per-band. They all start out as OFF and only change when you are on that band. Those are not yet saved in EEPROM so after a reset you loose your changes today.
 
 ## 3/14/2021
 
