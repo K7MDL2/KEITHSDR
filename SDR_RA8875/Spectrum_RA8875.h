@@ -272,11 +272,11 @@ void spectrum_update(int16_t s)
         // Calculate center then if FFT is larger than graph area width, trim ends evently
         int16_t L_EDGE = 0;       
         
-       // if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
-        //{
-       //     L_EDGE = (FFT_SIZE - ptr->wf_sp_width)/2;
-       //     pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
-       // }
+        if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
+        {
+            L_EDGE = (FFT_SIZE - ptr->wf_sp_width)/2;
+            pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
+        }
        // else   // When FFT data is < available graph area
       //  {      // If our display area is less then our data width, fill in the outside areas with low values.
             //L_EDGE = (ptr->wf_sp_width - FFT_SIZE - )/2;

@@ -10,8 +10,6 @@
 #include <Wire.h>             // included with Arduino
 #include <WireIMXRT.h>        // gets installed with wire.h
 #include <WireKinetis.h>      // included with Arduino
-#include <InternalTemperature.h>
-
 #define RA8875_INT        14  //any pin
 #define RA8875_CS         10  //any digital pin
 #define RA8875_RESET      9   //any pin or nothing!
