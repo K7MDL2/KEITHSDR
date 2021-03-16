@@ -4,11 +4,17 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/15/2021
 
-    1. Added ethernet init, read and write functions, dumping FFT output to a desktop UDP receive app succewssfully. Use #define ENET to enable to disable this feature.  Normally it shouldd be off by default.  This is for future remote control head operation.
-    2. Loop timer added, prints out max time in ms every 1 second.
-    3. Disabled spectrum portion of display and increased update rate for waterfall update rate test.
-    4. Added temeprature readout in F and C units to the CPU usage report (for you overclockers who shall be unamed)
-    5. Attempted a span zoom with max zoom out compressing 4096 data points into the screen width.
+    1. Added ethernet init, read and write functions, dumping FFT output to a desktop UDP receiver app successfully. Use #define ENET to enable to disable this feature for compile or use the newly added User Settings table controls for enet_enable (hardware on/off) and/or enet_output. 
+    2. The Ethernet UDP feature is intended for future remote control head operation but we may find other uses for it short term.
+    3. I set User Profile 0 to have the enet hardware turned on. The other 2 it is off. I set User Profile 1 to be the default on the Github upload. 
+    4. All profiles have the enet data output off by default.
+    5. There is a new Enet Output key on Panel 3 that replaced the A/B key.
+    6. Tapping the VFO area now swaps VFOs. The A/B button no longer has to be visible or even exist. It is now parked in the spare buttons parking lot.
+    7. A main program Loop timer was added. It prints out max time lapsed (in ms) every 1 second.
+    8. Added temperature readout in F and C units to the CPU usage report (for you overclockers who shall be unamed)
+    9. Added a 5x span zoom OUT compressing 4096 data points into the 800px screen width. It worked but needs more work to center it in the display properly so is turned off for now.
+    10. Did some performance testing. 22ms for the waterfall draw.  40ms to 120ms for the spectrum depending on how much grass is drawn. CPU usage is low in all cases. Near 0ms for the rest of the program loop.
+    11. We noted today that with 4096IQ FFT, the global memory is largely consumed leaving not much left for local variables. 4096IQ is probably the limit unless Bob has more tricks.
 
 ## 3/14-15/2021
 
