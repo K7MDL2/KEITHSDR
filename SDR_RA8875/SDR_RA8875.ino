@@ -149,7 +149,7 @@ uint8_t enc_ppr_response = 60;   // this scales the PPR to account for high vs l
 // Best to use even numbers above 1. 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];
-uint8_t user_Profile = 0;
+uint8_t user_Profile = 1;
 
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
@@ -298,7 +298,7 @@ void setup()
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
     
     #ifdef ENET
-    if (1) //(EEPROM.read(ENET_ENABLE))
+    if (user_settings[user_Profile].enet_enabled) 
     { 
         enet_start(); 
         if (!enet_ready)
@@ -379,7 +379,7 @@ void loop()
     if (enable_printCPUandMemory) printCPUandMemory(millis(), 3000); //print every 3000 msec
 
     #ifdef ENET     // remove this code if no ethernet usage intended
-    if (1) //(EEPROM.read(ENET_ENABLE))   // only process enet if enabled.
+    if (user_settings[user_Profile].enet_enabled)  // only process enet if enabled.
     {
         if (!enet_ready)
             if ((millis() - enet_start_fail_time) >  600000)  // check every 10 minutes (600K ms) and attempt a restart.

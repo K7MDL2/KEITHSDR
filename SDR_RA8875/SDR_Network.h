@@ -40,7 +40,8 @@ uint8_t rx_count = 0;
 uint8_t tx_count = 0;
 uint8_t enet_data_out = 0;
 static uint8_t sdata[BUFFER_SIZE], *pSdata1=sdata, *pSdata2=sdata;
-    
+extern uint8_t user_Profile;
+
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
 
@@ -57,12 +58,12 @@ void toggle_enet_data_out(uint8_t mode)
           else         
               enet_data_out = 0; 
       }
-      if (enet_data_out == 1){
-          //EEPROM.update(ENET_DATA_OUT_OFFSET, 1);      
+      if (enet_data_out == 1){          
+          user_settings[user_Profile].enet_output = ON;    
           Serial.println(">Enabled UDP Data Output");
       }
-      else {
-          //EEPROM.update(ENET_DATA_OUT_OFFSET, 0);      
+      else {          
+          user_settings[user_Profile].enet_output = OFF;
           Serial.println(">Disabled UDP Data Output");
       }
 }
@@ -130,87 +131,91 @@ void teensyMAC(uint8_t *mac)
 
 uint8_t enet_read(void)
 {
-  //  experiment with this -->   udp.listen( true );           // and wait for incoming message
+    if (enet_ready && user_settings[user_Profile].enet_enabled)
+    {
+        //  experiment with this -->   udp.listen( true );           // and wait for incoming messag
+        
+        rx_count = 0;
+        int count = 0; 
 
-     if (!enet_ready)   // skip if no enet connection
-         return 0;
-     
-     rx_count = 0;
-     int count = 0; 
-
-     // if there's data available, read a packet
-     count = Udp.parsePacket();      
-     rx_buffer[0] = _NULL;
-     if (count > 0)
-     {
-          Udp.read(rx_buffer, BUFFER_SIZE);
-          rx_buffer[count] = '\0';
-          rx_count = count;          
-          Serial.println(rx_count);
-          Serial.println((char *) rx_buffer);
-          
-          // initially p1 = p2.  parser will move p1 up to p2 and when they are equal, buffer is empty, parser will reset p1 and p2 back to start of sData         
-          memcpy(pSdata2, rx_buffer, rx_count+1);   // append the new buffer data to current end marked by pointer 2        
-          pSdata2 += rx_count;                      // Update the end pointer position. The function processing chars will update the p1 and p2 pointer             
-          rx_count = pSdata2 - pSdata1;             // update count for total unread chars. 
-          //Serial.println(rx_count);  
-     }
-     rx_buffer[0] = '\0';
-     return rx_count;
+        // if there's data available, read a packet
+        count = Udp.parsePacket();      
+        rx_buffer[0] = _NULL;
+        if (count > 0)
+        {
+			Udp.read(rx_buffer, BUFFER_SIZE);
+			rx_buffer[count] = '\0';
+			rx_count = count;          
+			Serial.println(rx_count);
+			Serial.println((char *) rx_buffer);
+			
+			// initially p1 = p2.  parser will move p1 up to p2 and when they are equal, buffer is empty, parser will reset p1 and p2 back to start of sData         
+			memcpy(pSdata2, rx_buffer, rx_count+1);   // append the new buffer data to current end marked by pointer 2        
+			pSdata2 += rx_count;                      // Update the end pointer position. The function processing chars will update the p1 and p2 pointer             
+			rx_count = pSdata2 - pSdata1;             // update count for total unread chars. 
+			//Serial.println(rx_count);  
+        }
+        rx_buffer[0] = '\0';
+        return rx_count;
+	}
+	return 0;
 }
 
 uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
 {   
-   if (enet_ready) // & EEPROM.read(ENET_ENABLE))   // skip if no enet connection
+   if (enet_ready && user_settings[user_Profile].enet_enabled && user_settings[user_Profile].enet_output)  // skip if no enet connection
    {
-       //Serial.print("ENET Write: ");
-       //Serial.println((char *) tx_buffer);
-       Udp.beginPacket(remote_ip, remoteport);
-       Udp.write(tx_buffer, count);
-       Udp.endPacket();
-       return 1;
+		//Serial.print("ENET Write: ");
+		//Serial.println((char *) tx_buffer);
+		Udp.beginPacket(remote_ip, remoteport);
+		Udp.write(tx_buffer, count);
+		Udp.endPacket();
+		return 1;
    }
    return 0;
 } 
 
 void enet_start(void)
 {
-  uint8_t mac[6];
-  teensyMAC(mac);   
-  delay(1000);
-  // start the Ethernet  
-  // If using DHCP (leave off the ip arg) works but more difficult to configure the desktop and remote touchscreen clients
-  Ethernet.begin(mac, ip);
-  // Check for Ethernet hardware present
-  enet_ready = 0;
-  if (Ethernet.hardwareStatus() == EthernetNoHardware) 
-  {
-    Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
-    //while (true) {
-    //  delay(1); // do nothing, no point running without Ethernet hardware
-    //}
-    enet_ready = 0;  // shut down usage of enet
-  }
-  else
-  {
-    delay(1000);
-    Serial.print("Ethernet Address = ");
-    Serial.println(Ethernet.localIP());
-    delay(5000);
-    if (Ethernet.linkStatus() == LinkOFF) 
-    {
-      Serial.println("Ethernet cable is not connected.");
-      enet_ready = 0;
-    }
-    else
-    {  
-      enet_ready = 1;
-      delay(100);
-      Serial.println("Ethernet cable connected.");
-      // start UDP
-      Udp.begin(localPort);
-    }
-  }
+	if (!user_settings[user_Profile].enet_enabled)
+		return;
+
+	uint8_t mac[6];
+	teensyMAC(mac);   
+	delay(1000);
+	// start the Ethernet  
+	// If using DHCP (leave off the ip arg) works but more difficult to configure the desktop and remote touchscreen clients
+	Ethernet.begin(mac, ip);
+	// Check for Ethernet hardware present
+	enet_ready = 0;
+	if (Ethernet.hardwareStatus() == EthernetNoHardware) 
+	{
+		Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+		//while (true) {
+		//  delay(1); // do nothing, no point running without Ethernet hardware
+		//}
+		enet_ready = 0;  // shut down usage of enet
+	}
+	else
+	{
+		delay(1000);
+		Serial.print("Ethernet Address = ");
+		Serial.println(Ethernet.localIP());
+		delay(5000);
+		if (Ethernet.linkStatus() == LinkOFF) 
+		{
+			Serial.println("Ethernet cable is not connected.");
+			enet_ready = 0;
+		}
+		else
+		{  
+			enet_ready = 1;
+			delay(100);
+			Serial.println("Ethernet cable connected.");
+			// start UDP
+			Udp.begin(localPort);
+		}
+	}
 }
 /*  Mod required for NativeEthernet.cpp file in Ethernet.begin class.  
  *   At end of the function is a statement that hangs if no ethernet cable is connected.  

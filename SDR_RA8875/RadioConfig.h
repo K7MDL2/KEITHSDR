@@ -237,13 +237,14 @@ struct User_Settings {
     uint8_t     lineOut_en;         // line out on or off. Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     uint8_t     lineOut_Vol_last;   // last line out setting used on this band. 255 is ignore and use the current value.
     uint8_t     enet_enabled;       // Turn on ethernet features
+    uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet
-    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1},
-    {"User Config #2",  1, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0},
-    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout
+    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1,    1},
+    {"User Config #2", 10, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    1},
+    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    1}
 };
 
 struct Standard_Button {
