@@ -76,8 +76,8 @@ Metro fftFreq_timestamp = Metro(fftFreq_refresh);
     //  The default is 3 (requires no call)               2
 
 // From main file where sampling rate and other audio library features are set
-extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
-//extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
+//extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
+extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
@@ -85,11 +85,13 @@ extern uint32_t                 VFOA;
 extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
+
 #ifdef ENET
 extern uint8_t enet_write(uint8_t *tx_buffer);
 extern uint8_t tx_buffer[BUFFER_SIZE];
 #endif
-#define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
+
+#define FFT_SIZE                1024  //4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
 int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
 int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
@@ -210,7 +212,7 @@ struct Spectrum_Parms {
     {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25000.0,2,310,1.7,0.9,0,40,-180},
     {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,2,450,0.7,0.9,1,40,-180},
     {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180},
-    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25000.0,5,440,1.0,0.9,3,40,-170}
+    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25000.0,5,440,1.0,0.9,0,40,-170}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];
@@ -236,7 +238,7 @@ void spectrum_update(int16_t s)
     static int16_t spect_ref_last   = 0;
     //static float fft_pk_bin_last    = 0;
     float fft_pk_bin                = 0;
-    static float fftPower_pk        = ptr->spect_floor;
+    //static float fftPower_pk        = ptr->spect_floor;
     static float fftPower_pk_last   = ptr->spect_floor;
     static float sp_floor_avg       = ptr->spect_floor;   // stat out here.
         
@@ -251,13 +253,25 @@ void spectrum_update(int16_t s)
     float avg = 0.0;
     float pixelnew[FFT_SIZE];           //  Stores current pixel fopr spectrum portion only
     static float pixelold[FFT_SIZE];    //  Stores copy of current pixel so it can be erased in next update
-    float full_FFT[FFT_SIZE];    
+    uint8_t full_FFT[FFT_SIZE];    
     float *pout = myFFT.getData();  // Get pointer to data array of powers, float output[512]; 
 
     if (myFFT.available()) 
     {     
-        if (ptr->spect_span == 25000)
-        {            
+        #ifdef ENET
+            for (i = 2; i < FFT_SIZE; i++)
+            {
+                tx_buffer[i] = (uint8_t) abs(*(pout+i));
+            }
+            //memcpy(tx_buffer, full_FFT, FFT_SIZE);
+            enet_write(tx_buffer);
+        #endif
+
+        // Calculate center then if FFT is larger than graph area width, trim ends evently
+        int16_t L_EDGE = 0; 
+        if (0) //(ptr->spect_span == 25000)
+        {      
+            // pack all bins into the available display width.  
             int wd = ptr->wf_sp_width;
             //int div = ptr->spect_span;
             int binsz = round(FFT_SIZE/wd);  // bins that will be compressed into 1 pixel to fit the screen
@@ -265,20 +279,18 @@ void spectrum_update(int16_t s)
             {        
                 full_FFT[i] = myFFT.read(binsz+i);
             }
-            pout = full_FFT;
-            Serial.print("Zoom Out =");
-            Serial.println(binsz,DEC);
-        }           
-        // Calculate center then if FFT is larger than graph area width, trim ends evently
-        int16_t L_EDGE = 0;       
-        
-        if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
+            //pout = (float) full_FFT;
+            //Serial.print("Zoom Out =");
+            //Serial.println(binsz,DEC);
+        }              
+        else if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
         {
             L_EDGE = (FFT_SIZE - ptr->wf_sp_width)/2;
             pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
         }
+        
        // else   // When FFT data is < available graph area
-      //  {      // If our display area is less then our data width, fill in the outside areas with low values.
+       // {      // If our display area is less then our data width, fill in the outside areas with low values.
             //L_EDGE = (ptr->wf_sp_width - FFT_SIZE - )/2;
             //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
             /*
@@ -288,25 +300,7 @@ void spectrum_update(int16_t s)
                  tempfft[i] = -500;
             //L_EDGE = FFT_center - GRAPH_center;
             */
-      //  }
-        #ifdef ENET
-        memcpy(tx_buffer, myFFT.getData(), 4096);
-        enet_write(tx_buffer);
-        #endif
-
-        if (ptr->spect_span == 25000)
-        {            
-            int wd = ptr->wf_sp_width;
-            //int div = ptr->spect_span;
-            int binsz = round(FFT_SIZE/wd);  // bins that will be compressed into 1 pixel to fit the screen
-            for (i = 0; i < ptr->wf_sp_width; i++)
-            {        
-                full_FFT[i] = myFFT.read(binsz+i);
-            }
-            pout = full_FFT;
-            Serial.print("Zoom Out =");
-            Serial.println(binsz,DEC);
-        }
+       // }
 
         for (i = 2; i < ptr->wf_sp_width-1; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
         { 
@@ -411,10 +405,6 @@ void spectrum_update(int16_t s)
             #ifdef DBG_SPECTRUM_SCALE
             Serial.print("   SC_LIM="); Serial.print(ptr->spect_sp_scale);                  
             #endif
-            
-            // if the window height changes and becomes less than our possible window pixel height reduce the scale. 
-            //if (abs(spect_floor + ptr->spect_sp_scale) > ptr->sp_height-4)
-            //    ptr->spect_sp_scale = ptr->sp_height -4 - abs(ptr->spect_floor);
                 
             #ifdef DBG_SPECTRUM_SCALE
             Serial.print("   SC_HT="); Serial.print(ptr->spect_sp_scale);
@@ -422,27 +412,14 @@ void spectrum_update(int16_t s)
             Serial.print("   SC_FLR="); Serial.print(ptr->spect_floor);                  
             #endif       
             
-            // Plot out pixel in the windows if it lands between the bottom line and top lines        
-            // set the grass floor to just above the botom line.  These are the weakest signals. Typically -90 coming out of the FFT right now
-            
-            // find the strongest signal level in dB while we are here.  
-            if (pixelnew[i] < fftPower_pk)
-            {
-                fftPower_pk = pixelnew[i];
-                //Serial.println(pixelnew[i]);
-            }
-
             // Invert the sign since the display is also inverted, Increasing value = weaker signal strength, they are now going the same direction.  
             // Small value = bigger signal, closer to 0 on the display coordinates
             pixelnew[i] = abs(pixelnew[i]) * 2.0;
             
+            // Wea are plotting our pixel in the window if it lands between the bottom line and top lines        
+            // set the grass floor to just above the bottom line.  These are the weakest signals. Typically -90 coming out of the FFT right now
             // Offset the pixel position relative to the bottom of the window
             pixelnew[i] += ptr->sp_bottom_line-2 + ptr->spect_floor;            
-
-            // Now scale it            
-            //pixelnew[i] = map(pixelnew[i], ptr->spect_floor, ptr->spect_floor+ptr->spect_sp_scale, ptr->sp_bottom_line-2, ptr->sp_top_line+1);    
-            //pixelnew[i] = pixelnew[i] * (ptr->spect_sp_scale/10); // - ptr->spect_floor;
-            ///pixelnew[i] *= ptr->spect_wf_scale;
             
             #ifdef DBG_SPECTRUM_WINDOWLIMITS
             //Serial.print("  win-ht:"); Serial.print(ptr->sp_height-4);
@@ -494,10 +471,7 @@ void spectrum_update(int16_t s)
                             {
                                 //common way: draw bars                                                                        
                                 tft.drawFastVLine(ptr->l_graph_edge+i, pix_o16, ptr->sp_bottom_line-pix_o16,    myBLACK); // GREEN);
-                                //tft.drawFastVLine(ptr->l_graph_edge+i, ptr->sp_top_line, pix_o16,    myBLACK); // BLACK);
-
-                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);                         
-                                //tft.drawFastVLine(ptr->l_graph_edge+i, ptr->sp_top_line, pix_n16,    myBLACK); //BLACK);
+                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);
                                 pixelold[i] = pixelnew[i];
                             }
                         }
@@ -609,8 +583,6 @@ void spectrum_update(int16_t s)
             tft.print(fftPower_pk_last,1);
             //fftFreq_timestamp.reset();  // reset the timer since we have new good data
         }
-
-        //(fftMaxPower < fftPower_pk_last)  // filter out invalid data and DC noise
                          
         if (fftFreq_timestamp.check() == 1)
         {
@@ -627,18 +599,6 @@ void spectrum_update(int16_t s)
         float pk_temp = _VFO_/1000 + (2 * (fft_bin_size/1000 * fft_pk_bin));   // relate the peak bin to the center bin
         tft.print(pk_temp,1);
         
-        //if (fft_pk_bin != 0.0f && fft_pk_bin != fft_pk_bin_last)  // filter out invalid data and DC noise
-        //{
-          //  fft_pk_bin_last = fft_pk_bin;
-           // fftFreq_timestamp.reset();  // reset the timer sicne we have new good data
-        //}
-        
-        if (fftFreq_timestamp.check() == 1)   // clear after no recent data
-        {
-            fftPower_pk = ptr->spect_floor;
-            //fft_pk_bin_last = 0.0f;
-        }    
-        
         // Write the Scale value 
     
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);
@@ -653,12 +613,10 @@ void spectrum_update(int16_t s)
         }
         
         // Write the Reference Level to top line area
-
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+100, ptr->sp_txt_row+30);
         tft.print("R:   ");  // actual value is updated elsewhere            
         tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
-        //tft.print(ptr->spect_floor);
         tft.print(sp_floor_avg,0);
         
         if (spect_ref_last != ptr->spect_floor)

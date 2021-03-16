@@ -24,9 +24,12 @@
 #include <Audio.h>            // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
-#include "RadioConfig.h"
-#include "Spectrum_RA8875.h"
-#include "Hilbert.h"          // This and below are local project files
+
+// Below are local project files
+#include "RadioConfig.h"   // Majority of declarations here
+#include "SDR_Network.h"   // for ethernet UDP remote control and monitoring
+#include "Spectrum_RA8875.h"  // spectrum
+#include "Hilbert.h"          // filter coefficients
 #include "Vfo.h"
 #include "Display.h"
 #include "Tuner.h"
@@ -38,7 +41,6 @@
 #include "CW_Tune.h"
 #include "Quadrature.h"
 #include "UserInput.h"   // include after Spectrum_RA8875.h and Display.h
-
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 //Encoder Position(40,39); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
@@ -54,7 +56,7 @@ const int myInput = AUDIO_INPUT_LINEIN;
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 const int   audio_block_samples = 128;
@@ -88,9 +90,9 @@ AudioAnalyzePeak_F32    Q_Peak;
 AudioAnalyzePeak_F32    I_Peak;
 AudioAnalyzePeak_F32    CW_Peak;
 AudioAnalyzeRMS_F32     CW_RMS;  
-AudioAnalyzeFFT4096_IQ_F32  myFFT;
+//AudioAnalyzeFFT4096_IQ_F32  myFFT;
 //AudioAnalyzeFFT2048_IQ_F32  myFFT;
-//AudioAnalyzeFFT1024_IQ_F32  myFFT;
+AudioAnalyzeFFT1024_IQ_F32  myFFT;
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
 
@@ -154,8 +156,6 @@ bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t popup = 0;   // experimental flag for pop up windows
 int32_t multiKnob(uint8_t clear);  // consumer features use this for control input
-uint8_t enet_write(uint8_t *tx_buffer);
-uint8_t enet_read(void);
 
 Metro touch       = Metro(100);  // used to check for touch events
 Metro tuner       = Metro(1000); // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
@@ -185,11 +185,11 @@ void setup()
     //
     //================================================ Frequency Set =============================================================
     VFOA = bandmem[curr_band].vfo_A_last;    //I used 7850000  frequency CHU  Time Signal Canada
-	VFOB = bandmem[curr_band].vfo_B_last;
+	  VFOB = bandmem[curr_band].vfo_B_last;
     //================================================ Frequency Set =============================================================
     //
     initVfo();        // initialize the si5351 vfo
-	selectFrequency(0);
+	  selectFrequency(0);
     selectStep();
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh(0);  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
@@ -213,7 +213,7 @@ void setup()
     codec1.adcHighPassFilterDisable();
     codec1.dacVolume(0);    // set the "dac" volume (extra control)
     // Now turn on the sound    
-	if (user_settings[user_Profile].spkr_en == ON)
+	  if (user_settings[user_Profile].spkr_en == ON)
     {   
 		codec1.volume(user_settings[user_Profile].spkr_Vol_last);   // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
     	codec1.unmuteHeadphone();
@@ -296,20 +296,19 @@ void setup()
     //finish the setup by printing the help menu to the serial connections
     printHelp();
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
+    
     #ifdef ENET
-
-    extern uint8_t enet_ready;
-  if (1) //(EEPROM.read(ENET_ENABLE))
-  { 
-      enet_start(); 
-      if (!enet_ready)
-      {
-          enet_start_fail_time = millis();      // set timer for 10 minute self recovery in main loop
-          Serial.println(">Ethernet System Startup Failed, setting retry timer (10 minutes)");
-      }
-      Serial.println(">Ethernet System Startup");
-  }
-#endif
+    if (1) //(EEPROM.read(ENET_ENABLE))
+    { 
+        enet_start(); 
+        if (!enet_ready)
+        {
+            enet_start_fail_time = millis();      // set timer for 10 minute self recovery in main loop
+            Serial.println(">Ethernet System Startup Failed, setting retry timer (10 minutes)");
+        }
+        Serial.println(">Ethernet System Startup");
+    }
+    #endif
 }
 
 static uint32_t delta = 0;
@@ -515,195 +514,3 @@ int32_t multiKnob(uint8_t clear)
         mf_count = Multi.read();  // read and reset the Multifunction knob.  Apply results to any in-focus function, if any.
     return mf_count;
 }
-
-#ifdef ENET                       
-// Toggle UDP output data
-void toggle_enet_data_out(uint8_t mode)
-{
-      if (mode == 1)
-        enet_data_out = 1;
-      if (mode ==0)
-        enet_data_out = 0;
-      if (mode ==2){
-          if (enet_data_out == 0)
-              enet_data_out = 1;
-          else         
-              enet_data_out = 0; 
-      }
-      if (enet_data_out == 1){
-          //EEPROM.update(ENET_DATA_OUT_OFFSET, 1);      
-          Serial.println(">Enabled UDP Data Output");
-      }
-      else {
-          //EEPROM.update(ENET_DATA_OUT_OFFSET, 0);      
-          Serial.println(">Disabled UDP Data Output");
-      }
-}
-
-void teensyMAC(uint8_t *mac) 
-{
-  static char teensyMac[23];
-  
-  #if defined (HW_OCOTP_MAC1) && defined(HW_OCOTP_MAC0)
-    Serial.println("using HW_OCOTP_MAC* - see https://forum.pjrc.com/threads/57595-Serial-amp-MAC-Address-Teensy-4-0");
-    for(uint8_t by=0; by<2; by++) mac[by]=(HW_OCOTP_MAC1 >> ((1-by)*8)) & 0xFF;
-    for(uint8_t by=0; by<4; by++) mac[by+2]=(HW_OCOTP_MAC0 >> ((3-by)*8)) & 0xFF;
-
-    #define MAC_OK
-
-  #else
-    
-    mac[0] = 0x04;
-    mac[1] = 0xE9;
-    mac[2] = 0xE5;
-
-    uint32_t SN=0;
-    __disable_irq();
-    
-    #if defined(HAS_KINETIS_FLASH_FTFA) || defined(HAS_KINETIS_FLASH_FTFL)
-      Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
-      
-      FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
-      FTFL_FCCOB0 = 0x41;
-      FTFL_FCCOB1 = 15;
-      FTFL_FSTAT = FTFL_FSTAT_CCIF;
-      while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
-      SN = *(uint32_t *)&FTFL_FCCOB7;
-
-      #define MAC_OK
-      
-    #elif defined(HAS_KINETIS_FLASH_FTFE)
-      Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
-      
-      kinetis_hsrun_disable();
-      FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
-      *(uint32_t *)&FTFL_FCCOB3 = 0x41070000;
-      FTFL_FSTAT = FTFL_FSTAT_CCIF;
-      while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
-      SN = *(uint32_t *)&FTFL_FCCOBB;
-      kinetis_hsrun_enable();
-
-      #define MAC_OK
-      
-    #endif
-    
-    __enable_irq();
-
-    for(uint8_t by=0; by<3; by++) mac[by+3]=(SN >> ((2-by)*8)) & 0xFF;
-
-  #endif
-
-  #ifdef MAC_OK
-    sprintf(teensyMac, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    Serial.println(teensyMac);
-  #else
-    Serial.println("ERROR: could not get MAC");
-  #endif
-}
-
-uint8_t enet_read(void)
-{
-  //  experiment with this -->   udp.listen( true );           // and wait for incoming message
-
-     if (!enet_ready)   // skip if no enet connection
-         return 0;
-     
-     rx_count = 0;
-     int count = 0; 
-
-     // if there's data available, read a packet
-     count = Udp.parsePacket();      
-     rx_buffer[0] = _NULL;
-     if (count > 0)
-     {
-          Udp.read(rx_buffer, BUFFER_SIZE);
-          rx_buffer[count] = '\0';
-          rx_count = count;          
-          Serial.println(rx_count);
-          Serial.println((char *) rx_buffer);
-          
-          // initially p1 = p2.  parser will move p1 up to p2 and when they are equal, buffer is empty, parser will reset p1 and p2 back to start of sData         
-          memcpy(pSdata2, rx_buffer, rx_count+1);   // append the new buffer data to current end marked by pointer 2        
-          pSdata2 += rx_count;                      // Update the end pointer position. The function processing chars will update the p1 and p2 pointer             
-          rx_count = pSdata2 - pSdata1;             // update count for total unread chars. 
-          //Serial.println(rx_count);  
-     }
-     rx_buffer[0] = '\0';
-     return rx_count;
-}
-
-uint8_t enet_write(uint8_t *tx_buffer)   //, uint16_t tx_count)
-{   
-   if (enet_ready) // & EEPROM.read(ENET_ENABLE))   // skip if no enet connection
-   {
-       //Serial.print("ENET Write: ");
-       //Serial.println((char *) tx_buffer);
-       Udp.beginPacket(remote_ip, remoteport);
-       Udp.write((char *) tx_buffer);
-       Udp.endPacket();
-       return 1;
-   }
-   return 0;
-} 
-
-void enet_start(void)
-{
-  uint8_t mac[6];
-  teensyMAC(mac);   
-  delay(1000);
-  // start the Ethernet  
-  // If using DHCP (leave off the ip arg) works but more difficult to configure the desktop and remote touchscreen clients
-  Ethernet.begin(mac, ip);
-  // Check for Ethernet hardware present
-  enet_ready = 0;
-  if (Ethernet.hardwareStatus() == EthernetNoHardware) 
-  {
-    Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
-    //while (true) {
-    //  delay(1); // do nothing, no point running without Ethernet hardware
-    //}
-    enet_ready = 0;  // shut down usage of enet
-  }
-  else
-  {
-    delay(1000);
-    Serial.print("Ethernet Address = ");
-    Serial.println(Ethernet.localIP());
-    delay(5000);
-    if (Ethernet.linkStatus() == LinkOFF) 
-    {
-      Serial.println("Ethernet cable is not connected.");
-      enet_ready = 0;
-    }
-    else
-    {  
-      enet_ready = 1;
-      delay(100);
-      Serial.println("Ethernet cable connected.");
-      // start UDP
-      Udp.begin(localPort);
-    }
-  }
-}
-/*  Mod required for NativeEthernet.cpp file in Ethernet.begin class.  
- *   At end of the function is a statement that hangs if no ethernet cable is connected.  
- *   
- *   while(!link_status){
- *      return;
- *   }
- *   
- *   You can never progress to use the link status function to query if a cable is connected and the program is halted.
- *    
- *   Add the below to let it escape.  Use the enet_ready flag to signal if enet started OK or not.  
- *   
-    uint16_t escape_counter = 0;
-    while(!link_status && escape_counter < 200){
-        escape_counter++;
-        Serial.println("Waiting for Link Status");
-        delay(10);
-        return;
-    }  
- *
- */
-#endif
-

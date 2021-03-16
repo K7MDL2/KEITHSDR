@@ -371,42 +371,25 @@ struct Frequency_Display {
 
  uint8_t display_state;   // something to hold the button state for the display pop-up window later.
 
+//
+//------------------------------------  Ethernet UDP messaging section --------------------------
+//
 //#define ENET              // Include support for ethernet
-
 #ifdef ENET
-#include <NativeEthernet.h>
-#include <NativeEthernetUdp.h>
+    #include <NativeEthernet.h>
+    #include <NativeEthernetUdp.h>
+    // Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
+    // The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
+    //byte mac[] = {
+    //  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
+    //};
+    IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+    unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
 
-#define BUFFER_SIZE         (4200)
-#define LINE_STR_LENGTH     (20u)
-    
-uint8_t enet_ready = 0;
-unsigned long enet_start_fail_time = 0;
-uint8_t rx_buffer[BUFFER_SIZE];
-uint8_t tx_buffer[BUFFER_SIZE];
-uint8_t rx_count = 0;
-uint8_t tx_count = 0;
-uint8_t enet_data_out = 0;
-static uint8_t sdata[BUFFER_SIZE], *pSdata=sdata, *pSdata1=sdata, *pSdata2=sdata;
-    
-// Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
-// The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
-//byte mac[] = {
-//  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
-//};
-IPAddress ip(192, 168, 1, 237);    // Our static IP address.  OUdl use DHCP but preferring static address.
-unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
-unsigned int localPort_Nex = 7945;     // local port to LISTEN for the remote display/Desktop app Nextion data
-
-// buffers for receiving and sending data
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
-char ReplyBuffer[] = "Random Reply";        // a string to send back
-
-//Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-IPAddress remote_ip(192, 168, 1, 7);  // destination  IP (desktop app or remote display Arduino
-unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
-unsigned int remoteport_Nex = 7944;    // the destination port to SENDTO (a remote display or Desktop app) Nextion data
-
-// An EthernetUDP instance to let us send and receive packets over UDP
-EthernetUDP Udp;
+    //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    IPAddress remote_ip(192, 168, 1, 7);  // destination  IP (desktop app or remote display Arduino
+    unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
 #endif
+//
+//------------------------------------ End of Ethernet UDP messaging section --------------------------
+//
