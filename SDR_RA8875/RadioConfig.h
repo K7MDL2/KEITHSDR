@@ -228,21 +228,22 @@ struct User_Settings {
     uint8_t     usrcfgpage_3;       // index to user configuration page layout
     uint8_t     last_band;          // index into band memeory table to recall last settings  - this might get moved out later
     uint8_t     mute;               // Current status of Mute 
-    uint8_t     mic_input_en;   // mic on or off
-    float       mic_Gain_last;  // last used mic gain on this band
-    uint8_t     lineIn_en;      // line in on or off. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
-    uint8_t     lineIn_Vol_last;// last used line in setting on this band. 255 is ignore and use current value
-    uint8_t     spkr_en;        // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
-    float       spkr_Vol_last;  // last setting for unmute or power on (When we store in EEPROM)
-    uint8_t     lineOut_en;     // line out on or off. Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    uint8_t     lineOut_Vol_last;// last line out setting used on this band. 255 is ignore and use the current value.
+    uint8_t     mic_input_en;       // mic on or off
+    float       mic_Gain_last;      // last used mic gain on this band
+    uint8_t     lineIn_en;          // line in on or off. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
+    uint8_t     lineIn_Vol_last;    // last used line in setting on this band. 255 is ignore and use current value
+    uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
+    float       spkr_Vol_last;      // last setting for unmute or power on (When we store in EEPROM)
+    uint8_t     lineOut_en;         // line out on or off. Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    uint8_t     lineOut_Vol_last;   // last line out setting used on this band. 255 is ignore and use the current value.
+    uint8_t     enet_enabled;       // Turn on ethernet features
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol
-    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12},
-    {"User Config #2",  1, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12},
-    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet
+    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1},
+    {"User Config #2",  1, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0},
+    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0}
 };
 
 struct Standard_Button {
