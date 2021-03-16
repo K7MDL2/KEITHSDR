@@ -467,9 +467,10 @@ void Button_Handler(int16_t x, uint16_t y)
 
     // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
     ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
-    if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x>400 && x<640) && (y>0 && y<90)))
+    struct Frequency_Display *ptr1 = disp_Freq;
+    if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x > ptr1->bx && x < ptr1->bx + ptr1->bw) && ( y > ptr1->by && y < ptr1->by + ptr1->bh)))
     {
-        if (ptr->enabled) 
+        if (ptr->enabled || ((x > ptr1->bx && x < ptr1->bx + ptr1->bw) && ( y > ptr1->by && y < ptr1->by + ptr1->bh))) 
         {       
             if (bandmem[curr_band].VFO_AB_Active == VFO_A)
             {
