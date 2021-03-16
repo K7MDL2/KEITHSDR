@@ -149,7 +149,7 @@ uint8_t enc_ppr_response = 60;   // this scales the PPR to account for high vs l
 // Best to use even numbers above 1. 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];
-uint8_t user_Profile = 1;
+uint8_t user_Profile = 0;
 
 //control display and serial interaction
 bool enable_printCPUandMemory = false;

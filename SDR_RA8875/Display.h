@@ -140,6 +140,7 @@ void displayNB(){draw_2_state_Button(NB_BTN, &bandmem[curr_band].nb_en);}
 void displayAGC1(){draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);}
 void displaySplit(){draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);}
 void displayXVTR(){draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);}
+void displayEnet(){draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------
@@ -212,8 +213,10 @@ void displayRefresh(uint8_t fn)
 	displayATU();
 	displayNB();
 	displayXVTR();
-	displayVFO_AB();
-    
+	displayEnet();
+	
+	
+	//displayVFO_AB();
     //displayAGC1();
 }
 

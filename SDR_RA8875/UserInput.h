@@ -426,7 +426,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + MUTE_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->enabled || ptr->show)
         {    
             if (user_settings[user_Profile].spkr_en)
             {
@@ -467,7 +467,7 @@ void Button_Handler(int16_t x, uint16_t y)
 
     // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
     ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
-    struct Frequency_Display *ptr1 = disp_Freq;
+    struct Frequency_Display *ptr1 = disp_Freq;   // The frequency display areas itself
     if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x > ptr1->bx && x < ptr1->bx + ptr1->bw) && ( y > ptr1->by && y < ptr1->by + ptr1->bh)))
     {
         if (ptr->enabled || ((x > ptr1->bx && x < ptr1->bx + ptr1->bw) && ( y > ptr1->by && y < ptr1->by + ptr1->bh))) 
@@ -610,6 +610,23 @@ void Button_Handler(int16_t x, uint16_t y)
         }
     }
 
+    // Enet button
+    ptr = std_btn + ENET_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    {
+        if (ptr->enabled)
+        {
+            if (user_settings[user_Profile].enet_output== ON)
+                user_settings[user_Profile].enet_output = OFF;
+            else if (user_settings[user_Profile].enet_output == OFF)
+                user_settings[user_Profile].enet_output = ON;
+            displayEnet();
+            Serial.print("Set Ethernet to ");
+            Serial.println(user_settings[user_Profile].enet_output);
+            return;
+        }
+    }
+
     // BAND UP button
     ptr = std_btn + BANDUP_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
@@ -701,7 +718,7 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[ATU_BTN].enabled     = OFF;
                 std_btn[NB_BTN].enabled      = OFF;
                 std_btn[XVTR_BTN].enabled    = OFF;
-                std_btn[VFO_AB_BTN].enabled  = OFF;
+                std_btn[ENET_BTN].enabled    = OFF;
             }
             else if (std_btn[FN_BTN].enabled == 4)// Panel 3 buttons
             {           
@@ -722,7 +739,7 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[ATU_BTN].enabled     = ON;
                 std_btn[NB_BTN].enabled      = ON;
                 std_btn[XVTR_BTN].enabled    = ON;
-                std_btn[VFO_AB_BTN].enabled  = ON;
+                std_btn[ENET_BTN].enabled    = ON;
             }
             else    // if (std_btn[FN_BTN].enabled == 1)
             {
@@ -741,7 +758,7 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[ATU_BTN].enabled     = OFF;
                 std_btn[NB_BTN].enabled      = OFF;
                 std_btn[XVTR_BTN].enabled    = OFF;
-                std_btn[VFO_AB_BTN].enabled  = OFF;             
+                std_btn[ENET_BTN].enabled    = OFF;             
             }
             displayRefresh(1);   // redraw button to show new ones and hide old ones.  Set arg =1 to skip calling ourself
             Serial.print("Fn Pressed ");  Serial.println(std_btn[FN_BTN].enabled);

@@ -242,16 +242,15 @@ struct User_Settings {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout
-    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1,    1},
-    {"User Config #2", 10, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    1},
-    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    1}
+    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1,    0},
+    {"User Config #2", 10, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0},
+    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0}
 };
 
 struct Standard_Button {
-    uint8_t enabled;        // enable or disable this button. UserInput() will look for mach corondinate and skip if disabled.
-                            // Enable if currently showing button, disable if not. used to share screen coordinates with replacement buttons.
-    uint8_t pressed;        // used to optionally track the pressed state of the button
-    uint16_t bx;
+    uint8_t  enabled;       // ON - enabled. Enable or disable this button. UserInput() will look for matched coordinate and skip if disabled.                            
+    uint8_t  show;          // ON= Show key. 0 = Hide key. Used to Hide a button without disabling it. Useful for swapping panels of buttons.
+    uint16_t bx;            // coordinates used by both touch and display systems
 	uint16_t by;
 	uint16_t bw;
 	uint16_t bh;            // height 
@@ -286,18 +285,20 @@ struct Standard_Button {
 #define ATU_BTN     11      // not implemented yet
 #define NB_BTN      12      // not implemented yet
 #define XVTR_BTN    13      // not implemented yet
-#define VFO_AB_BTN  14      // ON/(A)/OFF(B)   Will go away soon.    
+#define ENET_BTN    14      // turn on and off the enet data output (does not enable/disable the enet hardware)  
+
+#define VFO_AB_BTN  15      // ON/(A)/OFF(B)   Will go away soon.    
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
-  //  en  prsd   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
-    { ON, OFF,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Menu\0"},
-    { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Mute\0"},
-    {  2, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK,RA8875_BLACK, 23, 20, "Fn 1\0"},
+  //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
+    { ON, ON,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Menu\0"},
+    { ON, ON, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Mute\0"},
+    {  2, ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK,RA8875_BLACK, 23, 20, "Fn 1\0"},
     //Panel 1
-    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK,  9, 20, "Display\0"},
-    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 30, 20, "RIT\0"},
-    { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 16, 20, "Band -\0"},
-    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 16, 20, "Band +\0"},
+    { ON, ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK,  9, 20, "Display\0"},
+    { ON, ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 30, 20, "RIT\0"},
+    { ON, ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 16, 20, "Band -\0"},
+    { ON, ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 16, 20, "Band +\0"},
     //Panel 2
     {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 21, 20, "Atten\0"},
     {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 31, 20, "Pre\0"},
@@ -307,13 +308,13 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 21, 20, "ATU\0"},
     {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 31, 20, "NB\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Xvtr\0"},
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 30, 20, "A/B\0"}    
+    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Enet\0"}    
 };
 
 struct Complex_Button {
-    uint8_t enabled;        // enable or disable this button. UserInput() will look for mach corondinate and skip if disabled.
+    uint8_t  enabled;       // enable or disable this button. UserInput() will look for mach corondinate and skip if disabled.
                             // Enable if currently showing button, disable if not. used to share screen coordinates with replacement buttons.
-    uint8_t pressed;        // used to optionally track the pressed state of the button
+    uint8_t  pressed;       // used to optionally track the pressed state of the button
 	uint16_t bx;
 	uint16_t by;
 	uint16_t bw;
