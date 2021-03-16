@@ -87,7 +87,7 @@ extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
 
 #ifdef ENET
-extern uint8_t enet_write(uint8_t *tx_buffer);
+extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
 extern uint8_t tx_buffer[BUFFER_SIZE];
 #endif
 
@@ -264,7 +264,7 @@ void spectrum_update(int16_t s)
                 tx_buffer[i] = (uint8_t) abs(*(pout+i));
             }
             //memcpy(tx_buffer, full_FFT, FFT_SIZE);
-            enet_write(tx_buffer);
+            enet_write(tx_buffer, FFT_SIZE);
         #endif
 
         // Calculate center then if FFT is larger than graph area width, trim ends evently
