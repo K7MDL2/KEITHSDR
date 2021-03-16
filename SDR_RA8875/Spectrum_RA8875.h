@@ -61,6 +61,7 @@ Metro fftFreq_timestamp = Metro(fftFreq_refresh);
 #define myWHITE                 RA8875_WHITE
 #define myYELLOW                RA8875_YELLOW
 #define myGREEN                 RA8875_GREEN
+#define SCREEN_WIDTH            800             // Change this to teh maximum pixels you want to display with max = screen width.  This uses memory.
 
 #define FFT_AXIS                2
     // Set the FFT bin order to our needs. Called in drawSpectrumframe()
@@ -76,8 +77,9 @@ Metro fftFreq_timestamp = Metro(fftFreq_refresh);
     //  The default is 3 (requires no call)               2
 
 // From main file where sampling rate and other audio library features are set
-//extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
-extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
+extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
+//extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
+//extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
 extern RA8875                   tft;
@@ -86,13 +88,7 @@ extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
 
-#ifdef ENET
-extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
-extern uint8_t tx_buffer[BUFFER_SIZE];
-#endif
-
-#define FFT_SIZE                1024  //4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
-int16_t line_buffer[FFT_SIZE];             // Will only use the first x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
+#define FFT_SIZE                2048  //4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
 int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
 float   fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
@@ -106,7 +102,7 @@ void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 float find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 
-// Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
+// Spectrum Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
 // These globals are othewise ignored
 // See below commented section for ready made block of extern declarations to access these from elsewhere
 // There are several predefined sets of window data Change these values and run run the program, open the Serial Monitor and cut and paste 
@@ -189,7 +185,7 @@ struct Spectrum_Parms {
     int16_t spect_width;        // User specified overall width and height
     int16_t spect_height;       // User specified overall height.  All other heights are calculated to fit within this box.
     int16_t spect_center;       // User specified center ratio of the line dividing the spectrum and waterfall.  SMaller  - smaller spectrum, bigger waterfall.
-    float   spect_span;         // User specified span width.  The actual box width may not allow so it becomes best effort
+    int16_t   spect_span;         // User specified span width.  The actual box width may not allow so it becomes best effort
     int16_t spect_wf_style;     // User specified waterfall averaging algorithym to use
     int16_t spect_wf_colortemp; // User specified colorization of the data in the waterfall.  Experimentally decided value.
     float   spect_wf_scale;     // User specified requested waterfall zoom level actual size or sample rate may cause best effort
@@ -201,18 +197,18 @@ struct Spectrum_Parms {
     int16_t spect_floor;        // Slides the data up and down relative to the specrum bottom box line. The noise floor may be above or below and if outside the box is simply not drawn.
 } Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
     //W        LE  RE  CG                                            x   y   w  h   x  span   st clr  sc     mode scal reflvl
-    {512,2,43,143,655,399,14,8, 74, 96, 96,479,471,225,150,321,321,100, 70,599,410,60,25000.0,3,2160,1.7,0.9,0,40,-180},   // Main full size window
-    {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25000.0,2,550,1.0,0.9,1,30,-180}, // hal
-    {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25000.0,2,340,1.7,0.9,0,60,-180},  // Small wide bottom screen area to fit under pop up wndows.
-    {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25000.0,2,310,1.7,0.9,0,60,-180},    //smaller centered
-    {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25000.0,3,950,2.0,0.7,1,40,-185},  // low wide high gain
-    {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25000.0,2,320,1.0,0.9,1,30,-180},     //60-100 good
-    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,1,130,0.7,0.9,1,40,-180},     //60-100 good
-    {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25000.0,2,310,1.7,0.9,0,60,-180},
-    {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25000.0,2,310,1.7,0.9,0,40,-180},
-    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25000.0,2,450,0.7,0.9,1,40,-180},
-    {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25000.0,5,440,1.0,0.9,0,40,-180},
-    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25000.0,5,440,1.0,0.9,0,40,-170}
+    {512,2,43,143,655,399,14,8, 74, 96, 96,479,471,225,150,321,321,100, 70,599,410,60,25,3,2160,1.7,0.9,0,40,-180},   // Main full size window
+    {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180}, // hal
+    {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180},  // Small wide bottom screen area to fit under pop up wndows.
+    {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25,2,310,1.7,0.9,0,60,-180},    //smaller centered
+    {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25,3,950,2.0,0.7,1,40,-185},  // low wide high gain
+    {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25,2,320,1.0,0.9,1,30,-180},     //60-100 good
+    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,1,130,0.7,0.9,1,40,-180},     //60-100 good
+    {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25,2,310,1.7,0.9,0,60,-180},
+    {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25,2,310,1.7,0.9,0,40,-180},
+    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,2,450,0.7,0.9,1,40,-180},
+    {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25,5,440,1.0,0.9,0,40,-180},
+    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25,5,440,1.0,0.9,0,40,-170}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];
@@ -251,10 +247,17 @@ void spectrum_update(int16_t s)
      
     int16_t i;
     float avg = 0.0;
-    float pixelnew[FFT_SIZE];           //  Stores current pixel fopr spectrum portion only
-    static float pixelold[FFT_SIZE];    //  Stores copy of current pixel so it can be erased in next update
-    uint8_t full_FFT[FFT_SIZE];    
-    float *pout = myFFT.getData();  // Get pointer to data array of powers, float output[512]; 
+    float pixelnew[SCREEN_WIDTH];           //  Stores current pixel fopr spectrum portion only
+    static float pixelold[SCREEN_WIDTH];    //  Stores copy of current pixel so it can be erased in next update
+    uint8_t span_FFT[SCREEN_WIDTH];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
+    float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
+    int16_t line_buffer[SCREEN_WIDTH];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
+    
+    #ifdef ENET
+     extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
+     extern uint8_t tx_buffer[];
+    #endif
+    
 
     if (myFFT.available()) 
     {     
@@ -269,7 +272,7 @@ void spectrum_update(int16_t s)
 
         // Calculate center then if FFT is larger than graph area width, trim ends evently
         int16_t L_EDGE = 0; 
-        if (0) //(ptr->spect_span == 25000)
+        if (ptr->spect_span == 50)   //span width in KHz.
         {      
             // pack all bins into the available display width.  
             int wd = ptr->wf_sp_width;
@@ -277,11 +280,13 @@ void spectrum_update(int16_t s)
             int binsz = round(FFT_SIZE/wd);  // bins that will be compressed into 1 pixel to fit the screen
             for (i = 0; i < ptr->wf_sp_width; i++)
             {        
-                full_FFT[i] = myFFT.read(binsz+i);
+                if ( i > SCREEN_WIDTH) // do not overrun our buffer size.  Ideally wf_sp_width would never be > SCREENWIDTH but....
+                    i = SCREEN_WIDTH;
+                span_FFT[i] = myFFT.read(binsz+i);
             }
-            //pout = (float) full_FFT;
-            //Serial.print("Zoom Out =");
-            //Serial.println(binsz,DEC);
+            //pout = span_FFT;
+            Serial.print("Zoom Out =");
+            Serial.println(binsz,DEC);
         }              
         else if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
         {
@@ -484,22 +489,22 @@ void spectrum_update(int16_t s)
                         {
                             if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
                             {
-                                /*
+                                
                                 tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16, myBLACK); // delete old pixel
                                 tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16, myYELLOW); // write new pixel    
                                                            
                                 // Double up the dots to make the spectrum more dense and visible                                
-                                tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-1, myBLACK); // delete old pixel
-                                tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-1, myYELLOW); // write new pixel  
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-1, myBLACK); // delete old pixel
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-1, myYELLOW); // write new pixel  
                                 
                                 // Triple up the dots to make the spectrum more dense and visible                                
-                                tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-2, myBLACK); // delete old pixel
-                                tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-2, myYELLOW); // write new pixel  
-                                */
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-2, myBLACK); // delete old pixel
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-2, myYELLOW); // write new pixel  
+                                
                                 //Serial.println(tft.grandient( (uint16_t) pix_n16));
                                 // Experimetnal  - draw a 2 pixel wide segment fopr more visibility
-                                tft.drawFastHLine(ptr->l_graph_edge+1+i, pix_o16, 2,   myBLACK); //BLACK);                         
-                                tft.drawFastHLine(ptr->l_graph_edge+1+i, pix_n16, 2,   myYELLOW); //BLACK);
+                                //tft.drawFastHLine(ptr->l_graph_edge+1+i, pix_o16, 2,   myBLACK); //BLACK);                         
+                                //tft.drawFastHLine(ptr->l_graph_edge+1+i, pix_n16, 2,   myYELLOW); //BLACK);
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, pix_o16-1, 2,   myBLACK); //BLACK);                         
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, pix_n16-1, 2,   myYELLOW); //BLACK);                                
 

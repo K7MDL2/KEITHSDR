@@ -2,6 +2,12 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/16/2021
+
+    1. Display key now toggles spectrum DOT and BAR mode until we do something with the empty popup window.
+    2. new #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only waht can be used.
+    2. Formatting the VFOA/B display (new format function in progress)
+
 ## 3/15/2021
 
     1. Added ethernet init, read and write functions, dumping FFT output to a desktop UDP receiver app successfully. Use #define ENET to enable to disable this feature for compile or use the newly added User Settings table controls for enet_enable (hardware on/off) and/or enet_output. 

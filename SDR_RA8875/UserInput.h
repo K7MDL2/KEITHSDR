@@ -678,10 +678,16 @@ void Button_Handler(int16_t x, uint16_t y)
     {
         if (ptr->enabled)
         {        
-            if (display_state)
+            if (Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode)
+            {
                 display_state = 0;
+                Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 0;
+            }
             else 
+            {
                 display_state = 1;
+                Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 1;
+            }
             popup = 1;
             pop_win(1);
             displayDisplay();
