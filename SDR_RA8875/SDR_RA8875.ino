@@ -90,7 +90,7 @@ AudioAnalyzePeak_F32    Q_Peak;
 AudioAnalyzePeak_F32    I_Peak;
 AudioAnalyzePeak_F32    CW_Peak;
 AudioAnalyzeRMS_F32     CW_RMS;  
-//AudioAnalyzeFFT4096_IQ_F32  myFFT;
+//AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
 //AudioAnalyzeFFT2048_IQ_F32  myFFT;
 AudioAnalyzeFFT1024_IQ_F32  myFFT;
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
