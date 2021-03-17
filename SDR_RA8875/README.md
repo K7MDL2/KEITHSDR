@@ -5,8 +5,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 ## 3/16/2021
 
     1. Display key now toggles spectrum DOT and BAR mode until we do something with the empty popup window.
-    2. new #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only waht can be used.
-    2. Formatting the VFOA/B display (new format function in progress)
+    2. New #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only what can be used.  This is not fully tested yet and some instability has been observed.
+    3. VFOA/B display now firnmatted with dot notation (new format function)
 
 ## 3/15/2021
 
