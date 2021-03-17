@@ -5,9 +5,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 ## 3/16/2021
 
     1. Display key now toggles spectrum DOT and BAR mode until we do something with the empty popup window.
-    2. New #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only what can be used.  This is not fully tested yet and some instability has been observed.
+    2. New #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only what can be used. ***  NOTE: This is not fully tested yet and some instability has been observed.  ***
     3. VFOA/B display now firnmatted with dot notation (new format function)
-    4. Including SV1AFN Bandpass Filter board header file. Download from SV1AFN.com. This looks for the Adafruit_MCP23017_Arduino_Library which you can find using Arduino IDE Library Manager. If not using I2C then can modify things fo parallel interface.
 
 ## 3/15/2021
 
