@@ -43,11 +43,11 @@ void setup()
     displayRefresh(0);  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
-    AudioMemory_F32(100, audio_settings);
+    AudioMemory_F32(80, audio_settings);
 
     //TODO: Many of these need to be called in other places also such as when changing bands or AGC to mute and unmute, during TX for another example  
     codec1.enable();  // MUST be before inputSelect()
-    delay(500);
+    delay(5);
     codec1.dacVolumeRampDisable();    // Turn off the sound for now
     codec1.inputSelect(myInput);    
     codec1.lineInLevel(user_settings[user_Profile].lineIn_Vol_last);     // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity

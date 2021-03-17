@@ -16,7 +16,6 @@ extern uint8_t user_Profile;
 void draw_2_state_Button(uint8_t button, uint8_t *function_ptr);
 void displayAGC1();
 void refreshScreen(void);
-//void formatVFO(char * vfo_str, uint32_t vfo);
 const char * formatVFO(uint32_t vfo);
 
 int displayColor = RA8875_LIGHT_GREY;
@@ -84,7 +83,7 @@ void displayFreq()
 		tft.print("B:");		
 		tft.setFont(ptr->vfoActive_Font);
 		tft.setCursor(ptr->bx+28, ptr->by+6);
-		tft.print(float(VFOB)/1000,3);
+		tft.print(formatVFO(VFOB));
 	}
 	
 	// Write the standby VFO
@@ -96,14 +95,14 @@ void displayFreq()
 		tft.print("B:");
 		tft.setFont(ptr->vfoStandby_Font);
 		tft.setCursor(ptr->bx+28, ptr->by+56);
-		tft.print(float(VFOB)/1000,3);
+		tft.print(formatVFO(VFOB));
 	}
 	else 
 	{
 		tft.print("A:");
 		tft.setFont(ptr->vfoStandby_Font);
 		tft.setCursor(ptr->bx+28, ptr->by+56);
-		tft.print(float(VFOA)/1000,3);
+		tft.print(formatVFO(VFOA));
 	}
 }
 
@@ -226,9 +225,11 @@ void displayRefresh(uint8_t fn)
 const char* formatVFO(uint32_t vfo)
 {
 	static char vfo_str[15];
-	//sprintf(vfo_str, "%4d.%03d.%03d", (VFOA)/1000000%1000000,(VFOA)/1000%10000,(VFOA)%1000;
-	Serial.print("here");
-	sprintf(vfo_str, "%4lu", vfo);
-	Serial.print(vfo_str);
+	
+	uint32_t MHz = (vfo/1000000 % 1000000);
+	uint32_t Hz  = (vfo % 1000);
+	uint32_t KHz = ((vfo % 1000000) - Hz)/1000;
+	sprintf(vfo_str, "%d.%03d.%03d", MHz, KHz, Hz);
+	Serial.print("New VFO: ");Serial.println(vfo_str);
 	return vfo_str;
 }

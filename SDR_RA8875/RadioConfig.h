@@ -371,7 +371,7 @@ struct Frequency_Display {
     //uint32_t d_vfob = ptr->d_vfob;     // Text to display for the button label  Use spaces to center    
 } disp_Freq[1] = {
     // x   y    w    h   r   outline_clr          bg_clr      vfoActive_clr     vfoAct_LblFnt  vActFnt     vfoStby_clr  vStbyLblFnt   vStbyFnt  TX_clr     padx  pady
-    {350,  0, 240,  90,  0, RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY,    Arial_20,  Arial_32, RA8875_MAGENTA,   Arial_16,  Arial_20, RA8875_RED,  0,   20}
+    {340,  0, 250,  90,  0, RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY,    Arial_20,  Arial_32, RA8875_MAGENTA,   Arial_16,  Arial_20, RA8875_RED,  0,   20}
 };
 
  uint8_t display_state;   // something to hold the button state for the display pop-up window later.

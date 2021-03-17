@@ -61,7 +61,6 @@ Metro fftFreq_timestamp = Metro(fftFreq_refresh);
 #define myWHITE                 RA8875_WHITE
 #define myYELLOW                RA8875_YELLOW
 #define myGREEN                 RA8875_GREEN
-#define SCREEN_WIDTH            800             // Change this to teh maximum pixels you want to display with max = screen width.  This uses memory.
 
 #define FFT_AXIS                2
     // Set the FFT bin order to our needs. Called in drawSpectrumframe()
@@ -88,11 +87,12 @@ extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
 
-#define FFT_SIZE                2048  //4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
+#define SCREEN_WIDTH            800             // Change this to the maximum pixels you want to display up to max of screen width.  This uses memory.
+#define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
 int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
-float   fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
-float   fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
+int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
+int16_t fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
 
 //function declarations
 void Spectrum_Parm_Generator(int16_t parm_set);
@@ -100,7 +100,7 @@ void spectrum_update(int16_t s);
 void drawSpectrumFrame(uint8_t s);
 void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
-float find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
+int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 
 // Spectrum Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
 // These globals are othewise ignored
@@ -137,26 +137,6 @@ float   spectrum_LPFcoeff       = 0.9;      // 1.0f to 0.0f. Data smoothing
 int16_t spectrum_dot_bar_mode   = 0;        // 0=bar, 1=DOT, 3=Line. Spectrum box . Line mode is experimental
 int16_t spectrum_sp_scale       = 40;       // 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
 int16_t spectrum_floor          = -180;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
-/*
- *   Copy some or all of this section to your main file to gain access to any or all of these for user controls   
- *   If just using the database predefined parameters, you can ignore these.  
- *   If you want to generate new wiondows parametes you can edit the above or copy these to another file and edit them in your own functions/Setting UI.  
- *
-extern int16_t spectrum_preset;
-extern int16_t spectrum_x;
-extern int16_t spectrum_y;
-extern int16_t spectrum_height;
-extern int16_t spectrum_center;
-extern int16_t spectrum_width;
-extern float spectrum_span;
-extern int16_t spectrum_wf_style;
-extern int16_t spectrum_wf_colortemp;
-extern float spectrum_wf_scale;
-extern float spectrum_LPFcoeff;
-extern int16_t spectrum_dot_bar_mode;
-extern int16_t spectrum_sp_scale;
-extern int16_t spectrum_floor;
-*/
 
 // use the generator finction to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
@@ -230,13 +210,13 @@ void spectrum_update(int16_t s)
     int16_t blanking = 3;  // used to remove the DC line from the graphs at Fc
     int16_t pix_o16;
     int16_t pix_n16;
-    static int16_t spect_scale_last = 0;
-    static int16_t spect_ref_last   = 0;
+    static int16_t spect_scale_last   = 0;
+    static int16_t spect_ref_last     = 0;
     //static float fft_pk_bin_last    = 0;
-    float fft_pk_bin                = 0;
+    int16_t fft_pk_bin                = 0;
     //static float fftPower_pk        = ptr->spect_floor;
-    static float fftPower_pk_last   = ptr->spect_floor;
-    static float sp_floor_avg       = ptr->spect_floor;   // stat out here.
+    static int16_t fftPower_pk_last  = ptr->spect_floor;
+    static int16_t sp_floor_avg      = ptr->spect_floor;   // stat out here.
         
     if (s >= PRESETS) s=PRESETS-1;   // Cycle back to 0
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.    
@@ -247,9 +227,9 @@ void spectrum_update(int16_t s)
      
     int16_t i;
     float avg = 0.0;
-    float pixelnew[SCREEN_WIDTH];           //  Stores current pixel fopr spectrum portion only
-    static float pixelold[SCREEN_WIDTH];    //  Stores copy of current pixel so it can be erased in next update
-    uint8_t span_FFT[SCREEN_WIDTH];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
+    int16_t pixelnew[SCREEN_WIDTH];           //  Stores current pixel fopr spectrum portion only
+    static int16_t pixelold[SCREEN_WIDTH];    //  Stores copy of current pixel so it can be erased in next update
+    int8_t span_FFT[SCREEN_WIDTH];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
     float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
     int16_t line_buffer[SCREEN_WIDTH];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
     
@@ -282,7 +262,7 @@ void spectrum_update(int16_t s)
             {        
                 if ( i > SCREEN_WIDTH) // do not overrun our buffer size.  Ideally wf_sp_width would never be > SCREENWIDTH but....
                     i = SCREEN_WIDTH;
-                span_FFT[i] = myFFT.read(binsz+i);
+                span_FFT[i] = (int16_t) myFFT.read(binsz*i);
             }
             //pout = span_FFT;
             Serial.print("Zoom Out =");
@@ -313,11 +293,11 @@ void spectrum_update(int16_t s)
             {
                 Serial.println("FFT Invalid Data INF or NaN");
                 //Serial.println(*(pout+i));                
-                pixelnew[i] = -200;   // fill in the missing value with somting harmless
+                pixelnew[i] = (int16_t) -200;   // fill in the missing value with somting harmless
                 //pixelnew[i] = myFFT.read(i+1);  // hope the next one is better.
             }
             // Now capture Spectrum value for use later
-            pixelnew[i] = *(pout+i);
+            pixelnew[i] = (int16_t) *(pout+i);
 
             // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
             switch (ptr->spect_wf_style)
@@ -381,7 +361,7 @@ void spectrum_update(int16_t s)
             float avg_pix5 = (pixelnew[i-2]+pixelnew[i-1]+pixelnew[i]+pixelnew[i+1]+pixelnew[i+2])/5; //avg of 5 bins
             
             if (abs(pixelnew[i]) > abs(avg_pix2) * 1.6f)    // compare to a small average to toss out wild spikes
-                pixelnew[i] = avg_pix5;                     // average it out over a wider segment to patch the hole   
+                pixelnew[i] = (int16_t) avg_pix5;                     // average it out over a wider segment to patch the hole   
 
             if (i >= (ptr->wf_sp_width/2)-blanking-1 && i <= (ptr->wf_sp_width/2)+blanking+1)
                 pixelnew[i] = -200; 
@@ -419,7 +399,7 @@ void spectrum_update(int16_t s)
             
             // Invert the sign since the display is also inverted, Increasing value = weaker signal strength, they are now going the same direction.  
             // Small value = bigger signal, closer to 0 on the display coordinates
-            pixelnew[i] = abs(pixelnew[i]) * 2.0;
+            pixelnew[i] = (int16_t) abs(pixelnew[i]) * 2.0;
             
             // Wea are plotting our pixel in the window if it lands between the bottom line and top lines        
             // set the grass floor to just above the bottom line.  These are the weakest signals. Typically -90 coming out of the FFT right now
@@ -447,8 +427,8 @@ void spectrum_update(int16_t s)
             { Serial.print(" !!UNDER!! = ");  Serial.println(pixelnew[i] - ptr->sp_top_line+2,0);}          
             #endif
             
-            pix_n16 = (int16_t) round(pixelnew[i]);  // convert float to uint16_t to match the draw functions type
-            pix_o16 = (int16_t) round(pixelold[i]);
+            pix_n16 = pixelnew[i];  // convert float to uint16_t to match the draw functions type
+            pix_o16 = pixelold[i];
 
             // Linit access to the spectrum box to control misbehaved pixel and bar draws
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);
@@ -567,7 +547,7 @@ void spectrum_update(int16_t s)
         tft.setTextColor(myLT_GREY);
         tft.setFont(Arial_12);
 
-        fft_pk_bin = find_FFT_Max(L_EDGE, L_EDGE+ptr->wf_sp_width);   // get new frequency and power values for streongest signal 
+        fft_pk_bin = find_FFT_Max(L_EDGE, L_EDGE+ptr->wf_sp_width);   // get new frequency and power values for strongest signal 
         
         uint32_t _VFO_;   // Get active VFO frequency
         if (bandmem[curr_band].VFO_AB_Active == VFO_A)
@@ -930,11 +910,11 @@ void Spectrum_Parm_Generator(int16_t parm_set)
   //              f = (L + (2-R)/(1+R))*f_sample/1024
   //        otherwise
   //              f = (L - (2-R)/(1+R))*f_sample/1024  "
-float find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and max bins to look at based on display width.
+int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and max bins to look at based on display width.
 {
     float specMax = -200.0f;
     uint16_t iiMax = 0;
-    float f_peak = 0.0f;
+    int16_t f_peak = 0.0f;
     
     uint16_t bin_center = (bin_max-bin_min)/2 + bin_min;
 
@@ -976,7 +956,7 @@ float find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and ma
         // return a frequency value adjusted to be relative to the center bin
         fftMaxPower = iiMax + (2-R)/(1+R);
         f_peak = fftMaxPower - bin_center;   //adjust for center
-        fftMaxPower = myFFT.read((uint16_t) fftMaxPower)-20; // set global fftMaxPower = Power of the strongest signal if possible
+        fftMaxPower = myFFT.read(fftMaxPower)-20; // set global fftMaxPower = Power of the strongest signal if possible
                                                             // -20 is a cal factor experimentally determined
     }
     //Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" fftMaxPower="); Serial.println(fftMaxPower); 
