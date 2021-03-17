@@ -112,7 +112,7 @@ int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 ///******************************************************************************************************************************
 //   *************  Set Preset to select your configuration record to use.  The rest are ignored for operation ******************
 ///
-int16_t spectrum_preset         = 11;   // <<<==== Set this value.  Range is 0-PRESETS.  Specify the default layout option for spectrum window placement and size.
+int16_t spectrum_preset         = 10;   // <<<==== Set this value.  Range is 0-PRESETS.  Specify the default layout option for spectrum window placement and size.
 ///
 //
 ///******************************************************************************************************************************
@@ -120,12 +120,12 @@ int16_t spectrum_preset         = 11;   // <<<==== Set this value.  Range is 0-P
 // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
 int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-int16_t spectrum_y              = 109;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-int16_t spectrum_height         = 300;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+int16_t spectrum_y              = 129;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+int16_t spectrum_height         = 280;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
 int16_t spectrum_center         = 40;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
 int16_t spectrum_width          = 800;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
-float   spectrum_span           = 25000;    // UNUSED for now.  Value in Hz.  Ths will be the maximum span shown in the display graphs.  
+int16_t spectrum_span           = 20;       // Value in KHz.  Ths will be the maximum span shown in the display graphs.  
                                             // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
                                             // Max value and resolutoin (pixels per bin) is dependent on sample frequency
                                             // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
@@ -140,7 +140,7 @@ int16_t spectrum_floor          = -180;      // 0 to -150. The reference point f
 
 // use the generator finction to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
-#define PRESETS 12  // number of parameter records with our preset spectrum window values
+#define PRESETS 11  // number of parameter records with our preset spectrum window values
 
 struct Spectrum_Parms {
     int16_t wf_sp_width;        // User specified active graphing area width with no padding. Max is fft_bins, can be smaller.
@@ -176,19 +176,18 @@ struct Spectrum_Parms {
                                 // The diff between this and box bottom results in scaling (zoom). If peaks occur outside the box bounds then they are not drawn.
     int16_t spect_floor;        // Slides the data up and down relative to the specrum bottom box line. The noise floor may be above or below and if outside the box is simply not drawn.
 } Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
-    //W        LE  RE  CG                                            x   y   w  h   x  span   st clr  sc     mode scal reflvl
-    {512,2,43,143,655,399,14,8, 74, 96, 96,479,471,225,150,321,321,100, 70,599,410,60,25,3,2160,1.7,0.9,0,40,-180},   // Main full size window
+    //W        LE  RE  CG                                            x   y   w  h  x  sp st clr sc mode scal reflvl
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180}, // hal
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180},  // Small wide bottom screen area to fit under pop up wndows.
     {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25,2,310,1.7,0.9,0,60,-180},    //smaller centered
     {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25,3,950,2.0,0.7,1,40,-185},  // low wide high gain
     {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25,2,320,1.0,0.9,1,30,-180},     //60-100 good
-    {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,1,130,0.7,0.9,1,40,-180},     //60-100 good
     {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25,2,310,1.7,0.9,0,60,-180},
     {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25,2,310,1.7,0.9,0,40,-180},
     {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,2,450,0.7,0.9,1,40,-180},
     {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25,5,440,1.0,0.9,0,40,-180},
-    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25,5,440,1.0,0.9,0,40,-170}
+    {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25,5,440,1.0,0.9,0,40,-170},
+    {796,2, 2,  2,798,400,14,8,133,155,155,408,400, 98,147,253,253,  0,129,800,280,40,20,5,440,1.0,0.9,0,40,-160}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];
@@ -212,11 +211,9 @@ void spectrum_update(int16_t s)
     int16_t pix_n16;
     static int16_t spect_scale_last   = 0;
     static int16_t spect_ref_last     = 0;
-    //static float fft_pk_bin_last    = 0;
     int16_t fft_pk_bin                = 0;
-    //static float fftPower_pk        = ptr->spect_floor;
     static int16_t fftPower_pk_last  = ptr->spect_floor;
-    static int16_t sp_floor_avg      = ptr->spect_floor;   // stat out here.
+    static int16_t sp_floor_avg      = ptr->spect_floor;   // start out here.
         
     if (s >= PRESETS) s=PRESETS-1;   // Cycle back to 0
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.    
@@ -242,12 +239,15 @@ void spectrum_update(int16_t s)
     if (myFFT.available()) 
     {     
         #ifdef ENET
-            for (i = 2; i < FFT_SIZE; i++)
+            if (enet_data_out && enet_ready)
             {
-                tx_buffer[i] = (uint8_t) abs(*(pout+i));
+                for (i = 0; i < FFT_SIZE; i++)
+                {
+                    tx_buffer[i] = (uint8_t) abs(*(pout+i));
+                }
+                //memcpy(tx_buffer, full_FFT, FFT_SIZE);
+                enet_write(tx_buffer, FFT_SIZE);
             }
-            //memcpy(tx_buffer, full_FFT, FFT_SIZE);
-            enet_write(tx_buffer, FFT_SIZE);
         #endif
 
         // Calculate center then if FFT is larger than graph area width, trim ends evently
@@ -287,7 +287,7 @@ void spectrum_update(int16_t s)
             */
        // }
 
-        for (i = 2; i < ptr->wf_sp_width-1; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
+        for (i = 0; i < ptr->wf_sp_width; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
         { 
             if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
             {
@@ -353,7 +353,7 @@ void spectrum_update(int16_t s)
         //
         // Done with waterfall, now draw the spectrum section
         
-        for (i = 2; i < (ptr->wf_sp_width-2); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
+        for (i = 0; i < (ptr->wf_sp_width-2); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         //for  (i=2; i < (FFT_SIZE)-2; i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         {       
             // average a few values to smooth the line a bit
@@ -547,7 +547,7 @@ void spectrum_update(int16_t s)
         tft.setTextColor(myLT_GREY);
         tft.setFont(Arial_12);
 
-        fft_pk_bin = find_FFT_Max(L_EDGE, L_EDGE+ptr->wf_sp_width);   // get new frequency and power values for strongest signal 
+        fft_pk_bin = find_FFT_Max(L_EDGE+2, L_EDGE+ptr->wf_sp_width-2);   // get new frequency and power values for strongest signal 
         
         uint32_t _VFO_;   // Get active VFO frequency
         if (bandmem[curr_band].VFO_AB_Active == VFO_A)
@@ -559,13 +559,13 @@ void spectrum_update(int16_t s)
         // Start by getting the highest power within a period of time
         if (fftMaxPower > fftPower_pk_last)
         { 
-            fftPower_pk_last = fftMaxPower;
-            //Serial.print("Ppk="); Serial.println(fftPower_pk_last);
-            tft.fillRect(ptr->l_graph_edge+39,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
-            tft.setCursor(ptr->l_graph_edge+40,        ptr->sp_txt_row+30); // Write the legend
+            fftPower_pk_last = fftMaxPower;            
+            tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
+            tft.setCursor(ptr->l_graph_edge+30,        ptr->sp_txt_row+30); // Write the legend
             tft.print("P: "); 
-            tft.setCursor(ptr->l_graph_edge+56,        ptr->sp_txt_row+30);  // write the value
-            tft.print(fftPower_pk_last,1);
+            tft.setCursor(ptr->l_graph_edge+46,        ptr->sp_txt_row+30);  // write the value
+            tft.print(fftMaxPower);
+            //Serial.print("Ppk="); Serial.println(fftMaxPower);
             //fftFreq_timestamp.reset();  // reset the timer since we have new good data
         }
                          
@@ -602,8 +602,10 @@ void spectrum_update(int16_t s)
         tft.print("R:   ");  // actual value is updated elsewhere            
         tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
-        tft.print(sp_floor_avg,0);
-        
+        //tft.print(sp_floor_avg,0);
+        tft.print(ptr-> spect_floor);
+        //Serial.print("R lvl="); Serial.println(ptr-> spect_floor);
+
         if (spect_ref_last != ptr->spect_floor)
         {
             //spect_ref_last = ptr->spect_floor;   // update memory

@@ -7,7 +7,7 @@
 extern AudioFilterFIR_F32      Hilbert1;
 extern AudioFilterFIR_F32      Hilbert2;
 extern AudioFilterBiquad_F32   CW_Filter;
-extern struct Bandwidth_Settings bw[];
+extern struct Filter_Settings  filter[];
 
 ////////////////////////////////////////////////////////////////////////////////////
 void selectBandwidth(int bndx)
@@ -109,9 +109,9 @@ void selectBandwidth(int bndx)
         Hilbert2.begin(Hilbert_Minus45_40K,151);
     } 
 
-    bandmem[curr_band].bandwidth = bndx;
-    Serial.print("BW Set to ");
-    Serial.println(bw[bandmem[curr_band].bandwidth].bw_name);
+    bandmem[curr_band].filter = bndx;
+    Serial.print("Filter Set to ");
+    Serial.println(filter[bandmem[curr_band].filter].Filter_name);
     
-    displayBandwidth();
+    displayFilter();
 }

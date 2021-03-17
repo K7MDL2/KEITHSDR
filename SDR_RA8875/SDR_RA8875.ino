@@ -38,9 +38,10 @@ void setup()
     //
     initVfo();        // initialize the si5351 vfo
 	selectFrequency(0);
-    selectStep();
+    selectMode(0);
     selectAgc(bandmem[curr_band].agc_mode);
-    displayRefresh(0);  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
+    displayAgc();
+    displayRefresh();  // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(80, audio_settings);
@@ -117,7 +118,7 @@ void setup()
     RX_Summer.gain(0,-3.0);   // Leave at 1.0
     RX_Summer.gain(1,3.0);  // -1 for LSB out
  
-    selectBandwidth(bandmem[curr_band].bandwidth);
+    selectBandwidth(bandmem[curr_band].filter);
     selectMode(0);  // set mode of thge Active VFO using last recorded value (0 = no change) 
 
     // Choose our output type.  Can do dB, RMS or power

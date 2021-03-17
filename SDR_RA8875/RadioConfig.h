@@ -98,9 +98,9 @@ struct Band_Memory {
     uint8_t     VFO_AB_Active;  // Flag to track which has focus. Usesd in RX.  Used in TX for split
     uint8_t     mode_A;         // CW, LSB, USB, DATA.  255 = ignore and use current mode
     uint8_t     mode_B;         // CW, LSB, USB, DATA.  255 = ignore and use current mode
-    uint8_t     bandwidth;      // index to Bandwidth selection for this band.
+    uint8_t     filter;      // index to Bandwidth selection for this band.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
-    uint16_t    tune_step;      // last step rate on this band.  Index to Tune step table  255 = ignore and use current
+    uint8_t     tune_step;      // last step rate on this band.  Index to Tune step table  255 = ignore and use current
     uint8_t     agc_mode;       // index to group of AGC settings in another table
     uint8_t     split;          // split active or not. 255 is feature disabled
     uint8_t     RIT_en;         // RIT active. 
@@ -113,21 +113,20 @@ struct Band_Memory {
     uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set. 255 is feature disabled
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2, 255 is feature disabled
     uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
-    uint8_t     xvtr_num;       // index to Transverter Table. 
-    uint8_t     nb_en;          // Noise Blanker mode.  0 is off.  1+ is mode  
+    uint8_t     xvtr_num;       // index to Transverter Table.   
 } bandmem[BANDS] = { 
-    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB bw    band step  agc SPLIT RT RV XT XV ATU ANT PRESELECT   ATTEN     PREAMP  XVE XV# NBe 
-    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF, 0,  0, 0},
-    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A, LSB, LSB, BW3_2, BAND1,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0,  1, 0},
-    { "60M", 5000000, 5000000, 5000000, 5000000,VFO_B, USB, LSB, BW3_2, BAND2,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0,  2, 0},
-    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,3,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0,  3, 0},
-    { "30M",10000000,10200000,10136000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0,  4, 0},
-    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0,  5, 0},
-    { "17M",18000000,18150000,18135000,18100000,VFO_A, USB, USB, BW3_2, BAND6,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0,  6, 0},
-    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF, 0,  7, 0},
-    { "12M",24890000,25000000,24915000,24904000,VFO_A,  CW, USB, BW1_8, BAND8,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF, 0,  8, 0},
-    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF, 0,  9, 0},
-    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB, USB, BW3_2,BAND10,4,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF, 0, 10, 0}
+    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band step  agc SPLIT RT RV XT XV ATU ANT PRESELECT   ATTEN     PREAMP  XVE XV# NBe 
+    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL1,ATTEN_OFF,PREAMP_OFF, 0,  0},
+    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A, LSB, LSB, BW3_2, BAND1,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0,  1},
+    { "60M", 5000000, 5000000, 5000000, 5000000,VFO_B, USB, LSB, BW3_2, BAND2,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0,  2},
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0,  3},
+    { "30M",10000000,10200000,10136000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0,  4},
+    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0,  5},
+    { "17M",18000000,18150000,18135000,18100000,VFO_A, USB, USB, BW3_2, BAND6,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0,  6},
+    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF, 0,  7},
+    { "12M",24890000,25000000,24915000,24904000,VFO_A,  CW, USB, BW1_8, BAND8,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL9,ATTEN_OFF,PREAMP_OFF, 0,  8},
+    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1,PRESEL10,ATTEN_OFF,PREAMP_OFF, 0,  9},
+    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB, USB, BW3_2,BAND10,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1,PRESEL11,ATTEN_OFF,PREAMP_OFF, 0, 10}
 };
 
 struct AudioSettings {
@@ -169,10 +168,10 @@ struct AGC {
     float       agc_attack;
     float       agc_decay;
 } agc_set[AGC_SET_NUM] = {
-    {"AGC-OFF",2,0,0,-36.0,12.0,6.0},
-    {"AGC-S  ",2,0,0,-36.0,12.0,6.0},
-    {"AGC-M  ",2,0,0,-36.0,12.0,6.0},
-    {"AGC-F  ",2,0,0,-36.0,12.0,6.0}
+    {"AGC- ",2,0,0,-36.0,12.0,6.0},
+    {"AGC-S",2,0,0,-36.0,12.0,6.0},
+    {"AGC-M",2,0,0,-36.0,12.0,6.0},
+    {"AGC-F",2,0,0,-36.0,12.0,6.0}
 };
 
 // per-band settings for common user adjsutments that are band dependent. The index is the band number.
@@ -182,39 +181,38 @@ struct Spectrum_Settings {
     float       scale;
 };
 
-#define BWSTEPS 9
-struct Bandwidth_Settings {
-    char        bw_name[12];    // display name for UI
-    uint16_t    bw;             //bandwidth in HZ
+#define FILTER 9
+struct Filter_Settings {
+    char        Filter_name[12];    // display name for UI
+    uint16_t    Width;             //bandwidth in HZ
+    char        units[4];
     uint8_t     pref_mode;      // preferred mode when enabled (future use)
-} bw[BWSTEPS] = {
-    {"BW 250Hz ",  250,   CW},
-    {"BW 500Hz ",  500,   CW},
-    {"BW 700Hz ",  700,   CW},
-    {"BW 1.0KHz", 1000,   CW},
-    {"BW 1.8KHz", 1800,   CW},
-    {"BW 2.3KHz", 2300,  USB},
-    {"BW 2.8KHz", 2800,  USB},
-    {"BW 3.2KHz", 3200,  USB},
-    {"BW 4.0KHz", 4000, DATA}
+} filter[FILTER] = {
+    {"250",   250,  "Hz",   CW},
+    {"500",   500,  "Hz",   CW},
+    {"700",   700,  "Hz",   CW},
+    {"1.00",  1000, "KHz",   CW},
+    {"1.80",  1800, "KHz",   CW},
+    {"2.30",  2300, "KHz",  USB},
+    {"2.80",  2800, "KHz",  USB},
+    {"3.20",  3200, "KHz",  USB},
+    {"4.00",  4200, "KHz", DATA}
 };
 
-char Mode[4][5] = {"CW", "LSB", "USB", "DATA"};
+char Mode[4][5] = {" CW", "LSB", "USB", "DAT"};
 
-#define TS_STEPS 8
+#define TS_STEPS 5
 struct TuneSteps {
     char        ts_name[12];    // display name for UI
+    char        ts_units[4];    // units for display HZ or KHz
     uint16_t    step;             //bandwidth in HZ
     uint8_t     pref_mode;      // preferred mode when enabled (future use)
 } tstep[TS_STEPS] = {
-    {"Ts 1Hz ",       1,  CW},
-    {"Ts 10Hz ",     10,  CW},
-    {"Ts 100Hz ",   100,  CW},
-    {"Ts 250Hz ",   250,  CW},
-    {"Ts 1.0KHz",  1000,  CW},
-    {"Ts 2.5KHz",  2500, USB},
-    {"Ts 5.0KHz",  5000, USB},
-    {"Ts 10.0KHz",10000, USB}
+    {"1 ",   "Hz",     1,  CW},
+    {"10 ",  "Hz",    10,  CW},
+    {"100 ", "Hz",   100,  CW},
+    {"1.0", "KHz",  1000,  CW},
+    {"2.5", "KHz",  2500, USB},
 };
 
 #define USER_SETTINGS_NUM 3
@@ -238,13 +236,20 @@ struct User_Settings {
     uint8_t     lineOut_Vol_last;   // last line out setting used on this band. 255 is ignore and use the current value.
     uint8_t     enet_enabled;       // Turn on ethernet features
     uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)
+    uint8_t     nb_en;              // Noise Blanker mode.  0 is off.  1+ is mode
+    uint8_t     nr_en;              // Noise Reduction.  0 is off.  1+ is mode
+    uint8_t     spot;               // Spot  0 is off.  1+ is mode
+    uint16_t    pitch;              // Pitch  0 is off.  1+ is mode
+    uint8_t     notch;              // Notch mode.  0 is off.  1+ is mode
+    uint8_t     xmit;               // xmit state.  0 is off.  1+ is mode
+    uint8_t     fine;               // Fine tuine state.  0 is off.  1+ is mode
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout
-    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1,    0},
-    {"User Config #2", 10, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0},
-    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben  nren  spot pitch notch  xmit fine
+    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1,    0,    0,    0,    0,  600,    0,    0,    0},
+    {"User Config #2", 10, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0,    0,    0,    0,  600,    0,    0,    0},
+    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0,    0,    0,    0,  600,    0,    0,    0}
 };
 
 struct Standard_Button {
@@ -264,90 +269,78 @@ struct Standard_Button {
     char     label[20];     // Tesxt to display for the button label  Use spaces to center
 };
 
-#define STD_BTN_NUM 16      // number of buttons in the table
-#define PANEL_ROWS  5       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
+#define STD_BTN_NUM 28      // number of buttons in the table
+#define PANEL_ROWS  6       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
 //  There are 6 100px wide buttons that can swap places, enabled/dispable by the function button for a row
 //Anchor buttons normally stay put
-#define MENU_BTN    0       // invoke a pop up (ON) for atten slider or MF knob adjustment
-#define MUTE_BTN    1       // On off
-#define FN_BTN      2       // Swaps out buttons in bottom row.  This stays for each row.
-//Panel 1  These swap out
-#define DISPLAY_BTN 3       // Invoke PopUp (On), close popup (Off)
-#define RIT_BTN     4       // not implemented yet  
-#define BANDDN_BTN  5       // this will change to a copmplex button soon
-#define BANDUP_BTN  6       // this will change to a copmplex button soon
-//Panel 2
-#define ATTEN_BTN   7       // invoke a pop up (ON) for atten slider or MF knob adjustment
-#define PREAMP_BTN  8       // On off
-#define SPLIT_BTN   9       // ON/OFF
-#define BAND_BTN    10      // Pops up Band Window.  Touch or MF can change bands
+//Panel 1  Fn is an anchor, the rest swap out
+#define FN_BTN      0       // Swaps out buttons in bottom row.  This stays for each row.
+#define MODE_BTN    1       // index to button
+#define FILTER_BTN  2       // will display the current FILTER value in the button
+#define ATTEN_BTN   3       // invoke a pop up (ON) for atten slider or MF knob adjustment
+#define PREAMP_BTN  4       // On off
+#define RATE_BTN    5       // will display the RATE (step) value in the button
+#define BAND_BTN    6       // Pops up Band Window.  Touch or MF can change bands
+//Panel 2  These swap out
+#define NB_BTN      7       // not implemented yet
+#define NR_BTN      8       // will display the NR value in the button
+#define SPOT_BTN    9       // will display the NR value in the button
+#define NOTCH_BTN   10      // will display the NR value in the button
+#define AGC_BTN     11      // will display the AGC value in the button
+#define MUTE_BTN    12      // On off
 //Panel 3
-#define ATU_BTN     11      // not implemented yet
-#define NB_BTN      12      // not implemented yet
-#define XVTR_BTN    13      // not implemented yet
-#define ENET_BTN    14      // turn on and off the enet data output (does not enable/disable the enet hardware)  
+#define MENU_BTN    13      // invoke a pop up (ON) for atten slider or MF knob adjustment
+#define ANT_BTN     14      // Antenna switch
+#define ATU_BTN     15      // not implemented yet
+#define XMIT_BTN    16      // not implemented yet
+#define BANDDN_BTN  17      // this will change to a copmplex button soon
+#define BANDUP_BTN  18      // this will change to a copmplex button soon
+//Panel 4
+#define RIT_BTN     19      // not implemented yet 
+#define XIT_BTN     20      // not implemented yet 
+#define VFO_AB_BTN  21      // ON/(A)/OFF(B)   Will go away soon. 
+#define FINE_BTN    22      // Fine and coarse rate
+#define DISPLAY_BTN 23      // Invoke PopUp (On), close popup (Off)
+#define SPLIT_BTN   24      // ON/OFF
 //Panel Spare
-#define VFO_AB_BTN  15      // ON/(A)/OFF(B)   Will go away soon.    
+#define ENET_BTN    25      // turn on and off the enet data output (does not enable/disable the enet hardware) 
+#define XVTR_BTN    26      // not implemented yet
+
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
-    { ON,  ON,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Menu\0"},
-    { ON,  ON, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
-    {  2,  ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Fn 1\0"},
-    //Panel 1
-    { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
-    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "RIT\0"},
-    { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 20, "Band -\0"},
-    { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 20, "Band +\0"},
+    {  2,  ON,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
+    { ON,  ON, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 9, 20, "Mode\0"},
+    { ON,  ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "Filter\0"},
+    { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 21, 20, "Atten\0"},
+    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "Pre\0"},
+    { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Rate\0"},
+    { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 22, 20, "Band\0"},
     //Panel 2
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 21, 20, "Atten\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "Pre\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},    
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Band\0"},   
+    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 34, 20, "NB\0"},
+    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 34, 20, "NR\0"},
+    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 16, 20, "Notch\0"},
+    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
+    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
     //Panel 3
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 21, 20, "ATU\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "NB\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
+    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Menu\0"},
+    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "ANT\0"},
+    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "ATU\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "XMIT\0"},
+    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band -\0"},
+    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
+    //Panel 4
+    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
+    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},
+    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "A/B\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Fine\0"},
+    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
+    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
     //Panel Spare
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "A/B\0"}  
-};
-
-struct Complex_Button {
-    uint8_t  enabled;       // enable or disable this button. UserInput() will look for mach corondinate and skip if disabled.
-                            // Enable if currently showing button, disable if not. used to share screen coordinates with replacement buttons.
-    uint8_t  pressed;       // used to optionally track the pressed state of the button
-	uint16_t bx;
-	uint16_t by;
-	uint16_t bw;
-	uint16_t bh;            // height 
-	uint16_t br;            // radius of roundRect corners
-    uint16_t outline_color; // used for button outline color
-    uint16_t txtclr;        // used for button text color
-    uint16_t on_color;      // fill color when button is ON state
-    uint16_t off_color;     // fill color when button is OFF state
-    uint16_t padx;       // # of pixels to pad label text horizontally shifting right to center the text 
-    uint16_t pady;       // # of pixels to pad label text vertically shifting text down to center the text 
-    char     label[20];     // Tesxt to display for the button label  Use spaces to center
-};
-
-#define COMPLEX_BTN_NUM 5       // number of buttons in the table
-
-#define MODE_BTN    0       // index to button
-#define FILTER_BTN  1       // will display the current FILTER value in the button
-#define AGC_BTN     2       // will display the AGC value in the button
-#define RATE_BTN    3       // will display the RATE (step) value in the button
-#define NR_BTN      4       // will display the NR value in the button
-
-
-// Complex button can update their labels to show a value or text.  For example AGC_S, changes to AGC_OFF
-struct Complex_Button complex_btn[COMPLEX_BTN_NUM] = {
-  // En  Prsd   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
-    {ON, OFF,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 21, 20, "Atten\0"},
-    {ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 31, 20, "Pre\0"},
-    {ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "Mute\0"},
-    {ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 26, 20, "ATU\0"},
-    {ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE, RA8875_BLACK, 23, 20, "AGC\0"}
+    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
+    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"}
+    
 };
 
 struct Frequency_Display {
@@ -356,6 +349,8 @@ struct Frequency_Display {
 	uint16_t bw;        // width of whole box
 	uint16_t bh;        // height of whole box
 	uint16_t br;        // radius of corners
+    uint16_t bs;        // spacing between the VFO numerals
+    uint16_t bm;        // marker spacing between VFO letter and digits  (A: 123.456.789)
     uint16_t ol_clr;    // outline color
     uint16_t bg_clr;    // background color
     uint16_t vfoActive_clr;  // color of VFOA numbers
@@ -370,11 +365,11 @@ struct Frequency_Display {
     //uint32_t d_vfoa = ptr->d_vfoa;     // Text to display for the button label  Use spaces to center
     //uint32_t d_vfob = ptr->d_vfob;     // Text to display for the button label  Use spaces to center    
 } disp_Freq[1] = {
-    // x   y    w    h   r   outline_clr          bg_clr      vfoActive_clr     vfoAct_LblFnt  vActFnt     vfoStby_clr  vStbyLblFnt   vStbyFnt  TX_clr     padx  pady
-    {340,  0, 250,  90,  0, RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY,    Arial_20,  Arial_32, RA8875_MAGENTA,   Arial_16,  Arial_20, RA8875_RED,  0,   20}
+    // x   y    w    h    r   spce  mkspc  outline_clr          bg_clr      vfoActive_clr     vfoAct_LblFnt  vActFnt     vfoStby_clr  vStbyLblFnt   vStbyFnt  TX_clr     padx  pady
+    {260,  6, 330,  100,  0,  70,     44, RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY,    Arial_24,  Arial_40, RA8875_MAGENTA,   Arial_20,  Arial_24, RA8875_RED,  0,   20}
 };
 
- uint8_t display_state;   // something to hold the button state for the display pop-up window later.
+uint8_t display_state;   // something to hold the button state for the display pop-up window later.
 
 //
 //------------------------------------  Ethernet UDP messaging section --------------------------
