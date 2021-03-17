@@ -5,9 +5,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 ## 3/17/2021
 
     1. Display key now toggles spectrum DOT and BAR mode until we do something with the empty popup window.
-    2. New #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only what can be used. ***  NOTE: This is not fully tested yet and some instability has been observed.  ***
-    3. VFOA/B display now fornmatted with dot notation (new format function) and larger font size.
-    4. There are now 4 "panels" of keys layed out as below. This will change as feedback arrives. Some have self updating key cap labels.  At minimum they will turn blue when active/pressed. At least half actually do something now. It is now easy to start binding hardware controls to keys. Remember many settings are per-band so the on/off states wil change accordingly. The rest are per user profile for now (global). 
+    2. New #define SCREEN_WIDTH to reduce the size of several FFT storage arrays to only what can be used. 
+    ***  NOTE: This is not fully tested yet and some instability has been observed.  ***
+    3. VFOA/B display now formatted with dot notation (new format function) and larger font size.
+    4. There are now 4 "panels" of keys laid out as below. This will change as feedback arrives. Some have self updating key cap labels.  At minimum they will turn blue when active/pressed. At least half actually do something now. It is now easy to start binding hardware controls to keys. Remember many settings are per-band so the on/off states will change accordingly. The rest are per user profile for now (global). 
     5. The Fn key is always in the first left position and cycles through the panels. The current panel number is updated in the Fn key cap. The Filter, Mode, AGC, Rate, and Atten keys are all self-updating to show their current setting. Others like XIT, RIT, NB level, NR level will eventually do the same, space permitting. Menu and Band keys raise pop up windows where many choices can be offered.
     
                    Key 1    Key 2    Key 3    Key 4    Key 5    Key 6     Key 7
@@ -17,12 +18,14 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4th Panel      Fn-4     RIT      XIT      A/B      Fine     Display   Split
     
     5. The original touch labels for MODE, FILTER, AGC and TUNE STEP have changed and are now informational only. They are no longer touch enabled though they could be. They are now lined up on the left side. You use keys for all cases or, in the case of the "Rate" setting (formerly Tune Steps), the key or right and left swipe now cycles through 4 steps, 2500Hz 1000Hz, 100Hz, and 10Hz.  
-    6. The "Fine" key puts RATE into 1Hz and 10Hz steps. Oou can swipe left/right to change betwewn them.  It is intended the MF knob can be assigned any rate independent of this setting. I am using a detented knob so steps are (or will) be very easy with no overshoot, normally assigned 1, 2.5 or 5K per detent. The MF kob will have other assignments and will have focus on the settings a key has been touched for allowing 2 ways to change the setting in parallel.  I also slow down the VFO increment tune speed a bit when Fine is ON.
+    6. The "Fine" key puts RATE into 1Hz and 10Hz steps. You can swipe left/right to change between them.  It is intended the MF knob can be assigned any rate independent of this setting. I am using a detented knob so steps are (or will) be very easy with no overshoot, normally assigned 1, 2.5 or 5K per detent. The MF knob will have other assignments and will have focus on the settings a key has been touched for allowing 2 ways to change the setting in parallel.  I also slow down the VFO increment tune speed a bit when Fine is ON.
     7. The A/B key will be changed out to A->B (or A<-B on a 2nd tap).
     8. Keys can have extra functionality once tap-and-hold is implemented later. That will reduce the need to cycle through menus some.
     9. Default sample rate set to 102.4KHz and using 4096IQ FFT size. user_Profile 1 is active, not ethernet.  800 pixels give us a 20Khz span with high detail.
     10. Created a new SDR_8875.h file and moved most all of the header type stuff from the main file into it. Performed some formatting and grouping of like settings, added comments, highlighted user settings of interest.
     11. Added More screen object formatting control.
+    12. Temporarily took over the SPOT key to make it a Ref Level adjust.  Each tap will change the Spectrum Ref Level by +5 and will stay between -130 and -220.  The Main loop timer is visible in the terminal window and you can see the impact of high grass levels.
+
 
 ## 3/15/2021
 
