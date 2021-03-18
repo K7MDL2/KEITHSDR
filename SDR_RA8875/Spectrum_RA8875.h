@@ -224,11 +224,11 @@ void spectrum_update(int16_t s)
      
     int16_t i;
     float avg = 0.0;
-    int16_t pixelnew[SCREEN_WIDTH];           //  Stores current pixel fopr spectrum portion only
-    static int16_t pixelold[SCREEN_WIDTH];    //  Stores copy of current pixel so it can be erased in next update
-    int8_t span_FFT[SCREEN_WIDTH];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
+    int16_t pixelnew[SCREEN_WIDTH+2];           //  Stores current pixel fopr spectrum portion only
+    static int16_t pixelold[SCREEN_WIDTH+2];    //  Stores copy of current pixel so it can be erased in next update
+    int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
     float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
-    int16_t line_buffer[SCREEN_WIDTH];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
+    int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
     
     #ifdef ENET
      extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
@@ -268,7 +268,7 @@ void spectrum_update(int16_t s)
             Serial.print("Zoom Out =");
             Serial.println(binsz,DEC);
         }              
-        else if ( FFT_SIZE > ptr->wf_sp_width)  // When FFT data is > available graph area
+        else if ( FFT_SIZE > ptr->wf_sp_width-2)  // When FFT data is > available graph area
         {
             L_EDGE = (FFT_SIZE - ptr->wf_sp_width)/2;
             pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
@@ -293,12 +293,12 @@ void spectrum_update(int16_t s)
             {
                 Serial.println("FFT Invalid Data INF or NaN");
                 //Serial.println(*(pout+i));                
-                pixelnew[i] = (int16_t) -200;   // fill in the missing value with somting harmless
+                pixelnew[i] = -200;   // fill in the missing value with somting harmless
                 //pixelnew[i] = myFFT.read(i+1);  // hope the next one is better.
             }
             // Now capture Spectrum value for use later
             pixelnew[i] = (int16_t) *(pout+i);
-
+            
             // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
             switch (ptr->spect_wf_style)
             { 
