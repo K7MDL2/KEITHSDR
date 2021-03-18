@@ -4,7 +4,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/18/2021
 
-    1. Now have NTP client running if you have ethernet connected. The UTC time is displaying inside a button in the upper right corner over the S-meter with no border color turned on. This supports easy relocation like all other buttons and can add tap to configure time settings later. User Profile 0 already has ethernet configured, profiles 1 and 2 do not. To change, either flip the bits in the user settings table or just change the user_Profile var in the main program file.
+    1. Now have NTP client running if you have ethernet connected. The UTC time is displaying inside a button in the upper right corner over the S-meter with no border color turned on.  This supports easy relocation like all other buttons and can add tap to configure time settings (like format and Time Zone) later. User Profile 0 already has ethernet configured, profiles 1 and 2 do not. To change, either flip the bits in the user settings table or just change the user_Profile var in the main program file.
+    2. The internal time keeping is now synced with the NTP time source.   The clock updates ever second.  Not seeing any measurable penalty, I am manually controlling the timing of sends and receives.
+    3. Removed the key cap label updates for Mode, Filter and Rate as they have on screen status labels. AGC and some others will retain theirs. Code left in place to restore if desired later.
+
 ## 3/17/2021
 
     1. Display key now toggles spectrum DOT and BAR mode until we do something with the empty popup window.
