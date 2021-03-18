@@ -64,7 +64,7 @@ const int myInput = AUDIO_INPUT_LINEIN;
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
-uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
+uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
 //
 //----------------------------------------------------------------------------------------------------------------------------
 //
