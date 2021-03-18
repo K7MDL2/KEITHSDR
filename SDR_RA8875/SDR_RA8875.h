@@ -159,11 +159,8 @@ Metro meter         = Metro(400);   // used to update the meters
 Metro popup_timer   = Metro(500);   // used to check for popup screen request
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
-//Encoder Position(40,39); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
-//Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
-//Encoder Multi(40,39);
-Encoder Position(40,39); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
-Encoder Multi(4,5);
+Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
+Encoder Multi(40,39);
 Si5351mcu si5351;
-uint8_t     enc_ppr_response = 8;  //60;  // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+uint8_t     enc_ppr_response = 60;  // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
