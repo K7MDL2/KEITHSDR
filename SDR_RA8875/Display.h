@@ -103,8 +103,8 @@ void displayMode(void)
 		mode = bandmem[curr_band].mode_B;
 	sprintf(m_str, "M: %s", Mode[mode]);
 	tft.print(m_str);    // use MODE{band][mode] to retrieve the text}
-	sprintf(m_str, "M:%s", Mode[mode]);
-	strcpy(std_btn[MODE_BTN].label, m_str);
+	//sprintf(m_str, "M:%s", Mode[mode]);
+	//strcpy(std_btn[MODE_BTN].label, m_str);
 	draw_2_state_Button(MODE_BTN, &mode);
 }
 
@@ -122,7 +122,7 @@ void displayFilter(void)
 	tft.setTextColor(RA8875_LIGHT_ORANGE);	
 	sprintf(filt_str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);
 	tft.print(filt_str);
-	sprintf(std_btn[FILTER_BTN].label, "F:%s", filter[bandmem[curr_band].filter].Filter_name);
+	//sprintf(std_btn[FILTER_BTN].label, "F:%s", filter[bandmem[curr_band].filter].Filter_name);
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
 }
 
@@ -140,7 +140,7 @@ void displayRate(void)
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	sprintf(r_str, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);
 	tft.print(r_str);
-	sprintf(std_btn[RATE_BTN].label, "R:%s", tstep[bandmem[curr_band].tune_step].ts_name);
+	//sprintf(std_btn[RATE_BTN].label, "R:%s", tstep[bandmem[curr_band].tune_step].ts_name);
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);
 }
 
@@ -163,24 +163,10 @@ void displayAgc(void)
 
 void displayTime(void)
 {	
-	static char time_str[20];
-	//uint16_t x = 640;
-	//uint16_t y = 6;
-	//uint16_t w = 160;
-	//uint16_t h = 20;
-
-	//tft.fillRect(x, y, w, h, RA8875_BLACK);
-	//tft.setFont(Arial_16);
-	//tft.setCursor(x+1, y+2 );
-	//tft.setTextColor(RA8875_LIGHT_GREY);
-	sprintf(time_str, "UTC:%02d:%02d:%02d", hour(), minute(), second());
-	//sprintf(time_str, "UTC:%02d:%02d:%02d", NTP_hour, NTP_min, NTP_sec);
-	//Serial.print("UTC Time = "); Serial.println(time_str);
-	sprintf(std_btn[UTCTIME_BTN].label, time_str);
+	sprintf(std_btn[UTCTIME_BTN].label, "UTC:%02d:%02d:%02d", hour(), minute(), second());
 	//tft.print(std_btn[UTCTIME_BTN].label);
 	//Serial.println("UTC Time = "); Serial.println(std_btn[UTCTIME_BTN].label);
-	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);
-	
+	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
 void displayMenu(){draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);}

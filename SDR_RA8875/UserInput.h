@@ -574,7 +574,6 @@ void Button_Handler(int16_t x, uint16_t y)
             Serial.print("Set AGC to ");
             Serial.println(bandmem[curr_band].agc_mode);            
             sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
-            Serial.println(std_btn[AGC_BTN].label);
             displayAgc();
             return;
         }
@@ -584,16 +583,18 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + MODE_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {   
-        uint8_t mndx;
+        //uint8_t mndx;
         if (ptr->enabled)
-        {   // TODO: fix this for real
+        {  
             selectMode(1);   // Increment the mode for the Active VFO 
+            /*
         	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
 		        mndx = bandmem[curr_band].mode_A;			
 	        else
 		        mndx = bandmem[curr_band].mode_B;
             strcpy(std_btn[MODE_BTN].label, Mode[mndx]);            
-            //Serial.print("Set Mode to ");            
+            */
+            Serial.print("Set Mode");           
             displayMode();
             return;
         }
