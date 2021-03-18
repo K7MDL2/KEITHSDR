@@ -380,6 +380,19 @@ uint8_t display_state;   // something to hold the button state for the display p
 #ifdef ENET
     #include <NativeEthernet.h>
     #include <NativeEthernetUdp.h>
+    
+    //uint32_t    fstep       = 10;       // sets the tuning increment to 10Hz
+    //uint8_t NTP_hour;  //NTP time 
+    //uint8_t NTP_min;
+    //uint8_t NTP_sec;
+    time_t prevDisplay = 0; // when the digital clock was displayed
+    //const int timeZone = 1;     // Central European Time
+    const int timeZone = 0;     // UTC
+    //const int timeZone = -5;  // Eastern Standard Time (USA)
+    //const int timeZone = -4;  // Eastern Daylight Time (USA)
+    //const int timeZone = -8;  // Pacific Standard Time (USA)
+    //const int timeZone = -7;  // Pacific Daylight Time (USA)
+
     // Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
     // The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
     //byte mac[] = {
@@ -391,6 +404,9 @@ uint8_t display_state;   // something to hold the button state for the display p
     //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
     IPAddress remote_ip(192, 168, 1, 7);  // destination  IP (desktop app or remote display Arduino
     unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
+
+    unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
+    const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
 #endif
 //
 //------------------------------------ End of Ethernet UDP messaging section --------------------------

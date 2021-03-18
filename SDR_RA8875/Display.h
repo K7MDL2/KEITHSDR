@@ -173,7 +173,8 @@ void displayTime(void)
 	//tft.setFont(Arial_16);
 	//tft.setCursor(x+1, y+2 );
 	//tft.setTextColor(RA8875_LIGHT_GREY);
-	sprintf(time_str, "UTC:%02d:%02d:%02d", NTP_hour, NTP_min, NTP_sec);
+	sprintf(time_str, "UTC:%02d:%02d:%02d", hour(), minute(), second());
+	//sprintf(time_str, "UTC:%02d:%02d:%02d", NTP_hour, NTP_min, NTP_sec);
 	//Serial.print("UTC Time = "); Serial.println(time_str);
 	sprintf(std_btn[UTCTIME_BTN].label, time_str);
 	//tft.print(std_btn[UTCTIME_BTN].label);

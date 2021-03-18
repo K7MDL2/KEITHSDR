@@ -26,6 +26,7 @@
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
+#include <TimeLib.h>
 //#include <SVN1AFN_BandpassFilters.h>
 
 // Below are local project files
@@ -141,10 +142,6 @@ uint8_t     curr_band   = BAND4;    // global tracks our current band setting.
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
-//uint32_t    fstep       = 10;       // sets the tuning increment to 10Hz
-uint8_t NTP_hour;  //NTP time 
-uint8_t NTP_min;
-uint8_t NTP_sec;
 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];

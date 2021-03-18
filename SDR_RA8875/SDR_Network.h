@@ -12,6 +12,7 @@
 
 #include <NativeEthernet.h>
 #include <NativeEthernetUdp.h>
+#include <TimeLib.h>
 
 #define BUFFER_SIZE         (4096)
 #define LINE_STR_LENGTH     (20u)
@@ -27,12 +28,11 @@ uint8_t enet_read(void);
 void teensyMAC(uint8_t *mac);
 void enet_start(void);
 
-
 // NTP client time setup
+time_t getNtpTime();
 void sendNTPpacket(const char * address);
-void RX_NTP_time(void);
-unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
-const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
+//void RX_NTP_time(void);
+
 const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
 byte packetBuffer_NTP[NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
 // A UDP instance to let us send and receive packets over UDP
@@ -57,6 +57,7 @@ extern uint8_t NTP_hour;  //NTP time
 extern uint8_t NTP_min;
 extern uint8_t NTP_sec;
 extern void displayTime(void);
+extern const int timeZone;
 
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
@@ -64,38 +65,38 @@ EthernetUDP Udp;
 // Toggle UDP output data
 void toggle_enet_data_out(uint8_t mode)
 {
-      if (mode == 1)
-        enet_data_out = 1;
-      if (mode ==0)
-        enet_data_out = 0;
-      if (mode ==2){
-          if (enet_data_out == 0)
-              enet_data_out = 1;
-          else         
-              enet_data_out = 0; 
-      }
-      if (enet_data_out == 1){          
-          user_settings[user_Profile].enet_output = ON;    
-          Serial.println(">Enabled UDP Data Output");
-      }
-      else {          
-          user_settings[user_Profile].enet_output = OFF;
-          Serial.println(">Disabled UDP Data Output");
-      }
+	if (mode == 1)
+	enet_data_out = 1;
+	if (mode ==0)
+	enet_data_out = 0;
+	if (mode ==2){
+		if (enet_data_out == 0)
+			enet_data_out = 1;
+		else         
+			enet_data_out = 0; 
+	}
+	if (enet_data_out == 1){          
+		user_settings[user_Profile].enet_output = ON;    
+		Serial.println(">Enabled UDP Data Output");
+	}
+	else {          
+		user_settings[user_Profile].enet_output = OFF;
+		Serial.println(">Disabled UDP Data Output");
+	}
 }
 
 void teensyMAC(uint8_t *mac) 
 {
-  static char teensyMac[23];
+  	static char teensyMac[23];
   
-  #if defined (HW_OCOTP_MAC1) && defined(HW_OCOTP_MAC0)
+  	#if defined (HW_OCOTP_MAC1) && defined(HW_OCOTP_MAC0)
     Serial.println("using HW_OCOTP_MAC* - see https://forum.pjrc.com/threads/57595-Serial-amp-MAC-Address-Teensy-4-0");
     for(uint8_t by=0; by<2; by++) mac[by]=(HW_OCOTP_MAC1 >> ((1-by)*8)) & 0xFF;
     for(uint8_t by=0; by<4; by++) mac[by+2]=(HW_OCOTP_MAC0 >> ((3-by)*8)) & 0xFF;
 
     #define MAC_OK
 
-  #else
+  	#else
     
     mac[0] = 0x04;
     mac[1] = 0xE9;
@@ -135,14 +136,14 @@ void teensyMAC(uint8_t *mac)
 
     for(uint8_t by=0; by<3; by++) mac[by+3]=(SN >> ((2-by)*8)) & 0xFF;
 
-  #endif
+  	#endif
 
-  #ifdef MAC_OK
+  	#ifdef MAC_OK
     sprintf(teensyMac, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     Serial.println(teensyMac);
-  #else
+  	#else
     Serial.println("ERROR: could not get MAC");
-  #endif
+  	#endif
 }
 
 uint8_t enet_read(void)
@@ -179,16 +180,16 @@ uint8_t enet_read(void)
 
 uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
 {   
-   if (enet_ready && user_settings[user_Profile].enet_enabled && user_settings[user_Profile].enet_output)  // skip if no enet connection
-   {
+   	if (enet_ready && user_settings[user_Profile].enet_enabled && user_settings[user_Profile].enet_output)  // skip if no enet connection
+   	{
 		//Serial.print("ENET Write: ");
 		//Serial.println((char *) tx_buffer);
 		Udp.beginPacket(remote_ip, remoteport);
 		Udp.write(tx_buffer, count);
 		Udp.endPacket();
 		return 1;
-   }
-   return 0;
+    }
+   	return 0;
 } 
 
 void enet_start(void)
@@ -234,60 +235,31 @@ void enet_start(void)
 		}
 	}
 }
-
-
-void RX_NTP_time(void)
+//
+/*--------------------------------------- NTP code -----------------------------------*/
+//
+time_t getNtpTime()
 {
-    if (Udp_NTP.parsePacket()) 
-    {
-        // We've received a packet, read the data from it
-        Udp_NTP.read(packetBuffer_NTP, NTP_PACKET_SIZE); // read the packet into the buffer
-
-        // the timestamp starts at byte 40 of the received packet and is four bytes,
-        // or two words, long. First, extract the two words:
-
-        unsigned long highWord = word(packetBuffer_NTP[40], packetBuffer_NTP[41]);
-        unsigned long lowWord = word(packetBuffer_NTP[42], packetBuffer_NTP[43]);
-        // combine the four bytes (two words) into a long integer
-        // this is NTP time (seconds since Jan 1 1900):
-        unsigned long secsSince1900 = highWord << 16 | lowWord;
-        //Serial.print("Seconds since Jan 1 1900 = ");
-        //Serial.println(secsSince1900);
-
-        // now convert NTP time into everyday time:
-        //Serial.print("Unix time = ");
-        // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-        const unsigned long seventyYears = 2208988800UL;
-        // subtract seventy years:
-        unsigned long epoch = secsSince1900 - seventyYears;
-        // print Unix time:
-        //Serial.println(epoch);
-        // print the hour, minute and second:
-        //Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
-        NTP_hour = ((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
-        //Serial.print(NTP_hour);
-        //Serial.print(':');
-        if (((epoch % 3600) / 60) < 10) 
-        {
-          // In the first 10 minutes of each hour, we'll want a leading '0'
-          //Serial.print('0');
-        }
-        NTP_min = (epoch  % 3600) / 60;
-        //Serial.print(NTP_min); // print the minute (3600 equals secs per minute)
-        //Serial.print(':');
-        if ((epoch % 60) < 10) 
-        {
-          // In the first 10 seconds of each minute, we'll want a leading '0'
-          //Serial.print('0');
-        }
-        NTP_sec = epoch % 60;
-        //Serial.println(NTP_sec); // print the second
-        displayTime();
+    int size = Udp_NTP.parsePacket();
+    if (size >= NTP_PACKET_SIZE) 
+	{
+		//Serial.println("Receive NTP Response");
+		Udp_NTP.read(packetBuffer_NTP, NTP_PACKET_SIZE);  // read packet into the buffer
+		unsigned long secsSince1900;
+		// convert four bytes starting at location 40 to a long integer
+		secsSince1900 =  (unsigned long)packetBuffer_NTP[40] << 24;
+		secsSince1900 |= (unsigned long)packetBuffer_NTP[41] << 16;
+		secsSince1900 |= (unsigned long)packetBuffer_NTP[42] << 8;
+		secsSince1900 |= (unsigned long)packetBuffer_NTP[43];
+		//Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
+		setTime(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
+		return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
     }
-    Ethernet.maintain();
+  	Serial.println("No NTP Response :-(");
+  	return 0; // return 0 if unable to get the time
 }
 
-  // send an NTP request to the time server at the given address
+// send an NTP request to the time server at the given address
 void sendNTPpacket(const char * address) 
 {
     // set all bytes in the buffer to 0
@@ -303,7 +275,6 @@ void sendNTPpacket(const char * address)
     packetBuffer_NTP[13]  = 0x4E;
     packetBuffer_NTP[14]  = 49;
     packetBuffer_NTP[15]  = 52;
-
     // all NTP fields have been given values, now
     // you can send a packet requesting a timestamp:
     Udp_NTP.beginPacket(address, 123); // NTP requests are to port 123

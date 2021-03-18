@@ -13,6 +13,10 @@
 
 #include "SDR_RA8875.h"
 
+//extern void sendNTPpacket(const char * address);
+//extern const char timeServer[];
+//extern void sendNTPpacket1(const char * address);
+
 void setup() 
 {
     Wire.setClock(400000);  // Increase i2C bus transfer data rate from default of 100KHz 
@@ -156,6 +160,7 @@ void setup()
             Serial.println(">Ethernet System Startup Failed, setting retry timer (10 minutes)");
         }
         Serial.println(">Ethernet System Startup");
+        //setSyncProvider(getNtpTime);
     }
     #endif
 }
@@ -239,17 +244,29 @@ void loop()
         
         if (NTP_updateTx.check() == 1) 
         {
-            sendNTPpacket(timeServer);      // send an NTP packet to a time server
-            NTP_updateRx.interval(1000);    // Start a timer to check RX reply         
+            //while (Udp_NTP.parsePacket() > 0)
+            //{};  // discard any previously received packets
+            sendNTPpacket(timeServer);          // send an NTP packet to a time server
+            NTP_updateRx.interval(100);        // Start a timer to check RX reply  
         }
         if (NTP_updateRx.check() == 1)          // Time to check for a reply
         {
-            RX_NTP_time();                  // Get our reply
-            NTP_updateRx.interval(65000);   // set it long until we need it again later
-            Ethernet.maintain();            // keep our connection fresh
+            if (getNtpTime());                       // Get our reply
+                NTP_updateRx.interval(65000);       // set it long until we need it again later
+            Ethernet.maintain();                // keep our connection fresh
         }
     }
     #endif
+    
+    if (timeStatus() != timeNotSet) 
+    {
+        if (now() != prevDisplay) 
+        { 
+            //update the display only if time has changed
+            prevDisplay = now();
+            displayTime();
+        }
+    }
 }
 
 //
