@@ -63,7 +63,7 @@ const int myInput = AUDIO_INPUT_LINEIN;
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
-uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
 //
 //----------------------------------------------------------------------------------------------------------------------------
 //
@@ -75,7 +75,7 @@ uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
 int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
-int16_t         waterfall_speed     = 140;          // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t         waterfall_speed     = 200;          // window update rate in ms.  25 is fast enough to see dit and dahs well
 Metro           spectrum            = Metro(waterfall_speed);
 int16_t         FFT_Source          = 0;            // used to switch teh FFT input source around
 //
@@ -142,6 +142,9 @@ uint32_t    VFOA        = 0;        // 0 value should never be used more than 1s
 uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 //uint32_t    fstep       = 10;       // sets the tuning increment to 10Hz
+uint8_t NTP_hour;  //NTP time 
+uint8_t NTP_min;
+uint8_t NTP_sec;
 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];
@@ -157,10 +160,12 @@ Metro touch         = Metro(100);   // used to check for touch events
 Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
 Metro meter         = Metro(400);   // used to update the meters
 Metro popup_timer   = Metro(500);   // used to check for popup screen request
+Metro NTP_updateTx  = Metro(10000);
+Metro NTP_updateRx  = Metro(65000);
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
 Encoder Multi(40,39);
-Si5351mcu si5351;
 uint8_t     enc_ppr_response = 60;  // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
+Si5351mcu si5351;

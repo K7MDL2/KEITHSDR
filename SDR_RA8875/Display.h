@@ -14,16 +14,16 @@ extern uint8_t user_Profile;
 
 // function declaration
 void draw_2_state_Button(uint8_t button, uint8_t *function_ptr);
-void displayAGC1();
 void refreshScreen(void);
 const char * formatVFO(uint32_t vfo);
+void displayTime(void);
 
 int displayColor = RA8875_LIGHT_GREY;
 int textcolor = tft.Color565(128, 128, 128);
 
 //////////////////////////////////////////////////////////////
 
-void displayFreq()
+void displayFreq(void)
 { 
 	struct Frequency_Display *ptr = disp_Freq;     // pointer to button object passed by calling function
 	// bx					// X - upper left corner anchor point
@@ -84,7 +84,7 @@ void displayFreq()
 	}
 }
 
-void displayMode()
+void displayMode(void)
 {
 	char m_str[10];
 	uint8_t mode;
@@ -94,7 +94,7 @@ void displayMode()
 	uint16_t h = 20;
 
 	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_18);
+	tft.setFont(Arial_16);
 	tft.setCursor(x+1, y+2 );
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
@@ -108,7 +108,7 @@ void displayMode()
 	draw_2_state_Button(MODE_BTN, &mode);
 }
 
-void displayFilter()
+void displayFilter(void)
 {
 	char filt_str[10];
 	uint16_t x = 10;
@@ -117,7 +117,7 @@ void displayFilter()
 	uint16_t h = 20;
 
 	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_18);
+	tft.setFont(Arial_16);
 	tft.setCursor(x+1, y+2 );
 	tft.setTextColor(RA8875_LIGHT_ORANGE);	
 	sprintf(filt_str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);
@@ -126,7 +126,7 @@ void displayFilter()
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
 }
 
-void displayRate()
+void displayRate(void)
 {
 	char r_str[15];
 	uint16_t x = 10;
@@ -135,7 +135,7 @@ void displayRate()
 	uint16_t h = 20;
 
 	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_18);
+	tft.setFont(Arial_16);
 	tft.setCursor(x+1, y+2);
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	sprintf(r_str, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);
@@ -144,7 +144,7 @@ void displayRate()
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);
 }
 
-void displayAgc()
+void displayAgc(void)
 {
 	uint16_t x = 10;
 	uint16_t y = 96;
@@ -152,13 +152,34 @@ void displayAgc()
 	uint16_t h = 20;
 
 	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_18);
+	tft.setFont(Arial_16);
 	tft.setCursor(x+1, y+2 );
 	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
 	tft.print(std_btn[AGC_BTN].label);
-	Serial.println("AGC label="); Serial.println(std_btn[AGC_BTN].label);
+	Serial.print("AGC ="); Serial.println(std_btn[AGC_BTN].label);
 	draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
+}
+
+void displayTime(void)
+{	
+	static char time_str[20];
+	//uint16_t x = 640;
+	//uint16_t y = 6;
+	//uint16_t w = 160;
+	//uint16_t h = 20;
+
+	//tft.fillRect(x, y, w, h, RA8875_BLACK);
+	//tft.setFont(Arial_16);
+	//tft.setCursor(x+1, y+2 );
+	//tft.setTextColor(RA8875_LIGHT_GREY);
+	sprintf(time_str, "UTC:%02d:%02d:%02d", NTP_hour, NTP_min, NTP_sec);
+	//Serial.print("UTC Time = "); Serial.println(time_str);
+	sprintf(std_btn[UTCTIME_BTN].label, time_str);
+	//tft.print(std_btn[UTCTIME_BTN].label);
+	//Serial.println("UTC Time = "); Serial.println(std_btn[UTCTIME_BTN].label);
+	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);
+	
 }
 
 void displayMenu(){draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);}
@@ -231,6 +252,7 @@ void displayRefresh(void)
 	// Bottom Panel Anchor button
 	displayFn();   // make fn=1 to call displayFn() to prevent calling itself
     displayFreq();    // display frequency
+	displayTime();
 	// Panel 1 buttons
 	displayMode();
 	displayFilter();

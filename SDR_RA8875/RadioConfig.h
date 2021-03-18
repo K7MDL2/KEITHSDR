@@ -305,6 +305,7 @@ struct Standard_Button {
 //Panel Spare
 #define ENET_BTN    25      // turn on and off the enet data output (does not enable/disable the enet hardware) 
 #define XVTR_BTN    26      // not implemented yet
+#define UTCTIME_BTN 27      // NTP UTC time when ethernet (and internet) is available 
 
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
@@ -339,7 +340,8 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
     //Panel Spare
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"}
+    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
+    { ON, OFF, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  6, 8, "UTC:\0"}
     
 };
 

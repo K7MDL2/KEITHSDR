@@ -233,9 +233,21 @@ void loop()
         if (!enet_ready)
             if ((millis() - enet_start_fail_time) >  600000)  // check every 10 minutes (600K ms) and attempt a restart.
                 enet_start();
-        enet_read();
+        enet_read();        // Check for Control head commands
         if (rx_count!=0)
           {}//get_remote_cmd();       // scan buffer for command strings
+        
+        if (NTP_updateTx.check() == 1) 
+        {
+            sendNTPpacket(timeServer);      // send an NTP packet to a time server
+            NTP_updateRx.interval(1000);    // Start a timer to check RX reply         
+        }
+        if (NTP_updateRx.check() == 1)          // Time to check for a reply
+        {
+            RX_NTP_time();                  // Get our reply
+            NTP_updateRx.interval(65000);   // set it long until we need it again later
+            Ethernet.maintain();            // keep our connection fresh
+        }
     }
     #endif
 }

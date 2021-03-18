@@ -27,6 +27,18 @@ uint8_t enet_read(void);
 void teensyMAC(uint8_t *mac);
 void enet_start(void);
 
+
+// NTP client time setup
+void sendNTPpacket(const char * address);
+void RX_NTP_time(void);
+unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
+const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
+const int NTP_PACKET_SIZE = 48; // NTP time stamp is in the first 48 bytes of the message
+byte packetBuffer_NTP[NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
+// A UDP instance to let us send and receive packets over UDP
+EthernetUDP Udp_NTP;
+
+// SDR network setup
 // buffers for receiving and sending data
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE];  // buffer to hold incoming packet,
 char ReplyBuffer[] = "Random Reply";        // a string to send back
@@ -39,8 +51,12 @@ uint8_t tx_buffer[BUFFER_SIZE];
 uint8_t rx_count = 0;
 uint8_t tx_count = 0;
 uint8_t enet_data_out = 0;
-static uint8_t sdata[BUFFER_SIZE], *pSdata1=sdata, *pSdata2=sdata;
+uint8_t sdata[BUFFER_SIZE], *pSdata1=sdata, *pSdata2=sdata;
 extern uint8_t user_Profile;
+extern uint8_t NTP_hour;  //NTP time 
+extern uint8_t NTP_min;
+extern uint8_t NTP_sec;
+extern void displayTime(void);
 
 // An EthernetUDP instance to let us send and receive packets over UDP
 EthernetUDP Udp;
@@ -143,22 +159,22 @@ uint8_t enet_read(void)
         rx_buffer[0] = _NULL;
         if (count > 0)
         {
-			Udp.read(rx_buffer, BUFFER_SIZE);
-			rx_buffer[count] = '\0';
-			rx_count = count;          
-			Serial.println(rx_count);
-			Serial.println((char *) rx_buffer);
-			
-			// initially p1 = p2.  parser will move p1 up to p2 and when they are equal, buffer is empty, parser will reset p1 and p2 back to start of sData         
-			memcpy(pSdata2, rx_buffer, rx_count+1);   // append the new buffer data to current end marked by pointer 2        
-			pSdata2 += rx_count;                      // Update the end pointer position. The function processing chars will update the p1 and p2 pointer             
-			rx_count = pSdata2 - pSdata1;             // update count for total unread chars. 
-			//Serial.println(rx_count);  
+            Udp.read(rx_buffer, BUFFER_SIZE);
+            rx_buffer[count] = '\0';
+            rx_count = count;          
+            Serial.println(rx_count);
+            Serial.println((char *) rx_buffer);
+            
+            // initially p1 = p2.  parser will move p1 up to p2 and when they are equal, buffer is empty, parser will reset p1 and p2 back to start of sData         
+            memcpy(pSdata2, rx_buffer, rx_count+1);   // append the new buffer data to current end marked by pointer 2        
+            pSdata2 += rx_count;                      // Update the end pointer position. The function processing chars will update the p1 and p2 pointer             
+            rx_count = pSdata2 - pSdata1;             // update count for total unread chars. 
+            //Serial.println(rx_count);  
         }
         rx_buffer[0] = '\0';
         return rx_count;
-	}
-	return 0;
+    }
+    return 0;
 }
 
 uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
@@ -213,10 +229,88 @@ void enet_start(void)
 			delay(100);
 			Serial.println("Ethernet cable connected.");
 			// start UDP
-			Udp.begin(localPort);
+			Udp.begin(localPort); // Startup our SDR comms
+      		Udp_NTP.begin(localPort_NTP);  // startup NTP Client comms
 		}
 	}
 }
+
+
+void RX_NTP_time(void)
+{
+    if (Udp_NTP.parsePacket()) 
+    {
+        // We've received a packet, read the data from it
+        Udp_NTP.read(packetBuffer_NTP, NTP_PACKET_SIZE); // read the packet into the buffer
+
+        // the timestamp starts at byte 40 of the received packet and is four bytes,
+        // or two words, long. First, extract the two words:
+
+        unsigned long highWord = word(packetBuffer_NTP[40], packetBuffer_NTP[41]);
+        unsigned long lowWord = word(packetBuffer_NTP[42], packetBuffer_NTP[43]);
+        // combine the four bytes (two words) into a long integer
+        // this is NTP time (seconds since Jan 1 1900):
+        unsigned long secsSince1900 = highWord << 16 | lowWord;
+        //Serial.print("Seconds since Jan 1 1900 = ");
+        //Serial.println(secsSince1900);
+
+        // now convert NTP time into everyday time:
+        //Serial.print("Unix time = ");
+        // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
+        const unsigned long seventyYears = 2208988800UL;
+        // subtract seventy years:
+        unsigned long epoch = secsSince1900 - seventyYears;
+        // print Unix time:
+        //Serial.println(epoch);
+        // print the hour, minute and second:
+        //Serial.print("The UTC time is ");       // UTC is the time at Greenwich Meridian (GMT)
+        NTP_hour = ((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
+        //Serial.print(NTP_hour);
+        //Serial.print(':');
+        if (((epoch % 3600) / 60) < 10) 
+        {
+          // In the first 10 minutes of each hour, we'll want a leading '0'
+          //Serial.print('0');
+        }
+        NTP_min = (epoch  % 3600) / 60;
+        //Serial.print(NTP_min); // print the minute (3600 equals secs per minute)
+        //Serial.print(':');
+        if ((epoch % 60) < 10) 
+        {
+          // In the first 10 seconds of each minute, we'll want a leading '0'
+          //Serial.print('0');
+        }
+        NTP_sec = epoch % 60;
+        //Serial.println(NTP_sec); // print the second
+        displayTime();
+    }
+    Ethernet.maintain();
+}
+
+  // send an NTP request to the time server at the given address
+void sendNTPpacket(const char * address) 
+{
+    // set all bytes in the buffer to 0
+    memset(packetBuffer_NTP, 0, NTP_PACKET_SIZE);
+    // Initialize values needed to form NTP request
+    // (see URL above for details on the packets)
+    packetBuffer_NTP[0] = 0b11100011;   // LI, Version, Mode
+    packetBuffer_NTP[1] = 0;     // Stratum, or type of clock
+    packetBuffer_NTP[2] = 6;     // Polling Interval
+    packetBuffer_NTP[3] = 0xEC;  // Peer Clock Precision
+    // 8 bytes of zero for Root Delay & Root Dispersion
+    packetBuffer_NTP[12]  = 49;
+    packetBuffer_NTP[13]  = 0x4E;
+    packetBuffer_NTP[14]  = 49;
+    packetBuffer_NTP[15]  = 52;
+
+    // all NTP fields have been given values, now
+    // you can send a packet requesting a timestamp:
+    Udp_NTP.beginPacket(address, 123); // NTP requests are to port 123
+    Udp_NTP.write(packetBuffer_NTP, NTP_PACKET_SIZE);
+    Udp_NTP.endPacket();
+}
+
 /*  Mod required for NativeEthernet.cpp file in Ethernet.begin class.  
  *   At end of the function is a statement that hangs if no ethernet cable is connected.  
  *   
