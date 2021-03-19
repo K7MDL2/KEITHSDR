@@ -232,7 +232,7 @@ void loop()
     //check to see whether to print the CPU and Memory Usage
     if (enable_printCPUandMemory) printCPUandMemory(millis(), 3000); //print every 3000 msec
 
-    #ifdef ENET     // remove this code if no ethernet usage intended
+    #ifdef ENET     // Won't compile this code if no ethernet usage intended
     if (user_settings[user_Profile].enet_enabled)  // only process enet if enabled.
     {
         if (!enet_ready)
@@ -255,18 +255,19 @@ void loop()
                 NTP_updateRx.interval(65000);       // set it long until we need it again later
             Ethernet.maintain();                // keep our connection fresh
         }
-    }
-    #endif
-    
-    if (timeStatus() != timeNotSet) 
+    }   
+
+    // Check if the time has updated (1 second) and update the clock display
+    if (timeStatus() != timeNotSet && enet_ready)   // Only display if ethernet is active and have a valid time source
     {
         if (now() != prevDisplay) 
         { 
             //update the display only if time has changed
-            prevDisplay = now();
+            prevDisplay = now();            
             displayTime();
         }
     }
+    #endif   // End of Ethenet related functions here
 }
 
 //

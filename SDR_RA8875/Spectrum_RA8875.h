@@ -229,7 +229,8 @@ void spectrum_update(int16_t s)
     int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
     float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
     int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
-    
+    int16_t L_EDGE = 0; 
+
     #ifdef ENET
      extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
      extern uint8_t tx_buffer[];
@@ -251,7 +252,6 @@ void spectrum_update(int16_t s)
         #endif
 
         // Calculate center then if FFT is larger than graph area width, trim ends evently
-        int16_t L_EDGE = 0; 
         if (ptr->spect_span == 50)   //span width in KHz.
         {      
             // pack all bins into the available display width.  
@@ -274,8 +274,8 @@ void spectrum_update(int16_t s)
             pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
         }
         
-       // else   // When FFT data is < available graph area
-       // {      // If our display area is less then our data width, fill in the outside areas with low values.
+        // else   // When FFT data is < available graph area
+        // {      // If our display area is less then our data width, fill in the outside areas with low values.
             //L_EDGE = (ptr->wf_sp_width - FFT_SIZE - )/2;
             //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
             /*
@@ -285,7 +285,7 @@ void spectrum_update(int16_t s)
                  tempfft[i] = -500;
             //L_EDGE = FFT_center - GRAPH_center;
             */
-       // }
+        // }
 
         for (i = 0; i < ptr->wf_sp_width; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
         { 
@@ -537,6 +537,13 @@ void spectrum_update(int16_t s)
                 //tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);  
             }
         }
+    }
+    else
+    {
+        // Clear stale data
+       // tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width-2, ptr->sp_height-2, myBLACK);
+    }
+        
         tft.setActiveWindow();  // restore access to whole screen
         //
         //------------------------ Code above is writing only in the active spectrum window ----------------------
@@ -633,9 +640,7 @@ void spectrum_update(int16_t s)
         tft.setFont(Arial_10);
         tft.setCursor(ptr->r_graph_edge-40, ptr->sp_top_line+8);
         tft.print("H:   ");  // actual value is updated elsewhere
-        tft.setCursor(ptr->r_graph_edge-28, ptr->sp_top_line+8);
-        tft.print(ptr->sp_height);
-    }  
+        tft.setCursor(ptr->r_graph_edge-28, ptr->sp_top_line+8); 
 }
 //
 //____________________________________________________Color Mapping _____________________________________

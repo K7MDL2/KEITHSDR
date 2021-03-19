@@ -106,29 +106,29 @@ void teensyMAC(uint8_t *mac)
     __disable_irq();
     
     #if defined(HAS_KINETIS_FLASH_FTFA) || defined(HAS_KINETIS_FLASH_FTFL)
-      Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
-      
-      FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
-      FTFL_FCCOB0 = 0x41;
-      FTFL_FCCOB1 = 15;
-      FTFL_FSTAT = FTFL_FSTAT_CCIF;
-      while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
-      SN = *(uint32_t *)&FTFL_FCCOB7;
+	Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
+	
+	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
+	FTFL_FCCOB0 = 0x41;
+	FTFL_FCCOB1 = 15;
+	FTFL_FSTAT = FTFL_FSTAT_CCIF;
+	while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
+	SN = *(uint32_t *)&FTFL_FCCOB7;
 
-      #define MAC_OK
+	#define MAC_OK
       
     #elif defined(HAS_KINETIS_FLASH_FTFE)
-      Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
-      
-      kinetis_hsrun_disable();
-      FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
-      *(uint32_t *)&FTFL_FCCOB3 = 0x41070000;
-      FTFL_FSTAT = FTFL_FSTAT_CCIF;
-      while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
-      SN = *(uint32_t *)&FTFL_FCCOBB;
-      kinetis_hsrun_enable();
+	Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
+	
+	kinetis_hsrun_disable();
+	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
+	*(uint32_t *)&FTFL_FCCOB3 = 0x41070000;
+	FTFL_FSTAT = FTFL_FSTAT_CCIF;
+	while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
+	SN = *(uint32_t *)&FTFL_FCCOBB;
+	kinetis_hsrun_enable();
 
-      #define MAC_OK
+	#define MAC_OK
       
     #endif
     
@@ -180,6 +180,7 @@ uint8_t enet_read(void)
 
 uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
 {   
+	#ifdef REMOTE_OPS
    	if (enet_ready && user_settings[user_Profile].enet_enabled && user_settings[user_Profile].enet_output)  // skip if no enet connection
    	{
 		//Serial.print("ENET Write: ");
@@ -189,6 +190,7 @@ uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
 		Udp.endPacket();
 		return 1;
     }
+	#endif
    	return 0;
 } 
 
@@ -200,17 +202,20 @@ void enet_start(void)
 	uint8_t mac[6];
 	teensyMAC(mac);   
 	delay(1000);
-	// start the Ethernet  
+	// start the Ethernet 
+
+	#ifndef USE_DHCP 
 	// If using DHCP (leave off the ip arg) works but more difficult to configure the desktop and remote touchscreen clients
-	Ethernet.begin(mac, ip);
+		Ethernet.begin(mac, ip);  // Static IP optinon
+	#else 
+		Ethernet.begin(mac);   // DHCP option
+	#endif
+
 	// Check for Ethernet hardware present
 	enet_ready = 0;
 	if (Ethernet.hardwareStatus() == EthernetNoHardware) 
 	{
-		Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
-		//while (true) {
-		//  delay(1); // do nothing, no point running without Ethernet hardware
-		//}
+		Serial.println("Ethernet shield was not found.  Sorry, can't run the network without hardware. :(");
 		enet_ready = 0;  // shut down usage of enet
 	}
 	else

@@ -239,7 +239,8 @@ void displayRefresh(void)
 	// Bottom Panel Anchor button
 	displayFn();   // make fn=1 to call displayFn() to prevent calling itself
     displayFreq();    // display frequency
-	displayTime();
+	if (enet_ready)
+		displayTime();
 	// Panel 1 buttons
 	displayMode();
 	displayFilter();

@@ -120,7 +120,7 @@ struct Band_Memory {
     { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A, LSB, LSB, BW3_2, BAND1,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL2,ATTEN_OFF,PREAMP_OFF, 0,  1},
     { "60M", 5000000, 5000000, 5000000, 5000000,VFO_B, USB, LSB, BW3_2, BAND2,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL3,ATTEN_OFF,PREAMP_OFF, 0,  2},
     { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL4,ATTEN_OFF,PREAMP_OFF, 0,  3},
-    { "30M",10000000,10200000,10136000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0,  4},
+    { "30M",10000000,10200000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL5,ATTEN_OFF,PREAMP_OFF, 0,  4},
     { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL6,ATTEN_OFF,PREAMP_OFF, 0,  5},
     { "17M",18000000,18150000,18135000,18100000,VFO_A, USB, USB, BW3_2, BAND6,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL7,ATTEN_OFF,PREAMP_OFF, 0,  6},
     { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, PRESEL8,ATTEN_OFF,PREAMP_OFF, 0,  7},
@@ -398,13 +398,24 @@ uint8_t display_state;   // something to hold the button state for the display p
     //byte mac[] = {
     //  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
     //};
-    IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+    
+    // Choose to use DHCP or a static IP address for the SDR
+    #define USE_DHCP        
+    #ifndef USE_DHCP
+    // The IP Address is ignored if using DHCP
+        IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+    #endif
     unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
 
+    //#define REMOTE_OPS  - conditionally defined in main header file for now
+    #ifdef REMOTE_OPS
+    // This is for later remote operaion usage
     //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    IPAddress remote_ip(192, 168, 1, 7);  // destination  IP (desktop app or remote display Arduino
+    IPAddress remote_ip(192, 168, 1, 7);  // destination IP (desktop app or remote display Arduino)
     unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
+    #endif 
 
+    // This is for the NTP service to update the clock when connected to the internet
     unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
     const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
 #endif

@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/19/2021
+
+    1. Updated VFO.h and other files to use "#define OCXO_10MHZ" to switch between si5351 libraries and configure the PLL board for a Version C si5351C PLL board with external 10Mhz reference clock.   As a matter of convenience, I am also switching to "user_Profile=0" which has ethernet enabled. Otherwise "user_Profile=1" is used and ethernet is disabled in that profile setting.
+    2. If ethernet is not enabled the on-screen time clock is not displayed since there is (currently) no means to set or save it. A battery for the onboard RTC should fix that problem. On the TODO list.
+    3. If the Rx signal is below the bottom window level, the data is not plotted saving CPU time. That is a problem because the opportunity to erase teh previous sweep plotted mark is removed leaving a stagnant display until new stronger signals are received. Need to process the old pixel. On the TODO list.
+    4. Modified the ethernet startup in teensyMAC() to use DHCP rather than static IP. The IP address setting is ignored.
+    5. #ifdef REMOTE_OPS used to bypass the ethernet write function and remote IPO address in RadiConfig.h. This is only needed when we have the ability to remote monitor in the future.
+
 ## 3/18/2021
 
     1. Now have NTP client running if you have ethernet connected. The UTC time is displaying inside a button in the upper right corner over the S-meter with no border color turned on.  This supports easy relocation like all other buttons and can add tap to configure time settings (like format and Time Zone) later. User Profile 0 already has ethernet configured, profiles 1 and 2 do not. To change, either flip the bits in the user settings table or just change the user_Profile var in the main program file.
@@ -31,7 +39,6 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     10. Created a new SDR_8875.h file and moved most all of the header type stuff from the main file into it. Performed some formatting and grouping of like settings, added comments, highlighted user settings of interest.
     11. Added More screen object formatting control.
     12. Temporarily took over the SPOT key to make it a Ref Level adjust.  Each tap will change the Spectrum Ref Level by +5 and will stay between -130 and -220.  The Main loop timer is visible in the terminal window and you can see the impact of high grass levels.
-
 
 ## 3/15/2021
 

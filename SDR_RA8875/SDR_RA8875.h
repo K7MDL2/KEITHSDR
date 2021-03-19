@@ -19,7 +19,16 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-#include <si5351mcu.h>          // Github https://github.com/pavelmc/Si5351mcu
+//#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+#ifdef OCXO_10MHZ
+ #define USE_ENET_PROFILE       // This is inserted here to conventiaenly turn on ethernet profile for me using 1 setting.
+ #define REMOTE_OPS             // Turn on Remote_Ops ethernet write feature for remote control head dev work.
+ #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
+ Si5351 si5351;
+#else
+ #include <si5351mcu.h>          // Github https://github.com/pavelmc/Si5351mcu
+ Si5351mcu si5351;
+#endif
 #define  ENCODER_OPTIMIZE_INTERRUPTS
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
@@ -64,7 +73,11 @@ const int myInput = AUDIO_INPUT_LINEIN;
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
-uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+#ifdef USE_ENET_PROFILE
+    uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
+#else
+    uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+#endif
 //
 //----------------------------------------------------------------------------------------------------------------------------
 //
@@ -76,7 +89,7 @@ uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
 int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
-int16_t         waterfall_speed     = 200;          // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t         waterfall_speed     = 140;          // window update rate in ms.  25 is fast enough to see dit and dahs well
 Metro           spectrum            = Metro(waterfall_speed);
 int16_t         FFT_Source          = 0;            // used to switch teh FFT input source around
 //
@@ -165,4 +178,4 @@ Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder
 Encoder Multi(40,39);
 uint8_t     enc_ppr_response = 60;  // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
-Si5351mcu si5351;
+
