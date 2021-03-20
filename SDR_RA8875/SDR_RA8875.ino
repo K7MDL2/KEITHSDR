@@ -143,7 +143,7 @@ void setup()
             // Generator never modifies the globals so never affects the layout itself.
      // Print out our starting frequency for testing
     Serial.print("\nInitial Dial Frequency is "); 
-    Serial.print(VFOA); 
+    Serial.print(formatVFO(VFOA)); 
     Serial.println("MHz");
 
     //finish the setup by printing the help menu to the serial connections
