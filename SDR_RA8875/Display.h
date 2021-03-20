@@ -160,7 +160,7 @@ void displayRate(void)
 	char r_str[15];
 	uint16_t x = 190;
 	uint16_t y = 110;
-	uint16_t w = 80;
+	uint16_t w = 90;
 	uint16_t h = 20;
 
 	tft.fillRect(x, y, w, h, RA8875_BLACK);
