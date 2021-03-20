@@ -12,6 +12,8 @@
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
 
+#define myDARKGREY  31727u
+
 // Soem defines for ease of use 
 #define CW          0
 #define LSB         1     
@@ -86,6 +88,21 @@
 #define BW4_0       8
 #define VFO_A       1
 #define VFO_B       0
+#define NBOFF       0
+#define NB1         1
+#define NB2         2
+#define NB3         3
+#define NB4         4
+#define NROFF       0
+#define NR1         1
+#define NR2         2
+#define NR3         3
+#define NR4         4
+#define NTCHOFF     0
+#define NTCH1       1
+#define NTCH2       2
+
+
 
 // Our Database of settings. This is the "factory default".  A user copy wil be stored in EEPROM with user changes
 #define BANDS   11
@@ -243,13 +260,14 @@ struct User_Settings {
     uint8_t     notch;              // Notch mode.  0 is off.  1+ is mode
     uint8_t     xmit;               // xmit state.  0 is off.  1+ is mode
     uint8_t     fine;               // Fine tuine state.  0 is off.  1+ is mode
+    uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben  nren  spot pitch notch  xmit fine
-    {"User Config #1", 10, 0,  0,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    1,    0,    0,    0,    0,  600,    0,    0,    0},
-    {"User Config #2", 10, 0,  0,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0,    0,    0,    0,  600,    0,    0,    0},
-    {"User Config #3",  6, 0,  0,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,    0,    0,    0,    0,    0,  600,    0,    0,    0}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600,   NTCH1, OFF, OFF,   0},
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
 };
 
 struct Standard_Button {
@@ -312,32 +330,32 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
     {  2,  ON,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
     { ON,  ON, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Mode\0"},
-    { ON,  ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Filter\0"},
-    { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 21, 20, "Atten\0"},
-    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "Pre\0"},
-    { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
+    { ON,  ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Filter\0"},
+    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 27, 20, "ATT\0"},
+    { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 24, 20, "PRE\0"},
+    { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
     { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 22, 20, "Band\0"},
     //Panel 2
-    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 34, 20, "NB\0"},
-    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 34, 20, "NR\0"},
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 16, 20, "Notch\0"},
+    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NB\0"},
+    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
+    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 12, 20, "NTCH\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
     //Panel 3
-    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Menu\0"},
-    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "ANT\0"},
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "ATU\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "XMIT\0"},
+    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Menu\0"},
+    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "ANT  \0"},
+    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 25, 20, "ATU\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "XMIT\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band -\0"},
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
     //Panel 4
     {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
     {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "A/B\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Fine\0"},
+    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
+    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
     //Panel Spare
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
@@ -353,22 +371,20 @@ struct Frequency_Display {
 	uint16_t br;        // radius of corners
     uint16_t bs;        // spacing between the VFO numerals
     uint16_t bm;        // marker spacing between VFO letter and digits  (A: 123.456.789)
-    uint16_t ol_clr;    // outline color
+    uint16_t ol_clr;    // VFO box outline color
+    uint16_t box_clr;   // Color of outline around entire VFO region
     uint16_t bg_clr;    // background color
-    uint16_t vfoActive_clr;  // color of VFOA numbers
-    const ILI9341_t3_font_t vfoActive_LabelFont;    // size of Active VFO Label text
-    const ILI9341_t3_font_t vfoActive_Font;         // size of Active VFO numbers
-    uint16_t vfoStandby_clr;                        // color of VFOB numbers
-    const ILI9341_t3_font_t vfoStandby_LabelFont;   // size of Standby VFO label text
-    const ILI9341_t3_font_t vfoStandby_Font;        // size of VFOB numbers
+    uint16_t txt_clr;   // color of Active VFO numbers
+    const ILI9341_t3_font_t txt_Font;    // size of Active VFO Label text
     uint16_t TX_clr;    // Color when active VFO is in transmit
 	uint16_t padx;      // horizonal padding from left side of box
 	uint16_t pady;      // vertical padding form top of box
-    //uint32_t d_vfoa = ptr->d_vfoa;     // Text to display for the button label  Use spaces to center
-    //uint32_t d_vfob = ptr->d_vfob;     // Text to display for the button label  Use spaces to center    
-} disp_Freq[1] = {
-    // x   y    w    h    r   spce  mkspc  outline_clr          bg_clr      vfoActive_clr     vfoAct_LblFnt  vActFnt     vfoStby_clr  vStbyLblFnt   vStbyFnt  TX_clr     padx  pady
-    {260,  6, 330,  100,  0,  70,     44, RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY,    Arial_24,  Arial_40, RA8875_MAGENTA,   Arial_20,  Arial_24, RA8875_RED,  0,   20}
+} disp_Freq[4] = {
+    // x   y    w    h    r   bs  bm   outline_clr     box_clr              bg_clr      txt_clr              txt_Fnt   TX_clr     padx  pady
+    {204,  1, 380,  50,   3,  0,  0, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY, Arial_40, RA8875_RED,   4,   4}, // VFO Active Digits
+    {588,  6,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  RA8875_GREEN,      Arial_24, RA8875_RED,   9,   7}, // VFO Active Label
+    {310, 53, 274,  40,   3,  0,  0, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_28, RA8875_RED,   6,   6}, // VFO Stby Digits
+    {588, 53,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_24, RA8875_RED,   9,   7}  // VFO Stby Label
 };
 
 uint8_t display_state;   // something to hold the button state for the display pop-up window later.

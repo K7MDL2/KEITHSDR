@@ -366,7 +366,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + MUTE_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled || ptr->show)
+        if (ptr->show)
         {    
             if (user_settings[user_Profile].spkr_en)
             {
@@ -390,7 +390,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + MENU_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {   
-        if (ptr->enabled)
+        if (ptr->show)
         {
             popup = 1;
             pop_win(1);
@@ -407,11 +407,14 @@ void Button_Handler(int16_t x, uint16_t y)
 
     // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
     ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
-    struct Frequency_Display *ptr1 = disp_Freq;   // The frequency display areas itself
-    if (((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) || ((x > ptr1->bx && x < ptr1->bx + ptr1->bw) && ( y > ptr1->by && y < ptr1->by + ptr1->bh)))
+    struct Frequency_Display *ptrAct  = &disp_Freq[0];   // The frequency display areas itself
+    struct Frequency_Display *ptrStby = &disp_Freq[2];   // The frequency display areas itself
+    if ((((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) && ptr->show) ||
+        ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh)) ||
+        ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh)))
     {
-        if (ptr->enabled || ((x > ptr1->bx && x < ptr1->bx + ptr1->bw) && ( y > ptr1->by && y < ptr1->by + ptr1->bh))) 
-        {       
+        //if (user_settings[user_Profile].VFO_last) // || ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))) 
+        //{       
             if (bandmem[curr_band].VFO_AB_Active == VFO_A)
             {
                 bandmem[curr_band].VFO_AB_Active = VFO_B;
@@ -428,14 +431,14 @@ void Button_Handler(int16_t x, uint16_t y)
             Serial.print("Set VFO_AB_Active to ");
             Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
             return;
-        }
+        //}
     }
 
     // ATTENUATOR button
     ptr = std_btn + ATTEN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {   
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (bandmem[curr_band].attenuator == ATTEN_ON)
                 bandmem[curr_band].attenuator = ATTEN_OFF;
@@ -452,7 +455,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + PREAMP_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (bandmem[curr_band].preamp == PREAMP_ON)
                 bandmem[curr_band].preamp = PREAMP_OFF;
@@ -469,7 +472,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + RIT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         { 
             if (bandmem[curr_band].RIT_en == ON)
                 bandmem[curr_band].RIT_en = OFF;
@@ -486,7 +489,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + XIT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         { 
             if (bandmem[curr_band].XIT_en == ON)
                 bandmem[curr_band].XIT_en = OFF;
@@ -503,13 +506,14 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + SPLIT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (bandmem[curr_band].split == ON)
                 bandmem[curr_band].split = OFF;
             else if (bandmem[curr_band].split == OFF)
                 bandmem[curr_band].split = ON;
             displaySplit();
+            displayFreq();
             Serial.print("Set Split to ");
             Serial.println(bandmem[curr_band].split);
             return;
@@ -520,7 +524,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + XVTR_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (bandmem[curr_band].xvtr_en== ON)
                 bandmem[curr_band].xvtr_en = OFF;
@@ -537,7 +541,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + ATU_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (bandmem[curr_band].ATU== ON)
                 bandmem[curr_band].ATU = OFF;
@@ -554,7 +558,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + FILTER_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {   
             selectBandwidth(bandmem[curr_band].filter - 1); // Change Bandwidth  - cycle down then back to the top
             displayFilter();
@@ -568,7 +572,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + AGC_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {   
             selectAgc(bandmem[curr_band].agc_mode + 1);            
             Serial.print("Set AGC to ");
@@ -584,7 +588,7 @@ void Button_Handler(int16_t x, uint16_t y)
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {   
         //uint8_t mndx;
-        if (ptr->enabled)
+        if (ptr->show)
         {  
             selectMode(1);   // Increment the mode for the Active VFO 
             /*
@@ -604,7 +608,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + RATE_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {   // TODO: fix this for real
             selectStep(0);   //bandmem[curr_band].ant_sw = ON;            
             Serial.print("Set Rate to ");
@@ -621,7 +625,7 @@ void Button_Handler(int16_t x, uint16_t y)
     {
         extern uint8_t enc_ppr_response;
             
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (user_settings[user_Profile].fine== ON)
             {
@@ -647,12 +651,12 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + ANT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
-            if (bandmem[curr_band].ant_sw== ON)
-                bandmem[curr_band].ant_sw = OFF;
-            else if (bandmem[curr_band].ant_sw == OFF)
-                bandmem[curr_band].ant_sw = ON;
+            if (bandmem[curr_band].ant_sw== 1)
+                bandmem[curr_band].ant_sw = 2;
+            else if (bandmem[curr_band].ant_sw == 2)
+                bandmem[curr_band].ant_sw = 1;
             displayANT();
             Serial.print("Set Ant Sw to ");
             Serial.println(bandmem[curr_band].ant_sw);
@@ -664,13 +668,14 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + XMIT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (user_settings[user_Profile].xmit== ON)
                 user_settings[user_Profile].xmit = OFF;
             else if (user_settings[user_Profile].xmit == OFF)
                 user_settings[user_Profile].xmit = ON;
             displayXMIT();
+            displayFreq();
             Serial.print("Set XMIT to ");
             Serial.println(user_settings[user_Profile].xmit);
             return;
@@ -681,12 +686,12 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + NB_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
-            if (user_settings[user_Profile].nb_en== ON)
-                user_settings[user_Profile].nb_en = OFF;
-            else if (user_settings[user_Profile].nb_en == OFF)
-                user_settings[user_Profile].nb_en = ON;
+            if (user_settings[user_Profile].nb_en > NBOFF)
+                user_settings[user_Profile].nb_en = NBOFF;
+            else if (user_settings[user_Profile].nb_en == NBOFF)
+                user_settings[user_Profile].nb_en = NB1;
             displayNB();
             Serial.print("Set NB to ");
             Serial.println(user_settings[user_Profile].nb_en);
@@ -698,12 +703,12 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + NR_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
-            if (user_settings[user_Profile].nr_en== ON)
-                user_settings[user_Profile].nr_en = OFF;
-            else if (user_settings[user_Profile].nr_en == OFF)
-                user_settings[user_Profile].nr_en = ON;
+            if (user_settings[user_Profile].nr_en > NROFF)
+                user_settings[user_Profile].nr_en = NROFF;
+            else if (user_settings[user_Profile].nr_en == NROFF)
+                user_settings[user_Profile].nr_en = NR1;
             displayNR();
             Serial.print("Set NR to ");
             Serial.println(user_settings[user_Profile].nr_en);
@@ -715,7 +720,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + ENET_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (user_settings[user_Profile].enet_output== ON)
                 user_settings[user_Profile].enet_output = OFF;
@@ -732,7 +737,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + SPOT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (user_settings[user_Profile].spot== ON)
                 user_settings[user_Profile].spot = OFF;
@@ -755,7 +760,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + NOTCH_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             if (user_settings[user_Profile].notch== ON)
                 user_settings[user_Profile].notch = OFF;
@@ -772,7 +777,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + BANDUP_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             changeBands(1);
             displayBandUp();
@@ -786,7 +791,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + BANDDN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             Serial.println("BAND DN");
             changeBands(-1);
@@ -801,7 +806,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + BAND_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {
             popup = 1;
             pop_win(1);
@@ -817,7 +822,7 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + DISPLAY_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
     {
-        if (ptr->enabled)
+        if (ptr->show)
         {        
             if (Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode)
             {
@@ -852,130 +857,130 @@ void Button_Handler(int16_t x, uint16_t y)
             {
                 strcpy(std_btn[FN_BTN].label, "Fn 2\0");
                 // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].enabled    = OFF;
-                std_btn[FILTER_BTN].enabled  = OFF;
-                std_btn[ATTEN_BTN].enabled   = OFF;
-                std_btn[PREAMP_BTN].enabled  = OFF;
-                std_btn[RATE_BTN].enabled    = OFF;                
-                std_btn[BAND_BTN].enabled    = OFF;
+                std_btn[MODE_BTN].show    = OFF;
+                std_btn[FILTER_BTN].show  = OFF;
+                std_btn[ATTEN_BTN].show   = OFF;
+                std_btn[PREAMP_BTN].show  = OFF;
+                std_btn[RATE_BTN].show    = OFF;                
+                std_btn[BAND_BTN].show    = OFF;
                 // Turn ON Panel 2 buttons                
-                std_btn[NB_BTN].enabled      = ON;
-                std_btn[NR_BTN].enabled      = ON;
-                std_btn[SPOT_BTN].enabled    = ON;
-                std_btn[NOTCH_BTN].enabled   = ON;
-                std_btn[AGC_BTN].enabled     = ON;
-                std_btn[MUTE_BTN].enabled    = ON;
+                std_btn[NB_BTN].show      = ON;
+                std_btn[NR_BTN].show      = ON;
+                std_btn[SPOT_BTN].show    = ON;
+                std_btn[NOTCH_BTN].show   = ON;
+                std_btn[AGC_BTN].show     = ON;
+                std_btn[MUTE_BTN].show    = ON;
                 // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].enabled    = OFF;
-                std_btn[ANT_BTN].enabled     = OFF;
-                std_btn[ATU_BTN].enabled     = OFF;
-                std_btn[XMIT_BTN].enabled    = OFF;
-                std_btn[BANDDN_BTN].enabled  = OFF;
-                std_btn[BANDUP_BTN].enabled  = OFF;
+                std_btn[MENU_BTN].show    = OFF;
+                std_btn[ANT_BTN].show     = OFF;
+                std_btn[ATU_BTN].show     = OFF;
+                std_btn[XMIT_BTN].show    = OFF;
+                std_btn[BANDDN_BTN].show  = OFF;
+                std_btn[BANDUP_BTN].show  = OFF;
                 // Turn OFF Panel 4 buttons
-                std_btn[RIT_BTN].enabled     = OFF;
-                std_btn[XIT_BTN].enabled     = OFF;
-                std_btn[VFO_AB_BTN].enabled  = OFF;
-                std_btn[FINE_BTN].enabled    = OFF;
-                std_btn[DISPLAY_BTN].enabled = OFF;
-                std_btn[SPLIT_BTN].enabled   = OFF;
+                std_btn[RIT_BTN].show     = OFF;
+                std_btn[XIT_BTN].show     = OFF;
+                std_btn[VFO_AB_BTN].show  = OFF;
+                std_btn[FINE_BTN].show    = OFF;
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPLIT_BTN].show   = OFF;
             }
             else if (std_btn[FN_BTN].enabled == 4)// Panel 3 buttons
             {           
                 strcpy(std_btn[FN_BTN].label, "Fn 3\0");
                 // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].enabled    = OFF;
-                std_btn[FILTER_BTN].enabled  = OFF;
-                std_btn[ATTEN_BTN].enabled   = OFF;
-                std_btn[PREAMP_BTN].enabled  = OFF;
-                std_btn[RATE_BTN].enabled    = OFF;                
-                std_btn[BAND_BTN].enabled    = OFF;
+                std_btn[MODE_BTN].show    = OFF;
+                std_btn[FILTER_BTN].show  = OFF;
+                std_btn[ATTEN_BTN].show   = OFF;
+                std_btn[PREAMP_BTN].show  = OFF;
+                std_btn[RATE_BTN].show    = OFF;                
+                std_btn[BAND_BTN].show    = OFF;
                 // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].enabled      = OFF;
-                std_btn[NR_BTN].enabled      = OFF;
-                std_btn[SPOT_BTN].enabled    = OFF;
-                std_btn[NOTCH_BTN].enabled   = OFF;
-                std_btn[AGC_BTN].enabled     = OFF;
-                std_btn[MUTE_BTN].enabled    = OFF;
+                std_btn[NB_BTN].show      = OFF;
+                std_btn[NR_BTN].show      = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[NOTCH_BTN].show   = OFF;
+                std_btn[AGC_BTN].show     = OFF;
+                std_btn[MUTE_BTN].show    = OFF;
                 // Turn ON Panel 3 buttons
-                std_btn[MENU_BTN].enabled    = ON;
-                std_btn[ANT_BTN].enabled     = ON;
-                std_btn[ATU_BTN].enabled     = ON;
-                std_btn[XMIT_BTN].enabled    = ON;
-                std_btn[BANDDN_BTN].enabled  = ON;
-                std_btn[BANDUP_BTN].enabled  = ON;
+                std_btn[MENU_BTN].show    = ON;
+                std_btn[ANT_BTN].show     = ON;
+                std_btn[ATU_BTN].show     = ON;
+                std_btn[XMIT_BTN].show    = ON;
+                std_btn[BANDDN_BTN].show  = ON;
+                std_btn[BANDUP_BTN].show  = ON;
                 // Turn OFF Panel 4 buttons
-                std_btn[RIT_BTN].enabled     = OFF;
-                std_btn[XIT_BTN].enabled     = OFF;
-                std_btn[VFO_AB_BTN].enabled  = OFF;
-                std_btn[FINE_BTN].enabled    = OFF;
-                std_btn[DISPLAY_BTN].enabled = OFF;
-                std_btn[SPLIT_BTN].enabled   = OFF;
+                std_btn[RIT_BTN].show     = OFF;
+                std_btn[XIT_BTN].show     = OFF;
+                std_btn[VFO_AB_BTN].show  = OFF;
+                std_btn[FINE_BTN].show    = OFF;
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPLIT_BTN].show   = OFF;
             }
             else if (std_btn[FN_BTN].enabled == 5)// Panel 4 buttons
             {           
                 strcpy(std_btn[FN_BTN].label, "Fn 4\0");
                 // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].enabled    = OFF;
-                std_btn[FILTER_BTN].enabled  = OFF;
-                std_btn[ATTEN_BTN].enabled   = OFF;
-                std_btn[PREAMP_BTN].enabled  = OFF;
-                std_btn[RATE_BTN].enabled    = OFF;                
-                std_btn[BAND_BTN].enabled    = OFF;
+                std_btn[MODE_BTN].show    = OFF;
+                std_btn[FILTER_BTN].show  = OFF;
+                std_btn[ATTEN_BTN].show   = OFF;
+                std_btn[PREAMP_BTN].show  = OFF;
+                std_btn[RATE_BTN].show    = OFF;                
+                std_btn[BAND_BTN].show    = OFF;
                 // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].enabled      = OFF;
-                std_btn[NR_BTN].enabled      = OFF;
-                std_btn[SPOT_BTN].enabled    = OFF;
-                std_btn[NOTCH_BTN].enabled   = OFF;
-                std_btn[AGC_BTN].enabled     = OFF;
-                std_btn[MUTE_BTN].enabled    = OFF;
+                std_btn[NB_BTN].show      = OFF;
+                std_btn[NR_BTN].show      = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[NOTCH_BTN].show   = OFF;
+                std_btn[AGC_BTN].show     = OFF;
+                std_btn[MUTE_BTN].show    = OFF;
                 // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].enabled    = OFF;
-                std_btn[ANT_BTN].enabled     = OFF;
-                std_btn[ATU_BTN].enabled     = OFF;
-                std_btn[XMIT_BTN].enabled    = OFF;
-                std_btn[BANDDN_BTN].enabled  = OFF;
-                std_btn[BANDUP_BTN].enabled  = OFF;
+                std_btn[MENU_BTN].show    = OFF;
+                std_btn[ANT_BTN].show     = OFF;
+                std_btn[ATU_BTN].show     = OFF;
+                std_btn[XMIT_BTN].show    = OFF;
+                std_btn[BANDDN_BTN].show  = OFF;
+                std_btn[BANDUP_BTN].show  = OFF;
                 // Turn ON Panel 4 buttons
-                std_btn[RIT_BTN].enabled     = ON;
-                std_btn[XIT_BTN].enabled     = ON;
-                std_btn[VFO_AB_BTN].enabled  = ON;
-                std_btn[FINE_BTN].enabled    = ON;
-                std_btn[DISPLAY_BTN].enabled = ON;
-                std_btn[SPLIT_BTN].enabled   = ON; 
+                std_btn[RIT_BTN].show     = ON;
+                std_btn[XIT_BTN].show     = ON;
+                std_btn[VFO_AB_BTN].show  = ON;
+                std_btn[FINE_BTN].show    = ON;
+                std_btn[DISPLAY_BTN].show = ON;
+                std_btn[SPLIT_BTN].show   = ON; 
             }
             else    // if (std_btn[FN_BTN].enabled == 2)
             {
                 strcpy(std_btn[FN_BTN].label, "Fn 1\0");
                 // Turn ON Panel 1 buttons
-                std_btn[MODE_BTN].enabled    = ON;
-                std_btn[FILTER_BTN].enabled  = ON;
-                std_btn[ATTEN_BTN].enabled   = ON;
-                std_btn[PREAMP_BTN].enabled  = ON;
-                std_btn[RATE_BTN].enabled    = ON;                
-                std_btn[BAND_BTN].enabled    = ON;
+                std_btn[MODE_BTN].show    = ON;
+                std_btn[FILTER_BTN].show  = ON;
+                std_btn[ATTEN_BTN].show   = ON;
+                std_btn[PREAMP_BTN].show  = ON;
+                std_btn[RATE_BTN].show    = ON;                
+                std_btn[BAND_BTN].show    = ON;
                 // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].enabled      = OFF;
-                std_btn[NR_BTN].enabled      = OFF;
-                std_btn[SPOT_BTN].enabled    = OFF;
-                std_btn[NOTCH_BTN].enabled   = OFF;
-                std_btn[AGC_BTN].enabled     = OFF;
-                std_btn[MUTE_BTN].enabled    = OFF;
+                std_btn[NB_BTN].show      = OFF;
+                std_btn[NR_BTN].show      = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[NOTCH_BTN].show   = OFF;
+                std_btn[AGC_BTN].show     = OFF;
+                std_btn[MUTE_BTN].show    = OFF;
                 // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].enabled    = OFF;
-                std_btn[ANT_BTN].enabled     = OFF;
-                std_btn[ATU_BTN].enabled     = OFF;
-                std_btn[XMIT_BTN].enabled    = OFF;
-                std_btn[BANDDN_BTN].enabled  = OFF;
-                std_btn[BANDUP_BTN].enabled  = OFF;
+                std_btn[MENU_BTN].show    = OFF;
+                std_btn[ANT_BTN].show     = OFF;
+                std_btn[ATU_BTN].show     = OFF;
+                std_btn[XMIT_BTN].show    = OFF;
+                std_btn[BANDDN_BTN].show  = OFF;
+                std_btn[BANDUP_BTN].show  = OFF;
                 // Turn OFF Panel 4 buttons
-                std_btn[RIT_BTN].enabled     = OFF;
-                std_btn[XIT_BTN].enabled     = OFF;
-                std_btn[VFO_AB_BTN].enabled  = OFF;
-                std_btn[FINE_BTN].enabled    = OFF;
-                std_btn[DISPLAY_BTN].enabled = OFF;
-                std_btn[SPLIT_BTN].enabled   = OFF;              
-                //std_btn[ENET_BTN].enabled    = OFF;          
+                std_btn[RIT_BTN].show     = OFF;
+                std_btn[XIT_BTN].show     = OFF;
+                std_btn[VFO_AB_BTN].show  = OFF;
+                std_btn[FINE_BTN].show    = OFF;
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPLIT_BTN].show   = OFF;              
+                //std_btn[ENET_BTN].show    = OFF;          
             }
             displayRefresh();   // redraw button to show new ones and hide old ones.  Set arg =1 to skip calling ourself
             Serial.print("Fn Pressed ");  Serial.println(std_btn[FN_BTN].enabled);

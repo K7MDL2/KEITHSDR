@@ -14,8 +14,7 @@
 #include <NativeEthernetUdp.h>
 #include <TimeLib.h>
 
-#define BUFFER_SIZE         (4096)
-#define LINE_STR_LENGTH     (20u)
+#define BUFFER_SIZE         (4100)
 
 // defined in RadioConfig.h
 // extern IPAddress ip;                //(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.

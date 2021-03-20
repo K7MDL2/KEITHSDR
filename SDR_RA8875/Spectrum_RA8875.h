@@ -101,6 +101,7 @@ void drawSpectrumFrame(uint8_t s);
 void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
+const char* formatFreq(uint32_t Freq);
 
 // Spectrum Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
 // These globals are othewise ignored
@@ -120,8 +121,8 @@ int16_t spectrum_preset         = 10;   // <<<==== Set this value.  Range is 0-P
 // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
 int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-int16_t spectrum_y              = 129;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-int16_t spectrum_height         = 280;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+int16_t spectrum_y              = 135;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+int16_t spectrum_height         = 274;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
 int16_t spectrum_center         = 40;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
 int16_t spectrum_width          = 800;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
@@ -187,7 +188,7 @@ struct Spectrum_Parms {
     {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,2,450,0.7,0.9,1,40,-180},
     {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25,5,440,1.0,0.9,0,40,-180},
     {796,2, 2,  2,798,400,14,8,113,135,135,408,400,106,159,241,241,  0,109,800,300,40,25,5,440,1.0,0.9,0,40,-170},
-    {796,2, 2,  2,798,400,14,8,133,155,155,408,400, 98,147,253,253,  0,129,800,280,40,20,5,440,1.0,0.9,0,40,-160}
+    {796,2, 2,  2,798,400,14,8,139,161,161,408,400, 95,144,256,256,  0,135,800,274,40,20,5,440,1.0,0.9,0,40,-170}
     }; 
 
 struct Spectrum_Parms  Sp_Parms_Custom[PRESETS];
@@ -287,7 +288,7 @@ void spectrum_update(int16_t s)
             */
         // }
 
-        for (i = 0; i < ptr->wf_sp_width; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
+        for (i = 2; i < ptr->wf_sp_width-1; i++)        // Grab all 512 values.  Need to do at one time since averaging is looking at many values in this array
         { 
             if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
             {
@@ -353,7 +354,7 @@ void spectrum_update(int16_t s)
         //
         // Done with waterfall, now draw the spectrum section
         
-        for (i = 0; i < (ptr->wf_sp_width-2); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
+        for (i = 2; i < (ptr->wf_sp_width-1); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         //for  (i=2; i < (FFT_SIZE)-2; i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         {       
             // average a few values to smooth the line a bit
@@ -584,12 +585,12 @@ void spectrum_update(int16_t s)
                 
         // Calculate and print the frequency of the strongest signal if possible 
         //Serial.print("Freq="); Serial.println(fftFrequency, 3); 
-        tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 90, 13, RA8875_BLACK);
+        tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 140, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
-        float pk_temp = _VFO_/1000 + (2 * (fft_bin_size/1000 * fft_pk_bin));   // relate the peak bin to the center bin
-        tft.print(pk_temp,1);
+        float pk_temp = _VFO_ + (2 * (fft_bin_size * fft_pk_bin));   // relate the peak bin to the center bin
+        tft.print(formatFreq(pk_temp));
         
         // Write the Scale value 
     
@@ -623,17 +624,17 @@ void spectrum_update(int16_t s)
         tft.setTextColor(myLT_GREY);
         tft.setFont(Arial_12);
 
-        tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
+        tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-        tft.print( (float) (_VFO_/1000) - (ptr->wf_sp_width*fft_bin_size/1000),1);       // Write left side of graph Freq
+        tft.print(formatFreq(_VFO_ - (ptr->wf_sp_width*fft_bin_size)));       // Write left side of graph Freq
         
-        tft.fillRect( ptr->c_graph-27, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
-        tft.setCursor(ptr->c_graph-27, ptr->sp_txt_row);
-        tft.print( (float) (_VFO_/1000),1);   // Write center of graph Freq   
+        tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+        tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
+        tft.print(formatFreq(_VFO_));   // Write center of graph Freq   
         
-        tft.fillRect( ptr->r_graph_edge - 60, ptr->sp_txt_row, 80, 13, RA8875_BLACK);
-        tft.setCursor(ptr->r_graph_edge - 60, ptr->sp_txt_row);
-        tft.print( (float) (_VFO_/1000) + (ptr->wf_sp_width*fft_bin_size/1000),1);  // Write right side of graph Freq
+        tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+        tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
+        tft.print(formatFreq(_VFO_ + (ptr->wf_sp_width*fft_bin_size)));  // Write right side of graph Freq
         
         // Write the dB range of the window 
         tft.setTextColor(myLT_GREY);
@@ -968,5 +969,18 @@ int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and 
     }
     //Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" fftMaxPower="); Serial.println(fftMaxPower); 
     return f_peak;    // return -200 unless there is a good value to send out
+}
+
+// Duplicate of the function in Display.h but included here to make the spectrum module self contained. Minor changes included
+const char* formatFreq(uint32_t Freq)
+{
+	static char Freq_str[15];
+	
+	uint16_t MHz = (Freq/1000000 % 1000000);
+	uint16_t Hz  = (Freq % 1000);
+	uint16_t KHz = ((Freq % 1000000) - Hz)/1000;
+	sprintf(Freq_str, "%5d.%03d.%03d", MHz, KHz, Hz);
+	//Serial.print("Freq: ");Serial.println(Freq_str);
+	return Freq_str;
 }
 
