@@ -259,7 +259,7 @@ struct User_Settings {
     uint16_t    pitch;              // Pitch  0 is off.  1+ is mode
     uint8_t     notch;              // Notch mode.  0 is off.  1+ is mode
     uint8_t     xmit;               // xmit state.  0 is off.  1+ is mode
-    uint8_t     fine;               // Fine tuine state.  0 is off.  1+ is mode
+    uint8_t     fine;               // Fine tune state.  0 is off.  1+ is mode
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
 };
 
@@ -359,7 +359,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     //Panel Spare
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
-    { ON, OFF, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  6, 8, "UTC:\0"}
+    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  6, 8, "UTC:\0"}
     
 };
 
