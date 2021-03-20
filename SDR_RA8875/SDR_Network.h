@@ -200,7 +200,7 @@ void enet_start(void)
 
 	uint8_t mac[6];
 	teensyMAC(mac);   
-	delay(1000);
+	delay(500);
 	// start the Ethernet 
 
 	#ifndef USE_DHCP 

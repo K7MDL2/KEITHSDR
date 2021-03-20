@@ -2,6 +2,18 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+
+## 3/20-21/2021
+
+    1.Improved Spectrum performance a bit in a few ways. 
+        a. Now assign out-of-view bound pixel plots to a min or max value to ensure they get plotted. This helps prevent stale data. This sped up the draw speed a bit also for some reason.  Particularly helps when the ref level is set very low.
+        b. Added a timer to clear the spectrum plot area if there is no FFT data available for any reason over X time.
+        c. Tweaked plot averaging rules to prevent out of array bounds reads of FFT data.
+    2. Added a "Starting Network" message in noticeable Blue text in the space the clock will occupy once it gets started up. The network startup takes several seconds to initialize so the spectrum is blank during this wait.
+    3.  Moved the waterfall update rate timer into Spectrum_RA8875,h file and the setting into the spectrum layout record so each layout can have its optimum speed. Smaller size plots take less draw time permitting faster update rates.
+    4. Removed severa spectrum layout records.  Will resize the remaining ones. These may be use for spot zooms in a small window.
+    5. More button tweaks.
+
 ## 3/20/2021
 
     1. Major UI layout work. There are now on-screen labels for most everything a normal radio would have indicators for.
@@ -11,18 +23,25 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     5. When Split is on, the split indicator turns green with an arrow pointing to the standby VFO. The Active VFO is on top row, the standby VFO is on bottom in dark grey. VFO A and B can swap between Active and Standby. When yo upress the XMIT key, the standby VFO will now light red.
     6. NOTE: Do not uncomment the "#define OCXO_10MHZ" if you do not have a C version PLL board. 
     7. If you want to ruin etehrnet there are multiple ways to configure it.   Probably the easiest is to uncomment the #define USE_ETHERNET_PROFILE I placed in the SDR_8875.h file today around line 77ish.  It looks like this snippet.
-    // --------------------------------------------User Profile Selection --------------------------------------------------------
-    //
-    //#define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables. 
-    //
-    #ifdef USE_ENET_PROFILE
-        uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
-    #else
-        uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
-    #endif
-    //
-    //----------------------------------------------------------------------------------
+            // --------------------------------------------User Profile Selection --------------------------------------------------------
+            //
+            //#define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables. 
+            //
+            #ifdef USE_ENET_PROFILE
+                uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
+            #else
+                uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+            #endif
+            //
+            //----------------------------------------------------------------------------------
     Other ways are to edit the user settings table or to comment out in the above text what you need to get the User profile 0 to be active. Many ways to skin a cat.
+    8. Improved Spectrum performance a bit in a few ways. 
+        a. Now assign out-of-view bound pixel plots to a min or max value to ensure they get plotted. This helps prevent stale data. This sped up the draw speed a bit also for some reason.  Particularly helps when the ref level is set very low.
+        b. Added a timer to clear the spectrum plot area if there is no FFT data available for any reason over X time.
+    9. Added a "Starting Network" message in noticeable Blue text in the space the clock will occupy once it gets started up. The network startup takes several seconds to initialize so the spectrum is blank during this wait.
+    10.  Moved the waterfall update rate timer into Spectrum_RA8875,h file and the setting into the spectrum layout record so each layout can have its optimum speed. Smaller size plots take less draw time permitting faster update rates.
+    11. Removed severa spectrum layout records.  Will resize the remaining ones. These may be use for spot zooms in a small window.
+    12. More button tweaks.
 
 ## 3/19/2021
 

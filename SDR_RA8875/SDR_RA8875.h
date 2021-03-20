@@ -91,9 +91,8 @@ const int myInput = AUDIO_INPUT_LINEIN;
 int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
-int16_t         waterfall_speed     = 140;          // window update rate in ms.  25 is fast enough to see dit and dahs well
-Metro           spectrum            = Metro(waterfall_speed);
 int16_t         FFT_Source          = 0;            // used to switch teh FFT input source around
+extern Metro spectrum_waterfall_update;             // Timer used for controlling the Spectrum module update rate.
 //
 //============================================ End of Spectrum Setup Section =====================================================
 //
