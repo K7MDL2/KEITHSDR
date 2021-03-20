@@ -2,6 +2,28 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/20/2021
+
+    1. Major UI layout work. There are now on-screen labels for most everything a normal radio would have indicators for.
+    2. Rearranged many buttons to match the order of the labels where possible.
+    3. Formatted VFO and spectrum frequency labels with MHz.Khz.Hz format. Sized things to display up to 99GHz (11 digits and 2 dots total).
+    4. The VFO labels will highlight Red background during Transmit.  You can test this by pressing the XMIT key. 
+    5. When Split is on, the split indicator turns green with an arrow pointing to the standby VFO. The Active VFO is on top row, the standby VFO is on bottom in dark grey. VFO A and B can swap between Active and Standby. When yo upress the XMIT key, the standby VFO will now light red.
+    6. NOTE: Do not uncomment the "#define OCXO_10MHZ" if you do not have a C version PLL board. 
+    7. If you want to ruin etehrnet there are multiple ways to configure it.   Probably the easiest is to uncomment the #define USE_ETHERNET_PROFILE I placed in the SDR_8875.h file today around line 77ish.  It looks like this snippet.
+    // --------------------------------------------User Profile Selection --------------------------------------------------------
+    //
+    //#define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables. 
+    //
+    #ifdef USE_ENET_PROFILE
+        uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
+    #else
+        uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+    #endif
+    //
+    //----------------------------------------------------------------------------------
+    Other ways are to edit the user settings table or to comment out in the above text what you need to get the User profile 0 to be active. Many ways to skin a cat.
+
 ## 3/19/2021
 
     1. Updated VFO.h and other files to use "#define OCXO_10MHZ" to switch between si5351 libraries and configure the PLL board for a Version C si5351C PLL board with external 10Mhz reference clock.   As a matter of convenience, I am also switching to "user_Profile=0" which has ethernet enabled. Otherwise "user_Profile=1" is used and ethernet is disabled in that profile setting.

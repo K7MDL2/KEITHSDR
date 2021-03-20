@@ -415,7 +415,7 @@ void displayNotch()
 }
 
 void displayTime(void)
-{	
+{
 	sprintf(std_btn[UTCTIME_BTN].label, "UTC:%02d:%02d:%02d", hour(), minute(), second());
 	//tft.print(std_btn[UTCTIME_BTN].label);
 	//Serial.println("UTC Time = "); Serial.println(std_btn[UTCTIME_BTN].label);
