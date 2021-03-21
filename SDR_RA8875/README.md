@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+3/20-21/2021
+
+    1.Moved step incrment/decrement control into Rate() function.  Left old step.h thinned down to set the tune rate directly in the database and call display. 
+    2. Moved filter incrment/decrement control into Filter() function.  It calls select bandwidth() in bandwidth2.h as before which now has the increment and database logic I inserted some time back removed. It now moves the value upwards then downwards and back upwards like the rate key does.
+    3. With 1 minor change, new bandwidth.h files will plug right in. Since the current bandwidth value of bndx is stored in the per-band database a global bndx var is not used but is instead passed as an arg. You add (int bndx) to the function definition like this: 
+        void selectBandwidth(int bndx)
+    You can call it direct or through the Filter(dir) function, same as Rate(dir). dir set to -1  or +1 increments the current filter down or up. dir = 0 cycles the current filter (or tune step for Rate(dir) in the last direction until it hits top or bottom then reverses direction.  The +1 and -1 are needed particularly for swipe commands which are left and right for changing the tune step rate.
+
 ## 3/20-21/2021
 
     1.Improved Spectrum performance a bit in a few ways. 
