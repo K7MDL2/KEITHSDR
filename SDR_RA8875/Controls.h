@@ -137,7 +137,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectFrequency(0); 
     selectBandwidth(bandmem[curr_band].filter);
     selectMode(0);  // no change just set for the active VFO
-    selectStep(0);
+    Rate(0);
     displayRefresh();
     selectAgc(bandmem[curr_band].agc_mode);
     RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
@@ -187,18 +187,122 @@ void setMode()
 }
 
 // FILTER button
-void Filter()
+void Filter(int dir)
 { 
-    selectBandwidth(bandmem[curr_band].filter - 1); // Change Bandwidth  - cycle down then back to the top
+    static int direction = -1;
+    int _bndx = bandmem[curr_band].filter; // Change Bandwidth  - cycle down then back to the top
+    
+    uint8_t _mode;
+
+    // 1. Limit to allowed step range
+    // 2. Cycle up and at top, cycle back down, do nto roll over.
+    if (_bndx <= 0)
+    {
+        _bndx = -1;
+        direction = 1;   // cycle upwards
+    }
+
+    if (_bndx >= FILTER-1)
+    {
+        _bndx = FILTER-1;
+        direction = -1;
+    }
+
+    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+        _mode = bandmem[curr_band].mode_A;
+    else
+        _mode = bandmem[curr_band].mode_B;
+
+    if (_mode == CW)  // CW modes
+    {
+        if (_bndx > FILTER-1)   // go to bottom band   
+        {
+            _bndx = FILTER-1;
+            direction = -1;     // cycle downwards
+        }
+        if (_bndx <=BW0_25)
+        {
+            _bndx = BW0_25;          
+            direction = 1;      // cycle upwards
+        }
+    }
+    else  // Non-CW modes
+    {
+        if (_bndx > FILTER-1)   // go to bottom band  
+        { 
+            _bndx = FILTER-1;    
+            direction = -1;     // cycle downwards
+        }
+        if (_bndx <= BW1_8)
+        {
+            _bndx = BW1_8;
+            direction = 1;      // cycle upwards
+        }
+    }
+
+        if (dir == 0)
+            _bndx += direction; // Index our step up or down
+		else	
+			_bndx += dir;  // forces a step higher or lower then current
+		
+    selectBandwidth(_bndx);
     Serial.print("Set Filter to ");
-    Serial.println(bandmem[curr_band].filter); 
+    Serial.println(bandmem[curr_band].filter);
     displayFilter();
 }
 
 // RATE button
-void Rate(int direction)
+void Rate(int swiped)
 {
-    selectStep(direction);        
+    static int direction = 1;
+	int _fndx = bandmem[curr_band].tune_step;
+
+Serial.println(_fndx);
+
+	if (user_settings[user_Profile].fine == 0)
+	{
+		// 1. Limit to allowed step range
+		// 2. Cycle up and at top, cycle back down, do nto roll over.
+		if (_fndx <= 1)
+		{
+			_fndx = 1;
+			direction = 1;   // cycle upwards
+		}
+
+		if (_fndx >= TS_STEPS-1)
+		{
+			_fndx = TS_STEPS-1;
+			direction = -1;
+		}
+		
+		if (swiped == 0)
+			_fndx += direction; // Index our step up or down
+		else	
+			_fndx += swiped;  // forces a step higher or lower then current
+		
+		if (_fndx > TS_STEPS-1)   // ensure we are still in range
+			_fndx = TS_STEPS - 1;  // just in case it over ranges, bad stuff happens when it does
+		if (_fndx < 1)
+			_fndx = 1;  // just in case it over ranges, bad stuff happens when it does		
+	}
+	if (user_settings[user_Profile].fine && swiped == -1)  // 1 Hz steps
+		bandmem[curr_band].tune_step = 0;   // set to 1 hz steps
+	else if (user_settings[user_Profile].fine && swiped == 1)
+		bandmem[curr_band].tune_step = 1;    // normally swiped is +1 or -1
+	else if (user_settings[user_Profile].fine && swiped == 0)
+	{
+Serial.println(_fndx);
+		if (_fndx > 0)
+			_fndx = 0;			
+		else
+			_fndx = 1;
+Serial.println(_fndx);
+
+		bandmem[curr_band].tune_step = _fndx;
+	}
+	else 
+		bandmem[curr_band].tune_step = _fndx;  // Fine tunig mode is off, allow all steps 10hz and higher
+        
     Serial.print("Set Rate to ");
     Serial.println(tstep[bandmem[curr_band].tune_step].ts_name);
     displayRate();
@@ -369,7 +473,7 @@ void Fine()
         user_settings[user_Profile].fine = ON;
         enc_ppr_response *= 1.4;
     }
-    selectStep(0);   //bandmem[curr_band].ant_sw = ON;   
+    Rate(0);   
     displayFine();
     displayRate();
     

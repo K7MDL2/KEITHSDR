@@ -2,7 +2,7 @@
 //    Bandwidth2.h
 //
 
-//#include <Audio.h> 
+//#include <Audio.h>
 
 extern AudioFilterFIR_F32      Hilbert1;
 extern AudioFilterFIR_F32      Hilbert2;
@@ -12,28 +12,6 @@ extern struct Filter_Settings  filter[];
 ////////////////////////////////////////////////////////////////////////////////////
 void selectBandwidth(int bndx)
 {
-    uint8_t mode;
-
-    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-        mode = bandmem[curr_band].mode_A;
-    else
-        mode = bandmem[curr_band].mode_B;
-
-    if (mode == CW)  // CW modes
-    {
-        if (bndx > BW4_0)    // go to bottom band   
-            bndx = BW0_25;    // 0 is not used
-        if (bndx < BW0_25)    // go to top most band  -  
-            bndx = BW4_0;    // 0 is not used so do not have to adjsut with a -1 here
-    }
-    else  // Non-CW modes
-    {
-        if (bndx > BW4_0)    // go to bottom band   
-            bndx = BW1_8;    // 0 is not used
-        if (bndx < BW1_8)    // go to top most band  -  
-            bndx = BW4_0;    // 0 is not used so do not have to adjsut with a -1 here
-    }
-
     if(bndx==0)
     {
         //bandwidth="Bw 250 Hz";
