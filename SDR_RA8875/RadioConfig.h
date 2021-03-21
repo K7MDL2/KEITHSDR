@@ -336,31 +336,100 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
     { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 22, 20, "Band\0"},
     //Panel 2
-    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NB\0"},
-    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "RefLvl\0"},
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 12, 20, "NTCH\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
+    { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NB\0"},
+    { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
+    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "RefLvl\0"},
+    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 18, 20, "Notch\0"},
+    { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
+    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
     //Panel 3
-    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Menu\0"},
-    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "ANT  \0"},
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 25, 20, "ATU\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "XMIT\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band -\0"},
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
+    { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Menu\0"},
+    { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "ANT  \0"},
+    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 25, 20, "ATU\0"},
+    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "XMIT\0"},
+    { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band -\0"},
+    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
     //Panel 4
-    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
-    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
-    {OFF, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
-    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
+    { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
+    { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},
+    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
+    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
+    { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
+    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
     //Panel Spare
     {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
     {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
-    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  6, 8, "UTC:\0"}
-    
+    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"}   
+};
+
+
+// Labels are screen display objects that are used mostly to show status.
+// They may be used for touch events, usually in combination with a button.  Take NR for example
+//    NR has a button and a screen label. The NR button is not always visible so a label is usually permanent
+//    but is too small for relaible touch events.
+// A button may be used as a label also but carries some extra baggage. The Clock button is a good example,
+//    it supports touch events later to maybe pop up a menu of clock settings.
+// The UserInput.h "Button handler" will scan all reported touch events x,y coordinates for a match to any touch enabled buttons and labels.
+#define BAND_LBL    0       // Band label (if used)
+#define MODE_LBL    1       // index to button
+#define FILTER_LBL  2       // will display the current FILTER value in the button
+#define RATE_LBL    3       // will display the RATE (step) value in the button
+#define AGC_LBL     4       // will display the AGC value in the button
+#define ANT_LBL     5       // Antenna switch
+#define ATTEN_LBL   6       // invoke a pop up (ON) for atten slider or MF knob adjustment
+#define PREAMP_LBL  7       // On off
+#define ATU_LBL     8       // not implemented yet
+#define RIT_LBL     9       // not implemented yet 
+#define XIT_LBL     10      // not implemented yet 
+#define FINE_LBL    11      // Fine and coarse rate
+#define NB_LBL      12      // not implemented yet
+#define NR_LBL      13      // will display the NR value in the button
+#define NOTCH_LBL   14      // will display the NR value in the button
+#define SPLIT_LBL   15      // ON/OFF
+#define MUTE_LBL    16      // On off
+#define XMIT_LBL    17      // not implemented yet
+#define XVTR_LBL    18      // not implemented yet
+
+#define LABEL_NUM 19      // number of labels in the table
+struct Label {
+    uint8_t  enabled;       // Not used for Labels today. ON - enabled. Enable or disable this Label. UserInput() will look for touchevent coordinate and skip if disabled.
+    uint8_t  show;          // ON= Show key. 0 = Hide key. Used to Hide a label without disabling it.
+    uint16_t x;             // coordinates used by both touch and display systems
+	uint16_t y;
+	uint16_t w;
+	uint16_t h;             // height 
+	uint16_t r;             // radius of roundRect corners (if used)
+    uint16_t outline_color; // used for label outline color
+    uint16_t on_txtclr;     // used for label text color
+    uint16_t on_color;      // fill color when label is ON state
+    uint16_t off_txtclr;    // used for label text color
+    uint16_t off_color;     // fill color when label is OFF state
+    uint16_t padx;          // # of pixels to pad label text horizontally shifting right to center the text 
+    uint16_t pady;          // # of pixels to pad label text vertically shifting text down to center the text 
+    char     label[20];     // Text to display for the label. Use padx and pady to center
+} labels[LABEL_NUM] = {
+  //  en  show   x   y    w    h   r   outline_color     on_txtclr      on_color    off_txtclr     off_color  padx pady  label 
+    {OFF, OFF,   0,   0,  40, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "B:\0"},   
+    { ON,  ON,  20, 105,  60, 30, 3, RA8875_BLACK, RA8875_YELLOW,  RA8875_BLACK, RA8875_YELLOW,  RA8875_BLACK, 3, 7, "Mode\0"},
+    { ON,  ON, 130, 105, 105, 30, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
+    { ON,  ON, 280, 105,  96, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
+    { ON,  ON, 430, 105,  72, 30, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE,  RA8875_BLACK,   RA8875_BLUE,  RA8875_BLACK, 3, 7, "AGC-\0"},
+    { ON,  ON, 560, 105,  60, 30, 3, RA8875_BLACK, RA8875_RED,  RA8875_BLACK,    RA8875_YELLOW,  RA8875_BLACK, 3, 7, "ANT-\0"}, 
+    { ON,  ON,  10,  16,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 2, "ATT\0"},
+    { ON,  ON,  70,  16,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLUE,     myDARKGREY,  RA8875_BLACK, 3, 2, "PRE\0"},
+    { ON,  ON, 130,  16,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 6, 2, "ATU\0"},
+    { ON,  ON,  10,  40,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 2, "RIT\0"},
+    { ON,  ON,  70,  40,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 2, "XIT\0"},
+    { ON,  ON, 130,  40,  60, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 2, "Fine\0"},
+    { ON,  ON,  10,  64,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 2, "NB\0"},
+    { ON,  ON,  70,  64,  50, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 2, "NR\0"},
+    { ON,  ON, 130,  64,  60, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 2, "Notch\0"},
+    { ON,  ON, 220,  64,  90, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 2, "Split\0"},
+    {OFF, OFF, 699, 419, 100, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 2, "Mute\0"},
+    {OFF, OFF, 467, 419, 100, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 2, "XMIT\0"},
+    {OFF, OFF, 583, 419, 100, 20, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 2, "Xvtr\0"}
+   
+
 };
 
 struct Frequency_Display {

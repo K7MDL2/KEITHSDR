@@ -80,5 +80,5 @@ void selectMode(uint8_t delta)   // Change Mode of the current active VFO by inc
 		bandmem[curr_band].mode_B = mndx;
 	Serial.print("Lets set the mode to ");
 	Serial.println(Mode[mndx]);  	
-  	displayMode();
+  	//displayMode();
 }

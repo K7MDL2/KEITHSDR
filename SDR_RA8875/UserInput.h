@@ -43,27 +43,9 @@ extern uint8_t user_Profile;
 extern AudioControlSGTL5000 codec1;
 extern uint8_t popup;
 
-// The below are fixed numbers based on screen size and other screen object edges
-// These will also be be need to declared as extern variables in other files to leverage.
-//extern int L_frame_left;
-//extern int L_frame_right;
-//extern int R_frame_left;
-//extern int R_frame_right;
-//extern int Bottom_frame;
-//extern int Top_frame;
-//extern int Center_window_divider_line = 120;   // A line that can be drawn between the two button stack frames if desired.
-// These define the button height and stack position and number of buttons, all equal size
-//extern int number_of_buttons;
-//extern int B_height; // = (Bottom_frame - Top_frame) / number_of_buttons;    // scales the vertical column of buttons on each side, all equal size.
-//extern int B_num;        
-
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y); 
-void Set_Spectrum_Scale(int8_t zoom_dir);
-void Set_Spectrum_RefLvl(int8_t zoom_dir);
 void Gesture_Handler(uint8_t gesture);
-void changeBands(int8_t direction);
-void pop_win(uint8_t init);
 
 // structure to record the touch event info used to determine if there is a button press or a gesture.
 struct Touch_Control{            
@@ -283,14 +265,16 @@ void Gesture_Handler(uint8_t gesture)
                 //Serial.println("\nSwipe Horizontal");
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {                
-                    selectStep(-1);
+                    Rate(-1);
+                    //selectStep(-1);
                     Serial.println("Swiped Left");                                           
                     return; 
                 }
                 ////------------------ SWIPE RIGHT  -------------------------------------------
                 else  // or larger so a Swipe Right
                 {
-                    selectStep(1);
+                    Rate(1);
+                    //selectStep(1);
                     Serial.println("Swiped Right");             
                     return;    
                 }
@@ -353,495 +337,205 @@ void Gesture_Handler(uint8_t gesture)
 //  Output:     None.  Acts on specified button.  
 //   Usage:     Called from the touch sensor broker Touch().
 //
+//      Enabled:
+//      The enabled.  It was intended to track the state of a button.  In reality most buttons and labels 
+//      read direct from another table to determine the feature state and then update to match or most often 
+//      is ignored/not used.  There are some cases where a button is all that exists, usually as a placeholder
+//      for a future feature so the button may store its own on/off state until the real feature arrives
+//      with a place to query that feature status.
+//
+//      Show:
+//      Show is for button or label visiblity.  Must be on for a button or label to be visible on screen
+//      In the case of panels of buttons that alternately show and hide, a touch event can be for any of 
+//      several buttons occupying the same space. Use the show property to control when to show a button
+//      and only pass through touch event to the control function when the button or label is showing.
+//      Show applies only to the touch system processing. 
+//      Other controllers can call the control function bypassing the touch system.
+//      Display functions only report teh eisxting state and do not alter states.  They can update a button
+//      text info or label color to match the current state when the object is showing.
+//    
+//      Use:
+//      So how does a touch event get processed here?
+//      1. Touch determines it is a 1 point non drag event and passes the X,Y coordinates to a list
+//      of XY rectangle definitions here.
+//      2. Only 1 object is visible in the touch space at any moment
+//      3. Out of sight buttons must be ignoere by a touch event.
+//      4. A non touch event can call the same cointrol fucntion teh toch event does.
+//      5. Normally the control event launches a display update calling any linked objects.  It know best when
+//      something has changed.
+//      5. The Display functions get called in all cases of change but must check the show status and exit if the object is
+//      currently hidden.  It may update an active label but not update a hidden button.
+//      6. When a lavble or button is first drawn (rotate from hidden to show state) it will refresh its status live.
+//      7.  A multifintion knob or panel switch or remote command may call a control function and no touch involved.
+//      The control and display fucntions must proceed.
+//  
 void Button_Handler(int16_t x, uint16_t y)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
     struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
+    struct Label *pLabel = labels;
 
     if (popup)
         popup_timer.reset();
 
-    // MUTE
-    ptr = std_btn + MUTE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {    
-            if (user_settings[user_Profile].spkr_en)
-            {
-                if (!user_settings[user_Profile].mute)
-                {
-                    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"           
-                    user_settings[user_Profile].mute = ON;
-                }
-                else    
-                {    //codec1.muteHeadphone();
-                    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
-                    user_settings[user_Profile].mute = OFF;        
-                }
-                displayMute();
-            }        
-            return;
-        }
-    }
+    // MODE button
+    ptr = std_btn + MODE_BTN;     // pointer to button object passed by calling function    
+    if((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) setMode();
+    // MODE Label
+    pLabel = labels + MODE_LBL;
+    if((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
+        if (pLabel->show) setMode();
 
-    // MENU button
-    ptr = std_btn + MENU_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {   
-        if (ptr->show)
-        {
-            popup = 1;
-            pop_win(1);
-            Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
-            if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
-                Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
-            Serial.print("spectrum_wf_colortemp = ");
-            Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
-            displayMenu();
-            Serial.println("Menu Pressed");
-            return;
-        }
-    }
-
-    // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
-    ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
-    struct Frequency_Display *ptrAct  = &disp_Freq[0];   // The frequency display areas itself
-    struct Frequency_Display *ptrStby = &disp_Freq[2];   // The frequency display areas itself
-    if ((((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh)) && ptr->show) ||
-        ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh)) ||
-        ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh)))
-    {
-        //if (user_settings[user_Profile].VFO_last) // || ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))) 
-        //{       
-            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-            {
-                bandmem[curr_band].VFO_AB_Active = VFO_B;
-            }
-            else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
-            {
-                bandmem[curr_band].VFO_AB_Active = VFO_A;
-            }
-            VFOA = bandmem[curr_band].vfo_A_last;
-            VFOB = bandmem[curr_band].vfo_B_last;
-            selectFrequency(0);
-            selectMode(0);  // No change to mode, jsut set for active VFO
-            displayVFO_AB();
-            Serial.print("Set VFO_AB_Active to ");
-            Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
-            return;
-        //}
-    }
-
-    // ATTENUATOR button
-    ptr = std_btn + ATTEN_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {   
-        if (ptr->show)
-        {
-            if (bandmem[curr_band].attenuator == ATTEN_ON)
-                bandmem[curr_band].attenuator = ATTEN_OFF;
-            else if (bandmem[curr_band].attenuator == ATTEN_OFF)
-                bandmem[curr_band].attenuator = ATTEN_ON;
-            displayAttn();
-            Serial.print("Set Attenuator to ");
-            Serial.println(bandmem[curr_band].attenuator,DEC);
-            return;
-        }
-    }
-
-    // PREAMP button
-    ptr = std_btn + PREAMP_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (bandmem[curr_band].preamp == PREAMP_ON)
-                bandmem[curr_band].preamp = PREAMP_OFF;
-            else if (bandmem[curr_band].preamp == PREAMP_OFF)
-                bandmem[curr_band].preamp = PREAMP_ON;
-            displayPreamp();
-            Serial.print("Set Preamp to ");
-            Serial.println(bandmem[curr_band].preamp,DEC);
-            return;
-        }
-    }
-
-    // RIT button
-    ptr = std_btn + RIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        { 
-            if (bandmem[curr_band].RIT_en == ON)
-                bandmem[curr_band].RIT_en = OFF;
-            else if (bandmem[curr_band].RIT_en == OFF)
-                bandmem[curr_band].RIT_en = ON;
-            displayRIT();
-            Serial.print("Set RIT to ");
-            Serial.println(bandmem[curr_band].RIT_en);
-            return;
-        }
-    }
-    
-    // XIT button
-    ptr = std_btn + XIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        { 
-            if (bandmem[curr_band].XIT_en == ON)
-                bandmem[curr_band].XIT_en = OFF;
-            else if (bandmem[curr_band].XIT_en == OFF)
-                bandmem[curr_band].XIT_en = ON;
-            displayXIT();
-            Serial.print("Set XIT to ");
-            Serial.println(bandmem[curr_band].XIT_en);
-            return;
-        }
-    }
-    
-    // SPLIT button
-    ptr = std_btn + SPLIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (bandmem[curr_band].split == ON)
-                bandmem[curr_band].split = OFF;
-            else if (bandmem[curr_band].split == OFF)
-                bandmem[curr_band].split = ON;
-            displaySplit();
-            displayFreq();
-            Serial.print("Set Split to ");
-            Serial.println(bandmem[curr_band].split);
-            return;
-        }
-    }
-    
-    // XVTR button
-    ptr = std_btn + XVTR_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (bandmem[curr_band].xvtr_en== ON)
-                bandmem[curr_band].xvtr_en = OFF;
-            else if (bandmem[curr_band].xvtr_en == OFF)
-                bandmem[curr_band].xvtr_en = ON;
-            displayXVTR();
-            Serial.print("Set Xvtr Enable to ");
-            Serial.println(bandmem[curr_band].xvtr_en);
-            return;
-        }
-    }
-
-    // ATU button
-    ptr = std_btn + ATU_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (bandmem[curr_band].ATU== ON)
-                bandmem[curr_band].ATU = OFF;
-            else if (bandmem[curr_band].ATU == OFF)
-                bandmem[curr_band].ATU = ON;
-            displayATU();
-            Serial.print("Set ATU to ");
-            Serial.println(bandmem[curr_band].ATU);
-            return;
-        }
-    }
-    
     // FILTER button
     ptr = std_btn + FILTER_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {   
-            selectBandwidth(bandmem[curr_band].filter - 1); // Change Bandwidth  - cycle down then back to the top
-            displayFilter();
-            Serial.print("Set Filter to ");
-            Serial.println(bandmem[curr_band].filter);
-            return;
-        }
-    }
-  
+       if (ptr->show) Filter(); 
+    // FILTER label
+    pLabel = labels + FILTER_LBL;
+    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
+        if (pLabel->show) Filter();  
+
+    // RATE button
+    ptr = std_btn + RATE_BTN;     // pointer to button object passed by calling function        
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Rate(0);        
+    // RATE label
+    pLabel = labels + RATE_LBL;
+    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
+        if (pLabel->show) Rate(0);
+
     // AGC button
     ptr = std_btn + AGC_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {   
-            selectAgc(bandmem[curr_band].agc_mode + 1);            
-            Serial.print("Set AGC to ");
-            Serial.println(bandmem[curr_band].agc_mode);            
-            sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
-            displayAgc();
-            return;
-        }
-    }
-     
-    // MODE button
-    ptr = std_btn + MODE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {   
-        //uint8_t mndx;
-        if (ptr->show)
-        {  
-            selectMode(1);   // Increment the mode for the Active VFO 
-            /*
-        	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
-		        mndx = bandmem[curr_band].mode_A;			
-	        else
-		        mndx = bandmem[curr_band].mode_B;
-            strcpy(std_btn[MODE_BTN].label, Mode[mndx]);            
-            */
-            Serial.print("Set Mode");           
-            displayMode();
-            return;
-        }
-    }
-
-    // RATE button
-    ptr = std_btn + RATE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {   // TODO: fix this for real
-            selectStep(0);   //bandmem[curr_band].ant_sw = ON;            
-            Serial.print("Set Rate to ");
-            //strcpy(std_btn[RATE_BTN].label, tstep[bandmem[curr_band].tune_step].ts_name); 
-            Serial.println(tstep[bandmem[curr_band].tune_step].ts_name);
-            displayRate();
-            return;
-        }
-    }
-
-    // Fine button
-    ptr = std_btn + FINE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        extern uint8_t enc_ppr_response;
-            
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].fine== ON)
-            {
-                user_settings[user_Profile].fine = OFF;
-                enc_ppr_response /= 1.4;
-            }
-            else if (user_settings[user_Profile].fine == OFF)
-            {
-                user_settings[user_Profile].fine = ON;
-                enc_ppr_response *= 1.4;
-            }
-            selectStep(0);   //bandmem[curr_band].ant_sw = ON;   
-            displayFine();
-            displayRate();
-            
-            Serial.print("Set Fine to ");
-            Serial.println(user_settings[user_Profile].fine);
-            return;
-        }
-    }
+        if (ptr->show) AGC();
+    // AGC label
+    pLabel = labels + AGC_LBL;
+    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
+        if (pLabel->show) AGC();
 
     // ANT button
     ptr = std_btn + ANT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (bandmem[curr_band].ant_sw== 1)
-                bandmem[curr_band].ant_sw = 2;
-            else if (bandmem[curr_band].ant_sw == 2)
-                bandmem[curr_band].ant_sw = 1;
-            displayANT();
-            Serial.print("Set Ant Sw to ");
-            Serial.println(bandmem[curr_band].ant_sw);
-            return;
-        }
-    }
+        if (ptr->show) Ant();
+    // ANT label
+    pLabel = labels + ANT_LBL;
+    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
+        if (pLabel->show) Ant();
+
+    // MUTE
+    ptr = std_btn + MUTE_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))  
+        if (ptr->show) Mute();
+
+    // MENU button
+    ptr = std_btn + MENU_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Menu();
+
+    // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
+    ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) VFO_AB();
+        
+    struct Frequency_Display *ptrAct  = &disp_Freq[0];   // The frequency display areas itself  
+    if ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))
+        VFO_AB();
+
+    struct Frequency_Display *ptrStby = &disp_Freq[2];   // The frequency display areas itself  
+    if ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh))
+        VFO_AB();
+        
+    // ATTENUATOR button
+    ptr = std_btn + ATTEN_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Atten();
+
+    // PREAMP button
+    ptr = std_btn + PREAMP_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Preamp();
+
+    // RIT button
+    ptr = std_btn + RIT_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) RIT();
     
+    // XIT button
+    ptr = std_btn + XIT_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) XIT();
+    
+    // SPLIT button
+    ptr = std_btn + SPLIT_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Split();
+    
+    // XVTR button
+    ptr = std_btn + XVTR_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Xvtr();
+
+    // ATU button
+    ptr = std_btn + ATU_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) ATU();
+
+    // Fine button
+    ptr = std_btn + FINE_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) Fine();
+
     // XMIT button
     ptr = std_btn + XMIT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].xmit== ON)
-                user_settings[user_Profile].xmit = OFF;
-            else if (user_settings[user_Profile].xmit == OFF)
-                user_settings[user_Profile].xmit = ON;
-            displayXMIT();
-            displayFreq();
-            Serial.print("Set XMIT to ");
-            Serial.println(user_settings[user_Profile].xmit);
-            return;
-        }
-    }
+        if (ptr->show) Xmit();
 
     // NB button
     ptr = std_btn + NB_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].nb_en > NBOFF)
-                user_settings[user_Profile].nb_en = NBOFF;
-            else if (user_settings[user_Profile].nb_en == NBOFF)
-                user_settings[user_Profile].nb_en = NB1;
-            displayNB();
-            Serial.print("Set NB to ");
-            Serial.println(user_settings[user_Profile].nb_en);
-            return;
-        }
-    }
+        if (ptr->show) NB();
      
     // NR button
     ptr = std_btn + NR_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].nr_en > NROFF)
-                user_settings[user_Profile].nr_en = NROFF;
-            else if (user_settings[user_Profile].nr_en == NROFF)
-                user_settings[user_Profile].nr_en = NR1;
-            displayNR();
-            Serial.print("Set NR to ");
-            Serial.println(user_settings[user_Profile].nr_en);
-            return;
-        }
-    }
+       if (ptr->show)  NR();
 
     // Enet button
     ptr = std_btn + ENET_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].enet_output== ON)
-                user_settings[user_Profile].enet_output = OFF;
-            else if (user_settings[user_Profile].enet_output == OFF)
-                user_settings[user_Profile].enet_output = ON;
-            displayEnet();
-            Serial.print("Set Ethernet to ");
-            Serial.println(user_settings[user_Profile].enet_output);
-            return;
-        }
-    }
+        if (ptr->show) Enet();
 
     // Spot button
     ptr = std_btn + SPOT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].spot== ON)
-                user_settings[user_Profile].spot = OFF;
-            else if (user_settings[user_Profile].spot == OFF)
-                user_settings[user_Profile].spot = ON;
-            displaySpot();
-            Serial.print("Set Spot to ");
-            Serial.println(user_settings[user_Profile].spot);
-        // adjust ref Floor   
-        Sp_Parms_Def[spectrum_preset].spect_floor += 5;
-        if (Sp_Parms_Def[spectrum_preset].spect_floor > -130)
-            Sp_Parms_Def[spectrum_preset].spect_floor = -220; 
-        //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
-    
-            return;
-        }
-    }
+        if (ptr->show) Spot();
 
     // Notch button
     ptr = std_btn + NOTCH_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            if (user_settings[user_Profile].notch== ON)
-                user_settings[user_Profile].notch = OFF;
-            else if (user_settings[user_Profile].notch == OFF)
-                user_settings[user_Profile].notch = ON;
-            displayNotch();
-            Serial.print("Set Notch to ");
-            Serial.println(user_settings[user_Profile].notch);
-            return;
-        }
-    }
+        if (ptr->show) Notch();
 
     // BAND UP button
     ptr = std_btn + BANDUP_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            changeBands(1);
-            displayBandUp();
-            Serial.print("Set Band UP to ");
-            Serial.println(bandmem[curr_band].band_num,DEC);
-            return;
-        }
-    }
+        if (ptr->show) BandUp();
 
     // BAND DOWN button
     ptr = std_btn + BANDDN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            Serial.println("BAND DN");
-            changeBands(-1);
-            displayBandDn();
-            Serial.print("Set Band DN to ");
-            Serial.println(bandmem[curr_band].band_num,DEC);
-            return;
-        }
-    }
+        if (ptr->show) BandDn();
     
     // BAND button
     ptr = std_btn + BAND_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {
-            popup = 1;
-            pop_win(1);
-            changeBands(1);  // increment up 1 band for now until the pop up windows buttons and/or MF are working
-            displayBand();
-            Serial.print("Set Band to ");
-            Serial.println(bandmem[curr_band].band_num,DEC);
-            return;
-        }
-    }
+        if (ptr->show) Band();
 
     // DISPLAY button
     ptr = std_btn + DISPLAY_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-    {
-        if (ptr->show)
-        {        
-            if (Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode)
-            {
-                display_state = 0;
-                Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 0;
-            }
-            else 
-            {
-                display_state = 1;
-                Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 1;
-            }
-            popup = 1;
-            pop_win(1);
-            displayDisplay();
-            Serial.print("Set Display Button to ");
-            Serial.println(display_state);
-            return;
-        }
-    }
+        if (ptr->show) Display();
 
     // FN button  - Cycles out a list (panel) of buttons
     ptr = std_btn + FN_BTN;     // pointer to button object passed by calling function
@@ -1017,124 +711,4 @@ void Button_Handler(int16_t x, uint16_t y)
         Spectrum_Parm_Generator(spectrum_preset);  // Generate values for current display (on the fly) or filling in teh ddefauil table for Presets.  value of 0 to PRESETS.
         return;
     }   
-}
-
-// Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
-void Set_Spectrum_Scale(int8_t zoom_dir)
-{
-    Serial.println(zoom_dir);
-    //extern struct Spectrum_Parms Sp_Parms_Def[];    
-    if (Sp_Parms_Def[spectrum_preset].spect_wf_scale > 2.0) 
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale = 0.5;
-    if (Sp_Parms_Def[spectrum_preset].spect_wf_scale < 0.5)
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale = 2.0; 
-    if (zoom_dir == 1)
-    {
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale += 0.1;
-        Serial.println("ZOOM IN");
-    }
-    else
-    {        
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale -= 0.1;
-        Serial.println("ZOOM OUT"); 
-    }
-    Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_scale);
-}
-
-// Use gestures to raise and lower the spectrum reference level relative to the bottom of the window (noise floor)
-void Set_Spectrum_RefLvl(int8_t zoom_dir)
-{
-    Serial.println(zoom_dir);    
-    
-    if (zoom_dir == 1)
-    {
-        Sp_Parms_Def[spectrum_preset].spect_floor -= 10;
-        Serial.print("RefLvl=UP");
-    }        
-    else
-    {
-        Sp_Parms_Def[spectrum_preset].spect_floor += 10;
-        Serial.print("RefLvl=DOWN");
-    }
-    if (Sp_Parms_Def[spectrum_preset].spect_floor < -400)
-        Sp_Parms_Def[spectrum_preset].spect_floor = -400; 
-    if (Sp_Parms_Def[spectrum_preset].spect_floor > 400)
-        Sp_Parms_Def[spectrum_preset].spect_floor = 400;
-}
-//
-//----------------------------------- Skip to Ham Bands only ---------------------------------
-//
-// Increment band up or down from present.   To be used with touch or physical band UP/DN buttons.
-// A alternate method (not in this function) is to use a band button or gesture to do a pop up selection map.  
-// A rotary encoder can cycle through the choices and push to select or just touch the desired band.
-//
-//
-// --------------------- Change bands using database -----------------------------------
-// Returns 0 if cannot change bands
-// Returns 1 if success
-
-void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
-{
-    
-    // TODO search bands column for match toaccount for mapping that does not start with 0 and bands could be in odd order and disabled.
-    //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
-    bandmem[curr_band].vfo_A_last = VFOA;
-    bandmem[curr_band].vfo_B_last = VFOB;
-
-    // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
-    int8_t target_band = bandmem[curr_band + direction].band_num;
-    
-    Serial.print("\nTarget Band is "); Serial.println(target_band);
-
-    if (target_band > BAND9)    // go to bottom band
-        target_band = BAND9;    // 0 is not used
-    if (target_band < BAND0)    // go to top most band  -  
-        target_band = BAND0;    // 0 is not used so do not have to adjsut with a -1 here
-
-    Serial.print("\nCorrected Target Band is "); Serial.println(target_band);    
-  
-//TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
-    RampVolume(0.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-    curr_band = target_band;    // Set out new band
-    VFOA = bandmem[curr_band].vfo_A_last;
-    VFOB = bandmem[curr_band].vfo_B_last;
-    Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
-    delay(20);
-    selectFrequency(0); 
-    selectBandwidth(bandmem[curr_band].filter);
-    selectMode(0);  // no change just set for the active VFO
-    selectStep(0);
-    displayRefresh();
-    selectAgc(bandmem[curr_band].agc_mode);
-    RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-}
-
-void pop_win(uint8_t init)
-{
-    if(init)
-    {
-        popup_timer.interval(300);
-        tft.setActiveWindow(200, 600, 160, 360);
-        tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_GREY);
-        tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
-        tft.setTextColor(RA8875_BLUE);
-        tft.setCursor(CENTER, CENTER, true);
-        tft.print("this is a future keyboard");
-        delay(1000);
-        tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_ORANGE);
-        tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
-        tft.setCursor(CENTER, CENTER, true);
-        tft.print("Thanks for watching, GoodBye!");
-        delay(600);
-        popup = 0;
-   // }
-   // else 
-   // {
-        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_BLACK);
-        tft.setActiveWindow();
-        popup = 0;   // resume our normal schedule broadcast
-        popup_timer.interval(65000);
-        drawSpectrumFrame(user_settings[user_Profile].sp_preset);
-        displayRefresh();
-    }
 }

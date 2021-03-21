@@ -56,6 +56,9 @@ void Peak()
 		else 
 			sprintf(string,"      S-9+%02.0f",dbuv);
 		
-		tft.ringMeter(s, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);		
+		if (user_settings[user_Profile].enet_enabled)
+			tft.ringMeter(s, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
+		else
+			tft.ringMeter(s, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);  // move it up a bit since there is no clock
 	}
 }

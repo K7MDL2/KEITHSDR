@@ -122,8 +122,8 @@ int16_t spectrum_preset         = 0;   // <<<==== Set this value.  Range is 0-PR
 // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
 int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-int16_t spectrum_y              = 135;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-int16_t spectrum_height         = 274;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+int16_t spectrum_y              = 139;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+int16_t spectrum_height         = 270;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
 int16_t spectrum_center         = 40;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
 int16_t spectrum_width          = 800;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
@@ -183,7 +183,7 @@ struct Spectrum_Parms {
     int16_t spect_wf_rate;    // Used by external timer to control refresh rate for this layout. drawSpectrumFRame() will read this and set the timer
 } Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
     //W        LE  RE  CG                                            x   y   w  h  x  sp st clr sc mode scal reflvl
-    {796,2, 2,  2,798,400,14,8,139,161,161,408,400, 95,144,256,256,  0,135,800,274,40,20,5,440,1.0,0.9,0,40,-170,100},
+    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,5,440,1.0,0.9,0,40,-180, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
     {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25,2,310,1.7,0.9,0,60,-180,100},    //smaller centered
@@ -242,7 +242,6 @@ void spectrum_update(int16_t s)
      extern uint8_t tx_buffer[];
     #endif
     
-
     if (myFFT.available()) 
     {     
         #ifdef ENET
@@ -887,6 +886,7 @@ void Spectrum_Parm_Generator(int16_t parm_set)
     ptr->spect_dot_bar_mode  = spectrum_dot_bar_mode;
     ptr->spect_sp_scale      = spectrum_sp_scale;
     ptr->spect_floor         = spectrum_floor;
+    ptr->spect_wf_rate       = spectrum_wf_rate;
   
 // print out results to the serial terminal for manual copy into the default table.  This is 1 set of data only, for each run.  
 // Change the globals and run again for a new set

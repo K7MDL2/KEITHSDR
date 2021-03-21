@@ -17,6 +17,7 @@ void draw_2_state_Button(uint8_t button, uint8_t *function_ptr);
 void refreshScreen(void);
 const char * formatVFO(uint32_t vfo);
 void displayTime(void);
+void drawLabel(uint8_t lbl_num, uint8_t *function_ptr);
 
 int displayColor = RA8875_LIGHT_GREY;
 int textcolor = tft.Color565(128, 128, 128);
@@ -50,7 +51,7 @@ void displayFreq(void)
 	
 	// Put a box around the VFO section (use BLACK to turn it off)
 	//tft.drawRect(pVAct->bx-1, pVAct->by-1, pVAct->bw+2, pVAct->bh+pVStby->bh+4, pVAct->box_clr);
-	tft.drawLine(0, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE);
+	tft.drawLine(0, pVAct->bh+pVStby->bh+10, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+10, RA8875_LIGHT_ORANGE);
 	//tft.drawRect(0, 15, 192, 65, RA8875_LIGHT_ORANGE);
 	
 	// Draw Active VFO box and Label
@@ -114,304 +115,137 @@ void displayFreq(void)
 
 void displayMode(void)
 {
-	char m_str[10];
 	uint8_t mode;
-	uint16_t x = 10;
-	uint16_t y = 110;
-	uint16_t w = 60;
-	uint16_t h = 20;
 
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	tft.setTextColor(RA8875_LIGHT_ORANGE);
 	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
 		mode = bandmem[curr_band].mode_A;
 	else 
 		mode = bandmem[curr_band].mode_B;
-	sprintf(m_str, "%s", Mode[mode]);
-	tft.print(m_str);    // use MODE{band][mode] to retrieve the text}
-	//sprintf(m_str, "M:%s", Mode[mode]);
-	//strcpy(std_btn[MODE_BTN].label, m_str);
+	//sprintf(std_btn[MODE_BTN].label, "%s", Mode[mode]);
+	sprintf(labels[MODE_LBL].label, "%s", Mode[mode]);
+	drawLabel(MODE_LBL, &mode);
 	draw_2_state_Button(MODE_BTN, &mode);
 }
 
 void displayFilter(void)
 {
-	char filt_str[10];
-	uint16_t x = 80;
-	uint16_t y = 110;
-	uint16_t w = 100;
-	uint16_t h = 20;
+	char str[15];
 
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	tft.setTextColor(RA8875_LIGHT_ORANGE);	
-	sprintf(filt_str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);
-	tft.print(filt_str);
-	//sprintf(std_btn[FILTER_BTN].label, "F:%s", filter[bandmem[curr_band].filter].Filter_name);
-	Serial.print("Tune Rate is "); Serial.println(filt_str);
+	sprintf(str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
+	Serial.print("Tune Rate is "); Serial.println(str);	
+	sprintf(labels[FILTER_LBL].label, "%s", str);
+	drawLabel(FILTER_LBL, &bandmem[curr_band].filter);
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
 }
 
 void displayRate(void)
-{
-	char r_str[15];
-	uint16_t x = 190;
-	uint16_t y = 110;
-	uint16_t w = 90;
-	uint16_t h = 20;
-
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2);
-	tft.setTextColor(RA8875_LIGHT_ORANGE);
-	sprintf(r_str, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);
-	tft.print(r_str);
-	//sprintf(std_btn[RATE_BTN].label, "R:%s", tstep[bandmem[curr_band].tune_step].ts_name);
-	Serial.print("Tune Rate is "); Serial.println(r_str);
+{	
+	sprintf(labels[RATE_LBL].label, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
+	Serial.print("Tune Rate is "); Serial.println(labels[RATE_LBL].label);
+	drawLabel(RATE_LBL, &bandmem[curr_band].tune_step);
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);
+}
+
+void displayAgc(void)
+{	
+	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
+	sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
+	Serial.print("AGC ="); Serial.println(std_btn[AGC_BTN].label);
+	drawLabel(AGC_LBL, &bandmem[curr_band].agc_mode);
+	draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
+}
+
+void displayANT(void)
+{	
+	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
+	sprintf(labels[ANT_LBL].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
+	Serial.print("Antenna Switch set to "); Serial.println(std_btn[ANT_BTN].label);
+	drawLabel(ANT_LBL, &bandmem[curr_band].ant_sw);
+	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
 
 void displayAttn()
 {
-	uint16_t x = 296;
-	uint16_t y = 110;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (bandmem[curr_band].attenuator)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[ATTEN_BTN].label, "%s", "ATT");
-	tft.print(std_btn[ATTEN_BTN].label);
 	Serial.print("Atten is "); Serial.println(bandmem[curr_band].attenuator);
+	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
 
 void displayPreamp()
 {
-	uint16_t x = 358;
-	uint16_t y = 110;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (bandmem[curr_band].preamp)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[PREAMP_BTN].label, "%s", "PRE");
-	tft.print(std_btn[PREAMP_BTN].label);
 	Serial.print("Preamp is "); Serial.println(bandmem[curr_band].preamp);
+	drawLabel(PREAMP_LBL, &bandmem[curr_band].preamp);
 	draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
-}
-
-void displayANT()
-{
-	uint16_t x = 424;
-	uint16_t y = 110;
-	uint16_t w = 60;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	tft.setTextColor(RA8875_LIGHT_ORANGE);
-	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
-	tft.print(std_btn[ANT_BTN].label);
-	Serial.print("Antenna Switch set to "); Serial.println(std_btn[ANT_BTN].label);
-	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
 
 void displayATU()
 {
-	uint16_t x = 494;
-	uint16_t y = 110;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (bandmem[curr_band].ATU)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[ATU_BTN].label, "%s", "ATU");
-	tft.print(std_btn[ATU_BTN].label);
 	Serial.print("ATU is "); Serial.println(bandmem[curr_band].ATU);
+	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
-}
-
-void displayAgc(void)
-{
-	uint16_t x = 554;
-	uint16_t y = 110;
-	uint16_t w = 70;
-	uint16_t h = 20;
-
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	tft.setTextColor(RA8875_LIGHT_ORANGE);
-	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
-	tft.print(std_btn[AGC_BTN].label);
-	Serial.print("AGC ="); Serial.println(std_btn[AGC_BTN].label);
-	draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
 }
 
 void displayRIT()
 {
-	uint16_t x = 10;
-	uint16_t y = 50; //75;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (bandmem[curr_band].RIT_en)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[RIT_BTN].label, "%s", "RIT");
-	tft.print(std_btn[RIT_BTN].label);
 	Serial.print("RIT is "); Serial.println(bandmem[curr_band].RIT_en);
+	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
 }
 
 void displayXIT()
 {
-	uint16_t x = 70;
-	uint16_t y = 50; //75;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (bandmem[curr_band].XIT_en)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[XIT_BTN].label, "%s", std_btn[XIT_BTN].label);
-	tft.print(std_btn[XIT_BTN].label);
 	Serial.print("XIT is "); Serial.println(bandmem[curr_band].XIT_en);
+	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
 }
 
 void displayFine()
 {
-	uint16_t x = 136;
-	uint16_t y = 50; //75;
-	uint16_t w = 45;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (user_settings[user_Profile].fine)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[FINE_BTN].label, "%s", std_btn[FINE_BTN].label);
-	tft.print(std_btn[FINE_BTN].label);
 	Serial.print("Fine Tune is "); Serial.println(user_settings[user_Profile].fine);
+	drawLabel(FINE_LBL, &user_settings[user_Profile].fine);
 	draw_2_state_Button(FINE_BTN,  &user_settings[user_Profile].fine);
 }
 
-void displaySplit()
-{
-	char sp_label[15];
-	uint16_t x = 220;
-	uint16_t y = 63;
-	uint16_t w = 90;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (bandmem[curr_band].split)
-	{
-		tft.setTextColor(RA8875_GREEN);
-		sprintf(sp_label, "%s %s",  std_btn[SPLIT_BTN].label, ">>>");
-	}
-	else
-	{
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-		sprintf(sp_label, "%s %s", std_btn[SPLIT_BTN].label, "Off");
-	}
-	tft.print(sp_label);
-	Serial.print("Split is "); Serial.println(bandmem[curr_band].split);
-	draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
-}
-
 void displayNB()
-{
-	uint16_t x = 10;
-	uint16_t y = 25; //45;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (user_settings[user_Profile].nb_en)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[NB_BTN].label, "%s%1d", "NB", user_settings[user_Profile].nb_en);
-	tft.print(std_btn[NB_BTN].label);
+{;
 	Serial.print("NB is "); Serial.println(user_settings[user_Profile].nb_en);
+	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }
 
 void displayNR()
 {
-	uint16_t x = 70;
-	uint16_t y = 25; //45;
-	uint16_t w = 40;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (user_settings[user_Profile].nr_en)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[NR_BTN].label, "%s%1d", "NR", user_settings[user_Profile].nr_en);
-	tft.print(std_btn[NR_BTN].label);
 	Serial.print("NR is "); Serial.println(user_settings[user_Profile].nr_en);
+	drawLabel(NR_LBL, &user_settings[user_Profile].nr_en);
 	draw_2_state_Button(NR_BTN, &user_settings[user_Profile].nr_en);
 }
 
 void displayNotch()
 {
-	uint16_t x = 130;
-	uint16_t y = 25; //45;
-	uint16_t w = 50;
-	uint16_t h = 20;
-	
-	tft.fillRect(x, y, w, h, RA8875_BLACK);
-	tft.setFont(Arial_14);
-	tft.setCursor(x+1, y+2 );
-	if (user_settings[user_Profile].notch)
-		tft.setTextColor(RA8875_GREEN);
-	else
-		tft.setTextColor(RA8875_LIGHT_ORANGE);
-	//sprintf(std_btn[NOTCH_BTN].label, "%s%1d", "NTCH", user_settings[user_Profile].notch);
-	tft.print(std_btn[NOTCH_BTN].label);
 	Serial.print("Notch is "); Serial.println(std_btn[NOTCH_BTN].label);
+	drawLabel(NOTCH_LBL, &user_settings[user_Profile].notch);
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
+}
+
+void displaySplit()
+{
+	char sp_label[15];
+
+	if (bandmem[curr_band].split)
+	{
+		tft.setTextColor(RA8875_GREEN);
+		sprintf(sp_label, "%s %s",  std_btn[SPLIT_BTN].label, ">>>");
+		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
+	}
+	else
+	{
+		tft.setTextColor(myDARKGREY);
+		sprintf(sp_label, "%s %s", std_btn[SPLIT_BTN].label, "Off");
+		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
+	}
+	Serial.print("Split is "); Serial.println(bandmem[curr_band].split);
+	drawLabel(SPLIT_LBL, &bandmem[curr_band].split);
+	draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
 }
 
 void displayTime(void)
@@ -445,33 +279,69 @@ void displayEnet(){draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].en
 //
 //  Usage:  The structure table has teh button properties.  Just pass the index and state.
 //
-//  Notes:  Only handles 2 states today.  
-//
-// TODO: change to handle multiple states such as RF gain, AF gain, or triple state, maybe info text like level.  Could be a new function.
+//  Notes:  Default is to handle 2 states today. However, the control function can change the buttom text
+//			and set a value in the button's enabled field to track states.
 //
 void draw_2_state_Button(uint8_t button, uint8_t *function_ptr) 
 {
     struct Standard_Button *ptr = std_btn + button;     // pointer to button object passed by calling function
 	
-	//if(ptr->enabled == 0)
-	if(ptr->show == 0)
-		return;
-
-	if(*function_ptr > 0)
+	if(ptr->show)
 	{
-		tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->on_color);
+		if(*function_ptr > 0)
+			tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->on_color);		
+		else  //(*function_ptr == 0)		
+			tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh, ptr->br, ptr->off_color );					
 		tft.drawRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->outline_color);
-	}	
-	else  //(*function_ptr == 0)
-    {
-  	    tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh, ptr->br, ptr->off_color );
-		tft.drawRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->outline_color);
-    }
-    tft.setTextColor(ptr->txtclr);
-	tft.setFont(Arial_18);
-	tft.setTextColor(ptr->txtclr); 
-    tft.setCursor(ptr->bx+ptr->padx,ptr->by+ptr->pady);
-    tft.print(ptr->label);
+		tft.setTextColor(ptr->txtclr);
+		if (button == UTCTIME_BTN)
+			tft.setFont(Arial_16);
+		else
+			tft.setFont(Arial_18);
+		tft.setTextColor(ptr->txtclr); 
+		tft.setCursor(ptr->bx+ptr->padx,ptr->by+ptr->pady);
+		tft.print(ptr->label);
+	}
+}
+
+void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
+{
+	struct Label *plabel = labels + lbl_num;
+
+	if (plabel->show)
+	{
+		if(*function_ptr > 0)
+		{
+			tft.fillRoundRect(plabel->x,plabel->y,plabel->w,plabel->h,plabel->r,plabel->on_color);
+			tft.setTextColor(plabel->on_txtclr); 
+		}
+		else
+		{
+			tft.fillRoundRect(plabel->x,plabel->y,plabel->w,plabel->h,plabel->r,plabel->off_color);	
+			tft.setTextColor(plabel->off_txtclr); 
+		}
+		tft.drawRoundRect(plabel->x,plabel->y,plabel->w,plabel->h,plabel->r,plabel->outline_color);	
+		tft.setFont(Arial_14);
+		tft.setCursor(plabel->x+plabel->padx, plabel->y+plabel->pady);
+		tft.print(plabel->label);
+	}
+	return;
+}
+
+//
+//    formatVFO()
+//
+const char* formatVFO(uint32_t vfo)
+{
+	static char vfo_str[25];
+	
+	uint16_t MHz = (vfo/1000000 % 1000000);
+	uint16_t Hz  = (vfo % 1000);
+	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
+	sprintf(vfo_str, "%6d.%03d.%03d", MHz, KHz, Hz);
+	//sprintf(vfo_str, "%13s", "45.123.123");
+	//Serial.print("New VFO: ");Serial.println(vfo_str);
+	return vfo_str;
 }
 
 //
@@ -515,22 +385,5 @@ void displayRefresh(void)
 	displayFine();
 	displayDisplay();
 	displaySplit();
-	//displayEnet();	
+	//displayEnet();
 }
-
-//
-//    formatvfo()
-//
-const char* formatVFO(uint32_t vfo)
-{
-	static char vfo_str[25];
-	
-	uint16_t MHz = (vfo/1000000 % 1000000);
-	uint16_t Hz  = (vfo % 1000);
-	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
-	sprintf(vfo_str, "%6d.%03d.%03d", MHz, KHz, Hz);
-	//sprintf(vfo_str, "%13s", "45.123.123");
-	//Serial.print("New VFO: ");Serial.println(vfo_str);
-	return vfo_str;
-}
-

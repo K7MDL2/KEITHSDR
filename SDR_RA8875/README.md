@@ -2,7 +2,6 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
-
 ## 3/20-21/2021
 
     1.Improved Spectrum performance a bit in a few ways. 
@@ -12,7 +11,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     2. Added a "Starting Network" message in noticeable Blue text in the space the clock will occupy once it gets started up. The network startup takes several seconds to initialize so the spectrum is blank during this wait.
     3.  Moved the waterfall update rate timer into Spectrum_RA8875,h file and the setting into the spectrum layout record so each layout can have its optimum speed. Smaller size plots take less draw time permitting faster update rates.
     4. Removed severa spectrum layout records.  Will resize the remaining ones. These may be use for spot zooms in a small window.
-    5. More button tweaks.
+    5. More button tweaks.  Moved some lavbels around, changed to dark grey when inactive.
+    6. S-Meter will now move up a bit to fill in the void space some if there is no clock displayed
+    7. Remodeled the UserInput.h to sperate touch event and functions to permit hardware or other events to trigger activity on a feature or device. 
+    8. New label table structure to remove hard coded params form display buttons functions. Also enables Labels to be scanned for touch events when it makes sense.
 
 ## 3/20/2021
 

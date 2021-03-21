@@ -53,6 +53,7 @@
 #include "Smeter.h"
 #include "CW_Tune.h"
 #include "Quadrature.h"
+#include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 
 // Audio Library setup stuff

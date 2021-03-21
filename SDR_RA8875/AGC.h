@@ -11,5 +11,5 @@ void selectAgc(uint8_t andx)
     	andx = AGC_SET_NUM - 1;		// Cycle around
 		
   	bandmem[curr_band].agc_mode = andx;
- 	displayAgc();
+ 	//displayAgc();
 }

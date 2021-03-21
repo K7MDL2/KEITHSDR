@@ -113,5 +113,5 @@ void selectBandwidth(int bndx)
     Serial.print("Filter Set to ");
     Serial.println(filter[bandmem[curr_band].filter].Filter_name);
     
-    displayFilter();
+    //displayFilter();
 }

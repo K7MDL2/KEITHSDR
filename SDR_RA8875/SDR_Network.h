@@ -219,10 +219,10 @@ void enet_start(void)
 	}
 	else
 	{
-		delay(1000);
+		//delay(1000);
 		Serial.print("Ethernet Address = ");
 		Serial.println(Ethernet.localIP());
-		delay(5000);
+		//delay(4000);
 		if (Ethernet.linkStatus() == LinkOFF) 
 		{
 			Serial.println("Ethernet cable is not connected.");
@@ -231,7 +231,7 @@ void enet_start(void)
 		else
 		{  
 			enet_ready = 1;
-			delay(100);
+			//delay(100);
 			Serial.println("Ethernet cable connected.");
 			// start UDP
 			Udp.begin(localPort); // Startup our SDR comms
