@@ -266,7 +266,6 @@ void Gesture_Handler(uint8_t gesture)
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {                
                     Rate(-1);
-                    //selectStep(-1);
                     Serial.println("Swiped Left");                                           
                     return; 
                 }
@@ -274,7 +273,6 @@ void Gesture_Handler(uint8_t gesture)
                 else  // or larger so a Swipe Right
                 {
                     Rate(1);
-                    //selectStep(1);
                     Serial.println("Swiped Right");             
                     return;    
                 }
@@ -391,11 +389,11 @@ void Button_Handler(int16_t x, uint16_t y)
     // FILTER button
     ptr = std_btn + FILTER_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-       if (ptr->show) Filter(); 
+       if (ptr->show) Filter(0); 
     // FILTER label
     pLabel = labels + FILTER_LBL;
     if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) Filter();  
+        if (pLabel->show) Filter(0);  
 
     // RATE button
     ptr = std_btn + RATE_BTN;     // pointer to button object passed by calling function        
