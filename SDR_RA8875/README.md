@@ -10,11 +10,14 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
         c. Tweaked plot averaging rules to prevent out of array bounds reads of FFT data.
     2. Added a "Starting Network" message in noticeable Blue text in the space the clock will occupy once it gets started up. The network startup takes several seconds to initialize so the spectrum is blank during this wait.
     3.  Moved the waterfall update rate timer into Spectrum_RA8875,h file and the setting into the spectrum layout record so each layout can have its optimum speed. Smaller size plots take less draw time permitting faster update rates.
-    4. Removed severa spectrum layout records.  Will resize the remaining ones. These may be use for spot zooms in a small window.
-    5. More button tweaks.  Moved some lavbels around, changed to dark grey when inactive.
-    6. S-Meter will now move up a bit to fill in the void space some if there is no clock displayed
-    7. Remodeled the UserInput.h to sperate touch event and functions to permit hardware or other events to trigger activity on a feature or device. 
-    8. New label table structure to remove hard coded params form display buttons functions. Also enables Labels to be scanned for touch events when it makes sense.
+    4. Removed several spectrum layout records. Will resize the remaining ones. These may be use for spot zooms in a small window.
+    5. More button tweaks. Moved some labels around, changed to dark grey when inactive.
+    6. S-Meter will now move up a bit to fill in the void space if there is no clock displayed
+    7. Remodeled the UserInput.h to separate touch event and functions to permit hardware or other events to trigger activity on a feature or device. 
+    8. Created new Controls.h to move out control code from the touch and gesture code. Touch, Gesture, other functions and mechanical devices likes encoders and switches can now call the functons in Control.h to change a setting and the buttons (if showing) and labels are updated automatically.
+    9. New label table structure to remove hard coded params from display buttons/label functions. Also enables Labels to be scanned for touch events
+    10. Fixed 1/10Hz issue Rate key.
+    11. The lower line of status labels are self-updating type, always on and are touch enabled in case their button (key) is not showing in the current panel.  They have enough space aroud them to be "touchable" though they are stil small. I have them set to a variety of colors to see what looks good. Soem change color.  Try all the buttons and see what happens.  Preamp is a background example.   Cyan (used on Filter) is like a strong flashlight in your eyes.
 
 ## 3/20/2021
 
