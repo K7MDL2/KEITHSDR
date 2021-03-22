@@ -2,7 +2,7 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
-3/21-22/2021
+## 3/21-22/2021
 
     1.Moved step increment/decrement control into Rate() function.  Left old step.h thinned down to set the tune rate directly in the database and call display. 
     2. Moved filter increment/decrement control into Filter() function.  It calls select bandwidth() in bandwidth2.h as before which now has the increment and database logic I inserted some time back removed. It now moves the value upwards then downwards and back upwards like the rate key does.
