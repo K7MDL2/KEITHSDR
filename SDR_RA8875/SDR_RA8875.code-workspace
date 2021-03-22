@@ -14,7 +14,14 @@
 		},
 		"C_Cpp.default.includePath": [],
 		"files.associations": {
-			"functional": "cpp"
+			"functional": "cpp",
+			"array": "cpp",
+			"deque": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp",
+			"initializer_list": "cpp"
 		}
 	}
 }

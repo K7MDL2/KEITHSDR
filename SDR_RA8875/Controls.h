@@ -9,6 +9,12 @@
 //      The control object changes (or requests to change) states, the display only scans and reports the state.
 //      It becomes importan to pass through this as remote control and monitoring get built.
 
+// Using the SV1AFN Band Pass Filter board with modified I2C library for Premp, Attenuator, and for 10 HF bands of BPFs
+//#include "SVN1AFN_BandpassFilters.h>""
+#ifdef SV1AFN_BPF
+  extern SVN1AFN_BandpassFilters bpf;
+#endif
+
 extern uint8_t curr_band;   // global tracks our current band setting.  
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
@@ -52,6 +58,7 @@ void RIT();
 void Preamp();
 void Atten();
 void VFO_AB();
+void PAtten_Set(uint8_t atten);
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 void Set_Spectrum_Scale(int8_t zoom_dir)
@@ -118,23 +125,23 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
     int8_t target_band = bandmem[curr_band + direction].band_num;
     
-    Serial.print("\nTarget Band is "); Serial.println(target_band);
+    Serial.print("Target Band is "); Serial.println(target_band);
 
     if (target_band > BAND9)    // go to bottom band
         target_band = BAND9;    // 0 is not used
     if (target_band < BAND0)    // go to top most band  -  
         target_band = BAND0;    // 0 is not used so do not have to adjsut with a -1 here
 
-    Serial.print("\nCorrected Target Band is "); Serial.println(target_band);    
+    Serial.print("Corrected Target Band is "); Serial.println(target_band);    
   
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     RampVolume(0.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     curr_band = target_band;    // Set out new band
-    VFOA = bandmem[curr_band].vfo_A_last;
+    VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
     VFOB = bandmem[curr_band].vfo_B_last;
     Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
-    delay(20);
-    selectFrequency(0); 
+    delay(20);  // small delay for audio ramp to work
+    selectFrequency(0);  // change band and preselector
     selectBandwidth(bandmem[curr_band].filter);
     selectMode(0);  // no change just set for the active VFO
     Rate(0);
@@ -257,8 +264,6 @@ void Rate(int swiped)
     static int direction = 1;
 	int _fndx = bandmem[curr_band].tune_step;
 
-Serial.println(_fndx);
-
 	if (user_settings[user_Profile].fine == 0)
 	{
 		// 1. Limit to allowed step range
@@ -291,13 +296,10 @@ Serial.println(_fndx);
 		bandmem[curr_band].tune_step = 1;    // normally swiped is +1 or -1
 	else if (user_settings[user_Profile].fine && swiped == 0)
 	{
-Serial.println(_fndx);
 		if (_fndx > 0)
 			_fndx = 0;			
 		else
 			_fndx = 1;
-Serial.println(_fndx);
-
 		bandmem[curr_band].tune_step = _fndx;
 	}
 	else 
@@ -379,6 +381,9 @@ void Atten()
         bandmem[curr_band].attenuator = ATTEN_OFF;
     else if (bandmem[curr_band].attenuator == ATTEN_OFF)
         bandmem[curr_band].attenuator = ATTEN_ON;
+    #ifdef SV1AFN_BPF
+      bpf.setAttenuator((bool) bandmem[curr_band].attenuator);
+    #endif
     displayAttn();
     Serial.print("Set Attenuator to ");
     Serial.println(bandmem[curr_band].attenuator);
@@ -391,6 +396,9 @@ void Preamp()
         bandmem[curr_band].preamp = PREAMP_OFF;
     else if (bandmem[curr_band].preamp == PREAMP_OFF)
         bandmem[curr_band].preamp = PREAMP_ON;
+    #ifdef SV1AFN_BPF
+      bpf.setPreamp((bool) bandmem[curr_band].preamp);
+    #endif
     displayPreamp();
     Serial.print("Set Preamp to ");
     Serial.println(bandmem[curr_band].preamp);
@@ -619,4 +627,69 @@ void Display()
     displayDisplay();
     Serial.print("Set Display Button to ");
     Serial.println(display_state);
+}
+
+/*******************************************************************************
+* Function Name: PAtten_Set
+********************************************************************************
+*
+* Summary:
+* Main function performs following functions:
+* 1: Configures the solid state atenuator by shifitng 16 bit of address and atten in LSB first.
+* 
+* Parameters:
+*  None.
+*
+* Return:
+*  None.
+*
+*******************************************************************************/
+void PAtten_Set(uint8_t atten)
+{
+    uint8_t   i;
+    char    atten_str[17] = {'\0'};
+    char    atten_str1[17] = {'\0'};
+    char    atten_data[17] = {'\0'};
+    char    addr[17] = {"00000000\0"};   /*   Board is fixed at addr = 000 */
+    
+    /* atten = CfgTblArr[Band_in_Use].Attenuator_dB;  */
+    if(atten > 31) 
+        atten = 31;
+    if(atten <= 0)
+        atten = 0;
+    atten = atten * 4;
+    /* Convert to 8 bits of  0 and 1 format */
+    itoa(atten, atten_str, 2);
+    
+    /* pad with leading 0s as needed */
+    for(i=0;(i<8-strlen(atten_str));i++)
+    {
+        atten_str1[i]='0';
+    }
+    strncat(atten_str1, atten_str, strlen(atten_str));
+    
+    /* Now build the string, address byte on left, atten byte on right (LSB) */
+    strncat(atten_data, addr, 8);
+    strncat(atten_data, atten_str1, 8);
+          
+    /*  LE = 0 to allow writing data into shift register */
+    //PAtten_LE_Write(0);
+    
+    /*  Now loop for 16 bits, set data on Data pin and toggle Clock pin.  
+        Start with the LSB first so start at the end of the string  */    
+    for(i=16;i>0;--i)
+    {
+        //PAtten_Data_Write(atten_data[i-1]-48);   /*  convert ascii 0 or 1 to decimal 0 or 1 */
+        //PAtten_Clock_Write(1);
+        delay(1);
+        //PAtten_Clock_Write(0); 
+        delay(1);
+    }
+    
+    /*  Toggle LE pin to latch the data and set the new attenuation value in the hardware (chip = Perigrine PE43703)  */
+    //PAtten_LE_Write(1);
+    delay(1);
+    //PAtten_LE_Write(0);
+    
+    return;    
 }

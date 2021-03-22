@@ -289,17 +289,17 @@ void draw_2_state_Button(uint8_t button, uint8_t *function_ptr)
 	if(ptr->show)
 	{
 		if(*function_ptr > 0)
-			tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->on_color);		
+			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->on_color);		
 		else  //(*function_ptr == 0)		
-			tft.fillRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh, ptr->br, ptr->off_color );					
-		tft.drawRoundRect(ptr->bx,ptr->by,ptr->bw,ptr->bh,ptr->br,ptr->outline_color);
+			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color );					
+		tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
 		tft.setTextColor(ptr->txtclr);
 		if (button == UTCTIME_BTN)
 			tft.setFont(Arial_16);
 		else
 			tft.setFont(Arial_18);
 		tft.setTextColor(ptr->txtclr); 
-		tft.setCursor(ptr->bx+ptr->padx,ptr->by+ptr->pady);
+		tft.setCursor(ptr->bx+ptr->padx, ptr->by+ptr->pady);
 		tft.print(ptr->label);
 	}
 }
@@ -312,15 +312,15 @@ void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
 	{
 		if(*function_ptr > 0)
 		{
-			tft.fillRoundRect(plabel->x,plabel->y,plabel->w,plabel->h,plabel->r,plabel->on_color);
+			tft.fillRoundRect(plabel->x, plabel->y, plabel->w, plabel->h, plabel->r, plabel->on_color);
 			tft.setTextColor(plabel->on_txtclr); 
 		}
 		else
 		{
-			tft.fillRoundRect(plabel->x,plabel->y,plabel->w,plabel->h,plabel->r,plabel->off_color);	
+			tft.fillRoundRect(plabel->x, plabel->y, plabel->w, plabel->h, plabel->r, plabel->off_color);	
 			tft.setTextColor(plabel->off_txtclr); 
 		}
-		tft.drawRoundRect(plabel->x,plabel->y,plabel->w,plabel->h,plabel->r,plabel->outline_color);	
+		tft.drawRoundRect(plabel->x,plabel->y, plabel->w, plabel->h, plabel->r, plabel->outline_color);	
 		tft.setFont(Arial_14);
 		tft.setCursor(plabel->x+plabel->padx, plabel->y+plabel->pady);
 		tft.print(plabel->label);

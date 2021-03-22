@@ -20,6 +20,12 @@
 void setup()
 {
     Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
+    #ifdef SV1AFN_BPF
+      bpf.begin(0, &Wire);
+      bpf.setBand(HFNone);
+      bpf.setPreamp(false);
+      bpf.setAttenuator(false);
+    #endif
     tft.begin(RA8875_800x480);
     tft.setRotation(0);
 #if defined(USE_FT5206_TOUCH)
@@ -41,7 +47,7 @@ void setup()
     //================================================ Frequency Set =============================================================
     //
     initVfo(); // initialize the si5351 vfo
-    selectFrequency(0);
+    changeBands(0);   // Sets the last used band and frequencies, set preselector, avtive VFO, other last-used settings per band.
     selectMode(0);
     selectAgc(bandmem[curr_band].agc_mode);
     displayAgc();

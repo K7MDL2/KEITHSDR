@@ -5,7 +5,9 @@ extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
-
+#ifdef SV1AFN_BPF
+  extern SVN1AFN_BandpassFilters bpf;
+#endif
 static const uint32_t topFreq = 54000000;  // sets receiver upper  frequency limit 30 MHz
 static const uint32_t bottomFreq = 1000000; // sets the receiver lower frequency limit 1.6 MHz
 
@@ -40,6 +42,20 @@ void selectFrequency(int32_t newFreq)
 		VFOB = Freq;
 		bandmem[curr_band].vfo_B_last = VFOB;
 	}
+
+	#ifdef SV1AFN_BPF
+	if (Freq < bandmem[curr_band].edge_lower || Freq > bandmem[curr_band].edge_upper)
+	{
+		//Serial.print("BPF Set to "); Serial.println("Bypassed");  
+      	bpf.setBand(HFBand(HFBypass));
+	}
+	else
+	{
+		//Serial.print("BPF Set to "); Serial.println(bandmem[curr_band].preselector);  
+      	bpf.setBand(HFBand(bandmem[curr_band].preselector));
+	}
+	#endif
+
     displayFreq(); // show freq on display
     SetFreq(Freq); // send freq to SI5351
 }

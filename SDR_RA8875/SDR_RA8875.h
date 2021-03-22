@@ -36,8 +36,10 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
 #include <TimeLib.h>
-//#include <SVN1AFN_BandpassFilters.h>
-
+#define SV1AFN_BPF
+#ifdef SV1AFN_BPF
+  #include <SVN1AFN_BandpassFilters.h>
+#endif
 // Below are local project files
 #include "RadioConfig.h"        // Majority of declarations here
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
@@ -55,6 +57,11 @@
 #include "Quadrature.h"
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
+
+#ifdef SV1AFN_BPF
+SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
+// For 60M coverage requires and updated libary file set.
+#endif
 
 // Audio Library setup stuff
 //const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
@@ -156,7 +163,7 @@ AudioControlSGTL5000    codec1;
 uint8_t     curr_band   = BAND4;    // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
-int32_t     Fc          = 150;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+int32_t     Fc          = 64;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];
