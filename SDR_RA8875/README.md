@@ -12,6 +12,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4. Added SV1AFN Bandpass Filter board (aka Preselector board) library to the repository, updated to support the 60M band. It allows I2C control via a MCP23017 I2C Port Expander module.  Preamp, Attenuator and of course 10 bands worth of band pass filters.  The Control.h, Preamp() and Atten() talk to the BPF board.  Working good after a rough start with some I2C bus issues.  Ran I2C scanner and power cycled and things cleared up. Something to monitor.
     5. SelectFrequency() now monitors for band edges and will BYPASS the BPFs when tuned outside the ham bands.
     6. Comment out "#define SV1AFN_BPF" in the SDR_8875.h file to exclude all code related to the Bandpass filter board in case of any side effects if you do not have a board connected.
+    7. Staged PAtten_Set() function in Controls.h for the PE4302 programmable attenuator. Need to map it to IO pins TBD.
 
 ## 3/20-21/2021
 
