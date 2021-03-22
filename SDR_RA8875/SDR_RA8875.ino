@@ -21,7 +21,7 @@ void setup()
 {
     Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
     #ifdef SV1AFN_BPF
-      bpf.begin(0, &Wire);
+      bpf.begin();
       bpf.setBand(HFNone);
       bpf.setPreamp(false);
       bpf.setAttenuator(false);
