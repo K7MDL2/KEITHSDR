@@ -19,7 +19,7 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-//#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
 #ifdef OCXO_10MHZ
  #define USE_ENET_PROFILE       // This is inserted here to conventiaenly turn on ethernet profile for me using 1 setting.
  #define REMOTE_OPS             // Turn on Remote_Ops ethernet write feature for remote control head dev work.
@@ -36,7 +36,7 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
 #include <TimeLib.h>
-//#define SV1AFN_BPF
+#define SV1AFN_BPF
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
 #endif
@@ -163,7 +163,7 @@ AudioControlSGTL5000    codec1;
 uint8_t     curr_band   = BAND4;    // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
-int32_t     Fc          = 132;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];

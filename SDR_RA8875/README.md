@@ -13,6 +13,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     5. SelectFrequency() now monitors for band edges and will BYPASS the BPFs when tuned outside the ham bands.
     6. Comment out "#define SV1AFN_BPF" in the SDR_8875.h file to exclude all code related to the Bandpass filter board in case of any side effects if you do not have a board connected.
     7. Staged PAtten_Set() function in Controls.h for the PE4302 digital step attenuator. Need to map it to IO pins TBD.
+    8. For Testing I assigned the NOTCH key to stop updating the spectrum to compare autdio impacts from the SPI bus activity.  Using a si5351C PLL board's crystal (with a 10MHz OCXO connected but not selected) I noted the SPI clock LED modulating with the audio, worst right on 5 and 10MHz listening to WWV. Move a few Hz off frequency and problem gone.  It was internmittant though.  Maybe some bleed through interacting. Switched to the OCXO later and no problem yet.
 
 ## 3/20-21/2021
 
