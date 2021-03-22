@@ -9,7 +9,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     3. With 1 minor change, new bandwidth.h files will plug right in. Since the current bandwidth value of bndx is stored in the per-band database a global bndx var is not used but is instead passed as an arg. You add (int bndx) to the function definition like this:
         void selectBandwidth(int bndx)
     You can call it direct or through the Filter(dir) function, same as Rate(dir). dir set to -1  or +1 increments the current filter down or up. dir = 0 cycles the current filter (or tune step for Rate(dir) in the last direction until it hits top or bottom then reverses direction.  The +1 and -1 are needed particularly for swipe commands which are left and right for changing the tune step rate.
-    4. Added SV1AFN Bandpass Filter board (aka Preselector board) library to the repository, updated to support the 60M band. It allows I2C control via a MCP23017 I2C Port Expander module.  Preamp, Attenuator and of course 10 bands worth of band pass filters.  The Control.h ChangeBands(), Preamp() and Atten() talk to the BPF board.  Working good after a rough start with some I2C bus issues.  Ran I2C scanner and power cycled and things cleared up. Something to monitor.
+    4. Added SV1AFN Bandpass Filter board (aka Preselector board) library to the repository, updated to support the 60M band. It allows I2C control via a MCP23017 I2C Port Expander module.  Preamp, Attenuator and of course 10 bands worth of band pass filters.  The Control.h, Preamp() and Atten() talk to the BPF board.  Working good after a rough start with some I2C bus issues.  Ran I2C scanner and power cycled and things cleared up. Something to monitor.
+    5. SelectFrequency() now monitors for band edges and will Bypass the BPFs when tuned outside the ham bands.
 
 ## 3/20-21/2021
 
