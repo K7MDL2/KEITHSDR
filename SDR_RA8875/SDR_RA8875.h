@@ -36,7 +36,7 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
 #include <TimeLib.h>
-#define SV1AFN_BPF
+//#define SV1AFN_BPF
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
 #endif
@@ -68,8 +68,8 @@ SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF
 //const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
-//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+//const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 
@@ -163,7 +163,7 @@ AudioControlSGTL5000    codec1;
 uint8_t     curr_band   = BAND4;    // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
-int32_t     Fc          = 64;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+int32_t     Fc          = 132;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 
 //extern struct User_Settings user_settings[];
 //extern struct Band_Memory bandmem[];

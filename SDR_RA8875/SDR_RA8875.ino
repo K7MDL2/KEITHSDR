@@ -20,12 +20,12 @@
 void setup()
 {
     Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
-    #ifdef SV1AFN_BPF
-      bpf.begin();
+#ifdef SV1AFN_BPF
+      bpf.begin((int) 0, (TwoWire*) &Wire);
       bpf.setBand(HFNone);
       bpf.setPreamp(false);
       bpf.setAttenuator(false);
-    #endif
+#endif
     tft.begin(RA8875_800x480);
     tft.setRotation(0);
 #if defined(USE_FT5206_TOUCH)
@@ -194,7 +194,8 @@ void loop()
     {
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
-            spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+            if (!user_settings[user_Profile].notch)
+                spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
     }
     uint32_t time_n = millis() - time_old;
 
