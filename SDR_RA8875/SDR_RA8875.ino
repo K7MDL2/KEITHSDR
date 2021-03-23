@@ -171,6 +171,7 @@ void setup()
         codec1.volume(1.0); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
         // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
         codec1.unmuteHeadphone();
+        codec1.unmuteLineout(); //unmute the audio output
         user_settings[user_Profile].mute = OFF;
         displayMute();
         setAFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
@@ -182,7 +183,6 @@ void setup()
         user_settings[user_Profile].mute = ON;
         displayMute();
     }
-    codec1.unmuteLineout(); //unmute the audio output
     
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     printHelp();

@@ -247,11 +247,11 @@ struct User_Settings {
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
 };
 
-struct User_Settings user_settings[USER_SETTINGS_NUM] = {
+struct User_Settings user_settings[USER_SETTINGS_NUM] = {                //  rfgain       afgain
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn  LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  14,    10,   ON,  75,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  14,    50,   ON,  75,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  14,    75,   ON,  75,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  13,   100,   ON,  90,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  13,   100,   ON,  90,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  13,   100,   ON,  90,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
 };
 
 struct Standard_Button {

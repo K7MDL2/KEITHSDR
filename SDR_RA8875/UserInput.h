@@ -313,12 +313,12 @@ void Gesture_Handler(uint8_t gesture)
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
             {                
                 //codec1.volume(user_settings[user_Profile].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
-                setAFgain(-10);   //  Range 0 to 100, this is a request to change level by %x
+                setAFgain(-1);   //  Range 0 to 100, this is a request to change level by %x
                 Serial.print("3-point Volume DOWN  "); Serial.println(user_settings[user_Profile].spkr_Vol_last);
             }
             else
             {
-                setRFgain(10);   //  Range 0 to 100, this is a request to change level by %x
+                setRFgain(5);   //  Range 0 to 100, this is a request to change level by %x
                 //codec1.volume(user_settings[user_Profile].spkr_Vol_last += 0.1);  // was 3 finger swipe up
                 Serial.print("3-point Volume UP  "); Serial.println(user_settings[user_Profile].spkr_Vol_last);
             }                

@@ -18,8 +18,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
         e. 3 finger swipe UP increments RF Gain
         f. 3 finger swipe down decrements AF gain
     Ultimately we need to create up and down buttons. The control functions takes -100 to 0 to +100 as an increment value. It scales the underlying actual values needed for the codec lineIn() and RampVolume().  Settings are saved per user profile.  An encoder just has to call the RFGain(x) or AFGain(x) function with its positive or negative counts, scaled to what ever sensitivity we want. Maybe do a label near the sMeter, popup window with a slider.  Many UI solutions possible. 
-    8. Note: I am changing the LineIn level for RFGain. It seems to work quite well. Don't know if that is before or after the ADC. If it is after, then overload is still an issue and a digital potentiometer would be a solution.
-    8. Added ramped volume dips during relay operations to prevent loud speaker thumping. This means PRE, ATT and band changes, including preselector bypass when moving in and out of the defined ham bands.  Related to this I have moved speaker related codec volume initialization code to near the end of setup() after all the initial relay activity is done. The speaker is then unmuted and set to the last known speaker volume (per user profile), as is RFGain (per band).
+    8. Note: I am changing the LineIn() level for RFGain. It seems to work quite well. Don't know if that is before or after the ADC. If it is after, then overload is still an issue and a digital potentiometer would be a solution.
+    8. Added ramped volume dips during relay operations to prevent loud speaker thumping. This means PRE, ATT and band changes, including preselector bypass when moving in and out of the defined ham bands.  Related to this I have moved speaker related codec volume initialization code to near the end of setup() after all the initial relay activity is done. The speaker is then unmuted and set to the last known speaker volume (per user Profile), as is RFGain (per user Profile).
 
 ## 3/21-22/2021
 
