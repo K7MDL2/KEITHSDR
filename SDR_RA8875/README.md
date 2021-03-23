@@ -9,6 +9,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     3. Moved more code around to land more of it in the high level control functions and less in the low level device functions. The idea is the control functions take a simple argument like up or down or update to current state, or toggle.  They do this and take care of all the necessary dependencies to make everything play together. The low level functions dop the bare minimum to change usally only 1 specific thing like operate a relay.  It has no idea if it is a good idea or not oer how to update a display.
     4. Lots of tweaks to mostly the ATT and Preamp control functions to make them work in all test cases including startup and band changes with the last remembered band and modes.
     5. Fixed an issue where time was 10 seconds off.  Need to integrate this into the onboard RTC.
+    6. Added a new field otthe BandMemory structure, "attenuator_dB" which holds the variable attenuator value for each band independent of the attenautor relay on/off state.  You can use a BPF or PE4302, both, or neither. Set the define in the main header file if you want to compile without the code for those.
 
 ## 3/21-22/2021
 
