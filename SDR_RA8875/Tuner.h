@@ -7,6 +7,7 @@ extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 #ifdef SV1AFN_BPF
   extern SVN1AFN_BandpassFilters bpf;
+  extern void RampVolume(float vol, int16_t rampType);
 #endif
 static const uint32_t topFreq = 54000000;  // sets receiver upper  frequency limit 30 MHz
 static const uint32_t bottomFreq = 1000000; // sets the receiver lower frequency limit 1.6 MHz
@@ -46,13 +47,17 @@ void selectFrequency(int32_t newFreq)
 	#ifdef SV1AFN_BPF
 	if (Freq < bandmem[curr_band].edge_lower || Freq > bandmem[curr_band].edge_upper)
 	{
+		RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 		//Serial.print("BPF Set to "); Serial.println("Bypassed");  
       	bpf.setBand(HFBand(HFBypass));
+		RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 	}
 	else
 	{
+		RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 		//Serial.print("BPF Set to "); Serial.println(bandmem[curr_band].preselector);  
       	bpf.setBand(HFBand(bandmem[curr_band].preselector));
+		RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 	}
 	#endif
 
