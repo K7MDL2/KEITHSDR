@@ -19,6 +19,8 @@
 
 void setup()
 {
+
+    // ---------------- Setup our basic display and comms ---------------------------
     Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
 #ifdef SV1AFN_BPF
       bpf.begin((int) 0, (TwoWire*) &Wire);
@@ -36,22 +38,18 @@ void setup()
 #else
     tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
 #endif
-    initSpectrum_RA8875();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
-    curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
-    user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
-    spectrum_preset = user_settings[user_Profile].sp_preset;
-    //
-    //================================================ Frequency Set =============================================================
-    VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
-    VFOB = bandmem[curr_band].vfo_B_last;
-    //================================================ Frequency Set =============================================================
-    //
-    initVfo(); // initialize the si5351 vfo
-    changeBands(0);   // Sets the last used band and frequencies, set preselector, avtive VFO, other last-used settings per band.
-    selectMode(0);
-    selectAgc(bandmem[curr_band].agc_mode);
-    displayAgc();
-    displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
+
+#ifdef DIG_STEP_ATT
+    // Initialize the I/O for digital step attenuator if used.
+    pinMode(Atten_DATA, OUTPUT);
+    pinMode(Atten_CLK, OUTPUT);
+    pinMode(Atten_LE, OUTPUT);
+    digitalWrite(Atten_DATA,  (uint8_t) OFF);
+    digitalWrite(Atten_CLK,  (uint8_t) OFF);
+    digitalWrite(Atten_LE,  (uint8_t) OFF);
+#endif
+
+    //--------------------------   Setup our Audio System -------------------------------------
 
     //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(80, audio_settings);
@@ -68,24 +66,9 @@ void setup()
     //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
     codec1.autoVolumeEnable(); // let the volume control itself..... poor mans agc
     //codec1.autoVolumeDisable();// Or don't let the volume control itself
-    codec1.unmuteLineout(); //unmute the audio output
+    codec1.muteLineout(); //mute the audio output until we finish thumping relays 
     codec1.adcHighPassFilterDisable();
     codec1.dacVolume(0); // set the "dac" volume (extra control)
-                         // Now turn on the sound
-    if (user_settings[user_Profile].spkr_en == ON)
-    {
-        codec1.volume(user_settings[user_Profile].spkr_Vol_last); // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
-        codec1.unmuteHeadphone();
-        user_settings[user_Profile].mute = OFF;
-        displayMute();
-        RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-    }
-    else
-    {
-        codec1.muteHeadphone();
-        user_settings[user_Profile].mute = ON;
-        displayMute();
-    }
 
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
     AudioNoInterrupts();
@@ -127,19 +110,26 @@ void setup()
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
     RX_Summer.gain(0, -3.0); // Leave at 1.0
     RX_Summer.gain(1, 3.0);  // -1 for LSB out
-
-    selectBandwidth(bandmem[curr_band].filter);
-    selectMode(0); // set mode of thge Active VFO using last recorded value (0 = no change)
-
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
-
     // Uncomment one these to try other window functions
     //  myFFT.windowFunction(NULL);
     //  myFFT.windowFunction(AudioWindowBartlett1024);
     //  myFFT.windowFunction(AudioWindowFlattop1024);
     myFFT.windowFunction(AudioWindowHanning1024);
+    myFFT.setNAverage(3);
+    // -------------------- Setup our radio settings and UI layout --------------------------------
 
+    initSpectrum_RA8875();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
+    user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
+    spectrum_preset = user_settings[user_Profile].sp_preset;
+    //==================================== Frequency Set ==========================================
+    VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
+    VFOB = bandmem[curr_band].vfo_B_last;
+    initVfo(); // initialize the si5351 vfo
+    changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
+    displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
     Spectrum_Parm_Generator(spectrum_preset);                 // use this to generate new set of params for the current window size values.
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
                                                               // Generator only reads the global values, it does not change them or the database, just prints the new params
@@ -152,10 +142,7 @@ void setup()
     Serial.print(formatVFO(VFOA));
     Serial.println("MHz");
 
-    //finish the setup by printing the help menu to the serial connections
-    printHelp();
-    InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
-
+    // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
 #ifdef ENET
     if (user_settings[user_Profile].enet_enabled)
     {
@@ -176,6 +163,27 @@ void setup()
         //setSyncProvider(getNtpTime);
     }
 #endif
+
+    // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
+    if (user_settings[user_Profile].spkr_en == ON)
+    {
+        codec1.volume(user_settings[user_Profile].spkr_Vol_last); // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+        codec1.unmuteHeadphone();
+        user_settings[user_Profile].mute = OFF;
+        displayMute();
+        RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    }
+    else
+    {
+        codec1.muteHeadphone();
+        user_settings[user_Profile].mute = ON;
+        displayMute();
+    }
+    codec1.unmuteLineout(); //unmute the audio output
+    
+    //------------------Finish the setup by printing the help menu to the serial connections--------------------
+    printHelp();
+    InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
 }
 
 static uint32_t delta = 0;
@@ -186,7 +194,6 @@ void loop()
 {
     static int32_t newFreq = 0;
     static uint32_t time_old = 0;
-    ;
 
     // Update spectrum and waterfall based on timer
 
@@ -250,7 +257,7 @@ void loop()
     if (enable_printCPUandMemory)
         printCPUandMemory(millis(), 3000); //print every 3000 msec
 
-#ifdef ENET                                       // Won't compile this code if no ethernet usage intended
+#ifdef ENET  // Don't compile this code if no ethernet usage intended
     if (user_settings[user_Profile].enet_enabled) // only process enet if enabled.
     {
         if (!enet_ready)
@@ -270,8 +277,7 @@ void loop()
         }
         if (NTP_updateRx.check() == 1) // Time to check for a reply
         {
-            if (getNtpTime())
-                ;                         // Get our reply
+            if (getNtpTime());                         // Get our reply
             NTP_updateRx.interval(65000); // set it long until we need it again later
             Ethernet.maintain();          // keep our connection fresh
         }
@@ -424,3 +430,136 @@ int32_t multiKnob(uint8_t clear)
         mf_count = Multi.read(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any.
     return mf_count;
 }
+
+
+/*  New stuff to integrate
+
+float afLevel=0.500f;
+float rfLevel=0.999f;
+extern float afLevel;
+void setAFgain()
+{
+  codec1.volume(afLevel);
+}
+
+void setRFgain()
+{
+
+}
+Encoder AF(17,22);
+Encoder RF(15,16);
+///////////AF gain Variables//////////
+long oldA  = -999;
+long newA;
+long Aup=0;
+long Adown=0;
+///////////RF gain Variables/////////
+long oldR  = -999;
+long newR;
+long Rup=0;
+long Rdown=0;
+extern void setRFgain();  
+extern void setAFgain();  
+////////////////////////////////////////////////////////////////////////////
+void AFgain()
+{
+   newA = AF.read();
+
+    if(newA==oldA)
+    {
+      delay(15);
+    }
+    else
+    {  
+ 
+  if (newA != oldA)
+  {
+    if(newA>oldA)
+      {
+        Aup=Aup+1;
+        if(Aup>5)
+        {
+          afLevel=afLevel+.05f;
+          if (afLevel>1.00f)
+          {
+            afLevel=1.00f;
+          }
+           Serial.println(int(afLevel*100),DEC);
+           Aup=0;
+          displayAFgain(); 
+        }
+      }
+      if(newA<oldA)
+      {
+        Adown=Adown+1;
+        if(Adown>5)
+        {
+           afLevel=afLevel-.05f;
+           if(afLevel<0.01f)
+           {
+            afLevel=0.05f;
+           }
+           
+           Serial.println(int(afLevel*100),DEC);
+           Adown=0;
+           displayAFgain(); 
+        }
+      }
+       setAFgain();
+    }
+    } 
+
+   oldA = newA;
+}
+/////////////////////////////////////////////////////////////////////////
+void RFgain()
+{
+   newR = RF.read();
+
+    if(newR==oldR)
+    {
+      delay(15);
+    }
+    else
+    {  
+ 
+  if (newR != oldR)
+  {
+    if(newR>oldR)
+      {
+        Rup=Rup+1;
+        if(Rup>5)
+        {
+          rfLevel=rfLevel+.05f;
+          if (rfLevel>1.00f)
+          {
+            rfLevel=1.00f;
+          }
+           Serial.println(int(rfLevel*100),DEC);
+           Rup=0;
+              displayRFgain(); 
+        }
+      }
+      if(newR<oldR)
+      {
+        Rdown=Rdown+1;
+        if(Rdown>5)
+        {
+           rfLevel=rfLevel-.05f;
+           if(rfLevel<0.05f)
+           {
+            rfLevel=0.05f;
+           }
+           
+           Serial.println(int(rfLevel*100),DEC);
+           Rdown=0;
+           displayRFgain(); 
+        }
+      }
+      setRFgain();
+    }
+  } 
+   oldR = newR;
+}
+*/
+

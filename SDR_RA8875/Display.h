@@ -140,6 +140,8 @@ void displayFilter(void)
 
 void displayRate(void)
 {	
+	if (bandmem[curr_band].tune_step >= TS_STEPS)
+		bandmem[curr_band].tune_step = TS_STEPS-1;
 	sprintf(labels[RATE_LBL].label, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
 	Serial.print("Tune Rate is "); Serial.println(labels[RATE_LBL].label);
 	drawLabel(RATE_LBL, &bandmem[curr_band].tune_step);

@@ -380,11 +380,11 @@ void Button_Handler(int16_t x, uint16_t y)
     // MODE button
     ptr = std_btn + MODE_BTN;     // pointer to button object passed by calling function    
     if((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setMode();
+        if (ptr->show) setMode(1);  //Increment the mode from current value
     // MODE Label
     pLabel = labels + MODE_LBL;
     if((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) setMode();
+        if (pLabel->show) setMode(1);  //Increment the mode from current value
 
     // FILTER button
     ptr = std_btn + FILTER_BTN;     // pointer to button object passed by calling function
@@ -398,11 +398,11 @@ void Button_Handler(int16_t x, uint16_t y)
     // RATE button
     ptr = std_btn + RATE_BTN;     // pointer to button object passed by calling function        
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Rate(0);        
+        if (ptr->show) Rate(0);     //Increment from current value   
     // RATE label
     pLabel = labels + RATE_LBL;
     if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) Rate(0);
+        if (pLabel->show) Rate(0);  //Increment from current value 
 
     // AGC button
     ptr = std_btn + AGC_BTN;     // pointer to button object passed by calling function
@@ -448,12 +448,12 @@ void Button_Handler(int16_t x, uint16_t y)
     // ATTENUATOR button
     ptr = std_btn + ATTEN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Atten();
+        if (ptr->show) Atten(2);   // 2 = toggle state, 1 is set, 1 is off, -1 use current
 
     // PREAMP button
     ptr = std_btn + PREAMP_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Preamp();
+        if (ptr->show) Preamp(2);  // 2 = toggle state, 1 is set, 1 is off, -1 use current
 
     // RIT button
     ptr = std_btn + RIT_BTN;     // pointer to button object passed by calling function

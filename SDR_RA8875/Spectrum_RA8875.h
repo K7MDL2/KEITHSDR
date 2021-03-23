@@ -183,7 +183,7 @@ struct Spectrum_Parms {
     int16_t spect_wf_rate;    // Used by external timer to control refresh rate for this layout. drawSpectrumFRame() will read this and set the timer
 } Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
     //W        LE  RE  CG                                            x   y   w  h  x  sp st clr sc mode scal reflvl
-    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,5,440,1.0,0.9,0,40,-180, 90},
+    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,5,590,1.0,0.9,0,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
     {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25,2,310,1.7,0.9,0,60,-180,100},    //smaller centered

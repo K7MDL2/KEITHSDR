@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/23/2021
+
+    1. Added code for the PE4302 Digital Step Atenuator. For now you can tap the ANT key to cycle through 31dB in 1dB steps. Watch the Serial Monitor for the actual value printed out.  ATT key turns it On and Off. You can have a fixed attenuator instead. The code writes blind so it won't matter if you have one of these connected or not. I used pins 30-32 on the Teensy4.1 but I think a more efficient plan is to use the 3 left over pins on the MCP23017 I2C port expander that you likely used if you have the SV1AFN bandpass filter board.  I had the code written to use the expander pins. I forgot I was going to use them and wired it to the Teensy direct. 
+    2. Enabled a small bit of FFT averaging.  Helps smooth out the spectrum displays. Too much and things slow to a crawl.
+    3. Moved more code around to land more of it in the high level control functions and less in the low level device functions. The idea is the control functions take a simple argument like up or down or update to current state, or toggle.  They do this and take care of all the necessary dependencies to make everything play together. The low level functions dop the bare minimum to change usally only 1 specific thing like operate a relay.  It has no idea if it is a good idea or not oer how to update a display.
+    4. Lots of tweaks to mostly the ATT and Preamp control functions to make them work in all test cases including startup and band changes with the last remembered band and modes.
+    5. Fixed an issue where time was 10 seconds off.  Need to integrate this into the onboard RTC.
+
 ## 3/21-22/2021
 
     1.Moved step increment/decrement control into Rate() function.  Left old step.h thinned down to set the tune rate directly in the database and call display. 
@@ -12,7 +20,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4. Added SV1AFN Bandpass Filter board (aka Preselector board) library to the repository, updated to support the 60M band. It allows I2C control via a MCP23017 I2C Port Expander module.  Preamp, Attenuator and of course 10 bands worth of band pass filters.  The Control.h, Preamp() and Atten() talk to the BPF board.  Working good after a rough start with some I2C bus issues.  Ran I2C scanner and power cycled and things cleared up. Something to monitor.
     5. SelectFrequency() now monitors for band edges and will BYPASS the BPFs when tuned outside the ham bands.
     6. Comment out "#define SV1AFN_BPF" in the SDR_8875.h file to exclude all code related to the Bandpass filter board in case of any side effects if you do not have a board connected.
-    7. Staged PAtten_Set() function in Controls.h for the PE4302 digital step attenuator. Need to map it to IO pins TBD.
+    7. Staged setAtten() function in Controls.h for the PE4302 digital step attenuator. Need to map it to IO pins TBD.
     8. For Testing I assigned the NOTCH key to stop updating the spectrum to compare autdio impacts from the SPI bus activity.  Using a si5351C PLL board's crystal (with a 10MHz OCXO connected but not selected) I noted the SPI clock LED modulating with the audio, worst right on 5 and 10MHz listening to WWV. Move a few Hz off frequency and problem gone.  It was internmittant though.  Maybe some bleed through interacting. Switched to the OCXO later and no problem yet.
 
 ## 3/20-21/2021

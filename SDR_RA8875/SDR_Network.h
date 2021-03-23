@@ -256,8 +256,8 @@ time_t getNtpTime()
 		secsSince1900 |= (unsigned long)packetBuffer_NTP[42] << 8;
 		secsSince1900 |= (unsigned long)packetBuffer_NTP[43];
 		//Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
-		setTime(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
-		return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
+		setTime(secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR);
+		return secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
     }
   	Serial.println("No NTP Response :-(");
   	return 0; // return 0 if unable to get the time

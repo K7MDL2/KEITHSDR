@@ -96,37 +96,38 @@ struct Band_Memory {
     uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
     uint32_t    vfo_B_last;
     uint8_t     VFO_AB_Active;  // Flag to track which has focus. Usesd in RX.  Used in TX for split
-    uint8_t     mode_A;         // CW, LSB, USB, DATA.  255 = ignore and use current mode
-    uint8_t     mode_B;         // CW, LSB, USB, DATA.  255 = ignore and use current mode
+    uint8_t     mode_A;         // CW, LSB, USB, DATA.  
+    uint8_t     mode_B;         // CW, LSB, USB, DATA.  
     uint8_t     filter;      // index to Bandwidth selection for this band.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
-    uint8_t     tune_step;      // last step rate on this band.  Index to Tune step table  255 = ignore and use current
+    uint8_t     tune_step;      // last step rate on this band.  Index to Tune step table 
     uint8_t     agc_mode;       // index to group of AGC settings in another table
-    uint8_t     split;          // split active or not. 255 is feature disabled
+    uint8_t     split;          // split active or not. 0 is off
     uint8_t     RIT_en;         // RIT active. 
     int32_t     RIT;            // RIT value in Hz pos or neg from current VFO
     uint8_t     XIT_en;         // XIT active
     int32_t     XIT;            // XIT value in Hz pos or neg from current VFO
-    uint8_t     ATU;            // enable ATU or not. 255 is feature disabled
-    uint8_t     ant_sw;         // antenna selector switch. 255 is feature disabled
-    uint8_t     preselector;    // preselector band set value. 255 is feature disabled
-    uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set. 255 is feature disabled
-    uint8_t     preamp;         // 0-off, 1 is level 2, level 2, 255 is feature disabled
+    uint8_t     ATU;            // enable ATU or not.
+    uint8_t     ant_sw;         // antenna selector switch.
+    uint8_t     preselector;    // preselector band set value.
+    uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set.
+    uint8_t     attenuator_dB;  // 0 is attenuation value to set.
+    uint8_t     preamp;         // 0-off, 1 is level 2, level 2
     uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
     uint8_t     xvtr_num;       // index to Transverter Table.   
 } bandmem[BANDS] = { 
-    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band step  agc SPLIT RT RV XT XV ATU ANT PRESELECT   ATTEN     PREAMP  XVE XV# NBe 
-    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0,   ATTEN_OFF,PREAMP_OFF, 0,  0},
-    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A, LSB, LSB, BW3_2, BAND1,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1,    ATTEN_OFF,PREAMP_OFF, 0,  1},
-    { "60M", 5350000, 5367000, 5000000, 5366000,VFO_B, USB, USB, BW3_2, BAND2,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,    ATTEN_OFF,PREAMP_OFF, 0,  2},
-    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 3,    ATTEN_OFF,PREAMP_OFF, 0,  3},
-    { "30M",10100000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 4,    ATTEN_OFF,PREAMP_OFF, 0,  4},
-    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 5,    ATTEN_OFF,PREAMP_OFF, 0,  5},
-    { "17M",18068000,18168000,18135000,18100000,VFO_A, USB, USB, BW3_2, BAND6,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6,    ATTEN_OFF,PREAMP_OFF, 0,  6},
-    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7,    ATTEN_OFF,PREAMP_OFF, 0,  7},
-    { "12M",24890000,24990000,24915000,24904000,VFO_A,  CW, USB, BW1_8, BAND8,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8,    ATTEN_OFF,PREAMP_OFF, 0,  8},
-    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9,    ATTEN_OFF,PREAMP_OFF, 0,  9},
-    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB, USB, BW3_2,BAND10,1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10,ATTEN_OFF,PREAMP_OFF, 0, 10}
+    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#
+    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 10, PREAMP_OFF, 0,  0},
+    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 20, PREAMP_OFF, 0,  1},
+    { "60M", 5350000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2, ATTEN_OFF,  6, PREAMP_OFF, 0,  2},
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON, 10, PREAMP_OFF, 0,  3},
+    { "30M",10100000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4, ATTEN_OFF, 10, PREAMP_OFF, 0,  4},
+    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5, 3,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT3, 5,  ATTEN_ON,  5, PREAMP_ON,  0,  5},
+    { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND6, 5,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6, ATTEN_OFF,  0, PREAMP_ON,  0,  6},
+    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7, ATTEN_OFF,  0, PREAMP_ON,  0,  7},
+    { "12M",24890000,24990000,24915000,24904000,VFO_B, USB,  CW, BW0_7, BAND8, 0,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8, ATTEN_OFF,  0, PREAMP_ON,  0,  8},
+    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9, ATTEN_OFF,  0, PREAMP_ON,  0,  9},
+    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND10, 3,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10,ATTEN_OFF,  0, PREAMP_ON,  0, 10}
 };
 
 struct AudioSettings {
@@ -186,13 +187,13 @@ struct Filter_Settings {
     char        Filter_name[12];    // display name for UI
     uint16_t    Width;             //bandwidth in HZ
     char        units[4];
-    uint8_t     pref_mode;      // preferred mode when enabled (future use)
+    uint8_t     filter_type;      // preferred mode when enabled (future use)
 } filter[FILTER] = {
-    {"250",   250,  "Hz",   CW},
-    {"500",   500,  "Hz",   CW},
-    {"700",   700,  "Hz",   CW},
+    {"250",   250,  "Hz",    CW},
+    {"500",   500,  "Hz",    CW},
+    {"700",   700,  "Hz",    CW},
     {"1.00",  1000, "KHz",   CW},
-    {"1.80",  1800, "KHz",   CW},
+    {"1.80",  1800, "KHz",  USB},
     {"2.30",  2300, "KHz",  USB},
     {"2.80",  2800, "KHz",  USB},
     {"3.20",  3200, "KHz",  USB},
@@ -209,9 +210,9 @@ struct TuneSteps {
     uint8_t     pref_mode;      // preferred mode when enabled (future use)
 } tstep[TS_STEPS] = {
     {"1 ",   "Hz",     1,  CW},
-    {"10 ",  "Hz",    10,  CW},
-    {"100 ", "Hz",   100,  CW},
-    {"1.0", "KHz",  1000,  CW},
+    {"10 ",  "Hz",    10, USB},
+    {"100 ", "Hz",   100, USB},
+    {"1.0", "KHz",  1000, USB},
     {"2.5", "KHz",  2500, USB},
 };
 
@@ -490,7 +491,19 @@ uint8_t display_state;   // something to hold the button state for the display p
     // This is for the NTP service to update the clock when connected to the internet
     unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
     const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
-#endif
 //
 //------------------------------------ End of Ethernet UDP messaging section --------------------------
 //
+#endif
+
+#ifdef DIG_STEP_ATT
+// ----------------  PE4302 6 bit Digital Step Attenuator ---------------------------------------------
+//      Digital step attenuator.  0-31.5dB in 0.5dB steps. Connected via I2C port expander.
+//      Could use the 3 left over pins on the MCP23017 I2C port expander servicing the SV1AFN preselector module.
+//      For now using Teensy I) pins 30-32.
+//      
+  #define DIG_STEP_ATT            // Set this to enable the PE4302 feature
+  #define Atten_CLK       31
+  #define Atten_DATA      32
+  #define Atten_LE        30
+#endif

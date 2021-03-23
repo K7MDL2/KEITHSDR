@@ -19,10 +19,13 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
-#ifdef OCXO_10MHZ
- #define USE_ENET_PROFILE       // This is inserted here to conventiaenly turn on ethernet profile for me using 1 setting.
+//#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+#ifdef OCXO_10MHZ 
+ #define ENET                   // Turn off or on ethernet features and hardware
+ #define USE_ENET_PROFILE       // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
  #define REMOTE_OPS             // Turn on Remote_Ops ethernet write feature for remote control head dev work.
+ #define SV1AFN_BPF             // Enable the SV1AFN 10-band Preselector (Bandpass filter) board.
+ #define DIG_STEP_ATT           // Enable the PE4302 Digital Step Attenuator.  0-31.5dB in 0.5dB steps via I2C port expander
  #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
  Si5351 si5351;
 #else
@@ -36,7 +39,6 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
 #include <TimeLib.h>
-#define SV1AFN_BPF
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
 #endif
@@ -106,17 +108,17 @@ extern Metro spectrum_waterfall_update;             // Timer used for controllin
 //
                                
 AudioInputI2S_F32       Input(audio_settings);
-AudioMixer4_F32         FFT_Switch1;
-AudioMixer4_F32         FFT_Switch2;
-AudioFilterFIR_F32      Hilbert1;
-AudioFilterFIR_F32      Hilbert2;
-AudioFilterBiquad_F32   CW_Filter;
-AudioMixer4_F32         RX_Summer;
-AudioAnalyzePeak_F32    S_Peak; 
-AudioAnalyzePeak_F32    Q_Peak; 
-AudioAnalyzePeak_F32    I_Peak;
-AudioAnalyzePeak_F32    CW_Peak;
-AudioAnalyzeRMS_F32     CW_RMS;  
+AudioMixer4_F32         FFT_Switch1(audio_settings);
+AudioMixer4_F32         FFT_Switch2(audio_settings);
+AudioFilterFIR_F32      Hilbert1(audio_settings);
+AudioFilterFIR_F32      Hilbert2(audio_settings);
+AudioFilterBiquad_F32   CW_Filter(audio_settings);
+AudioMixer4_F32         RX_Summer(audio_settings);
+AudioAnalyzePeak_F32    S_Peak(audio_settings); 
+AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
+AudioAnalyzePeak_F32    I_Peak(audio_settings);
+AudioAnalyzePeak_F32    CW_Peak(audio_settings);
+AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
 AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
 //AudioAnalyzeFFT2048_IQ_F32  myFFT;
 //AudioAnalyzeFFT1024_IQ_F32  myFFT;
