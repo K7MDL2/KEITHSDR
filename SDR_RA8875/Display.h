@@ -166,6 +166,24 @@ void displayANT(void)
 	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
 
+void displayRFgain(void)
+{	
+	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].lineIn_Vol_last);
+	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].lineIn_Vol_last);
+	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].lineIn_Vol_last);
+	Serial.print("RF Gain set to "); Serial.println(std_btn[RFGAIN_BTN].label);
+	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].lineIn_Vol_last);
+}
+
+void displayAFgain(void)
+{	
+	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].spkr_Vol_last);
+	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].spkr_Vol_last);
+	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].spkr_Vol_last);
+	Serial.print("AF Gain set to "); Serial.println(std_btn[AFGAIN_BTN].label);
+	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].spkr_Vol_last);
+}
+
 void displayAttn()
 {
 	Serial.print("Atten is "); Serial.println(bandmem[curr_band].attenuator);
@@ -387,5 +405,9 @@ void displayRefresh(void)
 	displayFine();
 	displayDisplay();
 	displaySplit();
-	//displayEnet();
+	//Panel 5 buttons
+	displayRFgain();
+	displayAFgain();
+	displayEnet();
+	displayXVTR();
 }

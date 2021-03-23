@@ -10,6 +10,16 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4. Lots of tweaks to mostly the ATT and Preamp control functions to make them work in all test cases including startup and band changes with the last remembered band and modes.
     5. Fixed an issue where time was 10 seconds off.  Need to integrate this into the onboard RTC.
     6. Added a new field to the BandMemory structure, "attenuator_dB" which holds the variable attenuator value for each band independent of the attenautor relay on/off state.  You can use a BPF or PE4302, both, or neither. Set the define in the main header file if you want to compile without the code for those.
+    7. New Panel of buttons, Row #5. Has Enet, RFGain, AFGain, and for convenience a repeat of Ref Level and Display buttons.  
+        a. Display toggles the spectrum DOT and BAR modes.  
+        b. Enet is ethernet data output on or off to a remote host. 
+        c. For testing, tapping the RFGain decrements the LineIN codec setting
+        d. Tapping the AFGain button increments the RampVolume() function scale factor bwtween 0 and 1.0. It does not alter the actual speaker volume initial setting, it returns volume level to the codec volume setting value.  This way the codec.Volume is a MAX volume and RampVolume scales it between 0.0 and 1.0 which we represent, and store, as 0 to 100.  
+        e. 3 finger swipe UP increments RF Gain
+        f. 3 finger swipe down decrements AF gain
+    Ultimately we need to create up and down buttons. The control functions takes -100 to 0 to +100 as an increment value. It scales the underlying actual values needed for the codec lineIn() and RampVolume().  Settings are saved per user profile.  An encoder just has to call the RFGain(x) or AFGain(x) function with its positive or negative counts, scaled to what ever sensitivity we want. Maybe do a label near the sMeter, popup window with a slider.  Many UI solutions possible. 
+    8. Note: I am changing the LineIn level for RFGain. It seems to work quite well. Don't know if that is before or after the ADC. If it is after, then overload is still an issue and a digital potentiometer would be a solution.
+    8. Added ramped volume dips during relay operations to prevent loud speaker thumping. This means PRE, ATT and band changes, including preselector bypass when moving in and out of the defined ham bands.  Related to this I have moved speaker related codec volume initialization code to near the end of setup() after all the initial relay activity is done. The speaker is then unmuted and set to the last known speaker volume (per user profile), as is RFGain (per band).
 
 ## 3/21-22/2021
 

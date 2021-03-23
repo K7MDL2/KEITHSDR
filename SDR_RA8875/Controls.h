@@ -59,6 +59,28 @@ void Preamp(int8_t toggle);
 void Atten(int8_t toggle);
 void VFO_AB();
 void setAtten_dB(uint8_t atten);
+void setAFgain();
+void setRFgain();
+
+///////////AF gain Variables//////////
+long oldA  = -999;
+long newA;
+long Aup=0;
+long Adown=0;
+///////////RF gain Variables/////////
+long oldR  = -999;
+long newR;
+long Rup=0;
+long Rdown=0;
+
+float afLevel=0.500f;
+float rfLevel=0.999f;
+//extern float afLevel;
+
+
+Encoder AF(17,22);
+Encoder RF(15,16);
+
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 void Set_Spectrum_Scale(int8_t zoom_dir)
@@ -610,6 +632,60 @@ Serial.println(i);
 
 }
 
+// AF GAIN button
+//
+//  Input: Request a new volume as a percentage up or down.
+//          To jump to Full volume use 100;
+//          To jump to Min volume use -100;
+//          Normally just ask for +12
+//       
+void setAFgain(int8_t delta)
+{
+    float _afLevel;
+    _afLevel = user_settings[user_Profile].spkr_Vol_last;   // Get last absolute volume setting as a value 0-100
+
+Serial.print(" TEST AF Level requested "); Serial.println(_afLevel);
+
+    _afLevel += delta;      // convert percentage request to a single digit float
+
+Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
+
+    if (_afLevel > 100)         // Limit the value vbetween 0.0 and 1.0 (100%)
+        _afLevel = 100;
+    if (_afLevel < 1)
+        _afLevel = 1;    // do not use 0 to prevent divide/0 error
+
+    user_settings[user_Profile].spkr_Vol_last = _afLevel;  // was 3 finger swipe down
+    RampVolume(_afLevel/100, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    Serial.print(" Volume set to  "); 
+    Serial.println(_afLevel);
+    displayAFgain();
+}
+
+// RF GAIN button
+void setRFgain(int8_t delta)
+{
+    float _rfLevel;
+    _rfLevel = user_settings[user_Profile].lineIn_Vol_last;   // Get last absolute volume setting as a value 0-100
+
+Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+
+    _rfLevel += delta;      // convert percentage request to a single digit float
+
+Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+
+    if (_rfLevel > 100)         // Limit the value vbetween 0.0 and 1.0 (100%)
+        _rfLevel = 100;
+    if (_rfLevel < 1)
+        _rfLevel = 1;    // do not use 0 to prevent divide/0 error
+
+    user_settings[user_Profile].lineIn_Vol_last = _rfLevel;
+    codec1.lineInLevel(user_settings[user_Profile].lineIn_en * _rfLevel/100); 
+    Serial.print(" RF Gain level set to  "); 
+    Serial.println(_rfLevel);
+    displayRFgain();
+}
+
 // XMIT button
 void Xmit()
 {
@@ -800,3 +876,110 @@ void setAtten_dB(uint8_t atten)
     return;    
     #endif
 }
+
+/*
+//extern void setRFgain();  
+//extern void setAFgain();  
+////////////////////////////////////////////////////////////////////////////
+void AFgain()
+{
+   newA = AF.read();
+
+    if(newA==oldA)
+    {
+      delay(15);
+    }
+    else
+    {  
+ 
+  if (newA != oldA)
+  {
+    if(newA>oldA)
+      {
+        Aup=Aup+1;
+        if(Aup>5)
+        {
+          afLevel=afLevel+.05f;
+          if (afLevel>1.00f)
+          {
+            afLevel=1.00f;
+          }
+           Serial.println(int(afLevel*100),DEC);
+           Aup=0;
+          displayAFgain(); 
+        }
+      }
+      if(newA<oldA)
+      {
+        Adown=Adown+1;
+        if(Adown>5)
+        {
+           afLevel=afLevel-.05f;
+           if(afLevel<0.01f)
+           {
+            afLevel=0.05f;
+           }
+           
+           Serial.println(int(afLevel*100),DEC);
+           Adown=0;
+           displayAFgain(); 
+        }
+      }
+       setAFgain();
+    }
+    } 
+
+   oldA = newA;
+}
+/////////////////////////////////////////////////////////////////////////
+void RFgain()
+{
+   newR = RF.read();
+
+    if(newR==oldR)
+    {
+      delay(15);
+    }
+    else
+    {  
+ 
+  if (newR != oldR)
+  {
+    if(newR>oldR)
+      {
+        Rup=Rup+1;
+        if(Rup>5)
+        {
+          rfLevel=rfLevel+.05f;
+          if (rfLevel>1.00f)
+          {
+            rfLevel=1.00f;
+          }
+           Serial.println(int(rfLevel*100),DEC);
+           Rup=0;
+              displayRFgain(); 
+        }
+      }
+      if(newR<oldR)
+      {
+        Rdown=Rdown+1;
+        if(Rdown>5)
+        {
+           rfLevel=rfLevel-.05f;
+           if(rfLevel<0.05f)
+           {
+            rfLevel=0.05f;
+           }
+           
+           Serial.println(int(rfLevel*100),DEC);
+           Rdown=0;
+           displayRFgain(); 
+        }
+      }
+      setRFgain();
+    }
+  } 
+   oldR = newR;
+}
+*/
+

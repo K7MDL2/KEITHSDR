@@ -230,9 +230,9 @@ struct User_Settings {
     uint8_t     mic_input_en;       // mic on or off
     float       mic_Gain_last;      // last used mic gain on this band
     uint8_t     lineIn_en;          // line in on or off. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
-    uint8_t     lineIn_Vol_last;    // last used line in setting on this band. 255 is ignore and use current value
+    uint8_t     lineIn_Vol_last;    // 0-100 (% of lineIn_en). Last used line in setting on this band. 255 is ignore and use current value
     uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
-    float       spkr_Vol_last;      // last setting for unmute or power on (When we store in EEPROM)
+    uint8_t     spkr_Vol_last;      // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
     uint8_t     lineOut_en;         // line out on or off. Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     uint8_t     lineOut_Vol_last;   // last line out setting used on this band. 255 is ignore and use the current value.
     uint8_t     enet_enabled;       // Turn on ethernet features
@@ -248,10 +248,10 @@ struct User_Settings {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  ON,    14,   ON,   0.5,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn  LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  14,    10,   ON,  75,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  14,    50,   ON,  75,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  14,    75,   ON,  75,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
 };
 
 struct Standard_Button {
@@ -271,8 +271,8 @@ struct Standard_Button {
     char     label[20];     // Tesxt to display for the button label  Use spaces to center
 };
 
-#define STD_BTN_NUM 28      // number of buttons in the table
-#define PANEL_ROWS  6       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
+#define STD_BTN_NUM 30      // number of buttons in the table
+#define PANEL_ROWS  7       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
 //  There are 6 100px wide buttons that can swap places, enabled/dispable by the function button for a row
 //Anchor buttons normally stay put
 //Panel 1  Fn is an anchor, the rest swap out
@@ -304,11 +304,13 @@ struct Standard_Button {
 #define FINE_BTN    22      // Fine and coarse rate
 #define DISPLAY_BTN 23      // Invoke PopUp (On), close popup (Off)
 #define SPLIT_BTN   24      // ON/OFF
-//Panel Spare
+//Panel 5
 #define ENET_BTN    25      // turn on and off the enet data output (does not enable/disable the enet hardware) 
 #define XVTR_BTN    26      // not implemented yet
-#define UTCTIME_BTN 27      // NTP UTC time when ethernet (and internet) is available 
-
+#define RFGAIN_BTN  27    // Sets digital RF level
+#define AFGAIN_BTN  28    // Sets digital AF level
+// Not in a Panel
+#define UTCTIME_BTN 29      // NTP UTC time when ethernet (and internet) is available 
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
@@ -340,10 +342,14 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
     { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
     { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
-    //Panel Spare
-    {OFF, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
-    {OFF, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
-    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"}   
+    //Panel 5
+    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
+    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
+    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "RF:\0"},
+    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "AF:\0"},
+        //Panel Spare
+    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"}
+
 };
 
 

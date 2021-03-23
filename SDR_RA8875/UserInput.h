@@ -312,13 +312,14 @@ void Gesture_Handler(uint8_t gesture)
             ////------------------ SWIPE DOWN  -------------------------------------------
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
             {                
-                codec1.volume(user_settings[user_Profile].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
-                
+                //codec1.volume(user_settings[user_Profile].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
+                setAFgain(-10);   //  Range 0 to 100, this is a request to change level by %x
                 Serial.print("3-point Volume DOWN  "); Serial.println(user_settings[user_Profile].spkr_Vol_last);
             }
             else
             {
-                codec1.volume(user_settings[user_Profile].spkr_Vol_last += 0.1);  // was 3 finger swipe up
+                setRFgain(10);   //  Range 0 to 100, this is a request to change level by %x
+                //codec1.volume(user_settings[user_Profile].spkr_Vol_last += 0.1);  // was 3 finger swipe up
                 Serial.print("3-point Volume UP  "); Serial.println(user_settings[user_Profile].spkr_Vol_last);
             }                
             break;
@@ -505,6 +506,16 @@ void Button_Handler(int16_t x, uint16_t y)
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
         if (ptr->show) Enet();
 
+    // AFGain button
+    ptr = std_btn + AFGAIN_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) setAFgain(10);
+
+    // RFGain button
+    ptr = std_btn + RFGAIN_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->show) setRFgain(-10);
+
     // Spot button
     ptr = std_btn + SPOT_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
@@ -576,6 +587,13 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[FINE_BTN].show    = OFF;
                 std_btn[DISPLAY_BTN].show = OFF;
                 std_btn[SPLIT_BTN].show   = OFF;
+                // Turn OFF Panel 5 buttons
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[ENET_BTN].show    = OFF;
+                std_btn[XVTR_BTN].show    = OFF;
+                std_btn[RFGAIN_BTN].show  = OFF;
+                std_btn[AFGAIN_BTN].show  = OFF;
             }
             else if (std_btn[FN_BTN].enabled == 4)// Panel 3 buttons
             {           
@@ -608,6 +626,13 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[FINE_BTN].show    = OFF;
                 std_btn[DISPLAY_BTN].show = OFF;
                 std_btn[SPLIT_BTN].show   = OFF;
+                // Turn OFF Panel 5 buttons
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[ENET_BTN].show    = OFF;
+                std_btn[XVTR_BTN].show    = OFF;
+                std_btn[RFGAIN_BTN].show  = OFF;
+                std_btn[AFGAIN_BTN].show  = OFF;
             }
             else if (std_btn[FN_BTN].enabled == 5)// Panel 4 buttons
             {           
@@ -640,6 +665,52 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[FINE_BTN].show    = ON;
                 std_btn[DISPLAY_BTN].show = ON;
                 std_btn[SPLIT_BTN].show   = ON; 
+                // Turn OFF Panel 5 buttons
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[ENET_BTN].show    = OFF;
+                std_btn[XVTR_BTN].show    = OFF;
+                std_btn[RFGAIN_BTN].show  = OFF;
+                std_btn[AFGAIN_BTN].show  = OFF;
+            }
+            else if (std_btn[FN_BTN].enabled == 6)// Panel 4 buttons
+            {           
+                strcpy(std_btn[FN_BTN].label, "Fn 5\0");
+                // Turn OFF Panel 1 buttons
+                std_btn[MODE_BTN].show    = OFF;
+                std_btn[FILTER_BTN].show  = OFF;
+                std_btn[ATTEN_BTN].show   = OFF;
+                std_btn[PREAMP_BTN].show  = OFF;
+                std_btn[RATE_BTN].show    = OFF;                
+                std_btn[BAND_BTN].show    = OFF;
+                // Turn OFF Panel 2 buttons                
+                std_btn[NB_BTN].show      = OFF;
+                std_btn[NR_BTN].show      = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[NOTCH_BTN].show   = OFF;
+                std_btn[AGC_BTN].show     = OFF;
+                std_btn[MUTE_BTN].show    = OFF;
+                // Turn OFF Panel 3 buttons
+                std_btn[MENU_BTN].show    = OFF;
+                std_btn[ANT_BTN].show     = OFF;
+                std_btn[ATU_BTN].show     = OFF;
+                std_btn[XMIT_BTN].show    = OFF;
+                std_btn[BANDDN_BTN].show  = OFF;
+                std_btn[BANDUP_BTN].show  = OFF;
+                // Turn ON Panel 4 buttons
+                std_btn[RIT_BTN].show     = OFF;
+                std_btn[XIT_BTN].show     = OFF;
+                std_btn[VFO_AB_BTN].show  = OFF;
+                std_btn[FINE_BTN].show    = OFF;
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPLIT_BTN].show   = OFF; 
+                // Turn OFF Panel 5 buttons
+                std_btn[DISPLAY_BTN].show = ON;
+                std_btn[SPOT_BTN].show    = ON;
+                std_btn[ENET_BTN].show    = ON;
+                std_btn[XVTR_BTN].show    = ON;
+                std_btn[RFGAIN_BTN].show  = ON;
+                std_btn[AFGAIN_BTN].show  = ON;
             }
             else    // if (std_btn[FN_BTN].enabled == 2)
             {
@@ -671,8 +742,14 @@ void Button_Handler(int16_t x, uint16_t y)
                 std_btn[VFO_AB_BTN].show  = OFF;
                 std_btn[FINE_BTN].show    = OFF;
                 std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[SPLIT_BTN].show   = OFF;              
-                //std_btn[ENET_BTN].show    = OFF;          
+                std_btn[SPLIT_BTN].show   = OFF;     
+                // Turn OFF Panel 5 buttons
+                std_btn[DISPLAY_BTN].show = OFF;
+                std_btn[SPOT_BTN].show    = OFF;
+                std_btn[ENET_BTN].show    = OFF;
+                std_btn[XVTR_BTN].show    = OFF;
+                std_btn[RFGAIN_BTN].show  = OFF;
+                std_btn[AFGAIN_BTN].show  = OFF;
             }
             displayRefresh();   // redraw button to show new ones and hide old ones.  Set arg =1 to skip calling ourself
             Serial.print("Fn Pressed ");  Serial.println(std_btn[FN_BTN].enabled);

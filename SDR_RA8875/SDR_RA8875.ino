@@ -59,7 +59,8 @@ void setup()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
     codec1.inputSelect(myInput);
-    codec1.lineInLevel(user_settings[user_Profile].lineIn_Vol_last);   // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
+    setRFgain(0);  // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
+    //codec1.lineInLevel(user_settings[user_Profile].lineIn_en * user_settings[user_Profile].lineIn_Vol_last/100);   // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Scale by % on _last field
     codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
@@ -167,11 +168,13 @@ void setup()
     // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
     if (user_settings[user_Profile].spkr_en == ON)
     {
-        codec1.volume(user_settings[user_Profile].spkr_Vol_last); // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+        codec1.volume(1.0); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
+        // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
         codec1.unmuteHeadphone();
         user_settings[user_Profile].mute = OFF;
         displayMute();
-        RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+        setAFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
+        //RampVolume(user_settings[user_Profile].spkr_Vol_last/100, 1); //0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     }
     else
     {
