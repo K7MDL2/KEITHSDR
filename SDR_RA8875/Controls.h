@@ -58,7 +58,7 @@ void RIT();
 void Preamp(int8_t toggle);
 void Atten(int8_t toggle);
 void VFO_AB();
-void setAtten(uint8_t atten);
+void setAtten_dB(uint8_t atten);
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 void Set_Spectrum_Scale(int8_t zoom_dir)
@@ -433,7 +433,7 @@ void VFO_AB()
 void Atten(int8_t toggle)
 {
     // Set the attenuation level from the value in the database
-    #ifdef DIG_STEP_ATT
+    #ifdef DIG_STEP_ATT 
       setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
     #endif    
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
