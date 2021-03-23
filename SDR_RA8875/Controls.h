@@ -135,12 +135,12 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     Serial.print("Corrected Target Band is "); Serial.println(target_band);    
   
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
-    RampVolume(0.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     curr_band = target_band;    // Set out new band
     VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
     VFOB = bandmem[curr_band].vfo_B_last;
     Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
-    delay(20);  // small delay for audio ramp to work
+   // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
     selectBandwidth(bandmem[curr_band].filter);
     Atten(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
@@ -156,7 +156,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     //
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh();
-    RampVolume(1.0f, 2);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
 }
 
 void pop_win(uint8_t init)
@@ -448,10 +448,13 @@ void Atten(int8_t toggle)
     else if (toggle == 0)    // toggle if ordered, else just set to current state such as for startup.
         bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
-    
+
     #ifdef SV1AFN_BPF
+      RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
+      RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #endif
+
     displayAttn();
     Serial.print("Set Attenuator Relay to ");
     Serial.print(bandmem[curr_band].attenuator);
@@ -481,7 +484,9 @@ void Preamp(int8_t toggle)
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
     
     #ifdef SV1AFN_BPF
+      RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setPreamp((bool) bandmem[curr_band].preamp);
+      RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #endif
     displayPreamp();
     Serial.print("Set Preamp to ");

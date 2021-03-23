@@ -19,9 +19,9 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-//#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
-#define DIG_STEP_ATT 
-#define SV1AFN_BPF
+#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+//#define DIG_STEP_ATT 
+//#define SV1AFN_BPF
 #ifdef OCXO_10MHZ 
  #define ENET                   // Turn off or on ethernet features and hardware
  #define USE_ENET_PROFILE       // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
@@ -72,8 +72,8 @@ SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF
 //const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
-const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-//const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 
