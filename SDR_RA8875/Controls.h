@@ -833,14 +833,14 @@ void TouchTune(int16_t touch_Freq)
     if (bandmem[curr_band].VFO_AB_Active == VFO_A)
     {
         VFOA += _newfreq;
-        if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 400)
+        if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 800)
             VFOA = Freq_Peak;
         Serial.println(formatVFO(VFOA));
     }
     else
     {
         VFOB += _newfreq; 
-        if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 400)
+        if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 800)
             VFOB = Freq_Peak;
         Serial.println(formatVFO(VFOB));
     }
