@@ -60,7 +60,6 @@ void setup()
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
     codec1.inputSelect(myInput);
     setRFgain(0);  // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
-    //codec1.lineInLevel(user_settings[user_Profile].lineIn_en * user_settings[user_Profile].lineIn_Vol_last/100);   // range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Scale by % on _last field
     codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);

@@ -61,26 +61,10 @@ void VFO_AB();
 void setAtten_dB(uint8_t atten);
 void setAFgain();
 void setRFgain();
-
-///////////AF gain Variables//////////
-long oldA  = -999;
-long newA;
-long Aup=0;
-long Adown=0;
-///////////RF gain Variables/////////
-long oldR  = -999;
-long newR;
-long Rup=0;
-long Rdown=0;
-
-float afLevel=0.500f;
-float rfLevel=0.999f;
-//extern float afLevel;
-
+void setRefLevel(int8_t newval);
 
 Encoder AF(17,22);
 Encoder RF(15,16);
-
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 void Set_Spectrum_Scale(int8_t zoom_dir)
@@ -138,7 +122,6 @@ void Set_Spectrum_RefLvl(int8_t zoom_dir)
 
 void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
 {
-    
     // TODO search bands column for match toaccount for mapping that does not start with 0 and bands could be in odd order and disabled.
     //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
     bandmem[curr_band].vfo_A_last = VFOA;
@@ -165,6 +148,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
     selectBandwidth(bandmem[curr_band].filter);
+    setRefLevel(0);  // 0 = use current database value. -X is decrement, +X is increment by X.
     Atten(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
      //dB level is set elsewhere and uses value in the dB in this function.
     Preamp(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
@@ -465,11 +449,16 @@ void Atten(int8_t toggle)
         else 
             bandmem[curr_band].attenuator = ATTEN_ON;
     }
-    else if (toggle == 1)    // toggle if ordered, else just set to current state such as for startup.
+    else if (toggle == 1)    // toggle is 1, turn on Atten
         bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
-    else if (toggle == 0)    // toggle if ordered, else just set to current state such as for startup.
+    else if (toggle == 0)    // toggle is 0, turn off Atten
         bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
+    
+    if (bandmem[curr_band].attenuator == ATTEN_OFF)
+        Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
+    else 
+        Sp_Parms_Def[spectrum_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
     #ifdef SV1AFN_BPF
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
@@ -478,10 +467,13 @@ void Atten(int8_t toggle)
     #endif
 
     displayAttn();
+    //setRefLevel(0);
     Serial.print("Set Attenuator Relay to ");
     Serial.print(bandmem[curr_band].attenuator);
-    Serial.print(" and dB value to ");
-    Serial.println(bandmem[curr_band].attenuator_dB);
+    Serial.print(" Atten_dB is ");
+    Serial.print(bandmem[curr_band].attenuator_dB);
+    Serial.print(" and Ref Level is ");
+    Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
 }
 
 // PREAMP button
@@ -491,7 +483,7 @@ void Atten(int8_t toggle)
 //   toogle = -1 or any value other than 0-2 sets Preamp state to current database value. Used for startup or changing bands.
 //
 void Preamp(int8_t toggle)
-{
+{    
     if (toggle == 2)    // toggle state
     {
         if (bandmem[curr_band].preamp == PREAMP_ON)
@@ -505,11 +497,17 @@ void Preamp(int8_t toggle)
         bandmem[curr_band].preamp = PREAMP_OFF;
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
     
+    if (bandmem[curr_band].preamp == PREAMP_OFF)
+        Sp_Parms_Def[spectrum_preset].spect_floor -= 30;  // reset back to normal
+    else 
+        Sp_Parms_Def[spectrum_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
+
     #ifdef SV1AFN_BPF
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setPreamp((bool) bandmem[curr_band].preamp);
       RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #endif
+    
     displayPreamp();
     Serial.print("Set Preamp to ");
     Serial.println(bandmem[curr_band].preamp);
@@ -627,7 +625,7 @@ if (i< 1)
     i= 31;
 setAtten_dB(i);
 bandmem[curr_band].attenuator_dB = i;
-Serial.println(i);
+Serial.print("TEST: Manually Set Atten value to "); Serial.println(i);
 #endif
 
 }
@@ -642,20 +640,20 @@ Serial.println(i);
 void setAFgain(int8_t delta)
 {
     float _afLevel;
-    _afLevel = user_settings[user_Profile].spkr_Vol_last;   // Get last absolute volume setting as a value 0-100
+    _afLevel = user_settings[user_Profile].afGain;   // Get last absolute volume setting as a value 0-100
 
-Serial.print(" TEST AF Level requested "); Serial.println(_afLevel);
+//Serial.print(" TEST AF Level requested "); Serial.println(_afLevel);
 
     _afLevel += delta;      // convert percentage request to a single digit float
 
-Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
+//Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
 
     if (_afLevel > 100)         // Limit the value vbetween 0.0 and 1.0 (100%)
         _afLevel = 100;
     if (_afLevel < 1)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
 
-    user_settings[user_Profile].spkr_Vol_last = _afLevel;  // was 3 finger swipe down
+    user_settings[user_Profile].afGain = _afLevel;  // was 3 finger swipe down
     RampVolume(_afLevel/100, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     Serial.print(" Volume set to  "); 
     Serial.println(_afLevel);
@@ -666,21 +664,21 @@ Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
 void setRFgain(int8_t delta)
 {
     float _rfLevel;
-    _rfLevel = user_settings[user_Profile].lineIn_Vol_last;   // Get last absolute volume setting as a value 0-100
+    _rfLevel = user_settings[user_Profile].rfGain;   // Get last absolute volume setting as a value 0-100
 
-Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+//Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
     _rfLevel += delta;      // convert percentage request to a single digit float
 
-Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+//Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
     if (_rfLevel > 100)         // Limit the value vbetween 0.0 and 1.0 (100%)
         _rfLevel = 100;
     if (_rfLevel < 1)
         _rfLevel = 1;    // do not use 0 to prevent divide/0 error
 
-    user_settings[user_Profile].lineIn_Vol_last = _rfLevel;
-    codec1.lineInLevel(user_settings[user_Profile].lineIn_en * _rfLevel/100); 
+    user_settings[user_Profile].rfGain = _rfLevel;
+    codec1.lineInLevel(user_settings[user_Profile].rfGain * _rfLevel/100); 
     Serial.print(" RF Gain level set to  "); 
     Serial.println(_rfLevel);
     displayRFgain();
@@ -745,11 +743,20 @@ void Spot()
     displaySpot();
     Serial.print("Set Spot to ");
     Serial.println(user_settings[user_Profile].spot);
-// adjust ref Floor   
-Sp_Parms_Def[spectrum_preset].spect_floor += 5;
-if (Sp_Parms_Def[spectrum_preset].spect_floor > -130)
-    Sp_Parms_Def[spectrum_preset].spect_floor = -220; 
-//Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
+}
+
+// REF LEVEL button
+void setRefLevel(int8_t newval)
+{
+    bandmem[curr_band].sp_ref_lvl += newval;
+    if (bandmem[curr_band].sp_ref_lvl > -110)
+        bandmem[curr_band].sp_ref_lvl = -220; 
+    if (bandmem[curr_band].sp_ref_lvl < -220)
+        bandmem[curr_band].sp_ref_lvl = -110; 
+    Sp_Parms_Def[spectrum_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
+    displayRefLevel();
+    Serial.print("Set Reference Level to ");
+    Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
 }
 
 // Notch button

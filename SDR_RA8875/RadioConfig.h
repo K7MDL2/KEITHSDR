@@ -114,20 +114,21 @@ struct Band_Memory {
     uint8_t     attenuator_dB;  // 0 is attenuation value to set.
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2
     uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
-    uint8_t     xvtr_num;       // index to Transverter Table.   
+    uint8_t     xvtr_num;       // index to Transverter Table.
+    int16_t     sp_ref_lvl;     // per band spectrum reference level.  Overides the spectrum module level by copying this value into it.
 } bandmem[BANDS] = { 
-    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#
-    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 10, PREAMP_OFF, 0,  0},
-    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 20, PREAMP_OFF, 0,  1},
-    { "60M", 5350000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2, ATTEN_OFF,  6, PREAMP_OFF, 0,  2},
-    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON, 10, PREAMP_OFF, 0,  3},
-    { "30M",10100000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4, ATTEN_OFF, 10, PREAMP_OFF, 0,  4},
-    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5, 3,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT3, 5,  ATTEN_ON,  5, PREAMP_ON,  0,  5},
-    { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND6, 5,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6, ATTEN_OFF,  0, PREAMP_ON,  0,  6},
-    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7, ATTEN_OFF,  0, PREAMP_ON,  0,  7},
-    { "12M",24890000,24990000,24915000,24904000,VFO_B, USB,  CW, BW0_7, BAND8, 0,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8, ATTEN_OFF,  0, PREAMP_ON,  0,  8},
-    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9, ATTEN_OFF,  0, PREAMP_ON,  0,  9},
-    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND10, 3,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10,ATTEN_OFF,  0, PREAMP_ON,  0, 10}
+    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#  SpRef
+    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 10, PREAMP_OFF,  0,  0,  -165},
+    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 20, PREAMP_OFF,  0,  1,  -165},
+    { "60M", 5350000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2, ATTEN_OFF,  6, PREAMP_OFF,  0,  2,  -150},
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3, ATTEN_OFF, 10, PREAMP_OFF,  0,  3,  -150},
+    { "30M",10100000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4, ATTEN_OFF, 10, PREAMP_OFF,  0,  4,  -155},
+    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5, 3,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT3, 5, ATTEN_OFF,  5, PREAMP_OFF,  0,  5,  -145},
+    { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND6, 5,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6, ATTEN_OFF,  0, PREAMP_OFF,  0,  6,  -160},
+    { "15M",21000000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7, ATTEN_OFF,  0, PREAMP_OFF,  0,  7,  -155},
+    { "12M",24890000,24990000,24915000,24904000,VFO_B, USB,  CW, BW0_7, BAND8, 0,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8, ATTEN_OFF,  0, PREAMP_OFF,  0,  8,  -170},
+    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9, ATTEN_OFF,  0, PREAMP_OFF,  0,  9,  -170},
+    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND10, 3,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10,ATTEN_OFF,  0, PREAMP_OFF,  0, 10,  -145}
 };
 
 struct AudioSettings {
@@ -229,13 +230,13 @@ struct User_Settings {
     uint8_t     mute;               // Current status of Mute 
     uint8_t     mic_input_en;       // mic on or off
     float       mic_Gain_last;      // last used mic gain on this band
-    uint8_t     lineIn_en;          // line in on or off. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity
-    uint8_t     lineIn_Vol_last;    // 0-100 (% of lineIn_en). Last used line in setting on this band. 255 is ignore and use current value
+    uint8_t     lineIn_level;       // codec line in max level. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Set this to max allowed.
+    uint8_t     rfGain;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
     uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
-    uint8_t     spkr_Vol_last;      // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
-    uint8_t     lineOut_en;         // line out on or off. Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    uint8_t     lineOut_Vol_last;   // last line out setting used on this band. 255 is ignore and use the current value.
-    uint8_t     enet_enabled;       // Turn on ethernet features
+    uint8_t     afGain;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
+    uint8_t     lineOut_level;      // line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    uint8_t     lineOut_Vol_last;   // last line out setting used on this band. Intended for data mode line level separate from speaker volume
+    uint8_t     enet_enabled;      // Allow initialization and operation of ethernet hardware
     uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)
     uint8_t     nb_en;              // Noise Blanker mode.  0 is off.  1+ is mode
     uint8_t     nr_en;              // Noise Reduction.  0 is off.  1+ is mode
@@ -247,11 +248,11 @@ struct User_Settings {
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
 };
 
-struct User_Settings user_settings[USER_SETTINGS_NUM] = {                //  rfgain       afgain
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG  LIn  LInVol SpkEn SpkVol LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  13,   100,   ON,  90,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  13,   100,   ON,  90,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  13,   100,   ON,  90,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
+struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfGain SpkEn afGain LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  13,   100,   ON,    90,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  13,   100,   ON,    90,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  13,   100,   ON,    90,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
 };
 
 struct Standard_Button {
@@ -271,7 +272,7 @@ struct Standard_Button {
     char     label[20];     // Tesxt to display for the button label  Use spaces to center
 };
 
-#define STD_BTN_NUM 30      // number of buttons in the table
+#define STD_BTN_NUM 31      // number of buttons in the table
 #define PANEL_ROWS  7       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
 //  There are 6 100px wide buttons that can swap places, enabled/dispable by the function button for a row
 //Anchor buttons normally stay put
@@ -300,31 +301,33 @@ struct Standard_Button {
 //Panel 4
 #define RIT_BTN     19      // not implemented yet 
 #define XIT_BTN     20      // not implemented yet 
-#define VFO_AB_BTN  21      // ON/(A)/OFF(B)   Will go away soon. 
-#define FINE_BTN    22      // Fine and coarse rate
+#define FINE_BTN    21      // Fine and coarse rate
+#define SPLIT_BTN   22      // ON/OFF
 #define DISPLAY_BTN 23      // Invoke PopUp (On), close popup (Off)
-#define SPLIT_BTN   24      // ON/OFF
+#define VFO_AB_BTN  24      // ON/(A)/OFF(B)   Will go away soon. 
 //Panel 5
 #define ENET_BTN    25      // turn on and off the enet data output (does not enable/disable the enet hardware) 
 #define XVTR_BTN    26      // not implemented yet
-#define RFGAIN_BTN  27    // Sets digital RF level
-#define AFGAIN_BTN  28    // Sets digital AF level
+#define RFGAIN_BTN  27      // Sets digital RF level
+#define REFLVL_BTN  28      // Sets the Spectrum Noise floor.
+#define AFGAIN_BTN 29     // Sets digital AF level
+
 // Not in a Panel
-#define UTCTIME_BTN 29      // NTP UTC time when ethernet (and internet) is available 
+#define UTCTIME_BTN 30      // NTP UTC time when ethernet (and internet) is available 
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
     {  2,  ON,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
     { ON,  ON, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Mode\0"},
     { ON,  ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Filter\0"},
-    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 27, 20, "ATT\0"},
-    { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 24, 20, "PRE\0"},
+    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 20, 20, "Atten\0"},
+    { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Preamp\0"},
     { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
-    { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 22, 20, "Band\0"},
+    { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
     //Panel 2
     { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NB\0"},
     { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
-    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "RefLvl\0"},
+    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
     { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 18, 20, "Notch\0"},
     { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
     { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
@@ -337,17 +340,18 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
     //Panel 4
     { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
-    { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},
-    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
+    { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},   
     { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
-    { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
     { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
+    { ON, OFF, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},///
+    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
     //Panel 5
-    {OFF, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
-    {OFF, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
+    { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
+    { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
     { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "RF:\0"},
+    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "RefLvl\0"},
     { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "AF:\0"},
-        //Panel Spare
+    //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"}
 
 };
@@ -360,7 +364,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 // A button may be used as a label also but carries some extra baggage. The Clock button is a good example,
 //    it supports touch events later to maybe pop up a menu of clock settings.
 // The UserInput.h "Button handler" will scan all reported touch events x,y coordinates for a match to any touch enabled buttons and labels.
-enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL};
+enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL};
 
 /*
 #define BAND_LBL    0       // Band label (if used)
@@ -382,11 +386,15 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 #define MUTE_LBL    16      // On off
 #define XMIT_LBL    17      // not implemented yet
 #define XVTR_LBL    18      // not implemented yet
+#define REFLVL_LBL  19      // not implemented yet
+#define SPOT_LBL    20      // not implemented yet
 */
-#define LABEL_NUM 19      // number of labels in the table
-
+#define LABEL_NUM 20      // number of labels in the table
+ //UserInput() will look for a matching touch event coordinate if SHOW = ON. Will skip if SHOW of OFF and keep looking for coordinate matches.  
+ //DisplayXXX() also looks at SHOW to decide whether to draw something. 
+ //
 struct Label {
-    uint8_t  enabled;       // Not used for Labels today. ON - enabled. Enable or disable this Label. UserInput() will look for touchevent coordinate and skip if disabled.
+    uint8_t  enabled;       // Not used for Labels today. Cn be used for state tracking. 
     uint8_t  show;          // ON= Show key. 0 = Hide key. Used to Hide a label without disabling it.
     uint16_t x;             // coordinates used by both touch and display systems
 	uint16_t y;
@@ -404,26 +412,25 @@ struct Label {
 } labels[LABEL_NUM] = {
   //  en  show   x   y    w    h   r   outline_color     on_txtclr      on_color    off_txtclr     off_color  padx pady  label 
     {OFF, OFF,   0,   0,  40, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "B:\0"},   
-    { ON,  ON,  20, 105,  60, 30, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"},
-    { ON,  ON, 130, 105, 105, 30, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
-    { ON,  ON, 280, 105,  96, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
-    { ON,  ON, 430, 105,  72, 30, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE,  RA8875_BLACK,   RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
-    { ON,  ON, 560, 105,  60, 30, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,    RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
-    { ON,  ON,  10,  15,  48, 22, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "ATT\0"},
-    { ON,  ON,  70,  15,  48, 22, 3, RA8875_BLACK, RA8875_BLACK, RA8875_BLUE,     myDARKGREY,  RA8875_BLACK, 3, 4, "PRE\0"},
-    { ON,  ON, 130,  15,  48, 22, 3, RA8875_CYAN,  RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 6, 4, "ATU\0"},
-    { ON,  ON,  10,  40,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "RIT\0"},
-    { ON,  ON,  70,  40,  48, 22, 3, RA8875_BLACK, RA8875_RED  , RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 4, "XIT\0"},
-    { ON,  ON, 130,  40,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "Fine\0"},
-    { ON,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NB\0"},
-    { ON,  ON,  70,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NR\0"},
-    { ON,  ON, 130,  65,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Notch\0"},
-    { ON,  ON, 220,  65,  90, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Split\0"},
-    {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Mute\0"},
-    {OFF, OFF, 467, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "XMIT\0"},
-    {OFF, OFF, 583, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Xvtr\0"}
-   
-
+    {OFF,  ON,  20, 105,  60, 30, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON, 130, 105, 105, 30, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
+    {OFF,  ON, 280, 105,  96, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
+    {OFF,  ON, 430, 105,  72, 30, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE,  RA8875_BLACK,   RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
+    {OFF,  ON, 560, 105,  60, 30, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,    RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
+    {OFF,  ON,  10,  15,  48, 22, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "ATT\0"},
+    {OFF,  ON,  70,  15,  48, 22, 3, RA8875_BLACK, RA8875_BLACK, RA8875_BLUE,     myDARKGREY,  RA8875_BLACK, 6, 4, "Pre\0"},
+    {OFF,  ON, 130,  15,  48, 22, 3, RA8875_CYAN,  RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 6, 4, "ATU\0"},
+    {OFF,  ON,  10,  40,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "RIT\0"},
+    {OFF,  ON,  70,  40,  48, 22, 3, RA8875_BLACK, RA8875_RED  , RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 4, "XIT\0"},
+    {OFF,  ON, 130,  40,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "Fine\0"},
+    {OFF,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NB\0"},
+    {OFF,  ON,  70,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NR\0"},
+    {OFF,  ON, 130,  65,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Notch\0"},
+    {OFF,  ON, 220,  65,  90, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Split\0"},
+    {OFF,  ON, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
+    {OFF, OFF, 467, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
+    {OFF, OFF, 583, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "RefLvl\0"}  // No label on screen for this today
 };
 
 struct Frequency_Display {

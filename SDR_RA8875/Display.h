@@ -168,20 +168,20 @@ void displayANT(void)
 
 void displayRFgain(void)
 {	
-	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].lineIn_Vol_last);
-	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].lineIn_Vol_last);
-	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].lineIn_Vol_last);
+	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
+	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
+	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].rfGain);
 	Serial.print("RF Gain set to "); Serial.println(std_btn[RFGAIN_BTN].label);
-	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].lineIn_Vol_last);
+	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain);
 }
 
 void displayAFgain(void)
 {	
-	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].spkr_Vol_last);
-	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].spkr_Vol_last);
-	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].spkr_Vol_last);
+	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
+	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
+	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].afGain);
 	Serial.print("AF Gain set to "); Serial.println(std_btn[AFGAIN_BTN].label);
-	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].spkr_Vol_last);
+	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain);
 }
 
 void displayAttn()
@@ -203,6 +203,13 @@ void displayATU()
 	Serial.print("ATU is "); Serial.println(bandmem[curr_band].ATU);
 	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
+}
+
+void displayRefLevel()
+{
+	Serial.print("Spectrum (per band) Reference Level  is "); Serial.println(bandmem[curr_band].sp_ref_lvl);
+	drawLabel(REFLVL_LBL, &std_btn[curr_band].enabled);
+	draw_2_state_Button(REFLVL_BTN, &std_btn[curr_band].enabled);  // display as always off.
 }
 
 void displayRIT()
@@ -410,4 +417,5 @@ void displayRefresh(void)
 	displayAFgain();
 	displayEnet();
 	displayXVTR();
+	displayRefLevel();
 }
