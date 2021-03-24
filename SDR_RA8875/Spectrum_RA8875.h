@@ -87,6 +87,7 @@ extern uint32_t                 VFOA;
 extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
+extern volatile int32_t  Freq_Peak;
 
 #define SCREEN_WIDTH            800             // Change this to the maximum pixels you want to display up to max of screen width.  This uses memory.
 #define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
@@ -606,6 +607,7 @@ void spectrum_update(int16_t s)
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
         float pk_temp = _VFO_ + (2 * (fft_bin_size * fft_pk_bin));   // relate the peak bin to the center bin
+        Freq_Peak = pk_temp;
         tft.print(formatFreq(pk_temp));
         
         // Write the Scale value 

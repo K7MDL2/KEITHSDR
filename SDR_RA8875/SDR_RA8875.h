@@ -177,6 +177,7 @@ bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
 void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t     popup = 0;                          // experimental flag for pop up windows
 int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
+volatile int32_t  Freq_Peak = 0;
 
 // Most of our timers are here.  Spectrum waerfall is in the spectrum settings section
 Metro touch         = Metro(50);   // used to check for touch events
