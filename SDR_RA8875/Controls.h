@@ -826,10 +826,19 @@ void TouchTune(int16_t touch_Freq)
 {
     touch_Freq -= Sp_Parms_Def[spectrum_preset].spect_width/2;     // adjust coordinate relative to center 
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
-    VFOA+= _newfreq;
-    Serial.print("TouchTune(r) frequency is ");
-    Serial.println(formatVFO(VFOA));
     
+    Serial.print("TouchTune(r) frequency is ");
+    
+    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+    {
+        VFOA += _newfreq;
+        Serial.println(formatVFO(VFOA));
+    }
+    else
+    {
+        VFOB += _newfreq; 
+        Serial.println(formatVFO(VFOB));
+    }
     selectFrequency(0);
     displayFreq();
 }
