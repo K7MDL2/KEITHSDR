@@ -272,7 +272,7 @@ struct Standard_Button {
     char     label[20];     // Tesxt to display for the button label  Use spaces to center
 };
 
-#define STD_BTN_NUM 31      // number of buttons in the table
+#define STD_BTN_NUM 32      // number of buttons in the table
 #define PANEL_ROWS  7       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
 //  There are 6 100px wide buttons that can swap places, enabled/dispable by the function button for a row
 //Anchor buttons normally stay put
@@ -310,10 +310,11 @@ struct Standard_Button {
 #define XVTR_BTN    26      // not implemented yet
 #define RFGAIN_BTN  27      // Sets digital RF level
 #define REFLVL_BTN  28      // Sets the Spectrum Noise floor.
-#define AFGAIN_BTN 29     // Sets digital AF level
+#define AFGAIN_BTN  29     // Sets digital AF level
 
 // Not in a Panel
 #define UTCTIME_BTN 30      // NTP UTC time when ethernet (and internet) is available 
+#define SPECTUNE_BTN 31     // Convertes a touch in the spectrum window to a frequency to tune too.
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
@@ -352,7 +353,8 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "RefLvl\0"},
     { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "AF:\0"},
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
-    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"}
+    { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},
+    { ON, OFF,   0, 140, 800,270, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},
 
 };
 

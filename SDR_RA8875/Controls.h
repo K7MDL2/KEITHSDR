@@ -62,6 +62,7 @@ void setAtten_dB(uint8_t atten);
 void setAFgain();
 void setRFgain();
 void setRefLevel(int8_t newval);
+void TouchTune(int16_t touch_Freq);
 
 Encoder AF(17,22);
 Encoder RF(15,16);
@@ -455,12 +456,12 @@ void Atten(int8_t toggle)
         bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
     
-    if (bandmem[curr_band].attenuator == ATTEN_OFF)
+    #ifdef SV1AFN_BPF
+      if (bandmem[curr_band].attenuator == ATTEN_OFF)
         Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
-    else 
+      else 
         Sp_Parms_Def[spectrum_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
-    #ifdef SV1AFN_BPF
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
       RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
@@ -497,12 +498,12 @@ void Preamp(int8_t toggle)
         bandmem[curr_band].preamp = PREAMP_OFF;
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
     
-    if (bandmem[curr_band].preamp == PREAMP_OFF)
-        Sp_Parms_Def[spectrum_preset].spect_floor -= 30;  // reset back to normal
-    else 
-        Sp_Parms_Def[spectrum_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
-
     #ifdef SV1AFN_BPF
+      if (bandmem[curr_band].preamp == PREAMP_OFF)
+        Sp_Parms_Def[spectrum_preset].spect_floor -= 30;  // reset back to normal
+      else 
+        Sp_Parms_Def[spectrum_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
+ 
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setPreamp((bool) bandmem[curr_band].preamp);
       RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
@@ -819,6 +820,18 @@ void Display()
     displayDisplay();
     Serial.print("Set Display Button to ");
     Serial.println(display_state);
+}
+
+void TouchTune(int16_t touch_Freq)
+{
+    touch_Freq -= Sp_Parms_Def[spectrum_preset].spect_width/2;     // adjust coordinate relative to center 
+    int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
+    VFOA+= _newfreq;
+    Serial.print("TouchTune(r) frequency is ");
+    Serial.println(formatVFO(VFOA));
+    
+    selectFrequency(0);
+    displayFreq();
 }
 
 /*******************************************************************************

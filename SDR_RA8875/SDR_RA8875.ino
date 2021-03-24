@@ -203,7 +203,7 @@ void loop()
     {
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
-            if (!user_settings[user_Profile].notch)
+            if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
                 spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
     }
     uint32_t time_n = millis() - time_old;

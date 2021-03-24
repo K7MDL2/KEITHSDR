@@ -264,15 +264,17 @@ void Gesture_Handler(uint8_t gesture)
                 ////------------------ SWIPE LEFT  -------------------------------------------
                 //Serial.println("\nSwipe Horizontal");
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
-                {                
-                    Rate(-1);
+                {     
+                    selectFrequency(-1);           
+                    //Rate(-1);
                     Serial.println("Swiped Left");                                           
                     return; 
                 }
                 ////------------------ SWIPE RIGHT  -------------------------------------------
                 else  // or larger so a Swipe Right
                 {
-                    Rate(1);
+                    selectFrequency(1);
+                    //Rate(1);
                     Serial.println("Swiped Right");             
                     return;    
                 }
@@ -550,6 +552,11 @@ void Button_Handler(int16_t x, uint16_t y)
     ptr = std_btn + DISPLAY_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
         if (ptr->show) Display();
+    
+    // DISPLAY button
+    ptr = std_btn + SPECTUNE_BTN;     // pointer to button object passed by calling function
+    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+        if (ptr->enabled) TouchTune(x);
 
     // FN button  - Cycles out a list (panel) of buttons
     ptr = std_btn + FN_BTN;     // pointer to button object passed by calling function
@@ -761,7 +768,7 @@ void Button_Handler(int16_t x, uint16_t y)
             return;
         }
     }
-
+#ifdef IGNORE_ME
     // DISPLAY Test button (hidden area)
     if ((x>700 && x<800)&&(y>300 && y<400))
     {
@@ -791,4 +798,5 @@ void Button_Handler(int16_t x, uint16_t y)
         Spectrum_Parm_Generator(spectrum_preset);  // Generate values for current display (on the fly) or filling in teh ddefauil table for Presets.  value of 0 to PRESETS.
         return;
     }   
+    #endif //4444
 }
