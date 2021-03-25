@@ -440,8 +440,10 @@ void Button_Handler(int16_t x, uint16_t y)
         //Serial.println((ptr+i)->label);
         if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
         {
-            if ((ptr+i)->show)  // if the show property ius active, call the button function to act on it.
+            if ((pLabel+i)->show)  // if the show property ius active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
+
+
                 switch (i)
                 {
                     case MODE_LBL:      setMode(1);     break; //Increment the mode from current value
