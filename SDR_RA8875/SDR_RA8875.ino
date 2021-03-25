@@ -540,10 +540,10 @@ void MF_Service()
         } break;
         case MFTUNE :
         default     : {   
-            static uint16_t old_ts = tstep[bandmem[curr_band].tune_step].step;
-            tstep[bandmem[curr_band].tune_step].step =5;  
+            static uint16_t old_ts = bandmem[curr_band].tune_step;
+            bandmem[curr_band].tune_step = 5;  
             selectFrequency(counts);
-            tstep[bandmem[curr_band].tune_step].step = old_ts;
+            bandmem[curr_band].tune_step = old_ts;
         } break;        
     };
 }
