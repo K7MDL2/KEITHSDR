@@ -19,9 +19,9 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-//#define OCXO_10MHZ              // uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
-//#define DIG_STEP_ATT 
-//#define SV1AFN_BPF
+#define OCXO_10MHZ              // uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+#define DIG_STEP_ATT 
+#define SV1AFN_BPF
 #ifdef OCXO_10MHZ 
  #define ENET                   // Turn off or on ethernet features and hardware
  #define USE_ENET_PROFILE       // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
