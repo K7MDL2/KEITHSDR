@@ -54,10 +54,10 @@ void selectFrequency(int32_t newFreq)
 	}
 	else
 	{
-		RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+		//RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 		//Serial.print("BPF Set to "); Serial.println(bandmem[curr_band].preselector);  
       	bpf.setBand(HFBand(bandmem[curr_band].preselector));
-		RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+		//RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 	}
 	#endif
 

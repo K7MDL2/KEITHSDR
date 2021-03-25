@@ -172,7 +172,7 @@ void displayRFgain(void)
 	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].rfGain);
 	Serial.print("RF Gain set to "); Serial.println(std_btn[RFGAIN_BTN].label);
-	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain);
+	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain_en);
 }
 
 void displayAFgain(void)
@@ -181,11 +181,12 @@ void displayAFgain(void)
 	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].afGain);
 	Serial.print("AF Gain set to "); Serial.println(std_btn[AFGAIN_BTN].label);
-	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain);
+	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain_en);
 }
 
 void displayAttn()
 {
+	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
 	Serial.print("Atten is "); Serial.println(bandmem[curr_band].attenuator);
 	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
@@ -203,13 +204,6 @@ void displayATU()
 	Serial.print("ATU is "); Serial.println(bandmem[curr_band].ATU);
 	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
-}
-
-void displayRefLevel()
-{
-	Serial.print("Spectrum (per band) Reference Level  is "); Serial.println(bandmem[curr_band].sp_ref_lvl);
-	drawLabel(REFLVL_LBL, &std_btn[curr_band].enabled);
-	draw_2_state_Button(REFLVL_BTN, &std_btn[curr_band].enabled);  // display as always off.
 }
 
 void displayRIT()
@@ -283,20 +277,20 @@ void displayTime(void)
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
-void displayMenu(){draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);}
-void displayFn(){draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);}
-void displayVFO_AB(){draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);}
-void displayBandUp(){draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);}
-void displayBand(){draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);}
-void displaySpot(){draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);}
-
-void displayBandDn(){draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);}
-void displayDisplay(){draw_2_state_Button(DISPLAY_BTN, &display_state);}
-void displayXMIT(){draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);}
-void displayMute(){draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);}
-
-void displayXVTR(){draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);}
-void displayEnet(){draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
+// These buttons have no associated labels so are simly button updates
+void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				}
+void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
+void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	}
+void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			}
+void displayBand() 		{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			}
+void displaySpot() 		{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		}
+void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			}
+void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						}
+void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		}
+void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		}
+void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			}
+void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
+void displayRefLevel()  {draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].enabled); 		}
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------

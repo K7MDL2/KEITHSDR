@@ -42,6 +42,7 @@ extern struct Bandwidth_Settings bw[];
 extern uint8_t user_Profile;
 extern AudioControlSGTL5000 codec1;
 extern uint8_t popup;
+extern void set_MF_Service(uint8_t client_name);
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y); 
@@ -315,12 +316,12 @@ void Gesture_Handler(uint8_t gesture)
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
             {                
                 //codec1.volume(user_settings[user_Profile].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
-                setAFgain(-1);   //  Range 0 to 100, this is a request to change level by %x
+                AFgain(-1);   //  Range 0 to 100, this is a request to change level by %x
                 Serial.print("3-point Volume DOWN  "); Serial.println(user_settings[user_Profile].afGain);
             }
             else
             {
-                setRFgain(5);   //  Range 0 to 100, this is a request to change level by %x
+                AFgain(1);   //  Range 0 to 100, this is a request to change level by %x
                 //codec1.volume(user_settings[user_Profile].spkr_Vol_last += 0.1);  // was 3 finger swipe up
                 Serial.print("3-point Volume UP  "); Serial.println(user_settings[user_Profile].afGain);
             }                
@@ -511,12 +512,12 @@ void Button_Handler(int16_t x, uint16_t y)
     // AFGain button
     ptr = std_btn + AFGAIN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setAFgain(10);
+        if (ptr->show) setAFgain();
 
     // RFGain button
     ptr = std_btn + RFGAIN_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setRFgain(-10);
+        if (ptr->show) setRFgain();
 
     // Spot button
     ptr = std_btn + SPOT_BTN;     // pointer to button object passed by calling function
@@ -526,7 +527,7 @@ void Button_Handler(int16_t x, uint16_t y)
     // REFLVL button
     ptr = std_btn + REFLVL_BTN;     // pointer to button object passed by calling function
     if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setRefLevel(-10);   // 0 is use current DB value, -X and +X changes floor by X
+        if (ptr->show) setRefLevel();
         
     // Notch button
     ptr = std_btn + NOTCH_BTN;     // pointer to button object passed by calling function
@@ -798,5 +799,5 @@ void Button_Handler(int16_t x, uint16_t y)
         Spectrum_Parm_Generator(spectrum_preset);  // Generate values for current display (on the fly) or filling in teh ddefauil table for Presets.  value of 0 to PRESETS.
         return;
     }   
-    #endif //4444
+    #endif
 }

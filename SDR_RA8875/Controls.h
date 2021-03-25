@@ -27,6 +27,9 @@ extern AudioControlSGTL5000 codec1;
 extern uint8_t popup;
 extern void RampVolume(float vol, int16_t rampType);
 extern volatile int32_t  Freq_Peak;
+extern void set_MF_Service(uint8_t client_name);
+extern void unset_MF_Service(uint8_t client_name);
+extern int8_t MF_client; // Flag for current owner of MF knob services
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -59,10 +62,13 @@ void RIT();
 void Preamp(int8_t toggle);
 void Atten(int8_t toggle);
 void VFO_AB();
-void setAtten_dB(uint8_t atten);
+void setAtten_dB(int8_t atten);
 void setAFgain();
+void AGgain(int8_t delta);
 void setRFgain();
+void RFgain(int8_t delta);
 void setRefLevel(int8_t newval);
+void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 
 Encoder AF(17,22);
@@ -130,7 +136,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     bandmem[curr_band].vfo_B_last = VFOB;
 
     // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
-    int8_t target_band = bandmem[curr_band + direction].band_num;
+    int8_t target_band = bandmem[curr_band].band_num + direction;
     
     Serial.print("Target Band is "); Serial.println(target_band);
 
@@ -150,7 +156,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
     selectBandwidth(bandmem[curr_band].filter);
-    setRefLevel(0);  // 0 = use current database value. -X is decrement, +X is increment by X.
+    RefLevel(0);
     Atten(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
      //dB level is set elsewhere and uses value in the dB in this function.
     Preamp(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
@@ -443,6 +449,8 @@ void Atten(int8_t toggle)
     // Set the attenuation level from the value in the database
     #ifdef DIG_STEP_ATT 
       setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
+    #else
+      toggle = 0;
     #endif    
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
@@ -455,8 +463,13 @@ void Atten(int8_t toggle)
         bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
     else if (toggle == 0)    // toggle is 0, turn off Atten
         bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
-    // any other value of toggle pass through with unchanged state, jsut set the relays to current state
+    // any other value of toggle pass through with unchanged state, just set the relays to current state
     
+    if (bandmem[curr_band].attenuator == ATTEN_ON)
+        set_MF_Service(ATTEN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+    else
+        unset_MF_Service(ATTEN_BTN); 
+
     #ifdef SV1AFN_BPF
       if (bandmem[curr_band].attenuator == ATTEN_OFF)
         Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
@@ -469,7 +482,6 @@ void Atten(int8_t toggle)
     #endif
 
     displayAttn();
-    //setRefLevel(0);
     Serial.print("Set Attenuator Relay to ");
     Serial.print(bandmem[curr_band].attenuator);
     Serial.print(" Atten_dB is ");
@@ -556,7 +568,7 @@ void Split()
 // XVTR button
 void Xvtr()
 {
-    if (bandmem[curr_band].xvtr_en== ON)
+    if (bandmem[curr_band].xvtr_en == ON)
         bandmem[curr_band].xvtr_en = OFF;
     else if (bandmem[curr_band].xvtr_en == OFF)
         bandmem[curr_band].xvtr_en = ON;
@@ -571,7 +583,7 @@ void Xvtr()
 // ATU button
 void ATU()
 {    
-    if (bandmem[curr_band].ATU== ON)
+    if (bandmem[curr_band].ATU == ON)
         bandmem[curr_band].ATU = OFF;
     else if (bandmem[curr_band].ATU == OFF)
         bandmem[curr_band].ATU = ON;    
@@ -588,7 +600,7 @@ void Fine()
 {
     extern uint8_t enc_ppr_response;        
 
-    if (user_settings[user_Profile].fine== ON)
+    if (user_settings[user_Profile].fine == ON)
     {
         user_settings[user_Profile].fine = OFF;
         enc_ppr_response /= 1.4;
@@ -633,15 +645,36 @@ Serial.print("TEST: Manually Set Atten value to "); Serial.println(i);
 }
 
 // AF GAIN button
+void setAFgain()
+{
+    if (user_settings[user_Profile].afGain_en == OFF)      // Set button to on to track as active 
+    {
+        user_settings[user_Profile].afGain_en = ON;
+        set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+    }
+    else
+    {
+        user_settings[user_Profile].afGain_en = OFF;
+        unset_MF_Service(AFGAIN_BTN); 
+    }
+    Serial.print(" AF Gain ON/OFF set to  "); 
+    Serial.println(user_settings[user_Profile].afGain_en);
+    displayAFgain();
+}
+
 //
 //  Input: Request a new volume as a percentage up or down.
 //          To jump to Full volume use 100;
 //          To jump to Min volume use -100;
 //          Normally just ask for +12
 //       
-void setAFgain(int8_t delta)
+void AFgain(int8_t delta)
 {
     float _afLevel;
+
+    ///if (MF_client == AFGAIN_BTN)
+    //    set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+
     _afLevel = user_settings[user_Profile].afGain;   // Get last absolute volume setting as a value 0-100
 
 //Serial.print(" TEST AF Level requested "); Serial.println(_afLevel);
@@ -663,9 +696,28 @@ void setAFgain(int8_t delta)
 }
 
 // RF GAIN button
-void setRFgain(int8_t delta)
+void setRFgain()
+{
+    if (user_settings[user_Profile].rfGain_en == OFF)      // Set button to on to track as active 
+    {
+        user_settings[user_Profile].rfGain_en = ON;
+        set_MF_Service(RFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+    }
+    else
+    {
+        user_settings[user_Profile].rfGain_en = OFF;
+        unset_MF_Service(RFGAIN_BTN); // Deregister
+    }
+    Serial.print(" RF Gain ON/OFF set to  "); 
+    Serial.println(user_settings[user_Profile].rfGain_en);
+    displayRFgain();
+}
+
+// RF GAIN Adjust button
+void RFgain(int8_t delta)
 {
     float _rfLevel;
+
     _rfLevel = user_settings[user_Profile].rfGain;   // Get last absolute volume setting as a value 0-100
 
 //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
@@ -726,7 +778,7 @@ void NR()
 // Enet button
 void Enet()
 {
-    if (user_settings[user_Profile].enet_output== ON)
+    if (user_settings[user_Profile].enet_output == ON)
         user_settings[user_Profile].enet_output = OFF;
     else if (user_settings[user_Profile].enet_output == OFF)
         user_settings[user_Profile].enet_output = ON;
@@ -738,17 +790,38 @@ void Enet()
 // Spot button
 void Spot()
 {
-    if (user_settings[user_Profile].spot== ON)
-        user_settings[user_Profile].spot = OFF;
-    else if (user_settings[user_Profile].spot == OFF)
+    if (user_settings[user_Profile].spot == OFF)
         user_settings[user_Profile].spot = ON;
+    else
+        user_settings[user_Profile].spot = OFF;
     displaySpot();
     Serial.print("Set Spot to ");
     Serial.println(user_settings[user_Profile].spot);
 }
 
 // REF LEVEL button
-void setRefLevel(int8_t newval)
+void setRefLevel()
+{
+    if (std_btn[REFLVL_BTN].enabled ==OFF)
+    {
+        std_btn[REFLVL_BTN].enabled = ON;
+        set_MF_Service(REFLVL_BTN); 
+        Serial.print("Set REFLVL to ON ");
+        Serial.print(std_btn[REFLVL_BTN].enabled);
+    }
+    else
+    {
+        std_btn[REFLVL_BTN].enabled = OFF;
+        unset_MF_Service(REFLVL_BTN); // Deregister
+        Serial.print("Set REFLVL to OFF ");
+        Serial.print(std_btn[REFLVL_BTN].enabled);
+    }
+    displayRefLevel();
+    Serial.print(" and Ref Level is ");
+    Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
+}
+
+void RefLevel(int8_t newval)
 {
     bandmem[curr_band].sp_ref_lvl += newval;
     if (bandmem[curr_band].sp_ref_lvl > -110)
@@ -864,17 +937,22 @@ void TouchTune(int16_t touch_Freq)
 *  None.
 *
 *******************************************************************************/
-void setAtten_dB(uint8_t atten)
+void setAtten_dB(int8_t atten)
 {
     #ifdef DIG_STEP_ATT
     uint8_t   i;
     char    atten_str[8] = {'\0'};
     char    atten_data[8] = {'\0'};
-
+    Serial.print("Requested new attenuator value is "); Serial.println(atten);
     if(atten > 31) 
         atten = 31;
-    if(atten <= 0)
+    if(atten <=0 )
         atten = 0;
+    bandmem[curr_band].attenuator_dB = atten;
+    
+    Serial.print("Setting attenuator value to "); Serial.println(bandmem[curr_band].attenuator_dB);
+    displayAttn();  // update the button value
+    
     atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
     /* Convert to 8 bits of  0 and 1 format */
     itoa(atten, atten_str, 2);
@@ -907,113 +985,7 @@ void setAtten_dB(uint8_t atten)
     digitalWrite(Atten_LE, (uint8_t) ON);
     delayMicroseconds(10);
     digitalWrite(Atten_LE, (uint8_t) OFF);
+
     return;    
     #endif
 }
-
-/*
-//extern void setRFgain();  
-//extern void setAFgain();  
-////////////////////////////////////////////////////////////////////////////
-void AFgain()
-{
-   newA = AF.read();
-
-    if(newA==oldA)
-    {
-      delay(15);
-    }
-    else
-    {  
- 
-  if (newA != oldA)
-  {
-    if(newA>oldA)
-      {
-        Aup=Aup+1;
-        if(Aup>5)
-        {
-          afLevel=afLevel+.05f;
-          if (afLevel>1.00f)
-          {
-            afLevel=1.00f;
-          }
-           Serial.println(int(afLevel*100),DEC);
-           Aup=0;
-          displayAFgain(); 
-        }
-      }
-      if(newA<oldA)
-      {
-        Adown=Adown+1;
-        if(Adown>5)
-        {
-           afLevel=afLevel-.05f;
-           if(afLevel<0.01f)
-           {
-            afLevel=0.05f;
-           }
-           
-           Serial.println(int(afLevel*100),DEC);
-           Adown=0;
-           displayAFgain(); 
-        }
-      }
-       setAFgain();
-    }
-    } 
-
-   oldA = newA;
-}
-/////////////////////////////////////////////////////////////////////////
-void RFgain()
-{
-   newR = RF.read();
-
-    if(newR==oldR)
-    {
-      delay(15);
-    }
-    else
-    {  
- 
-  if (newR != oldR)
-  {
-    if(newR>oldR)
-      {
-        Rup=Rup+1;
-        if(Rup>5)
-        {
-          rfLevel=rfLevel+.05f;
-          if (rfLevel>1.00f)
-          {
-            rfLevel=1.00f;
-          }
-           Serial.println(int(rfLevel*100),DEC);
-           Rup=0;
-              displayRFgain(); 
-        }
-      }
-      if(newR<oldR)
-      {
-        Rdown=Rdown+1;
-        if(Rdown>5)
-        {
-           rfLevel=rfLevel-.05f;
-           if(rfLevel<0.05f)
-           {
-            rfLevel=0.05f;
-           }
-           
-           Serial.println(int(rfLevel*100),DEC);
-           Rdown=0;
-           displayRFgain(); 
-        }
-      }
-      setRFgain();
-    }
-  } 
-   oldR = newR;
-}
-*/
-

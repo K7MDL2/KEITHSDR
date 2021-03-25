@@ -203,7 +203,7 @@ struct Filter_Settings {
 
 char Mode[4][5] = {"CW", "LSB", "USB", "DATA"};
 
-#define TS_STEPS 5
+#define TS_STEPS 6
 struct TuneSteps {
     char        ts_name[12];    // display name for UI
     char        ts_units[4];    // units for display HZ or KHz
@@ -215,6 +215,7 @@ struct TuneSteps {
     {"100 ", "Hz",   100, USB},
     {"1.0", "KHz",  1000, USB},
     {"2.5", "KHz",  2500, USB},
+    {"5.0", "KHz",  5000, USB},
 };
 
 #define USER_SETTINGS_NUM 3
@@ -231,8 +232,10 @@ struct User_Settings {
     uint8_t     mic_input_en;       // mic on or off
     float       mic_Gain_last;      // last used mic gain on this band
     uint8_t     lineIn_level;       // codec line in max level. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Set this to max allowed.
+    uint8_t     rfGain_en;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
     uint8_t     rfGain;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
     uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
+    uint8_t     afGain_en;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
     uint8_t     afGain;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
     uint8_t     lineOut_level;      // line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     uint8_t     lineOut_Vol_last;   // last line out setting used on this band. Intended for data mode line level separate from speaker volume
@@ -249,10 +252,10 @@ struct User_Settings {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfGain SpkEn afGain LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  13,   100,   ON,    90,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  13,   100,   ON,    90,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  13,   100,   ON,    90,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  13,   OFF,   100,   ON,   OFF,    90,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  13,   OFF,   100,   ON,   OFF,    90,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  13,   OFF,   100,   ON,   OFF,    90,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
 };
 
 struct Standard_Button {
@@ -316,12 +319,15 @@ struct Standard_Button {
 #define UTCTIME_BTN 30      // NTP UTC time when ethernet (and internet) is available 
 #define SPECTUNE_BTN 31     // Convertes a touch in the spectrum window to a frequency to tune too.
 
+#define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
+#define MFNONE      0       // No active MF knob client
+
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
     {  2,  ON,   1, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
     { ON,  ON, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Mode\0"},
     { ON,  ON, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Filter\0"},
-    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 20, 20, "Atten\0"},
+    { ON,  ON, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  6, 20, "Atten\0"},
     { ON,  ON, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Preamp\0"},
     { ON,  ON, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
     { ON,  ON, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
@@ -349,9 +355,9 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     //Panel 5
     { ON, OFF, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
     { ON, OFF, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
-    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "RF:\0"},
-    { ON, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 14, 20, "RefLvl\0"},
-    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "AF:\0"},
+    { ON, OFF, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "RF:\0"},
+    {OFF, OFF, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
+    { ON, OFF, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},
     { ON, OFF,   0, 140, 800,270, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},
@@ -522,3 +528,9 @@ uint8_t display_state;   // something to hold the button state for the display p
   #define Atten_DATA      32
   #define Atten_LE        30
 #endif
+
+// MultiFunction Knob and Switch  
+Metro MF_Timeout = Metro(3000);
+// The #defne button numbers act as the ID of possible owners of MF knob services
+int8_t MF_client = MFTUNE;          // Flag for current owner of MF knob services
+int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button times out.

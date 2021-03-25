@@ -233,7 +233,7 @@ void spectrum_update(int16_t s)
     float avg = 0.0;
     int16_t pixelnew[SCREEN_WIDTH+2];           //  Stores current pixel fopr spectrum portion only
     static int16_t pixelold[SCREEN_WIDTH+2];    //  Stores copy of current pixel so it can be erased in next update
-    int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
+    //int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
     float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
     int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
     int16_t L_EDGE = 0; 
@@ -268,7 +268,7 @@ void spectrum_update(int16_t s)
             {        
                 if ( i > SCREEN_WIDTH) // do not overrun our buffer size.  Ideally wf_sp_width would never be > SCREENWIDTH but....
                     i = SCREEN_WIDTH;
-                span_FFT[i] = (int16_t) myFFT.read(binsz*i);
+                //span_FFT[i] = (int16_t) myFFT.read(binsz*i);
             }
             //pout = span_FFT;
             Serial.print("Zoom Out =");

@@ -59,7 +59,7 @@ void setup()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
     codec1.inputSelect(myInput);
-    setRFgain(0);  // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
+    RFgain(0);
     codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
@@ -173,7 +173,7 @@ void setup()
         codec1.unmuteLineout(); //unmute the audio output
         user_settings[user_Profile].mute = OFF;
         displayMute();
-        setAFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
+        AFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
         //RampVolume(user_settings[user_Profile].spkr_Vol_last/100, 1); //0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     }
     else
@@ -236,6 +236,15 @@ void loop()
         Position.readAndReset(); // zero out counter fo rnext read.
         newFreq = 0;
     }
+
+    if (MF_Timeout.check() == 1 && MF_client != default_MF_client)
+    {
+        Serial.print("Switching to Default MF knob assignment, current owner is = ");
+        Serial.println(MF_client);
+        unset_MF_Service(default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+    }
+    if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
+        MF_Service();
 
     if (meter.check() == 1) // update our meters
     {
@@ -414,14 +423,14 @@ void printHelp(void)
 //
 //  Usage:  A consumer function will call this with clear flag set at the start of use.
 //          It will poll this function for counts acting on any in any way it needs to.
-//          It will celar the count to look for next action.
+//          It will clear the count to look for next action.
 //          If a clear is not performed then the consumer function must deal with figuring out how
 //          the value has changed and what to do with it.
 //          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
 //
 int32_t multiKnob(uint8_t clear)
 {
-    static uint32_t mf_count = 0;
+    static int32_t mf_count = 0;
 
     if (clear)
     {
@@ -429,139 +438,113 @@ int32_t multiKnob(uint8_t clear)
         mf_count = 0;
     }
     else
-        mf_count = Multi.read(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any.
+        mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
     return mf_count;
 }
 
-
-/*  New stuff to integrate
-
-float afLevel=0.500f;
-float rfLevel=0.999f;
-extern float afLevel;
-void setAFgain()
+// Deregister the MF_client
+void unset_MF_Service(uint8_t client_name)
 {
-  codec1.volume(afLevel);
-}
-
-void setRFgain()
-{
-
-}
-Encoder AF(17,22);
-Encoder RF(15,16);
-///////////AF gain Variables//////////
-long oldA  = -999;
-long newA;
-long Aup=0;
-long Adown=0;
-///////////RF gain Variables/////////
-long oldR  = -999;
-long newR;
-long Rup=0;
-long Rdown=0;
-extern void setRFgain();  
-extern void setAFgain();  
-////////////////////////////////////////////////////////////////////////////
-void AFgain()
-{
-   newA = AF.read();
-
-    if(newA==oldA)
+    if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
     {
-      delay(15);
+        MF_client = default_MF_client;    // assign new owner to default for now.
+        return;   
     }
-    else
-    {  
- 
-  if (newA != oldA)
-  {
-    if(newA>oldA)
-      {
-        Aup=Aup+1;
-        if(Aup>5)
-        {
-          afLevel=afLevel+.05f;
-          if (afLevel>1.00f)
-          {
-            afLevel=1.00f;
-          }
-           Serial.println(int(afLevel*100),DEC);
-           Aup=0;
-          displayAFgain(); 
-        }
-      }
-      if(newA<oldA)
-      {
-        Adown=Adown+1;
-        if(Adown>5)
-        {
-           afLevel=afLevel-.05f;
-           if(afLevel<0.01f)
-           {
-            afLevel=0.05f;
-           }
-           
-           Serial.println(int(afLevel*100),DEC);
-           Adown=0;
-           displayAFgain(); 
-        }
-      }
-       setAFgain();
-    }
+    // This must be from a timeout or a new button before timeout
+    // Turn off button of the previous owner, if any, using the MF knob at change of owner or timeout
+    // Some button can be left on such as Atten or other non-button MF users.  Just leave them off this list.
+    switch (MF_client)
+    {
+        case MFNONE: {
+            // no current owner, return
+        } break;
+        case RFGAIN_BTN: {           
+            setRFgain();   //since it was active toggle the output off
+        } break;
+        case AFGAIN_BTN: {         
+            setAFgain();
+        } break;
+        case  REFLVL_BTN: {
+            setRefLevel();
+        } break;
+        case MFTUNE:
+        case ATTEN_BTN:
+        default     : {          
+        // No button for VFO tune, atten button stays on
+            MF_client = default_MF_client;
+        } break;
+    
     } 
-
-   oldA = newA;
 }
-/////////////////////////////////////////////////////////////////////////
-void RFgain()
+// ---------------------------------- set_MF_Service -----------------------------------
+// Register the owner for the MF services.  Called by a client like RF Gain button.  Last caller wins.
+// Clears the MF knob count and sets the flag for the new owner
+// On any knob event the owner will get called with the MF counter value or switch action
+
+// Potential owners can query the MF_client variable to see who owns the MF knob.  
+// Can take ownership by calling this fucntion and passing the enum ID for it's service function
+void set_MF_Service(uint8_t client_name)
 {
-   newR = RF.read();
-
-    if(newR==oldR)
-    {
-      delay(15);
-    }
-    else
-    {  
- 
-  if (newR != oldR)
-  {
-    if(newR>oldR)
-      {
-        Rup=Rup+1;
-        if(Rup>5)
-        {
-          rfLevel=rfLevel+.05f;
-          if (rfLevel>1.00f)
-          {
-            rfLevel=1.00f;
-          }
-           Serial.println(int(rfLevel*100),DEC);
-           Rup=0;
-              displayRFgain(); 
-        }
-      }
-      if(newR<oldR)
-      {
-        Rdown=Rdown+1;
-        if(Rdown>5)
-        {
-           rfLevel=rfLevel-.05f;
-           if(rfLevel<0.05f)
-           {
-            rfLevel=0.05f;
-           }
-           
-           Serial.println(int(rfLevel*100),DEC);
-           Rdown=0;
-           displayRFgain(); 
-        }
-      }
-      setRFgain();
-    }
-  } 
-   oldR = newR;
+    multiKnob(1);
+    unset_MF_Service(default_MF_client);
+    MF_client = client_name;    
+    MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
+                         // When it expires it will be switched to default
+    //Serial.print("New MF Knob Client ID is ");
+    //Serial.println(MF_client);
 }
-*/
+
+// ------------------------------------ MF_Service --------------------------------------
+//
+//  Called in the main loop to look for an encoder event and if found, call the registered function
+//
+void MF_Service()
+{
+    static int8_t counts = 0;
+    
+    counts = (int8_t) round(multiKnob(0)/4);
+    if (counts == 0)  // no knob movement, nothing to do.
+        return;
+    
+    MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
+                         // When it experies it will be switched to default
+
+    //Serial.print("MF Knob Client ID is ");
+    //Serial.println(MF_client);
+
+    switch (MF_client)      // Give this owner control until timeout
+    {
+        case MFNONE: {
+            // no current owner, return
+        } break;
+        case RFGAIN_BTN: {           
+            RFgain(counts);
+        } break;
+        case AFGAIN_BTN: {   
+            AFgain(counts);
+        } break;
+        case  REFLVL_BTN: {
+            RefLevel(counts);
+        } break;
+        case  ATTEN_BTN: {
+            if (counts> 1)
+                counts = 1;
+            if (counts < 1)
+                counts = -1;
+            int8_t att_tmp = bandmem[curr_band].attenuator_dB + counts;
+            if (att_tmp <=0)
+                att_tmp = 0;
+            #ifdef DIG_STEP_ATT
+              setAtten_dB(att_tmp);  // set attenuator level to value in database for this band           
+            #endif
+        } break;
+        case MFTUNE :
+        default     : {   
+            static uint16_t old_ts = tstep[bandmem[curr_band].tune_step].step;
+            tstep[bandmem[curr_band].tune_step].step =5;  
+            selectFrequency(counts);
+            tstep[bandmem[curr_band].tune_step].step = old_ts;
+        } break;        
+    };
+}
 
