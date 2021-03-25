@@ -156,12 +156,12 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
     selectBandwidth(bandmem[curr_band].filter);
-    RefLevel(0);
-    Atten(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
+    Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
      //dB level is set elsewhere and uses value in the dB in this function.
-    Preamp(-1);  // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
+    Preamp(-1);     // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     //selectMode(0);  
-    setMode(0);// 0 is set value in database for both VFOs
+    setMode(0);     // 0 is set value in database for both VFOs
+    RefLevel(0);    // 0 just updates things to be current value
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future
