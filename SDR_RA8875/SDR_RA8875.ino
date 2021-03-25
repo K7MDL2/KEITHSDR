@@ -71,12 +71,20 @@ void setup()
     AudioNoInterrupts();
     FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
     FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
     FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
+    #ifdef TEST_SINEWAVE_SIG
+    FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+    FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     FFT_Switch2.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
     FFT_Switch2.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    #else
+    FFT_Switch1.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+    FFT_Switch1.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+    FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    #endif
+    
     AudioInterrupts();
 /*   Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
