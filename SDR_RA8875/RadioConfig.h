@@ -472,7 +472,7 @@ uint8_t display_state;   // something to hold the button state for the display p
 //
 //------------------------------------  Ethernet UDP messaging section --------------------------
 //
-#define ENET              // Include support for ethernet
+//#define ENET              // Include support for ethernet
 #ifdef ENET
     #include <NativeEthernet.h>
     #include <NativeEthernetUdp.h>
