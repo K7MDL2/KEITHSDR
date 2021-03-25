@@ -2,6 +2,18 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/24/2021
+
+    1. New Feature: There is now a MF (Multi-Function) knob if you have an encoder connected.  Not using the push switch function yet.  Look in "SDR_8875.h" at the bottom and change "Encoder Multi(40,39);" to match your meahanical encoder pin connections. 
+    
+    I now have I2C RGB LED encoders here so I will soon be adding support for those.  Right now the AF and RF Gain are assumed to be on the MF knob, but I will devise a config switch to have them assigned to dedicated knobs.
+
+    The MF knob will now control RF Gain (audio card line in level), AF Gain (volume, using the RampVolume function), spectrum Reference Level, and Attenuator (range 0-31dB) if you have a digital step attenuator such as the PE4302 module, connected via a SV1AFN bandpass filter board. It also tunes the VFO at a fixed rate when it is not actively changing settings.
+
+    To use this feature you simply push the key of interest, for example RF Gain. The key cap will turn blue indicating it is active and the MF knob has "focus" on that settng. The current value is displayed in the key cap label.  A 3 second timer starts. Turn the MF knob to raise and lower the setting. The timer is extended each time you move the knob.  When the knob is no longer moving after 3 seconds, the key cap turns black and the MF knob returns to an assignable "Default" function. I have it set as a sub-VFO with coarse tune rate. If you press another MF enabled key, it will become active and turn off the previous key, shifting focus to the new setting until the timer expires.  Attenuator is an exception, it stays blue when the relays are engaged but will still lose focus like the other keys. need to create a press and hold gesture to improve that experience. Need a drag too....
+
+    To enable the attenuator feature you must uncomment the //#define DIG_STEP_ATT in the main header file.  Also note that even if you do not have an attenuator board, the Atten key still shows a value and the key will not turn blue. The value is the current value stored in the database and is the initial value if you were to turn it on.
+
 ## 3/23/2021
 
     1. Added code for the PE4302 Digital Step Atenuator. For now you can tap the ANT key to cycle through 31dB in 1dB steps. Watch the Serial Monitor for the actual value printed out.  ATT key turns it On and Off. You can have a fixed attenuator instead. The code writes blind so it won't matter if you have one of these connected or not. I used pins 30-32 on the Teensy4.1 but I think a more efficient plan is to use the 3 left over pins on the MCP23017 I2C port expander that you likely used if you have the SV1AFN bandpass filter board.  I had the code written to use the expander pins. I forgot I was going to use them and wired it to the Teensy direct. 
