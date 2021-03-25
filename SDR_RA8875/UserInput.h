@@ -312,17 +312,15 @@ void Gesture_Handler(uint8_t gesture)
         case 3: if (abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
         {               
             //Serial.println("\n3 point swipe Vertical");
-            ////------------------ SWIPE DOWN  -------------------------------------------
+            ////------------------ 3 FINGER SWIPE DOWN  -------------------------------------------
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
             {                
-                //codec1.volume(user_settings[user_Profile].spkr_Vol_last -= 0.2);  // was 3 finger swipe down
-                AFgain(-1);   //  Range 0 to 100, this is a request to change level by %x
+                AFgain(-1);   //  Increment by +1 for 0-100
                 Serial.print("3-point Volume DOWN  "); Serial.println(user_settings[user_Profile].afGain);
             }
-            else
+            else //---------------- 3 FINGER SWIPE UP  -----------------------------------
             {
-                AFgain(1);   //  Range 0 to 100, this is a request to change level by %x
-                //codec1.volume(user_settings[user_Profile].spkr_Vol_last += 0.1);  // was 3 finger swipe up
+                AFgain(1);   //  Range 0 to 100, this is a request to change level by 1 step
                 Serial.print("3-point Volume UP  "); Serial.println(user_settings[user_Profile].afGain);
             }                
             break;
