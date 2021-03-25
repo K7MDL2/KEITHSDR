@@ -47,6 +47,7 @@ extern void set_MF_Service(uint8_t client_name);
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y); 
 void Gesture_Handler(uint8_t gesture);
+void setPanel(void);
 
 // structure to record the touch event info used to determine if there is a button press or a gesture.
 struct Touch_Control{            
@@ -359,87 +360,107 @@ void Gesture_Handler(uint8_t gesture)
 //      1. Touch determines it is a 1 point non drag event and passes the X,Y coordinates to a list
 //      of XY rectangle definitions here.
 //      2. Only 1 object is visible in the touch space at any moment
-//      3. Out of sight buttons must be ignoere by a touch event.
-//      4. A non touch event can call the same cointrol fucntion teh toch event does.
-//      5. Normally the control event launches a display update calling any linked objects.  It know best when
+//      3. Out of sight buttons must be ignored by a touch event.
+//      4. A non touch event can call the same control fucntion the touch event does.
+//      5. Normally the control event launches a display update calling any linked objects.  It knows best when
 //      something has changed.
 //      5. The Display functions get called in all cases of change but must check the show status and exit if the object is
 //      currently hidden.  It may update an active label but not update a hidden button.
-//      6. When a lavble or button is first drawn (rotate from hidden to show state) it will refresh its status live.
-//      7.  A multifintion knob or panel switch or remote command may call a control function and no touch involved.
-//      The control and display fucntions must proceed.
+//      6. When a label or button is first drawn (rotate from hidden to show state) it will refresh its status live.
+//      7.  A multi-function knob or panel switch or remote command may call a control function and no touch involved.
+//      The control and display functions must proceed.
 //  
 void Button_Handler(int16_t x, uint16_t y)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
-    struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
-    struct Label *pLabel = labels;
-
     if (popup)
         popup_timer.reset();
 
-    // MODE button
-    ptr = std_btn + MODE_BTN;     // pointer to button object passed by calling function    
-    if((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setMode(1);  //Increment the mode from current value
-    // MODE Label
-    pLabel = labels + MODE_LBL;
-    if((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) setMode(1);  //Increment the mode from current value
+    struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
+    for ( uint16_t i=0; i < sizeof(std_btn)/sizeof(std_btn[0]); i++ )
+    {
+        //Serial.println((ptr+i)->label);
+        if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
+        {   Serial.print("Show loop index is ");Serial.println(i);
+            if ((ptr+i)->show)  // if the show property ius active, call the button function to act on it.
+            {   // used the index to the table to match up a function to call
+                switch (i)
+                {
+                    case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
+                    case FILTER_BTN:    Filter(0);      break;
+                    case RATE_BTN:      Rate(0);        break;     //Increment from current value 
+                    case AGC_BTN:       AGC();          break;
+                    case ANT_BTN:       Ant();          break;                    
+                    case MUTE_BTN:      Mute();         break;
+                    case MENU_BTN:      Menu();         break;
+                    case VFO_AB_BTN:    VFO_AB();       break;  // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
+                    case ATTEN_BTN:     Atten(2);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+                    case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+                    case RIT_BTN:       RIT();          break;
+                    case XIT_BTN:       XIT();          break;
+                    case SPLIT_BTN:     Split();        break;
+                    case XVTR_BTN:      Xvtr();         break;
+                    case ATU_BTN:       ATU();          break;
+                    case FINE_BTN:      Fine();         break;
+                    case XMIT_BTN:      Xmit();         break;
+                    case NB_BTN:        NB();           break;
+                    case NR_BTN:        NR();           break;
+                    case ENET_BTN:      Enet();         break;
+                    case AFGAIN_BTN:    setAFgain();    break;
+                    case RFGAIN_BTN:    setRFgain();    break;
+                    case SPOT_BTN:      Spot();         break;
+                    case REFLVL_BTN:    setRefLevel();  break;
+                    case NOTCH_BTN:     Notch();        break;
+                    case BANDUP_BTN:    BandUp();       break;
+                    case BANDDN_BTN:    BandDn();       break;
+                    case BAND_BTN:      Band();         break;
+                    case DISPLAY_BTN:   Display();      break;
+                    case FN_BTN:        setPanel();     break;
+                    default: Serial.print("Found a button with SHOW on but has no function to call.  Index = ");
+                        Serial.println(i); break;
+                }
+            }
+            if ((ptr+i)->enabled)    // TOUCHTUNE button  - This uses the enabled field so treated on its own
+            {
+                switch (i)
+                {
+                    case SPECTUNE_BTN: TouchTune(x);    break;
+                    default: //Serial.print("Found a button ENABLED but has no function to call: "); 
+                        //Serial.println(i); 
+                        break;
+                }     
+            }
+        }
+    }
 
-    // FILTER button
-    ptr = std_btn + FILTER_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-       if (ptr->show) Filter(0); 
-    // FILTER label
-    pLabel = labels + FILTER_LBL;
-    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) Filter(0);  
-
-    // RATE button
-    ptr = std_btn + RATE_BTN;     // pointer to button object passed by calling function        
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Rate(0);     //Increment from current value   
-    // RATE label
-    pLabel = labels + RATE_LBL;
-    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) Rate(0);  //Increment from current value 
-
-    // AGC button
-    ptr = std_btn + AGC_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) AGC();
-    // AGC label
-    pLabel = labels + AGC_LBL;
-    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) AGC();
-
-    // ANT button
-    ptr = std_btn + ANT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Ant();
-    // ANT label
-    pLabel = labels + ANT_LBL;
-    if ((x > pLabel->x && x < pLabel->x + pLabel->w) && ( y > pLabel->y && y < pLabel->y + pLabel->h))
-        if (pLabel->show) Ant();
-
-    // MUTE
-    ptr = std_btn + MUTE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))  
-        if (ptr->show) Mute();
-
-    // MENU button
-    ptr = std_btn + MENU_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Menu();
-
-    // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs.
-    ptr = std_btn + VFO_AB_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) VFO_AB();
-        
+    struct Label *pLabel = labels;
+    for ( uint16_t i=0; i < sizeof(labels)/sizeof(labels[0]); i++ )
+    {
+        //Serial.println((ptr+i)->label);
+        if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
+        {
+            if ((ptr+i)->show)  // if the show property ius active, call the button function to act on it.
+            {   // used the index to the table to match up a function to call
+                switch (i)
+                {
+                    case MODE_LBL:      setMode(1);     break; //Increment the mode from current value
+                    case FILTER_LBL:    Filter(0);      break;
+                    case RATE_LBL:      Rate(0);        break;
+                    case AGC_LBL:       AGC();          break;
+                    case ANT_LBL:       Ant();          break;
+                    default: break;
+                }
+            }
+        }
+    }
+    
+    // These are special cases
     struct Frequency_Display *ptrAct  = &disp_Freq[0];   // The frequency display areas itself  
+    if ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))
+        VFO_AB();
+    
+    ptrAct  = &disp_Freq[1];   // The frequency display areas itself  
     if ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))
         VFO_AB();
 
@@ -447,326 +468,56 @@ void Button_Handler(int16_t x, uint16_t y)
     if ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh))
         VFO_AB();
         
-    // ATTENUATOR button
-    ptr = std_btn + ATTEN_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Atten(2);   // 2 = toggle state, 1 is set, 1 is off, -1 use current
+    ptrStby = &disp_Freq[3];   // The frequency display areas itself  
+    if ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh))
+        VFO_AB();
+}
 
-    // PREAMP button
-    ptr = std_btn + PREAMP_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Preamp(2);  // 2 = toggle state, 1 is set, 1 is off, -1 use current
+//
+//  -------------------------------------------- SetPanel() ------------------------------------------------------
+//
+// If the Fn key is touched then we need to sort through the panel field and turn on buttons
+//      only for that row or panel. We set the correct set of buttons to (show) and turn off (!show) the rest.
+void setPanel()
+{
+    struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
+    ptr = std_btn + FN_BTN;     // pointer to button object passed by calling function    
+    std_btn[FN_BTN].enabled += 1; // increment to the next panel - storing the current panel number in the enabled field.
+    if (std_btn[FN_BTN].enabled > PANEL_ROWS-1)     // Normally always have this button showing but may not some day later.                                                        
+        std_btn[FN_BTN].enabled = 2;                // Start at 2. 0 and 1 are used for on/off visible status. So 2 == panel 1.
 
-    // RIT button
-    ptr = std_btn + RIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) RIT();
-    
-    // XIT button
-    ptr = std_btn + XIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) XIT();
-    
-    // SPLIT button
-    ptr = std_btn + SPLIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Split();
-    
-    // XVTR button
-    ptr = std_btn + XVTR_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Xvtr();
+    uint16_t panel = std_btn[FN_BTN].enabled - 1;    // The panel field uses 1  to X so adjust our index down
+    Serial.print("Fn Pressed, Show Panel ");  Serial.println(panel);
+    sprintf(std_btn[FN_BTN].label, "Fn %d", panel);   // Update our button label
 
-    // ATU button
-    ptr = std_btn + ATU_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) ATU();
-
-    // Fine button
-    ptr = std_btn + FINE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Fine();
-
-    // XMIT button
-    ptr = std_btn + XMIT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Xmit();
-
-    // NB button
-    ptr = std_btn + NB_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) NB();
-     
-    // NR button
-    ptr = std_btn + NR_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-       if (ptr->show)  NR();
-
-    // Enet button
-    ptr = std_btn + ENET_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Enet();
-
-    // AFGain button
-    ptr = std_btn + AFGAIN_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setAFgain();
-
-    // RFGain button
-    ptr = std_btn + RFGAIN_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setRFgain();
-
-    // Spot button
-    ptr = std_btn + SPOT_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Spot();
-
-    // REFLVL button
-    ptr = std_btn + REFLVL_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) setRefLevel();
-        
-    // Notch button
-    ptr = std_btn + NOTCH_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Notch();
-
-    // BAND UP button
-    ptr = std_btn + BANDUP_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) BandUp();
-
-    // BAND DOWN button
-    ptr = std_btn + BANDDN_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) BandDn();
-    
-    // BAND button
-    ptr = std_btn + BAND_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Band();
-
-    // DISPLAY button
-    ptr = std_btn + DISPLAY_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->show) Display();
-    
-    // DISPLAY button
-    ptr = std_btn + SPECTUNE_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
-        if (ptr->enabled) TouchTune(x);
-
-    // FN button  - Cycles out a list (panel) of buttons
-    ptr = std_btn + FN_BTN;     // pointer to button object passed by calling function
-    if ((x > ptr->bx && x < ptr->bx + ptr->bw) && ( y > ptr->by && y < ptr->by + ptr->bh))
+    // Turn ON or OFF Panel X buttons
+    for ( uint16_t i=1; i < sizeof(std_btn)/sizeof(std_btn[0]); i++ ) //skip record 0 which is the the Fn key 
     {
-        std_btn[FN_BTN].enabled += 1;
-        if (std_btn[FN_BTN].enabled > PANEL_ROWS-1)
-            std_btn[FN_BTN].enabled = 2;
-
-        if (1)  // ptr->enabled)   For now this button is always active.
-        {   
-            if (std_btn[FN_BTN].enabled == 3)   // Panel 2 buttons
+        if ((ptr+i)->Panelnum == panel || (ptr+i)->Panelnum == panel*50 || (ptr+i)->Panelnum == panel*40 )  // if the field has a matching panel number then turn it in for "show" state else turn it off
+        {                                                               // panelnum*X is a one off cheat to allow a button to appear in more than 1 row.
+            (ptr+i)->show = ON;
+            Serial.print("Turning ON ");
+            Serial.print((ptr+i)->show);
+            Serial.print(" ");
+            Serial.println((ptr+i)->label);
+        }
+        else 
+        {
+            if ((ptr+i)->Panelnum !=0)   // Anything with panel == 0 is not in a panel so is ignored here.
             {
-                strcpy(std_btn[FN_BTN].label, "Fn 2\0");
-                // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].show    = OFF;
-                std_btn[FILTER_BTN].show  = OFF;
-                std_btn[ATTEN_BTN].show   = OFF;
-                std_btn[PREAMP_BTN].show  = OFF;
-                std_btn[RATE_BTN].show    = OFF;                
-                std_btn[BAND_BTN].show    = OFF;
-                // Turn ON Panel 2 buttons                
-                std_btn[NB_BTN].show      = ON;
-                std_btn[NR_BTN].show      = ON;
-                std_btn[SPOT_BTN].show    = ON;
-                std_btn[NOTCH_BTN].show   = ON;
-                std_btn[AGC_BTN].show     = ON;
-                std_btn[MUTE_BTN].show    = ON;
-                // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].show    = OFF;
-                std_btn[ANT_BTN].show     = OFF;
-                std_btn[ATU_BTN].show     = OFF;
-                std_btn[XMIT_BTN].show    = OFF;
-                std_btn[BANDDN_BTN].show  = OFF;
-                std_btn[BANDUP_BTN].show  = OFF;
-                // Turn OFF Panel 4 buttons
-                std_btn[RIT_BTN].show     = OFF;
-                std_btn[XIT_BTN].show     = OFF;                
-                std_btn[FINE_BTN].show    = OFF;
-                std_btn[SPLIT_BTN].show   = OFF; 
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[VFO_AB_BTN].show  = OFF;
-                // Turn OFF Panel 5 buttons
-                std_btn[ENET_BTN].show    = OFF;
-                std_btn[XVTR_BTN].show    = OFF;
-                std_btn[RFGAIN_BTN].show  = OFF;
-                std_btn[REFLVL_BTN].show  = OFF;
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[AFGAIN_BTN].show  = OFF;
+                (ptr+i)->show = OFF;
+                Serial.print("Turning OFF ");
+                Serial.print((ptr+i)->show);
+                Serial.print(" ");
+                Serial.println((ptr+i)->label);
             }
-            else if (std_btn[FN_BTN].enabled == 4)// Panel 3 buttons
-            {           
-                strcpy(std_btn[FN_BTN].label, "Fn 3\0");
-                // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].show    = OFF;
-                std_btn[FILTER_BTN].show  = OFF;
-                std_btn[ATTEN_BTN].show   = OFF;
-                std_btn[PREAMP_BTN].show  = OFF;
-                std_btn[RATE_BTN].show    = OFF;                
-                std_btn[BAND_BTN].show    = OFF;
-                // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].show      = OFF;
-                std_btn[NR_BTN].show      = OFF;
-                std_btn[SPOT_BTN].show    = OFF;
-                std_btn[NOTCH_BTN].show   = OFF;
-                std_btn[AGC_BTN].show     = OFF;
-                std_btn[MUTE_BTN].show    = OFF;
-                // Turn ON Panel 3 buttons
-                std_btn[MENU_BTN].show    = ON;
-                std_btn[ANT_BTN].show     = ON;
-                std_btn[ATU_BTN].show     = ON;
-                std_btn[XMIT_BTN].show    = ON;
-                std_btn[BANDDN_BTN].show  = ON;
-                std_btn[BANDUP_BTN].show  = ON;
-                // Turn OFF Panel 4 buttons
-                std_btn[RIT_BTN].show     = OFF;
-                std_btn[XIT_BTN].show     = OFF;                
-                std_btn[FINE_BTN].show    = OFF;
-                std_btn[SPLIT_BTN].show   = OFF; 
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[VFO_AB_BTN].show  = OFF;
-                // Turn OFF Panel 5 buttons
-                std_btn[ENET_BTN].show    = OFF;
-                std_btn[XVTR_BTN].show    = OFF;
-                std_btn[RFGAIN_BTN].show  = OFF;
-                std_btn[REFLVL_BTN].show  = OFF;
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[AFGAIN_BTN].show  = OFF;
-            }
-            else if (std_btn[FN_BTN].enabled == 5)// Panel 4 buttons
-            {           
-                strcpy(std_btn[FN_BTN].label, "Fn 4\0");
-                // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].show    = OFF;
-                std_btn[FILTER_BTN].show  = OFF;
-                std_btn[ATTEN_BTN].show   = OFF;
-                std_btn[PREAMP_BTN].show  = OFF;
-                std_btn[RATE_BTN].show    = OFF;                
-                std_btn[BAND_BTN].show    = OFF;
-                // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].show      = OFF;
-                std_btn[NR_BTN].show      = OFF;
-                std_btn[SPOT_BTN].show    = OFF;
-                std_btn[NOTCH_BTN].show   = OFF;
-                std_btn[AGC_BTN].show     = OFF;
-                std_btn[MUTE_BTN].show    = OFF;
-                // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].show    = OFF;
-                std_btn[ANT_BTN].show     = OFF;
-                std_btn[ATU_BTN].show     = OFF;
-                std_btn[XMIT_BTN].show    = OFF;
-                std_btn[BANDDN_BTN].show  = OFF;
-                std_btn[BANDUP_BTN].show  = OFF;
-                // Turn ON Panel 4 buttons
-                std_btn[RIT_BTN].show     = ON;
-                std_btn[XIT_BTN].show     = ON;                
-                std_btn[FINE_BTN].show    = ON;
-                std_btn[SPLIT_BTN].show   = ON; 
-                std_btn[DISPLAY_BTN].show = ON;Serial.println("onnnn");
-                std_btn[VFO_AB_BTN].show  = ON; 
-                // Turn OFF Panel 5 buttons
-                std_btn[ENET_BTN].show    = OFF;
-                std_btn[XVTR_BTN].show    = OFF;
-                std_btn[RFGAIN_BTN].show  = OFF;
-                std_btn[REFLVL_BTN].show  = OFF;
-                //std_btn[DISPLAY_BTN].show = OFF; // skip this since we are showing it again in Row 5
-                std_btn[AFGAIN_BTN].show  = OFF;
-            }
-            else if (std_btn[FN_BTN].enabled == 6)// Panel 4 buttons
-            {           
-                strcpy(std_btn[FN_BTN].label, "Fn 5\0");
-                // Turn OFF Panel 1 buttons
-                std_btn[MODE_BTN].show    = OFF;
-                std_btn[FILTER_BTN].show  = OFF;
-                std_btn[ATTEN_BTN].show   = OFF;
-                std_btn[PREAMP_BTN].show  = OFF;
-                std_btn[RATE_BTN].show    = OFF;                
-                std_btn[BAND_BTN].show    = OFF;
-                // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].show      = OFF;
-                std_btn[NR_BTN].show      = OFF;
-                std_btn[SPOT_BTN].show    = OFF;
-                std_btn[NOTCH_BTN].show   = OFF;
-                std_btn[AGC_BTN].show     = OFF;
-                std_btn[MUTE_BTN].show    = OFF;
-                // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].show    = OFF;
-                std_btn[ANT_BTN].show     = OFF;
-                std_btn[ATU_BTN].show     = OFF;
-                std_btn[XMIT_BTN].show    = OFF;
-                std_btn[BANDDN_BTN].show  = OFF;
-                std_btn[BANDUP_BTN].show  = OFF;
-                // Turn ON Panel 4 buttons
-                std_btn[RIT_BTN].show     = OFF;
-                std_btn[XIT_BTN].show     = OFF;                
-                std_btn[FINE_BTN].show    = OFF;
-                std_btn[SPLIT_BTN].show   = OFF; 
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[VFO_AB_BTN].show  = OFF;                
-                // Turn OFF Panel 5 buttons                                
-                std_btn[ENET_BTN].show    = ON;
-                std_btn[XVTR_BTN].show    = ON;
-                std_btn[RFGAIN_BTN].show  = ON;
-                std_btn[REFLVL_BTN].show  = ON;
-                std_btn[DISPLAY_BTN].show = ON;
-                std_btn[AFGAIN_BTN].show  = ON;
-            }
-            else    // if (std_btn[FN_BTN].enabled == 2)
-            {
-                strcpy(std_btn[FN_BTN].label, "Fn 1\0");
-                // Turn ON Panel 1 buttons
-                std_btn[MODE_BTN].show    = ON;
-                std_btn[FILTER_BTN].show  = ON;
-                std_btn[ATTEN_BTN].show   = ON;
-                std_btn[PREAMP_BTN].show  = ON;
-                std_btn[RATE_BTN].show    = ON;                
-                std_btn[BAND_BTN].show    = ON;
-                // Turn OFF Panel 2 buttons                
-                std_btn[NB_BTN].show      = OFF;
-                std_btn[NR_BTN].show      = OFF;
-                std_btn[SPOT_BTN].show    = OFF;
-                std_btn[NOTCH_BTN].show   = OFF;
-                std_btn[AGC_BTN].show     = OFF;
-                std_btn[MUTE_BTN].show    = OFF;
-                // Turn OFF Panel 3 buttons
-                std_btn[MENU_BTN].show    = OFF;
-                std_btn[ANT_BTN].show     = OFF;
-                std_btn[ATU_BTN].show     = OFF;
-                std_btn[XMIT_BTN].show    = OFF;
-                std_btn[BANDDN_BTN].show  = OFF;
-                std_btn[BANDUP_BTN].show  = OFF;
-                // Turn OFF Panel 4 buttons
-                std_btn[RIT_BTN].show     = OFF;
-                std_btn[XIT_BTN].show     = OFF;                
-                std_btn[FINE_BTN].show    = OFF;
-                std_btn[SPLIT_BTN].show   = OFF; 
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[VFO_AB_BTN].show  = OFF;    
-                // Turn OFF Panel 5 buttons              
-                std_btn[ENET_BTN].show    = OFF;
-                std_btn[XVTR_BTN].show    = OFF;
-                std_btn[RFGAIN_BTN].show  = OFF;
-                std_btn[REFLVL_BTN].show  = OFF;
-                std_btn[DISPLAY_BTN].show = OFF;
-                std_btn[AFGAIN_BTN].show  = OFF;
-            }
-            displayRefresh();   // redraw button to show new ones and hide old ones.  Set arg =1 to skip calling ourself
-            Serial.print("Fn Pressed ");  Serial.println(std_btn[FN_BTN].enabled);
-            return;
         }
     }
+    displayRefresh();   // redraw button to show new ones and hide old ones.  Set arg =1 to skip calling ourself
+    //Serial.print("Fn Pressed ");  Serial.println(std_btn[FN_BTN].enabled);
+    return;
+}
+
 #ifdef IGNORE_ME
     // DISPLAY Test button (hidden area)
     if ((x>700 && x<800)&&(y>300 && y<400))
@@ -798,4 +549,4 @@ void Button_Handler(int16_t x, uint16_t y)
         return;
     }   
     #endif
-}
+

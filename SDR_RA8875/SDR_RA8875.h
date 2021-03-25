@@ -19,7 +19,7 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-//#define OCXO_10MHZ              // uncoment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+//#define OCXO_10MHZ              // uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
 //#define DIG_STEP_ATT 
 //#define SV1AFN_BPF
 #ifdef OCXO_10MHZ 
@@ -127,7 +127,7 @@ AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accor
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
 
-//#define TEST_SINEWAVE_SIG
+#define TEST_SINEWAVE_SIG
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
 //AudioSynthSineCosine_F32   sinewave2;
@@ -135,9 +135,10 @@ AudioOutputI2S_F32      Output(audio_settings);
 AudioSynthWaveformSine_F32 sinewave1;
 AudioSynthWaveformSine_F32 sinewave2;
 AudioSynthWaveformSine_F32 sinewave3;
-AudioConnection_F32     patchCord4c(sinewave2,0,  FFT_Switch1,2);
-AudioConnection_F32     patchCord4d(sinewave3,0,  FFT_Switch1,3);
-//AudioConnection_F32     patchCord4e(sinewave3,0,  FFT_Switch1,4);
+AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
+AudioConnection_F32     patchCord4x(sinewave3,0,  FFT_Switch1,3);
+AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
+AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
 #endif
 
 AudioConnection_F32     patchCord4a(Input,0,      FFT_Switch1,0);

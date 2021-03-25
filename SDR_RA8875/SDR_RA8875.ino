@@ -51,10 +51,7 @@ void setup()
 
     //--------------------------   Setup our Audio System -------------------------------------
 
-    //AudioMemory(16);   // moved to 32 bit so no longer needed hopefully
     AudioMemory_F32(80, audio_settings);
-
-    //TODO: Many of these need to be called in other places also such as when changing bands or AGC to mute and unmute, during TX for another example
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
@@ -74,12 +71,12 @@ void setup()
     AudioNoInterrupts();
     FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
     FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    FFT_Switch1.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch1.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+    FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
     FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    FFT_Switch2.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+    FFT_Switch2.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     AudioInterrupts();
 /*   Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
@@ -98,13 +95,13 @@ void setup()
     // Create a synthetic sine wave, for testing
     // To use this, edit the connections above
     // # sources to test edges and middle of BW
-    float sinewave_vol = 0.03;
+    float sinewave_vol = 0.005;
     sinewave1.amplitude(sinewave_vol);
     sinewave1.frequency(4000.000); //
     sinewave2.amplitude(sinewave_vol);
-    sinewave2.frequency(600.000); //
+    sinewave2.frequency(5000.000); //
     sinewave3.amplitude(sinewave_vol);
-    sinewave3.frequency(12800.000); //
+    sinewave3.frequency(1000.000); //
 #endif
 
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.

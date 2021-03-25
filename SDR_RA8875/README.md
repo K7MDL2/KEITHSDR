@@ -2,6 +2,11 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/25/2021
+
+    1. Refactored the UserInput.h file to reduce 1,000 lines of repetative code into 150. This will not only make it easier to read and understand, it makes adding or removing a new button or label into a panel very fast.
+    2. This build has 2 sinewave generators turned on visible only to the FFT a as frequency marker on the spectrum.  The frequency where it appears is not right, investigating.
+
 ## 3/24/2021
 
     1. New Feature: There is now a MF (Multi-Function) knob if you have an encoder connected.  Not using the push switch function yet.  Look in "SDR_8875.h" at the bottom and change "Encoder Multi(40,39);" to match your meahanical encoder pin connections. 
