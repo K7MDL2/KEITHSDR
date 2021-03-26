@@ -232,14 +232,14 @@ struct User_Settings {
     uint8_t     mic_input_en;       // mic on or off
     float       mic_Gain_last;      // last used mic gain on this band
     uint8_t     lineIn_level;       // codec line in max level. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Set this to max allowed.
-    uint8_t     rfGain_en;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
+    uint8_t     rfGain_en;          // 0-100 (% of lineIn level). Last used line-in setting on this band.
     uint8_t     rfGain;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
     uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
-    uint8_t     afGain_en;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
+    uint8_t     afGain_en;          // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
     uint8_t     afGain;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
     uint8_t     lineOut_level;      // line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     uint8_t     lineOut_Vol_last;   // last line out setting used on this band. Intended for data mode line level separate from speaker volume
-    uint8_t     enet_enabled;      // Allow initialization and operation of ethernet hardware
+    uint8_t     enet_enabled;       // Allow initialization and operation of ethernet hardware
     uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)
     uint8_t     nb_en;              // Noise Blanker mode.  0 is off.  1+ is mode
     uint8_t     nr_en;              // Noise Reduction.  0 is off.  1+ is mode
@@ -253,9 +253,9 @@ struct User_Settings {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben   nren  spot pitch   notch xmit fine VFO-AB
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  13,   OFF,   40,   ON,   OFF,    99,  ON,  12,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  13,   OFF,   40,   ON,   OFF,    99,  ON,  12,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  13,   OFF,   40,   ON,   OFF,    99,  ON,  12,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,   NB1,   NR2,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,   NB2,   NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF, NBOFF, NROFF,  OFF,  600, NTCHOFF, OFF, OFF,   0}
 };
 
 struct Standard_Button {
@@ -355,7 +355,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF,   4, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
     //Panel 5
     { ON, OFF,   5, 118, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
-    { ON, OFF,   5, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Xvtr\0"},
+    { ON, OFF,   5, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "Xvtr\0"},
     { ON, OFF,   5, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "RF:\0"},
     {OFF, OFF,   5, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
     // Placeholder for display key to eb active here also

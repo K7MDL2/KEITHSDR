@@ -4,8 +4,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/25/2021
 
-    1. Refactored the UserInput.h file to reduce 1,000 lines of repetative code into 150. This will not only make it easier to read and understand, it makes adding or removing a new button or label into a panel very fast.
-    2. This build has 2 sinewave generators turned on visible only to the FFT a as frequency marker on the spectrum.  The frequency where it appears is not right, investigating.
+    1. Refactored the UserInput.h file to reduce 1,000 lines of repetative code into 150. This makes it easier to read and understand and makes adding or removing a new button or label into a panel very fast. There is a new "panel" field in the button table to specify whcih buttons show up in which panels, if any.  0 is no panel associated.
+    2. This build has 2 sinewave generators that cane be turned on with a #define. The outoput is visible only to the FFT a as frequency marker on the spectrum. The frequency where it appears is not right, investigating.
+    3. Tweaked RFGain values and calculation method for smooth 100% coverage.  Was only effective in lower 45% before.
+    4. Some AFGain tweaks along with more comments and small fixes for improved initialization accuracy redlatived to the table settings to be applied.
 
 ## 3/24/2021
 

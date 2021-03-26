@@ -382,7 +382,7 @@ void Button_Handler(int16_t x, uint16_t y)
     {
         //Serial.println((ptr+i)->label);
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
-        {   Serial.print("Show loop index is ");Serial.println(i);
+        {
             if ((ptr+i)->show)  // if the show property ius active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 switch (i)
@@ -441,9 +441,8 @@ void Button_Handler(int16_t x, uint16_t y)
         if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
         {
             if ((pLabel+i)->show)  // if the show property ius active, call the button function to act on it.
-            {   // used the index to the table to match up a function to call
-
-
+            {   
+                // used the index to the table to match up a function to call
                 switch (i)
                 {
                     case MODE_LBL:      setMode(1);     break; //Increment the mode from current value
@@ -498,20 +497,16 @@ void setPanel()
         if ((ptr+i)->Panelnum == panel || (ptr+i)->Panelnum == panel*50 || (ptr+i)->Panelnum == panel*40 )  // if the field has a matching panel number then turn it in for "show" state else turn it off
         {                                                               // panelnum*X is a one off cheat to allow a button to appear in more than 1 row.
             (ptr+i)->show = ON;
-            Serial.print("Turning ON ");
-            Serial.print((ptr+i)->show);
-            Serial.print(" ");
-            Serial.println((ptr+i)->label);
+            //Serial.print("Turning ON ");
+            //Serial.println((ptr+i)->label);
         }
         else 
         {
             if ((ptr+i)->Panelnum !=0)   // Anything with panel == 0 is not in a panel so is ignored here.
             {
                 (ptr+i)->show = OFF;
-                Serial.print("Turning OFF ");
-                Serial.print((ptr+i)->show);
-                Serial.print(" ");
-                Serial.println((ptr+i)->label);
+                //Serial.print("Turning OFF ");
+                //Serial.println((ptr+i)->label);
             }
         }
     }

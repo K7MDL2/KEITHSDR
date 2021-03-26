@@ -20,9 +20,9 @@
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
 //#define OCXO_10MHZ              // uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
-#define DIG_STEP_ATT 
+#define DIG_STEP_ATT            // Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
 //#define SV1AFN_BPF
-#ifdef OCXO_10MHZ 
+#ifdef OCXO_10MHZ         // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
  #define ENET                   // Turn off or on ethernet features and hardware
  #define USE_ENET_PROFILE       // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
  #define REMOTE_OPS             // Turn on Remote_Ops ethernet write feature for remote control head dev work.
@@ -127,7 +127,7 @@ AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accor
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
 
-#define TEST_SINEWAVE_SIG
+//#define TEST_SINEWAVE_SIG
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
 //AudioSynthSineCosine_F32   sinewave2;
@@ -189,8 +189,9 @@ Metro NTP_updateTx  = Metro(10000);
 Metro NTP_updateRx  = Metro(65000);
 
 RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
-Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for A/B tuning encoder 
-Encoder Multi(40,39);
-uint8_t enc_ppr_response = 60;  // this scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
+Encoder Multi(40,39);  // Multi Function Encoder pins assignments
+uint8_t enc_ppr_response = 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
-
+//Encoder AF(29,28);
+//Encoder RF(33,34);

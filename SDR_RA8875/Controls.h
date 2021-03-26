@@ -64,15 +64,12 @@ void Atten(int8_t toggle);
 void VFO_AB();
 void setAtten_dB(int8_t atten);
 void setAFgain();
-void AGgain(int8_t delta);
+void AFgain(int8_t delta);
 void setRFgain();
 void RFgain(int8_t delta);
 void setRefLevel(int8_t newval);
 void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
-
-Encoder AF(17,22);
-Encoder RF(15,16);
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 void Set_Spectrum_Scale(int8_t zoom_dir)
@@ -162,6 +159,8 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     //selectMode(0);  
     setMode(0);     // 0 is set value in database for both VFOs
     RefLevel(0);    // 0 just updates things to be current value
+    RFgain(0);
+    AFgain(0);
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future
@@ -644,7 +643,7 @@ Serial.print("TEST: Manually Set Atten value to "); Serial.println(i);
 
 }
 
-// AF GAIN button
+// AF GAIN button activate control
 void setAFgain()
 {
     if (user_settings[user_Profile].afGain_en == OFF)      // Set button to on to track as active 
@@ -662,11 +661,15 @@ void setAFgain()
     displayAFgain();
 }
 
+// AFGain Adjust
+//  Input:   0 no change
+//          -X Reduce by X%
+//          +X Increase by X%
 //
-//  Input: Request a new volume as a percentage up or down.
-//          To jump to Full volume use 100;
-//          To jump to Min volume use -100;
-//          Normally just ask for +12
+//   Request a new volume as a percentage up or down.
+//   To jump to Full volume use 100;
+//   To jump to Min volume use -100;
+//   Normally just ask for +1 or -1
 //       
 void AFgain(int8_t delta)
 {
@@ -695,7 +698,7 @@ void AFgain(int8_t delta)
     displayAFgain();
 }
 
-// RF GAIN button
+// RF GAIN button activate control
 void setRFgain()
 {
     if (user_settings[user_Profile].rfGain_en == OFF)      // Set button to on to track as active 
@@ -713,7 +716,12 @@ void setRFgain()
     displayRFgain();
 }
 
-// RF GAIN Adjust button
+// RF GAIN Adjust
+//
+//  Input:   0 no change
+//          -X Reduce by X%
+//          +X Increase by X%
+//
 void RFgain(int8_t delta)
 {
     float _rfLevel;
@@ -731,9 +739,11 @@ void RFgain(int8_t delta)
     if (_rfLevel < 1)
         _rfLevel = 1;    // do not use 0 to prevent divide/0 error
 
-    user_settings[user_Profile].rfGain = _rfLevel;
-    codec1.lineInLevel(user_settings[user_Profile].rfGain * _rfLevel/100); 
-    Serial.print(" RF Gain level set to  "); 
+    user_settings[user_Profile].rfGain = _rfLevel;  // 
+    codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
+    Serial.print("CodecLine IN level set to "); 
+    Serial.println(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);
+    Serial.print("RF Gain level set to  "); 
     Serial.println(_rfLevel);
     displayRFgain();
 }
@@ -799,7 +809,7 @@ void Spot()
     Serial.println(user_settings[user_Profile].spot);
 }
 
-// REF LEVEL button
+// REF LEVEL button activate control
 void setRefLevel()
 {
     if (std_btn[REFLVL_BTN].enabled ==OFF)
@@ -821,6 +831,8 @@ void setRefLevel()
     Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
 }
 
+// Ref Level adjust
+// Pass the desired new absolute value.  It will be limited to allowable range of -110 to -220
 void RefLevel(int8_t newval)
 {
     bandmem[curr_band].sp_ref_lvl += newval;
