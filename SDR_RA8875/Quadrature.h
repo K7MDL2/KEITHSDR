@@ -1,3 +1,6 @@
+#ifndef _QUADRATURE_H_
+#define _QUADRATURE_H_
+
 #include <RA8875.h>
 #include <Audio.h> 
 
@@ -43,3 +46,4 @@ void Quad_Check()
  }
 
 }
+#endif //_QUADRATURE_H_

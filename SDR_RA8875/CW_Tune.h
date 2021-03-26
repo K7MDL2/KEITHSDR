@@ -1,3 +1,6 @@
+#ifndef _CW_TUNE_H_
+#define _CW_TUNE_H_
+
 #include <RA8875.h>
 #include <Audio.h> 
 extern AudioAnalyzePeak_F32 CW_Peak;  
@@ -50,3 +53,5 @@ if (CW_RMS.available())
        tft.print("CW RMS");
      }
 }
+
+#endif // _CW_TUNE_H_

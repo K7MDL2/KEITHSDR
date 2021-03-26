@@ -1,3 +1,5 @@
+#ifndef _TUNER_H_
+#define _TUNER_H_
 #include <Encoder.h>
 
 extern Encoder Position;
@@ -64,3 +66,4 @@ void selectFrequency(int32_t newFreq)
     displayFreq(); // show freq on display
     SetFreq(Freq); // send freq to SI5351
 }
+#endif // _TUNER_H_

@@ -1,3 +1,8 @@
+// VFO.h
+
+#ifndef _VFO_H_
+#define _VFO_H_
+
 #ifdef OCXO_10MHZ
  #include <si5351.h> 
  extern Si5351 si5351;
@@ -102,3 +107,4 @@ void SetFreq(uint32_t Freq)
         si5351.setFreq(0, (Freq+Fc)*4); // use 4x for QRP-Labs RX vboard and some others. Use 1x if using 2 outputs shifted by 90 degrees 
     #endif
 }
+#endif //_VFO_H_

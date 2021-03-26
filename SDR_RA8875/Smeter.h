@@ -1,3 +1,6 @@
+#ifndef _SMETER_H_
+#define _SMETER_H_
+
 #include <RA8875.h>
 #include <Audio.h> 
 extern AudioAnalyzePeak_F32 S_Peak;  
@@ -62,3 +65,5 @@ void Peak()
 			tft.ringMeter(s, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);  // move it up a bit since there is no clock
 	}
 }
+#endif // _SMETER_H_
+

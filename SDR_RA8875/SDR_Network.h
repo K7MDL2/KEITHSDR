@@ -1,3 +1,5 @@
+#ifndef _SDR_NETWORK_H_
+#define _SDR_NETWORK_H_
 //
 //  SDR_Network.h
 //
@@ -306,4 +308,6 @@ void sendNTPpacket(const char * address)
     }  
  *
  */
-#endif
+#endif  //ENET
+
+#endif //_SDR_NETWORK_

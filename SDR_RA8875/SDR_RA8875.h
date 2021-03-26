@@ -1,3 +1,6 @@
+#ifndef _SDR_RA8875_
+#define _SDR_RA8875_
+
 //  SDR_RA8875.h
 //
 //  Header File for the Main Arduino program file
@@ -174,3 +177,4 @@ uint8_t     popup = 0;                          // experimental flag for pop up 
 int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
 volatile int32_t  Freq_Peak = 0;
 
+#endif //_SDR_RA8875_

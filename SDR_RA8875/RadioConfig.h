@@ -1,3 +1,5 @@
+#ifndef _RADIOCONFIG_H_
+#define _RADIOCONFIG_H_
 //
 //      RadioConfig.h
 //
@@ -41,7 +43,7 @@
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
 // K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
 #ifdef K7MDL_BUILD 
     #define OCXO_10MHZ                
     #define ENET
@@ -147,7 +149,7 @@ int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button 
 //
 #endif
 
-// ------------------------  OPERTIONAL PARAMTER STORAGE --------------------------------------
+// ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
 //
 //  Most users will not normally mess around in this section but you can edit some of the table data to refine the default to your liking.  
 //  Contained here are per-band settings, User Profile settings (globals), Font type and sizes
@@ -609,3 +611,4 @@ struct Frequency_Display {
 
 uint8_t display_state;   // something to hold the button state for the display pop-up window later.
 
+#endif //_RADIOCONFIG_H_

@@ -1,3 +1,5 @@
+#ifndef _SPECTRUM_RA8875_H_
+#define _SPECTRUM_RA8875_H_
 //
 // Spectrum_RA8875.h
 //
@@ -1020,4 +1022,4 @@ const char* formatFreq(uint32_t Freq)
 	//Serial.print("Freq: ");Serial.println(Freq_str);
 	return Freq_str;
 }
-
+#endif  // _SPECTRUM_RA8875_H_

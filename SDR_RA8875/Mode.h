@@ -1,3 +1,5 @@
+#ifndef _MODE_H_
+#define _MODE_H_
 //
 //	 Mode.h
 //
@@ -64,3 +66,5 @@ void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by incr
 	Serial.println(mndx);  	
   	//displayMode();
 }
+
+#endif //_MODE_H_

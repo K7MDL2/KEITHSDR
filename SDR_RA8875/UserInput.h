@@ -1,3 +1,5 @@
+#ifndef _USERINPUT_H_
+#define _USERINPUT_H_
 /*
 *   UserInput.h     
 *
@@ -546,4 +548,7 @@ void setPanel()
         return;
     }   
     #endif
+
+#endif //end of _USERINPUT_H_
+
 

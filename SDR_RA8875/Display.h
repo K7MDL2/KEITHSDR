@@ -1,3 +1,6 @@
+#ifndef _DISPLAY_H_
+#define _DISPLAY_H_
+
 #include <RA8875.h>
 extern RA8875 tft;
 
@@ -415,3 +418,5 @@ void displayRefresh(void)
 	displayXVTR();
 	displayRefLevel();
 }
+
+#endif //_DISPLAY_H_

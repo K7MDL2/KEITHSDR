@@ -1,3 +1,5 @@
+#ifndef _STEP_H_
+#define _STEP_H_
 //
 // Step.h
 //   
@@ -27,3 +29,4 @@ void selectStep(int fndx)
 	bandmem[curr_band].tune_step = fndx;
 	displayRate();
 }
+#endif //_STEP_H_

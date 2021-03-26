@@ -1,3 +1,5 @@
+#ifndef _CONTROLS_H_
+#define _CONTROLS_H_
 //
 //    Controls.h
 //
@@ -951,7 +953,7 @@ void TouchTune(int16_t touch_Freq)
 *******************************************************************************/
 void setAtten_dB(int8_t atten)
 {
-    #ifdef DIG_STEP_ATT
+#ifdef DIG_STEP_ATT
     uint8_t   i;
     char    atten_str[8] = {'\0'};
     char    atten_data[8] = {'\0'};
@@ -999,5 +1001,7 @@ void setAtten_dB(int8_t atten)
     digitalWrite(Atten_LE, (uint8_t) OFF);
 
     return;    
-    #endif
+#endif  // DIG_STEP_ATT
 }
+
+#endif //_CONTROLS_H_

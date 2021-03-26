@@ -1,3 +1,6 @@
+#ifndef _HILBERT_H_
+#define _HILBERT_H_
+
 //Hilbert for 4.0kHz bandwidth
  float32_t Hilbert_Plus45_40K[151] = {
 -1.233052391988710E-6,
@@ -2465,3 +2468,5 @@ float32_t Hilbert_Minus45_700[151] = {
  0.000094835498674880,
  0.000081001844298917
 };
+
+#endif // _HILBERT_H_

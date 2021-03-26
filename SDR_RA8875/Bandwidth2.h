@@ -1,3 +1,5 @@
+#ifndef _BANDWIDTH2_H_
+#define _BANDWIDTH2_H_
 //
 //    Bandwidth2.h
 //
@@ -93,3 +95,4 @@ void selectBandwidth(int bndx)
     
     //displayFilter();
 }
+#endif  // _BANDWIDTH2_H_
