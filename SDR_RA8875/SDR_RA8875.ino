@@ -498,6 +498,7 @@ void set_MF_Service(uint8_t client_name)
 //
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
+static uint16_t old_ts;
 void MF_Service()
 {
     static int8_t counts = 0;
@@ -524,7 +525,7 @@ void MF_Service()
             AFgain(counts);
         } break;
         case  REFLVL_BTN: {
-            RefLevel(counts);
+            RefLevel(counts*-1);
         } break;
         case  ATTEN_BTN: {
             if (counts> 1)
@@ -540,8 +541,8 @@ void MF_Service()
         } break;
         case MFTUNE :
         default     : {   
-            static uint16_t old_ts = bandmem[curr_band].tune_step;
-            bandmem[curr_band].tune_step = 5;  
+            old_ts = bandmem[curr_band].tune_step;
+            bandmem[curr_band].tune_step = 5;
             selectFrequency(counts);
             bandmem[curr_band].tune_step = old_ts;
         } break;        
