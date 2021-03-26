@@ -20,5 +20,4 @@ UI as of 3/10/2021.  80M FT-8 with CW on the sides.  Testing style of new button
 
 Sample rate at 102.4KHz on a 800x480 4.3" display. 24% max CPU, 4% average.  
 
-![UI Screenshot 3-10-2021](https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/3-10-2021%20ScreenShot.jpg)
-
+![UI Screenshot 3-25-2021](https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/3-25-2021%20ScreenShot.jpg)
