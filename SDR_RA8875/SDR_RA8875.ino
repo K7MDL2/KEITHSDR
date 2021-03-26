@@ -10,12 +10,7 @@
 //
 // _______________________________________ Setup_____________________________________________
 //
-
 #include "SDR_RA8875.h"
-
-//extern void sendNTPpacket(const char * address);
-//extern const char timeServer[];
-//extern void sendNTPpacket1(const char * address);
 
 void setup()
 {

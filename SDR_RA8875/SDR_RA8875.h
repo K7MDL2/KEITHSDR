@@ -19,13 +19,6 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-#ifdef OCXO_10MHZ         // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
- #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
- Si5351 si5351;
-#else
- #include <si5351mcu.h>          // Github https://github.com/pavelmc/Si5351mcu
- Si5351mcu si5351;
-#endif
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
@@ -33,11 +26,19 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>
 #include <TimeLib.h>
+#include "RadioConfig.h"
+#ifdef OCXO_10MHZ         // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
+ #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
+ Si5351 si5351;
+#else
+ #include <si5351mcu.h>          // Github https://github.com/pavelmc/Si5351mcu
+ Si5351mcu si5351;
+#endif
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
 #endif
 // Below are local project files
-#include "RadioConfig.h"        // Majority of declarations here
+//#include "RadioConfig.h"        // Majority of declarations here
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 #include "Spectrum_RA8875.h"    // spectrum
 #include "Hilbert.h"            // filter coefficients
