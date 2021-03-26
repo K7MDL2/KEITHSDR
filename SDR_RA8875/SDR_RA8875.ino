@@ -122,7 +122,7 @@ void setup()
     //  myFFT.windowFunction(AudioWindowBartlett1024);
     //  myFFT.windowFunction(AudioWindowFlattop1024);
     myFFT.windowFunction(AudioWindowHanning1024);
-    myFFT.setNAverage(3);
+    myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
     initSpectrum_RA8875();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
