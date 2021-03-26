@@ -9,10 +9,11 @@ The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 
   
   Features:
   
-  1. 2048 point I&Q FFT using the OpenAudio_Library converted to 32 bit Floating Point by W7PUA.
+  1. 4096 point I&Q FFT using the OpenAudio_Library converted to 32 bit Floating Point by W7PUA.
   2. Resizable Spectrum and Waterfall module can be dropped into most any Arduino project using the RA8875 or with minor mods RA8876 based display controllers for minimal CPU overhead for waterfall graphics.  
   3. Supports the FT5206 Capacitive Touch screen controller for touch and gestures.
   4. Custom gesture code replaces the poorly working internal FT5206 Gesture detection.  Found in UserInput.h
+  5. Table driven UI configuration, per-band settings, and User Profile settings with centralized control functions.
 
 See the README file in each project for specifics about that build.
 
