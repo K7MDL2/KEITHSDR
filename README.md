@@ -16,8 +16,8 @@ The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 
 
 See the README file in each project for specifics about that build.
 
-UI as of 3/10/2021.  80M FT-8 with CW on the sides.  Testing style of new buttons and wide graph with 2048FFTIQ. 
+UI as of 3/25/2021.  40M FT-8.  Testing colors and styles of indicators.
 
-Sample rate at 102.4KHz on a 800x480 4.3" display. 24% max CPU, 4% average.  
+Sample rate at 102.4KHz with 4096 point I and Q FFT on a 800x480 4.3" display. 24% max CPU, 4% average. 1:1 bins-per-pixel mapping.
 
 ![UI Screenshot 3-25-2021](https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/3-25-2021%20ScreenShot.jpg)
