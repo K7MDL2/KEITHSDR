@@ -4,11 +4,11 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/25/2021
 
-    1. Refactored the UserInput.h file to reduce 1,000 lines of repetative code into 150. This makes it easier to read and understand and makes adding or removing a new button or label into a panel very fast. There is a new "panel" field in the button table to specify whcih buttons show up in which panels, if any.  0 is no panel associated.
-    2. This build has 2 sinewave generators that cane be turned on with a #define. The outoput is visible only to the FFT a as frequency marker on the spectrum. The frequency where it appears is not right, investigating.
+    1. Refactored the UserInput.h file to reduce 1,000 lines of repetitive code into 150. This makes it easier to read and understand and makes adding or removing a new button or label into a panel very fast. There is a new "panel" field in the button table to specify which buttons show up in which panels, if any.  0 means no panel is associated.
+    2. This build has 2 sinewave generators that can be turned on with a #define. The output is visible only to the FFT a as frequency marker on the spectrum. The frequency where it appears is not right, investigating.
     3. Tweaked RFGain values and calculation method for smooth 100% coverage.  Was only effective in lower 45% before.
-    4. Some AFGain tweaks along with more comments and small fixes for improved initialization accuracy redlatived to the table settings to be applied.
-    5. Reorganized the collections of user and non-user configuraton and build settings into the top of RadioConfig.h. The items most likely to be changed are at the very top. Effort was made to make clear of any dependencies for #define type build options.
+    4. Some AFGain tweaks along with more comments and small fixes for improved initialization accuracy relative to the table settings to be applied.
+    5. Reorganized the collections of user and non-user configuration and build settings into the top of RadioConfig.h. The items most likely to be changed are at the very top. Effort was made to make clear of any dependencies for #define type build options.
 
 ## 3/24/2021
 
