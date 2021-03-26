@@ -41,7 +41,7 @@
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
 // K7MDL specific Build Configuration rolled up into one #define
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 #ifdef K7MDL_BUILD 
     #define OCXO_10MHZ                
     #define ENET
