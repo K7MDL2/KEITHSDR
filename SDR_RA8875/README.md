@@ -8,6 +8,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     2. This build has 2 sinewave generators that cane be turned on with a #define. The outoput is visible only to the FFT a as frequency marker on the spectrum. The frequency where it appears is not right, investigating.
     3. Tweaked RFGain values and calculation method for smooth 100% coverage.  Was only effective in lower 45% before.
     4. Some AFGain tweaks along with more comments and small fixes for improved initialization accuracy redlatived to the table settings to be applied.
+    5. Reorganized the collections of user and non-user configuraton and build settings into the top of RadioConfig.h. The items most likely to be changed are at the very top. Effort was made to make clear of any dependencies for #define type build options.
 
 ## 3/24/2021
 

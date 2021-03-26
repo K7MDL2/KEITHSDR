@@ -7,14 +7,157 @@
 //  in the structure.  These are usually things like VFO dial settings and should be stored in 
 //  EEPROM at some point like band changes when the dial has stopped for a certain length of time
 //
+//-----------------------BUILD TIME CONFIGURATION SECTION -------------------------------------
+// Individual #defines are here to choose what code features will be compiled into your build.
+// Your connected hardware is the primary reason to change these.
+// Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
+//#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
+                            // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
+
+#define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
+                            // DEPENDS on a PE4302 connected for variable attenuation
+                            // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
+                            //   You can use this without relays or the BPF board
+
+//#define SV1AFN_BPF        // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
+                            // DEPENDS on SV1AFN BPF board connected via a MCP23017 I2C port expander.
+
+//#define ENET              // Turn off or on ethernet features and hardware. Teeny4.1 has ethernet built in but needs an external connector.
+                            // It wants to find a valid link status (Cable connected) or may not be happy.
+                            // Configured to use DHCP right now.
+                            // DEPENDS on ethernet jack and cable connected
+
+//#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
+#ifdef USE_ENET_PROFILE           // Depends on ENET
+    #define ENET
+#endif
+
+//#define REMOTE_OPS        // Turn on Remote_Ops ethernet write feature for remote control head dev work.
+                            // Depends on ENET
+
+//#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
+
+// K7MDL specific Build Configuration rolled up into one #define
+//#define K7MDL_BUILD
+#ifdef K7MDL_BUILD 
+    #define OCXO_10MHZ                
+    #define ENET
+    #define USE_ENET_PROFILE
+    #define REMOTE_OPS
+    #define SV1AFN_BPF
+    #define DIG_STEP_ATT
+#endif
+
+//--------------------------USER HARDWARE AND PREFERENCES-------------------------------------
+
+// Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
+Metro touch         = Metro(50);    // used to check for touch events
+Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro meter         = Metro(400);   // used to update the meters
+Metro popup_timer   = Metro(500);   // used to check for popup screen request
+Metro NTP_updateTx  = Metro(10000); // NTP Request Time interval
+Metro NTP_updateRx  = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
+Metro MF_Timeout    = Metro(4000);// MultiFunction Knob and Switch 
+
+// ---------------------------------------ENCODERS----------------------------------------------
+// 
+// Choose your actual pin assignments for any you may have.
+Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
+Encoder Multi(40,39);  // Multi Function Encoder pins assignments
+uint8_t enc_ppr_response = 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+// I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
+//Encoder AF(29,28);   // AF gain control - not used yet
+//Encoder RF(33,34);   // RF gain control - not used yet
+
+// The #define button numbers act as the ID of possible owners of MF knob services
+#define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
+                            // Make sure this does have the same value as any buttom #defne value. 50 is safe.
+#define MFNONE      0       // No active MF knob client.  0 is safe.
+
+// Set this to be the default MF knob function when it does not have settings focus from a button touch.
+// Choose any from the MF Knob aware list below.
+int8_t MF_client = MFTUNE;          // Flag for current owner of MF knob services
+int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button times out.
+// Current list of Multi-Function Knob capable features for MF_client and MF_client_default variables
+// MFNONE    // no current owner, return
+// RFGAIN_BTN   // RF Gain - controls the Line In level of the audio card
+// AFGAIN_BTN   // AF gain - controls the Line OUT/Volume level of the audio card
+// REFLVL_BTN   // Spectrum Reference Level - Sets the "grass" or noise floor level in the spectrum display
+// MFTUNE       // sub-VFO aks coarse tune.  Set to 5KHz steps in the main .ino file
+// ATTEN_BTN    // Attenuation Level = controls the PE4302 0-31 dB setting
+
+// -------------------------  PE4302 6 bit Digital Step Attenuator -----------------------------
+//      Digital step attenuator.  0-31.5dB in 0.5dB steps. Connected via I2C port expander.
+//      Could use the 3 left over pins on the MCP23017 I2C port expander servicing the SV1AFN preselector module.
+//      For now using Teensy 4.1 pins 30-32.
+//      
+#ifdef DIG_STEP_ATT
+  #define DIG_STEP_ATT            // Set this to enable the PE4302 feature
+  #define Atten_CLK       31
+  #define Atten_DATA      32
+  #define Atten_LE        30
+#endif
+
+//
+//------------------------------------  Ethernet UDP messaging section --------------------------
+//
+#ifdef ENET
+    #include <NativeEthernet.h>
+    #include <NativeEthernetUdp.h>
+    
+    // Choose or create your desired time zone offset or use 0 for UTC.
+    //const int timeZone = 1;     // Central European Time
+    const int timeZone = 0;     // UTC
+    //const int timeZone = -5;  // Eastern Standard Time (USA)
+    //const int timeZone = -4;  // Eastern Daylight Time (USA)
+    //const int timeZone = -8;  // Pacific Standard Time (USA)
+    //const int timeZone = -7;  // Pacific Daylight Time (USA)
+
+    // Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
+    // The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
+    //byte mac[] = {
+    //  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
+    //};
+    
+    // Choose to use DHCP or a static IP address for the SDR
+    #define USE_DHCP        
+    #ifndef USE_DHCP
+    // The IP Address is ignored if using DHCP
+        IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+    #endif
+    unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
+
+    //#define REMOTE_OPS  - conditionally defined in main header file for now
+    #ifdef REMOTE_OPS
+    // This is for later remote operaion usage
+    //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    IPAddress remote_ip(192, 168, 1, 7);  // destination IP (desktop app or remote display Arduino)
+    unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
+    #endif 
+
+    // This is for the NTP service to update the clock when connected to the internet
+    unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
+    const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
+    time_t prevDisplay = 0; // when the digital clock was displayed
+//
+//------------------------------------ End of Ethernet UDP messaging section --------------------------
+//
+#endif
+
+// ------------------------  OPERTIONAL PARAMTER STORAGE --------------------------------------
+//
+//  Most users will not normally mess around in this section but you can edit some of the table data to refine the default to your liking.  
+//  Contained here are per-band settings, User Profile settings (globals), Font type and sizes
+//  buttons and indicator colors, button an label locations and more. 
+//  Pretty much every global variable that controls a setting is here in a table of some sort. 
+//
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
 
+// Some defines for ease of use 
 #define myDARKGREY  31727u
-
-// Soem defines for ease of use 
 #define CW          0
 #define LSB         1     
 #define USB         2
@@ -85,9 +228,7 @@
 #define NTCH1       1
 #define NTCH2       2
 
-
-
-// Our Database of settings. This is the "factory default".  A user copy wil be stored in EEPROM with user changes
+// Our Database of settings. This is the "factory default".  A user copy will be stored in EEPROM with user changes
 #define BANDS   11
 struct Band_Memory {
     char        band_name[20];  // Freindly name or label.  Default here but can be changed by user.
@@ -98,7 +239,7 @@ struct Band_Memory {
     uint8_t     VFO_AB_Active;  // Flag to track which has focus. Usesd in RX.  Used in TX for split
     uint8_t     mode_A;         // CW, LSB, USB, DATA.  
     uint8_t     mode_B;         // CW, LSB, USB, DATA.  
-    uint8_t     filter;      // index to Bandwidth selection for this band.
+    uint8_t     filter;         // index to Bandwidth selection for this band.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
     uint8_t     tune_step;      // last step rate on this band.  Index to Tune step table 
     uint8_t     agc_mode;       // index to group of AGC settings in another table
@@ -120,7 +261,7 @@ struct Band_Memory {
     // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#  SpRef
     {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 20, PREAMP_OFF,  0,  0,  -170},
     { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 10, PREAMP_OFF,  0,  1,  -165},
-    { "60M", 5350000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,  6, PREAMP_OFF,  0,  2,  -178},
+    { "60M", 4990000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,  6, PREAMP_OFF,  0,  2,  -178},
     { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON,  2, PREAMP_OFF,  0,  3,  -162},
     { "30M",10100000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4,  ATTEN_ON,  1,  PREAMP_ON,  0,  4,  -155},
     { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5, 3,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT3, 5,  ATTEN_ON,  7,  PREAMP_ON,  0,  5,  -155},
@@ -165,7 +306,7 @@ struct AGC {
     char        agc_name[10];
     uint8_t     agc_maxGain;
     uint8_t     agc_response;
-    uint8_t     agc_hardlimit;    ///autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
+    uint8_t     agc_hardlimit;    // autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
     float       agc_threshold;
     float       agc_attack;
     float       agc_decay;
@@ -178,17 +319,17 @@ struct AGC {
 
 // per-band settings for common user adjsutments that are band dependent. The index is the band number.
 struct Spectrum_Settings {
-    uint16_t    Ref_level;      //Spectrum common adjustments due to noise level and scale/gain choices during operation.
+    uint16_t    Ref_level;      // Spectrum common adjustments due to noise level and scale/gain choices during operation.
     uint16_t    Span;
     float       scale;
 };
 
 #define FILTER 9
 struct Filter_Settings {
-    char        Filter_name[12];    // display name for UI
-    uint16_t    Width;             //bandwidth in HZ
+    char        Filter_name[12];   // display name for UI
+    uint16_t    Width;             // bandwidth in HZ
     char        units[4];
-    uint8_t     filter_type;      // preferred mode when enabled (future use)
+    uint8_t     filter_type;       // preferred mode when enabled (future use)
 } filter[FILTER] = {
     {"250",   250,  "Hz",    CW},
     {"500",   500,  "Hz",    CW},
@@ -207,7 +348,7 @@ char Mode[4][5] = {"CW", "LSB", "USB", "DATA"};
 struct TuneSteps {
     char        ts_name[12];    // display name for UI
     char        ts_units[4];    // units for display HZ or KHz
-    uint16_t    step;             //bandwidth in HZ
+    uint16_t    step;           // bandwidth in HZ
     uint8_t     pref_mode;      // preferred mode when enabled (future use)
 } tstep[TS_STEPS] = {
     {"1 ",   "Hz",     1,  CW},
@@ -221,7 +362,7 @@ struct TuneSteps {
 #define USER_SETTINGS_NUM 3
 struct User_Settings {
     char        configset_name[20]; // friendly anme for this record
-    uint16_t    sp_preset;    // Sets the Spectrum module layout preset
+    uint16_t    sp_preset;          // Sets the Spectrum module layout preset
     uint8_t     main_page;          // stores index to page settings table
     uint8_t     band_popup;         // index to band selection pop-up page layout preference
     uint8_t     usrcfgpage_1;       // index to user configuration page layout
@@ -319,9 +460,6 @@ struct Standard_Button {
 // Not in a Panel
 #define UTCTIME_BTN 30      // NTP UTC time when ethernet (and internet) is available 
 #define SPECTUNE_BTN 31     // Convertes a touch in the spectrum window to a frequency to tune too.
-
-#define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
-#define MFNONE      0       // No active MF knob client
 
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show  pnl   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
@@ -469,70 +607,3 @@ struct Frequency_Display {
 
 uint8_t display_state;   // something to hold the button state for the display pop-up window later.
 
-//
-//------------------------------------  Ethernet UDP messaging section --------------------------
-//
-//#define ENET              // Include support for ethernet
-#ifdef ENET
-    #include <NativeEthernet.h>
-    #include <NativeEthernetUdp.h>
-    
-    //uint32_t    fstep       = 10;       // sets the tuning increment to 10Hz
-    //uint8_t NTP_hour;  //NTP time 
-    //uint8_t NTP_min;
-    //uint8_t NTP_sec;
-    time_t prevDisplay = 0; // when the digital clock was displayed
-    //const int timeZone = 1;     // Central European Time
-    const int timeZone = 0;     // UTC
-    //const int timeZone = -5;  // Eastern Standard Time (USA)
-    //const int timeZone = -4;  // Eastern Daylight Time (USA)
-    //const int timeZone = -8;  // Pacific Standard Time (USA)
-    //const int timeZone = -7;  // Pacific Daylight Time (USA)
-
-    // Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
-    // The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
-    //byte mac[] = {
-    //  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
-    //};
-    
-    // Choose to use DHCP or a static IP address for the SDR
-    #define USE_DHCP        
-    #ifndef USE_DHCP
-    // The IP Address is ignored if using DHCP
-        IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
-    #endif
-    unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
-
-    //#define REMOTE_OPS  - conditionally defined in main header file for now
-    #ifdef REMOTE_OPS
-    // This is for later remote operaion usage
-    //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    IPAddress remote_ip(192, 168, 1, 7);  // destination IP (desktop app or remote display Arduino)
-    unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
-    #endif 
-
-    // This is for the NTP service to update the clock when connected to the internet
-    unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
-    const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
-//
-//------------------------------------ End of Ethernet UDP messaging section --------------------------
-//
-#endif
-
-#ifdef DIG_STEP_ATT
-// ----------------  PE4302 6 bit Digital Step Attenuator ---------------------------------------------
-//      Digital step attenuator.  0-31.5dB in 0.5dB steps. Connected via I2C port expander.
-//      Could use the 3 left over pins on the MCP23017 I2C port expander servicing the SV1AFN preselector module.
-//      For now using Teensy I) pins 30-32.
-//      
-  #define DIG_STEP_ATT            // Set this to enable the PE4302 feature
-  #define Atten_CLK       31
-  #define Atten_DATA      32
-  #define Atten_LE        30
-#endif
-
-// MultiFunction Knob and Switch  
-Metro MF_Timeout = Metro(4000);
-// The #defne button numbers act as the ID of possible owners of MF knob services
-int8_t MF_client = MFTUNE;          // Flag for current owner of MF knob services
-int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button times out.

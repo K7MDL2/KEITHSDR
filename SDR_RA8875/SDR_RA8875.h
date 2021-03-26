@@ -19,22 +19,14 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-//#define OCXO_10MHZ              // uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
-#define DIG_STEP_ATT            // Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
-//#define SV1AFN_BPF
 #ifdef OCXO_10MHZ         // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
- #define ENET                   // Turn off or on ethernet features and hardware
- #define USE_ENET_PROFILE       // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
- #define REMOTE_OPS             // Turn on Remote_Ops ethernet write feature for remote control head dev work.
- #define SV1AFN_BPF             // Enable the SV1AFN 10-band Preselector (Bandpass filter) board.
- #define DIG_STEP_ATT           // Enable the PE4302 Digital Step Attenuator.  0-31.5dB in 0.5dB steps via I2C port expander
  #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
  Si5351 si5351;
 #else
  #include <si5351mcu.h>          // Github https://github.com/pavelmc/Si5351mcu
  Si5351mcu si5351;
 #endif
-#define  ENCODER_OPTIMIZE_INTERRUPTS
+#define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
@@ -66,6 +58,8 @@
 SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
 // For 60M coverage requires and updated libary file set.
 #endif
+
+RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 
 // Audio Library setup stuff
 //const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
@@ -127,7 +121,6 @@ AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accor
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
 
-//#define TEST_SINEWAVE_SIG
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
 //AudioSynthSineCosine_F32   sinewave2;
@@ -180,18 +173,3 @@ uint8_t     popup = 0;                          // experimental flag for pop up 
 int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
 volatile int32_t  Freq_Peak = 0;
 
-// Most of our timers are here.  Spectrum waerfall is in the spectrum settings section
-Metro touch         = Metro(50);   // used to check for touch events
-Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
-Metro meter         = Metro(400);   // used to update the meters
-Metro popup_timer   = Metro(500);   // used to check for popup screen request
-Metro NTP_updateTx  = Metro(10000);
-Metro NTP_updateRx  = Metro(65000);
-
-RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
-Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
-Encoder Multi(40,39);  // Multi Function Encoder pins assignments
-uint8_t enc_ppr_response = 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
-// I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
-//Encoder AF(29,28);
-//Encoder RF(33,34);

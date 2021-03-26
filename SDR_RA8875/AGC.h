@@ -4,6 +4,8 @@ extern struct Band_Memory bandmem[];
 
 void selectAgc(uint8_t andx)
 {
+
+	// TODO   Put in some code for custom AGC. Use the AGC table of settings.
     if (andx >= AGC_SET_NUM)
       	andx = AGC_OFF; 		// Cycle around
 
