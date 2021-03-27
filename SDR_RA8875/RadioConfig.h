@@ -33,17 +33,17 @@
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE           // Depends on ENET
     #define ENET
-#endif
+#endif // USE_ENET_PROFILE
 
 //#define REMOTE_OPS        // Turn on Remote_Ops ethernet write feature for remote control head dev work.
 #ifdef REMOTE_OPS           // Depends on ENET
     #define ENET
-#endif
+#endif  // REMOTE_OPS
 
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
 // K7MDL specific Build Configuration rolled up into one #define
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 #ifdef K7MDL_BUILD 
     #define OCXO_10MHZ                
     #define ENET
@@ -51,7 +51,7 @@
     #define REMOTE_OPS
     #define SV1AFN_BPF
     #define DIG_STEP_ATT
-#endif
+#endif  // K7MDL_BUILD
 
 //--------------------------USER HARDWARE AND PREFERENCES-------------------------------------
 
@@ -67,7 +67,7 @@ Metro MF_Timeout    = Metro(4000);// MultiFunction Knob and Switch
 // ---------------------------------------ENCODERS----------------------------------------------
 // 
 // Choose your actual pin assignments for any you may have.
-Encoder Position(4,5); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
+Encoder VFO(4,5); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
 Encoder Multi(40,39);  // Multi Function Encoder pins assignments
 uint8_t enc_ppr_response = 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
@@ -97,12 +97,52 @@ int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button 
 //      For now using Teensy 4.1 pins 30-32.
 //      
 #ifdef DIG_STEP_ATT
-  #define DIG_STEP_ATT            // Set this to enable the PE4302 feature
   #define Atten_CLK       31
   #define Atten_DATA      32
   #define Atten_LE        30
-#endif
+#endif  // DIG_STEP_ATT
 
+//
+//--------------------------------- RA8875 LCD TOUCH DISPLAY INIT & PINS --------------------------
+//
+
+#define USE_RA8875        // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+
+#ifdef USE_RA8875
+  #define  RA8875_INT        14   //any pin
+  #define  RA8875_CS         10   //any digital pin
+  #define  RA8875_RESET      9    //any pin or nothing!
+  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+  RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+
+  // Some defines for ease of use 
+  #define myDARKGREY  31727u
+#endif // USE_RA8875
+//
+//
+//
+//--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
+//
+#ifndef USE_RA8875
+#define USE_RA8876_t3
+#endif
+#ifdef USE_RA8876_t3
+  #define  RA8876_INT        14   //any pin
+  #define  RA8876_CS         10   //any digital pin
+  #define  RA8876_RESET      9    //any pin or nothing!
+  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <RA8876_t3.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+  RA8876 tft = RA8876(RA8875_CS,RA8875_RESET); //initiate the display object
+  // Some defines for ease of use 
+  //#define myDARKGREY  31727u
+#endif // USE_RA8876_t3
+
+//
 //
 //------------------------------------  Ethernet UDP messaging section --------------------------
 //
@@ -126,28 +166,29 @@ int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button 
     
     // Choose to use DHCP or a static IP address for the SDR
     #define USE_DHCP        
-    #ifndef USE_DHCP
+    #ifdef USE_DHCP
     // The IP Address is ignored if using DHCP
         IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
-    #endif
+    #endif // USE_DHCP
+    
     unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
 
     //#define REMOTE_OPS  - conditionally defined in main header file for now
     #ifdef REMOTE_OPS
-    // This is for later remote operaion usage
+    // This is for later remote operation usage
     //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    IPAddress remote_ip(192, 168, 1, 7);  // destination IP (desktop app or remote display Arduino)
-    unsigned int remoteport = 7942;    // the destination port to SENDTO (a remote display or Desktop app)
-    #endif 
+    IPAddress remote_ip(192, 168, 1, 7);    // Destination IP (desktop app or remote display Arduino)
+    unsigned int remoteport = 7942;         // The destination port to SENDTO (a remote display or Desktop app)
+    #endif // REMOTE_OPS
 
     // This is for the NTP service to update the clock when connected to the internet
-    unsigned int localPort_NTP = 8888;       // local port to listen for UDP packets
+    unsigned int localPort_NTP = 8888;       // Local port to listen for UDP packets
     const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
-    time_t prevDisplay = 0; // when the digital clock was displayed
+    time_t prevDisplay = 0; // When the digital clock was displayed
 //
 //------------------------------------ End of Ethernet UDP messaging section --------------------------
 //
-#endif
+#endif  // ENET
 
 // ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
 //
@@ -156,12 +197,7 @@ int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button 
 //  buttons and indicator colors, button an label locations and more. 
 //  Pretty much every global variable that controls a setting is here in a table of some sort. 
 //
-#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
 
-// Some defines for ease of use 
-#define myDARKGREY  31727u
 #define CW          0
 #define LSB         1     
 #define USB         2
@@ -421,6 +457,9 @@ struct Standard_Button {
     char     label[20];     // Text to display for the button label. Use padx and pady to center..
 };
 
+// Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
+// enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
+// using #define method as it is easiet to relate the purpose and more obvious which row it is mapped to.
 #define STD_BTN_NUM 32      // number of buttons in the table
 #define PANEL_ROWS  7       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
 //  There are 6 100px wide buttons that can swap places, enabled/dispable by the function button for a row

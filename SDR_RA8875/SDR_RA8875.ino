@@ -223,17 +223,17 @@ void loop()
 
     if (tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
     {
-        Position.readAndReset();
+        VFO.readAndReset();
         newFreq = 0;
     }
 
-    newFreq += Position.read(); // faster to poll for change since last read
+    newFreq += VFO.read(); // faster to poll for change since last read
     // accumulate conts until we have enough to act on for scaling factor to work right.
     if (newFreq != 0 && abs(newFreq) > enc_ppr_response) // newFreq is a positive or negative number of counts since last read.
     {
         newFreq /= enc_ppr_response; // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
-        Position.readAndReset(); // zero out counter fo rnext read.
+        VFO.readAndReset(); // zero out counter fo rnext read.
         newFreq = 0;
     }
 

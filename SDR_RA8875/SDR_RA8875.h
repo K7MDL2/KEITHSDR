@@ -15,33 +15,36 @@
 #include <Wire.h>               // included with Arduino
 #include <WireIMXRT.h>          // gets installed with wire.h
 #include <WireKinetis.h>        // included with Arduino
-#define  RA8875_INT        14   //any pin
-#define  RA8875_CS         10   //any digital pin
-#define  RA8875_RESET      9    //any pin or nothing!
-#define  MAXTOUCHLIMIT     3    //1...5
-#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#include <RA8875.h>             // internal Teensy library with ft5206 cap touch enabled in user_setting.h
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-#include <InternalTemperature.h>
-#include <TimeLib.h>
-#include "RadioConfig.h"
-#ifdef OCXO_10MHZ         // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
+#include <InternalTemperature.h>// TODO  - list where to find this
+#include <TimeLib.h>            // TODO  - list where to find this
+
+// Now pickup build time options from RadioConfig.h
+#include "RadioConfig.h"        // Majority of declarations here to drive teh #ifdefs that follow
+
+#ifdef I2C_ENCODER              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
+#include <i2cEncoderLibV2.h>    // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
+#endif  // I2C_ENCODER
+
+#ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
+  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
+  SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
+  // For 60M coverage requires and updated libary file set.
+#endif // SV1AFN_BPF
+
+#ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
  #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
  Si5351 si5351;
-#else
- #include <si5351mcu.h>          // Github https://github.com/pavelmc/Si5351mcu
+#else // OCXO_10MHZ
+ #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu
  Si5351mcu si5351;
-#endif
-#ifdef SV1AFN_BPF
-  #include <SVN1AFN_BandpassFilters.h>
-#endif
+#endif // OCXO_10MHZ
+
 // Below are local project files
-//#include "RadioConfig.h"        // Majority of declarations here
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 #include "Spectrum_RA8875.h"    // spectrum
 #include "Hilbert.h"            // filter coefficients
@@ -57,13 +60,6 @@
 #include "Quadrature.h"
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
-
-#ifdef SV1AFN_BPF
-SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
-// For 60M coverage requires and updated libary file set.
-#endif
-
-RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 
 // Audio Library setup stuff
 //const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
