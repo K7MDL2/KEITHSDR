@@ -17,12 +17,24 @@
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
 
+//#define si5351_TCXO         // If yor si5351 PLl has a TCXO then turn off the load capacitors.
+                            // DEPENDS on a modified si5351mcu mod by library by K7MDL.  
+                            // Alternative is to use the Etherkit library or Adafruit or other. 
+
+//#define si5351_XTAL_25MHZ   // This depends on what your PLL uses.
+                            // Uncomment this if your Si5351A crysal is 25MHz
+                            // Commented out it will use 27MHz in VFO.h
+                            // This is ignored if OCXO_10MHz is defined.
+
+const int si5351_correction = 0;  // frequency correction for the si5351A PLL board crystal or TXCO.
+                            // The 5351mcu library uses Hz offset, etherkit and others use ppb.
+
 #define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
                             // DEPENDS on a PE4302 connected for variable attenuation
                             // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
                             //   You can use this without relays or the BPF board
 
-//#define SV1AFN_BPF        // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
+#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
                             // DEPENDS on SV1AFN BPF board connected via a MCP23017 I2C port expander.
 
 //#define ENET              // Turn off or on ethernet features and hardware. Teeny4.1 has ethernet built in but needs an external connector.
@@ -43,18 +55,21 @@
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
 // K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
+//
 #ifdef K7MDL_BUILD 
-    #define OCXO_10MHZ                
-    #define ENET
-    #define USE_ENET_PROFILE
-    #define REMOTE_OPS
+    #define OCXO_10MHZ
+    //#define si5351_TCXO   
+    #define si5351_XTAL_25MHZ             
+    //#define ENET
+    //#define USE_ENET_PROFILE
+    //#define REMOTE_OPS
     #define SV1AFN_BPF
     #define DIG_STEP_ATT
 #endif  // K7MDL_BUILD
-
+//
 //--------------------------USER HARDWARE AND PREFERENCES-------------------------------------
-
+//
 // Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
 Metro touch         = Metro(50);    // used to check for touch events
 Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
