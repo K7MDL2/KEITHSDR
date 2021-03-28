@@ -21,7 +21,7 @@
                             // DEPENDS on a modified si5351mcu mod by library by K7MDL.  
                             // Alternative is to use the Etherkit library or Adafruit or other. 
 
-//#define si5351_XTAL_25MHZ   // This depends on what your PLL uses.
+#define si5351_XTAL_25MHZ   // This depends on what your PLL uses.
                             // Uncomment this if your Si5351A crysal is 25MHz
                             // Commented out it will use 27MHz in VFO.h
                             // This is ignored if OCXO_10MHz is defined.
@@ -34,7 +34,7 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
                             // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
                             //   You can use this without relays or the BPF board
 
-#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
+//// DEPENDS on#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
                             // DEPENDS on SV1AFN BPF board connected via a MCP23017 I2C port expander.
 
 //#define ENET              // Turn off or on ethernet features and hardware. Teeny4.1 has ethernet built in but needs an external connector.
@@ -42,9 +42,10 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
                             // Configured to use DHCP right now.
                             // DEPENDS on ethernet jack and cable connected
 
-#define I2C_LCD           // Turn of or on the optional I2C character LCD display.   
+// #define I2C_LCD           // Turn of or on the optional I2C character LCD display.   
                             // Look below to set the i2c address of the display and
-                            // the size of the display. 
+                            // the size of the display.
+                            // DEPENDS on LCD I2C hardware connected or it will hang on I2C comms timeouts
 
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE           // Depends on ENET
@@ -59,7 +60,7 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
 // K7MDL specific Build Configuration rolled up into one #define
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #define OCXO_10MHZ
@@ -219,7 +220,7 @@ int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button 
   #define LCD_ADR     0x27
   #define LCD_COL     20
   #define LCD_LINES   2
-#endif
+#endif //I2C_LCD
 
 // ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
 //
