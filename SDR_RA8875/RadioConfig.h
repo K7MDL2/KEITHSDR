@@ -42,6 +42,10 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
                             // Configured to use DHCP right now.
                             // DEPENDS on ethernet jack and cable connected
 
+#define I2C_LCD           // Turn of or on the optional I2C character LCD display.   
+                            // Look below to set the i2c address of the display and
+                            // the size of the display. 
+
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE           // Depends on ENET
     #define ENET
@@ -204,6 +208,18 @@ int8_t default_MF_client = MFTUNE;  // default MF knob assignment when a button 
 //------------------------------------ End of Ethernet UDP messaging section --------------------------
 //
 #endif  // ENET
+
+// -----------------------------   I2C LCD Display  -------------------------------------------
+//
+//  An optional I2C character LCD Display can be connected to the Teensy as well, and used
+//  to display just about any value you might need, such as RF or AF Gain, or signal strength.
+//  Make sure all i2c devices have unique address or problems will ensue.
+//
+#ifdef I2C_LCD
+  #define LCD_ADR     0x27
+  #define LCD_COL     20
+  #define LCD_LINES   2
+#endif
 
 // ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
 //

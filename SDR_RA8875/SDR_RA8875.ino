@@ -44,6 +44,12 @@ void setup()
     digitalWrite(Atten_LE,  (uint8_t) OFF);
 #endif
 
+#ifdef I2C_LCD    // initialize the I2C LCD
+    lcd.init(); 
+    lcd.backlight();
+    lcd.print("Keith's SDR");
+#endif
+
     //--------------------------   Setup our Audio System -------------------------------------
 
     AudioMemory_F32(80, audio_settings);
@@ -548,4 +554,3 @@ void MF_Service()
         } break;        
     };
 }
-

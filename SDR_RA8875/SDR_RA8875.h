@@ -61,6 +61,18 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 
+#ifdef SV1AFN_BPF
+SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
+// For 60M coverage requires and updated libary file set.
+#endif
+
+RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+
+#ifdef I2C_LCD
+  #include <LiquidCrystal_I2C.h>
+  LiquidCrystal_I2C lcd(LCD_ADR,LCD_COL, LCD_LINES);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+#endif
+
 // Audio Library setup stuff
 //const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
