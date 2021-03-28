@@ -6,6 +6,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
     1. Moved some more config related items to RadioConfig.h
     2. Merged Pull Request adding and I2C connected 2x16 char LCD as an Auxillary display showing AF and RF gains, VFOs.
+    3. Added support for I2C connected encoders. Using a #define I2C_ENCODER you can choose between GPIO encoder or I2C encoders. The VFO encoder is not touched, it is GPIO still.  Specifically these are the DuPPa.com V2.1 I2C boards that mount either standard small encoders or RGB LED versions with clear shafts and translucent knob caps or rings
+    4. The first I2C encoder usage is the MF knob. Using a RGB LED version encoder it behaves exactly as the GPIO connected encoder except it changes colors to RED at min or max values, and GREEN for values in between. The color fades when motion stops. It lights up when you turn or push thr knob.  
+    5. These I2C encoders support push, release and double push events so will be using them for navigation and selections. Also press and hold type settings. Next up are RF and AF gain pots, and Spectrum Reference Level. I am thinking a push of the MF knob rotates through the possible assigned functions (AF, RF, Tune, Ref Level, Atten today) without requiring a menu button be found and pressed.
 
 ## 3/25/2021
 
