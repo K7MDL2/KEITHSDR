@@ -2,6 +2,11 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/28/2021
+
+    1. Moved some more config related items to RadioConfig.h
+    2. Merged Pull Request adding and I2C connected 2x16 char LCD as an Auxillary display showing AF and RF gains, VFOs.
+
 ## 3/25/2021
 
     1. Refactored the UserInput.h file to reduce 1,000 lines of repetitive code into 150. This makes it easier to read and understand and makes adding or removing a new button or label into a panel very fast. There is a new "panel" field in the button table to specify which buttons show up in which panels, if any.  0 means no panel is associated.

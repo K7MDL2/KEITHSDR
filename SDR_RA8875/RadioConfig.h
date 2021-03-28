@@ -25,6 +25,7 @@
                             // Uncomment this if your Si5351A crysal is 25MHz
                             // Commented out it will use 27MHz in VFO.h
                             // This is ignored if OCXO_10MHz is defined.
+                            // DEPENDS on your crystal being 25Mhz
 
 const int si5351_correction = 0;  // frequency correction for the si5351A PLL board crystal or TXCO.
                             // The 5351mcu library uses Hz offset, etherkit and others use ppb.
@@ -60,11 +61,11 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
 // K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #define OCXO_10MHZ
-    //#define si5351_TCXO   
+    #define si5351_TCXO   
     #define si5351_XTAL_25MHZ             
     //#define ENET
     //#define USE_ENET_PROFILE
