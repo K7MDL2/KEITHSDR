@@ -24,7 +24,7 @@ void setup()
     I2C_Scanner();
 
 #ifdef  I2C_ENCODER   
-    set_AF_I2CEncoder();
+    set_I2CEncoders();
 #endif
 
 #ifdef SV1AFN_BPF
@@ -61,8 +61,6 @@ void setup()
     lcd.backlight();
     lcd.print("Keith's SDR");
 #endif
-
-
 
     //--------------------------   Setup our Audio System -------------------------------------
 
@@ -263,25 +261,27 @@ void loop()
         Serial.println(MF_client);
         unset_MF_Service(default_MF_client);  // will turn off the button, if any, and set the default as new owner.
     }
-    if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
-        MF_Service();
-
-//I2C_Scanner();
 
     #ifdef I2C_ENCODER
     /* Watch for the INT pin to go low */
     if (digitalRead(IntPin) == LOW) 
     {
         /* Check the status of the encoder and call the callback */
-        if(AF_ENC.updateStatus())
+        if(MF_ENC.updateStatus())
         {
-            uint8_t afg = AF_ENC.readStatus();
-            Serial.print("**************Checked AF_Enc status = ");
-            Serial.println(afg);
+            uint8_t mfg = MF_ENC.readStatus();
+            Serial.print("****Checked MF_Enc status = ");
+            Serial.println(mfg);
         }
     }
-
-    
+    #else
+    // Use a mechanical encoder on the GPIO pisn, if any.
+    if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
+    {
+        static int8_t counts = 0;   
+        counts = (int8_t) round(multiKnob(0)/4);
+        MF_Service(counts);
+    }
     #endif // I2C_ENCODER
 
     if (meter.check() == 1) // update our meters
@@ -411,7 +411,7 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
-        blink_AFG_RGB();
+        blink_MFG_RGB();
     }
 }
 //
@@ -524,7 +524,10 @@ void unset_MF_Service(uint8_t client_name)
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
 void set_MF_Service(uint8_t client_name)
 {
-    multiKnob(1);
+    
+    #ifndef I2C_ENCODER   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
+    multiKnob(1);       // for non-I2C encoder, clear the counts.
+    #endif //  I2C_ENCODER
     unset_MF_Service(default_MF_client);
     MF_client = client_name;    
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
@@ -538,11 +541,9 @@ void set_MF_Service(uint8_t client_name)
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
 static uint16_t old_ts;
-void MF_Service()
-{
-    static int8_t counts = 0;
-    
-    counts = (int8_t) round(multiKnob(0)/4);
+
+void MF_Service(int8_t counts)
+{  
     if (counts == 0)  // no knob movement, nothing to do.
         return;
     
@@ -567,9 +568,9 @@ void MF_Service()
             RefLevel(counts*-1);
         } break;
         case  ATTEN_BTN: {
-            if (counts> 1)
-                counts = 1;
-            if (counts < 1)
+            if (counts> 31)
+                counts = 31;
+            if (counts <= 0)
                 counts = -1;
             int8_t att_tmp = bandmem[curr_band].attenuator_dB + counts;
             if (att_tmp <=0)
@@ -586,4 +587,47 @@ void MF_Service()
             bandmem[curr_band].tune_step = old_ts;
         } break;        
     };
+}
+//
+//  Scans for any I2C connected devices and reports them to the serial terminal.  Usually done early in startup.
+//
+void I2C_Scanner(void)
+{
+  byte error, address; //variable for error and I2C address
+  int nDevices;
+
+  Serial.println("Scanning...");
+
+  nDevices = 0;
+  for (address = 1; address < 127; address++ )
+  {
+    // The i2c_scanner uses the return value of
+    // the Write.endTransmisstion to see if
+    // a device did acknowledge to the address.
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+
+    if (error == 0)
+    {
+      Serial.print("I2C device found at address 0x");
+      if (address < 16)
+        Serial.print("0");
+      Serial.print(address, HEX);
+      Serial.println("  !");
+      nDevices++;
+    }
+    else if (error == 4)
+    {
+      Serial.print("Unknown error at address 0x");
+      if (address < 16)
+        Serial.print("0");
+      Serial.println(address, HEX);
+    }
+  }
+  if (nDevices == 0)
+    Serial.println("No I2C devices found\n");
+  else
+    Serial.println("done\n");
+
+  delay(500); // wait 5 seconds for the next I2C scan
 }

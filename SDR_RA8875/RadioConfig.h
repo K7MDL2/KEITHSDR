@@ -119,8 +119,8 @@ uint8_t enc_ppr_response = 60;  // for VFO A/B Tuning encoder. This scales the P
                                     // Hardware verson 2.1, Arduino library version 1.40.
   const int IntPin = 29; /* Definition of the interrupt pin, change according to your configuration*/
   //Class initialization with the I2C addresses
-  //i2cEncoderLibV2 RF_ENC(0b1100001); /* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
-  i2cEncoderLibV2 AF_ENC(0b1100010); /* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+  i2cEncoderLibV2 MF_ENC(0b1100001); /* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+  //i2cEncoderLibV2 AF_ENC(0b1100010); /* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
   
 #endif // I2C_ENCODER
 

@@ -8,23 +8,53 @@
 //   Interrupt driven callback back function that do something when tehre is a pus or turn event.
 //   Also has a range of RGB LED light effects
 //
-void I2C_Scanner(void);
-void blink_AFG_RGB(void);
-void set_AF_I2CEncoder();
+
+#ifdef I2C_ENCODER
+
+// These are the per-encoder function declarations
+void blink_MFG_RGB(void);
+void set_I2CEncoder();
+
+extern uint8_t curr_band;    // global tracks our current band setting. 
+extern uint8_t user_Profile; // global tracks our current user profile
+
+// These are generic callback functions - meaning when a hardware event occurs these functions are 
+// called with the info associated with that encoder.  We can assing each encoder to things like AF and RF gain.
 void encoder_rotated(i2cEncoderLibV2* obj);
 void encoder_click(i2cEncoderLibV2* obj);
 void encoder_thresholds(i2cEncoderLibV2* obj);
 
+extern void MF_Service(int8_t counts);
 
-#ifdef I2C_ENCODER
-//Callback when the AF Gain encoder is rotated
+//Callback when the MF Gain encoder is rotated
 void encoder_rotated(i2cEncoderLibV2* obj) {
   if (obj->readStatus(i2cEncoderLibV2::RINC))
     Serial.print("Increment: ");
   else
     Serial.print("Decrement: ");
   Serial.println(obj->readCounterInt());
-  obj->writeRGBCode(0x00FF00);
+  int16_t count = obj->readCounterInt();
+  MF_Service(count);
+  MF_ENC.writeCounter((int32_t) 0); // Reset the counter value
+  // Update the color
+  uint32_t tval = 0x00FF00;  // Set the default color to green
+  switch(MF_client)
+  {
+    case RFGAIN_BTN:    if (user_settings[user_Profile].rfGain >= 97 || user_settings[user_Profile].rfGain <=3)
+                            tval = 0xFF0000;  // Change to red
+                            break;
+    case AFGAIN_BTN:    if (user_settings[user_Profile].afGain >= 97 || user_settings[user_Profile].afGain <=3)
+                            tval = 0xFF0000;  // Change to red
+                            break;
+    case ATTEN_BTN:     if (bandmem[curr_band].attenuator_dB > 30 || bandmem[curr_band].attenuator_dB < 2)
+                            tval = 0xFF0000;  // Change to red
+                            break;
+    case REFLVL_BTN:     if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
+                            tval = 0xFF0000;  // Change to red
+                            break;
+    default: obj->writeRGBCode(tval); break;
+  }
+  obj->writeRGBCode(tval);  // set color
 }
 
 //Callback when the encoder is pushed
@@ -48,90 +78,50 @@ void encoder_fade(i2cEncoderLibV2* obj) {
   obj->writeRGBCode(0x000000);
 }
 
-void I2C_Scanner(void)
-{
-  byte error, address; //variable for error and I2C address
-  int nDevices;
-
-  Serial.println("Scanning...");
-
-  nDevices = 0;
-  for (address = 1; address < 127; address++ )
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    Wire.beginTransmission(address);
-    error = Wire.endTransmission();
-
-    if (error == 0)
-    {
-      Serial.print("I2C device found at address 0x");
-      if (address < 16)
-        Serial.print("0");
-      Serial.print(address, HEX);
-      Serial.println("  !");
-      nDevices++;
-    }
-    else if (error == 4)
-    {
-      Serial.print("Unknown error at address 0x");
-      if (address < 16)
-        Serial.print("0");
-      Serial.println(address, HEX);
-    }
-  }
-  if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
-  else
-    Serial.println("done\n");
-
-  delay(500); // wait 5 seconds for the next I2C scan
-}
-
-void set_AF_I2CEncoder()
+void set_I2CEncoders()
 {
     pinMode(IntPin, INPUT);
-    AF_ENC.reset();
 
-    AF_ENC.begin(
+    // MF KNOB - Multi-Fucntion knob setup.
+    MF_ENC.reset();
+    MF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
-        | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE
+        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE
         | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
 
-    AF_ENC.writeCounter((int32_t) 0); /* Reset the counter value */
-    AF_ENC.writeMax((int32_t) 10); /* Set the maximum threshold*/
-    AF_ENC.writeMin((int32_t) - 10); /* Set the minimum threshold */
-    AF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
+    MF_ENC.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a daabase value also*/
+    MF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
+    MF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
+    MF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
 
     /* Configure the events */
-    AF_ENC.onChange = encoder_rotated;
-    AF_ENC.onButtonRelease = encoder_click;
-    AF_ENC.onMinMax = encoder_thresholds;
-    AF_ENC.onFadeProcess = encoder_fade;
+    MF_ENC.onChange = encoder_rotated;
+    MF_ENC.onButtonRelease = encoder_click;
+    MF_ENC.onMinMax = encoder_thresholds;
+    MF_ENC.onFadeProcess = encoder_fade;
 
     /* Enable the I2C Encoder V2 interrupts according to the previus attached callback */
-    AF_ENC.autoconfigInterrupt();
+    MF_ENC.autoconfigInterrupt();
     //AF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
     //AF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
     //AF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
-    blink_AFG_RGB();
+    blink_MFG_RGB();
 }
 
-void blink_AFG_RGB(void)
+void blink_MFG_RGB(void)
 {
     /* blink the RGB LED */
-    AF_ENC.writeRGBCode(0xFF0000);
+    MF_ENC.writeRGBCode(0xFF0000);
     delay(250);
-    AF_ENC.writeRGBCode(0x00FF00);
+    MF_ENC.writeRGBCode(0x00FF00);
     delay(250);
-    AF_ENC.writeRGBCode(0x0000FF);
+    MF_ENC.writeRGBCode(0x0000FF);
     delay(250);
-    AF_ENC.writeRGBCode(0x000000);
+    MF_ENC.writeRGBCode(0x000000);
 
-    AF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
+    MF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif // I2C_ENCODER
 
