@@ -42,11 +42,13 @@ void initVfo()
 
         // --------------- Internal Crystal Clock Section ---------------------------------
         // Initialize the Si5351 to use a 27 MHz clock on the XO input
-        //si5351.init(SI5351_CRYSTAL_LOAD_8PF, 27000000, 0);      //set up our PLL for external 10Mhz OCXO
-        // --------------- End Internal Clock section -------------------------------------
+        //si5351.init(SI5351_CRYSTAL_LOAD_8PF, 27000000, 0);      //set up our PLL for internal crystal or TCXO
+        si5351.init(SI5351_CRYSTAL_LOAD_0PF,  24999899, 0);
+        // --------------- End Internal Clock section -------------------------------------  
 
         // ----  OR  ------//
-
+        
+        #ifdef K7MDL_OCXO
         // --------------- External Reference CLock Section -------------------------------
         //Initialize the Si5351 to use an external clock like a 10Mhz OCXO
         si5351.init(SI5351_CRYSTAL_LOAD_0PF, 0, 0);               
@@ -60,35 +62,39 @@ void initVfo()
         si5351.set_pll_input(SI5351_PLLA, SI5351_PLL_INPUT_CLKIN);
         si5351.set_pll_input(SI5351_PLLB, SI5351_PLL_INPUT_CLKIN);
         // ------------   ---End Ext Clock section ----------------------------------------
+        #endif // K7MDL_OCXO
 
         // Below is common to both Ext Clk and Internal Xtal
-        // This next line may or may not be useful
-        //si5351.set_pll(SI5351_PLL_FIXED, SI5351_PLLA);
         si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA);
         si5351.output_enable(SI5351_CLK0, 1);   // ON by default but just in case.
         si5351.output_enable(SI5351_CLK1, 0);   // OFF by default but just in case.
-        si5351.output_enable(SI5351_CLK2, 0);   // OFF by default but just in case.  
-        si5351.output_enable(SI5351_CLK3, 0);   // outputs 3 - 8 only apply to the C version PLL     
-        si5351.output_enable(SI5351_CLK4, 0);     
-        si5351.output_enable(SI5351_CLK5, 0);     
-        si5351.output_enable(SI5351_CLK6, 0);        
-        si5351.output_enable(SI5351_CLK7, 0);     
+        //si5351.output_enable(SI5351_CLK2, 0);   // OFF by default but just in case.  
+        //si5351.output_enable(SI5351_CLK3, 0);   // outputs 3 - 8 only apply to the C version PLL     
+        //si5351.output_enable(SI5351_CLK4, 0);     
+        //si5351.output_enable(SI5351_CLK5, 0);     
+        //si5351.output_enable(SI5351_CLK6, 0);        
+        //si5351.output_enable(SI5351_CLK7, 0);     
         // Set CLK0 to output Dial Frequency
-        si5351.set_freq(VFOA * 400ULL , SI5351_CLK0);                         // set the output freq on CLK 0 top 5Mhz to start out.
+        si5351.set_freq((VFOA+Fc) * 400ULL , SI5351_CLK0);                         // set the output freq on CLK 0 top 5Mhz to start out.
         si5351.reset();   // Must do this for external clock!        
     #else
 
         // Choose one of these 3 lines. The first is the default crystal which is varied among boards
         //si5351.init();  // Set this to 25MHz or 27MHz depending on what your PLL uses.
-        si5351.init(27000000);
-        //si5351.init(25000000);
+        #ifdef si5351_XTAL_25MHZ
+          //si5351.init(25000000);
+          si5351.init(24999899);
+        #else
+          si5351.init(27000000);
+        #endif // si5351_XTAL_IS_25MHZ
 
         /// Si5351mcu library modified by K7MDL to accept load capacitor setting.  Comment this out for standard library        
-        //si5351.load_c(SI5351_CRYSTAL_LOAD_8PF);  // this is for replacing a crystal with a TCXO
+        #ifdef si5351_TCXO
+        si5351.load_c(SI5351_CRYSTAL_LOAD_0PF);  // this is for replacing a crystal with a TCXO
+        #endif //si5351_TCXO
         
         // The lines below are stanard to any crystal
-        si5351.correction(0);
-        si5351.correction(-336);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
+        si5351.correction(si5351_correction);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
         si5351.setPower(0, SIOUT_8mA);   // 0 is Clock 0
         si5351.setFreq(0, (VFOA+Fc)*4);  // Multiply x4 for RX board
         si5351.enable(0);   // these enable/disables are optional
