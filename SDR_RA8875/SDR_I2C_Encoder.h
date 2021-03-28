@@ -8,6 +8,13 @@
 //   Interrupt driven callback back function that do something when tehre is a pus or turn event.
 //   Also has a range of RGB LED light effects
 //
+void I2C_Scanner(void);
+void blink_AFG_RGB(void);
+void set_AF_I2CEncoder();
+void encoder_rotated(i2cEncoderLibV2* obj);
+void encoder_click(i2cEncoderLibV2* obj);
+void encoder_thresholds(i2cEncoderLibV2* obj);
+
 
 #ifdef I2C_ENCODER
 //Callback when the AF Gain encoder is rotated

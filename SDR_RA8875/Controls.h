@@ -238,7 +238,7 @@ void setMode(int8_t dir)
 	else	
 		bandmem[curr_band].mode_B = mndx;    
     
-    Serial.print("Set Mode");  
+    Serial.println("Set Mode");  
     displayMode();
 }
 

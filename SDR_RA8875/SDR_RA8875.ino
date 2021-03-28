@@ -14,17 +14,29 @@
 
 void setup()
 {
+    Serial.begin(115200);
+    delay(500);
+    Serial.println("**** Running I2C Scanner ****");
 
     // ---------------- Setup our basic display and comms ---------------------------
-    Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
+    Wire.begin();
+    Wire.setClock(100000); // Increase i2C bus transfer data rate from default of 100KHz
+    I2C_Scanner();
+
+#ifdef  I2C_ENCODER   
+    set_AF_I2CEncoder();
+#endif
+
 #ifdef SV1AFN_BPF
       bpf.begin((int) 0, (TwoWire*) &Wire);
       bpf.setBand(HFNone);
       bpf.setPreamp(false);
       bpf.setAttenuator(false);
 #endif
+
     tft.begin(RA8875_800x480);
     tft.setRotation(0);
+
 #if defined(USE_FT5206_TOUCH)
     tft.useCapINT(RA8875_INT);
     tft.setTouchLimit(MAXTOUCHLIMIT);
@@ -49,6 +61,8 @@ void setup()
     lcd.backlight();
     lcd.print("Keith's SDR");
 #endif
+
+
 
     //--------------------------   Setup our Audio System -------------------------------------
 
@@ -252,6 +266,24 @@ void loop()
     if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
         MF_Service();
 
+//I2C_Scanner();
+
+    #ifdef I2C_ENCODER
+    /* Watch for the INT pin to go low */
+    if (digitalRead(IntPin) == LOW) 
+    {
+        /* Check the status of the encoder and call the callback */
+        if(AF_ENC.updateStatus())
+        {
+            uint8_t afg = AF_ENC.readStatus();
+            Serial.print("**************Checked AF_Enc status = ");
+            Serial.println(afg);
+        }
+    }
+
+    
+    #endif // I2C_ENCODER
+
     if (meter.check() == 1) // update our meters
     {
         Peak();
@@ -379,6 +411,7 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
+        blink_AFG_RGB();
     }
 }
 //

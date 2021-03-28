@@ -17,7 +17,7 @@
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
 
-//#define si5351_TCXO         // If yor si5351 PLl has a TCXO then turn off the load capacitors.
+//#define si5351_TCXO       // If yor si5351 PLl has a TCXO then turn off the load capacitors.
                             // DEPENDS on a modified si5351mcu mod by library by K7MDL.  
                             // Alternative is to use the Etherkit library or Adafruit or other. 
 
@@ -35,7 +35,7 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
                             // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
                             //   You can use this without relays or the BPF board
 
-//// DEPENDS on#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
+#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
                             // DEPENDS on SV1AFN BPF board connected via a MCP23017 I2C port expander.
 
 //#define ENET              // Turn off or on ethernet features and hardware. Teeny4.1 has ethernet built in but needs an external connector.
@@ -43,10 +43,14 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
                             // Configured to use DHCP right now.
                             // DEPENDS on ethernet jack and cable connected
 
-// #define I2C_LCD           // Turn of or on the optional I2C character LCD display.   
+// #define I2C_LCD          // Turn of or on the optional I2C character LCD display.   
                             // Look below to set the i2c address of the display and
                             // the size of the display.
                             // DEPENDS on LCD I2C hardware connected or it will hang on I2C comms timeouts
+
+ //#define I2C_ENCODER      // I2C connected encoders. Here we are using the RGB LED version from
+                            // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
+                            // Hardware verson 2.1, Arduino library version 1.40.
 
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE           // Depends on ENET
@@ -64,14 +68,15 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
 #define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
-    #define OCXO_10MHZ
-    #define si5351_TCXO   
-    #define si5351_XTAL_25MHZ             
+    #define I2C_ENCODER
+    #define OCXO_10MHZ              // Switch to etherkits library
+    #define si5351_TCXO             // set load cap to 0pF for TCXO
+    #define si5351_XTAL_25MHZ       // choose 25MHz tcxo 
     //#define ENET
     //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    #define SV1AFN_BPF
-    #define DIG_STEP_ATT
+    #define SV1AFN_BPF              // use the BPF board
+    #define DIG_STEP_ATT            // USe the step atten
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES-------------------------------------
@@ -94,6 +99,30 @@ uint8_t enc_ppr_response = 60;  // for VFO A/B Tuning encoder. This scales the P
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 //Encoder AF(29,28);   // AF gain control - not used yet
 //Encoder RF(33,34);   // RF gain control - not used yet
+
+#ifdef I2C_ENCODER
+/*This is a basic example for using the I2C Encoder V2
+  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
+  It's also printet when the push button is released.
+  When the encoder is turned the led turn green
+  When the encoder reach the max or min the led turn red
+  When the encoder is pushed, the led turn blue
+
+  Connections with Teensy 4.1:
+  - -> GND
+  + -> 3.3V
+  SDA -> 18
+  SCL -> 19
+  INT -> 29
+*/
+  #include <i2cEncoderLibV2.h>      // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
+                                    // Hardware verson 2.1, Arduino library version 1.40.
+  const int IntPin = 29; /* Definition of the interrupt pin, change according to your configuration*/
+  //Class initialization with the I2C addresses
+  //i2cEncoderLibV2 RF_ENC(0b1100001); /* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+  i2cEncoderLibV2 AF_ENC(0b1100010); /* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+  
+#endif // I2C_ENCODER
 
 // The #define button numbers act as the ID of possible owners of MF knob services
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button

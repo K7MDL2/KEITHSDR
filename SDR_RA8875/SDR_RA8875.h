@@ -20,14 +20,15 @@
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-#include <InternalTemperature.h>// TODO  - list where to find this
+#include <InternalTemperature.h>// V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 #include <TimeLib.h>            // TODO  - list where to find this
 
 // Now pickup build time options from RadioConfig.h
 #include "RadioConfig.h"        // Majority of declarations here to drive teh #ifdefs that follow
 
 #ifdef I2C_ENCODER              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
-#include <i2cEncoderLibV2.h>    // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
+//  #include <i2cEncoderLibV2.h>    // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
+#include "SDR_I2C_Encoder.h"    // See RadioConfig.h for more config including assigning an INT pin.
 #endif  // I2C_ENCODER
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
