@@ -4,6 +4,11 @@
 #include <RA8875.h>
 extern RA8875 tft;
 
+#ifdef I2C_LCD
+  #include <LiquidCrystal_I2C.h>
+  extern LiquidCrystal_I2C lcd;
+#endif
+
 extern uint8_t curr_band;   // global tracks our current band setting.  
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
@@ -82,6 +87,10 @@ void displayFreq(void)
 		tft.setTextColor(pVAct->txt_clr);
 		tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);		
 		tft.print(formatVFO(VFOA));
+    #ifdef I2C_LCD
+      lcd.setCursor(0,0);
+      lcd.print(formatVFO(VFOA));
+    #endif
 	}
 	else
 	{
@@ -90,6 +99,10 @@ void displayFreq(void)
 		tft.setTextColor(pVAct->txt_clr);
 		tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
 		tft.print(formatVFO(VFOB));
+    #ifdef I2C_LCD
+      lcd.setCursor(0,0);
+      lcd.print(formatVFO(VFOB));
+    #endif
 	}
 	
 	// Write the standby VFO
@@ -176,6 +189,10 @@ void displayRFgain(void)
 	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].rfGain);
 	Serial.print("RF Gain set to "); Serial.println(std_btn[RFGAIN_BTN].label);
 	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain_en);
+  #ifdef I2C_LCD
+    lcd.setCursor(10,1);
+    lcd.print(std_btn[RFGAIN_BTN].label);
+  #endif
 }
 
 void displayAFgain(void)
@@ -185,6 +202,10 @@ void displayAFgain(void)
 	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].afGain);
 	Serial.print("AF Gain set to "); Serial.println(std_btn[AFGAIN_BTN].label);
 	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain_en);
+  #ifdef I2C_LCD  
+    lcd.setCursor(0,1);
+    lcd.print(std_btn[AFGAIN_BTN].label);
+  #endif
 }
 
 void displayAttn()
