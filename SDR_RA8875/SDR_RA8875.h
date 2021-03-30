@@ -13,7 +13,7 @@
 //
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#include <T4_PowerButton.h>
+#include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
 //#include "avr/pgmspace.h"
 #include <SPI.h>                // included with Arduino
 #include <Wire.h>               // included with Arduino
@@ -31,7 +31,7 @@
 // Below are local project files
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 #include "Spectrum_RA8875.h"    // spectrum
-//#include "Hilbert.h"            // filter coefficients
+//////#include "Hilbert.h"      // filter coefficients -DO NOT include this file here, included by bandwidth.cpp directly
 #include "Vfo.h"
 #include "Display.h"
 #include "Tuner.h"

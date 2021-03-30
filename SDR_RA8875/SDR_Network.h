@@ -25,6 +25,8 @@ void enet_start(void);
 time_t getNtpTime();
 void sendNTPpacket(const char * address);
 //void RX_NTP_time(void);
+extern const char timeServer[];   // time.nist.gov NTP server
+extern time_t prevDisplay;    // When the digital clock was displayed
 
 //#endif  //ENET
 

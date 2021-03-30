@@ -18,11 +18,41 @@
 #include <NativeEthernetUdp.h>
 #include <TimeLib.h>
 
-#define BUFFER_SIZE         (4100)
+#define BUFFER_SIZE         (4100)    
+// Choose or create your desired time zone offset or use 0 for UTC.
+//const int timeZone = 1;     // Central European Time
+const int timeZone = 0;     // UTC
+//const int timeZone = -5;  // Eastern Standard Time (USA)
+//const int timeZone = -4;  // Eastern Daylight Time (USA)
+//const int timeZone = -8;  // Pacific Standard Time (USA)
+//const int timeZone = -7;  // Pacific Daylight Time (USA)
 
-// defined in RadioConfig.h
-// extern IPAddress ip;                //(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
-// extern unsigned int localPort;       // = 7943;     // local port to LISTEN for the remote display/Desktop app
+// Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
+// The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
+//byte mac[] = {
+//  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
+//};
+
+// Choose to use DHCP or a static IP address for the SDR   
+#ifndef USE_DHCP
+// The IP Address is ignored if using DHCP
+	IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+#endif // USE_DHCP
+
+unsigned int localPort = MY_LOCAL_PORTNUM;     // local port to LISTEN for the remote display/Desktop app
+
+//#define REMOTE_OPS  - conditionally defined in main header file for now
+#ifdef REMOTE_OPS
+// This is for later remote operation usage
+//Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+IPAddress remote_ip(192, 168, 1, 7);    // Destination IP (desktop app or remote display Arduino)
+unsigned int remoteport = MY_REMOTE_PORTNUM;    // The destination port to SENDTO (a remote display or Desktop app)
+#endif // REMOTE_OPS
+
+// This is for the NTP service to update the clock when connected to the internet
+unsigned int localPort_NTP = 8888;       // Local port to listen for UDP packets
+const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
+time_t prevDisplay = 0; // When the digital clock was displayed
 
 // function declarations
 void toggle_enet_data_out(uint8_t mode);

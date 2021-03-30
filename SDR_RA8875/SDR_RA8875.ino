@@ -58,7 +58,7 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
 #endif // I2C_ENCODER
 
 #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
- #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
+ #include <si5351.h>            // Using this etherkits library because it supporst the B and C version PLLs with external ref clock
  Si5351 si5351;
 #else // OCXO_10MHZ
  #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu

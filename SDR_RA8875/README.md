@@ -1,6 +1,9 @@
 # KEITHSDR
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
+## 3/30/2021
+
+    1.Fixed ethernet feature, all features working now after the .h/.cpp split
 
 ## 3/29/2021
 

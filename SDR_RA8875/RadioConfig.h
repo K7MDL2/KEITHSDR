@@ -72,15 +72,15 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
 #define SPECTRUM_PRESET 0   // The spectrum layout record default value.  
 
 // K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #define I2C_ENCODERS
-    //#define OCXO_10MHZ              // Switch to etherkits library
+    //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
     #define si5351_TCXO             // set load cap to 0pF for TCXO
-    #define si5351_XTAL_25MHZ       // choose 25MHz tcxo 
-    //#define ENET
-    //#define USE_ENET_PROFILE
+    #define si5351_XTAL_25MHZ       // choose 25MHz tcxo or crystal, else 27Mhz
+    #define ENET
+    #define USE_ENET_PROFILE
     //#define REMOTE_OPS
     #define SV1AFN_BPF              // use the BPF board
     #define DIG_STEP_ATT            // USe the step atten
@@ -148,7 +148,7 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
   #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
   #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <RA8876_t3.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+  #include <RA8876_t3.h>           // Github
   RA8876 tft = RA8876(RA8875_CS,RA8875_RESET); //initiate the display object
   // Some defines for ease of use 
   //#define myDARKGREY  31727u
@@ -163,39 +163,28 @@ const int si5351_correction = 0;  // frequency correction for the si5351A PLL bo
     #include <NativeEthernetUdp.h>
     
     // Choose or create your desired time zone offset or use 0 for UTC.
-    //const int timeZone = 1;     // Central European Time
-    const int timeZone = 0;     // UTC
-    //const int timeZone = -5;  // Eastern Standard Time (USA)
-    //const int timeZone = -4;  // Eastern Daylight Time (USA)
-    //const int timeZone = -8;  // Pacific Standard Time (USA)
-    //const int timeZone = -7;  // Pacific Daylight Time (USA)
-
-    // Enter a MAC address and IP address for your controller below. MAC not required for Teensy cause we are using TeensyMAC function.
-    // The IP address will be dependent on your local network:  don't need this since we can automatically figure ou tthe mac
-    //byte mac[] = {
-    //  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
-    //};
+    #define MYTZ 0
+    // here are some example values
+    //  1 Central European Time
+    //  0 UTC
+    // -5 Eastern Standard Time (USA)
+    // -4 Eastern Daylight Time (USA)
+    // -8 Pacific Standard Time (USA)
+    // -7 Pacific Daylight Time (USA)
     
-    // Choose to use DHCP or a static IP address for the SDR   
+    // If NOT using DHCP then assign a static IP address for the SDR   
     #ifndef USE_DHCP
     // The IP Address is ignored if using DHCP
-        IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+    // IP address is defined in SDR_Network.cpp 
     #endif // USE_DHCP
     
-    unsigned int localPort = 7943;     // local port to LISTEN for the remote display/Desktop app
+    #define MY_LOCAL_PORTNUM 7943;     // local port the SDR will LISTEN on for any remote display/Desktop app
 
-    //#define REMOTE_OPS  - conditionally defined in main header file for now
     #ifdef REMOTE_OPS
-    // This is for later remote operation usage
-    //Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    IPAddress remote_ip(192, 168, 1, 7);    // Destination IP (desktop app or remote display Arduino)
-    unsigned int remoteport = 7942;         // The destination port to SENDTO (a remote display or Desktop app)
+      // This is for later remote operation usage
+      // IP address is defined in SDR_Network.cpp 
+      #define MY_REMOTE_PORTNUM 7942;         // The destination port to SENDTO (a remote display or Desktop app)
     #endif // REMOTE_OPS
-
-    // This is for the NTP service to update the clock when connected to the internet
-    unsigned int localPort_NTP = 8888;       // Local port to listen for UDP packets
-    const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
-    time_t prevDisplay = 0; // When the digital clock was displayed
 //
 //------------------------------------ End of Ethernet UDP messaging section --------------------------
 //
