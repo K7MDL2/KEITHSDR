@@ -2,6 +2,15 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 3/29/2021
+
+    1. Added FlexINfo() memory reaion usage report to the terminal menu.
+    2. Added I2C Device Scanner Report to the terminal st startup.
+    3. Split the .h files into .h and .cpp file pairs.  As a result there are around 13 or 14 new .cpp files.
+    4. Deleted AGC and Step .h files, they were very small and are now part of Controls.cpp.
+    5. Reduced memory usage from 79% to 64%. likely because some data was being duplicated.
+    6. Started using FLASHMEM decoration to assign certain code/data to FLASH region. Startup() and several utility functions for example.
+
 ## 3/28/2021
 
     1. Moved some more config related items to RadioConfig.h
