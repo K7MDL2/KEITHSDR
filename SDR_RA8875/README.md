@@ -10,6 +10,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4. Deleted AGC and Step .h files, they were very small and are now part of Controls.cpp.
     5. Reduced memory usage from 79% to 64%. likely because some data was being duplicated.
     6. Started using FLASHMEM decoration to assign certain code/data to FLASH region. Startup() and several utility functions for example.
+    7. Do not use the ENET feature yet.  There are some code changes required to make that feature compile.
 
 ## 3/28/2021
 
