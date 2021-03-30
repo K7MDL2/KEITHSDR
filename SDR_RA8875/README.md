@@ -4,13 +4,31 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/29/2021
 
-    1. Added FlexINfo() memory reaion usage report to the terminal menu.
-    2. Added I2C Device Scanner Report to the terminal st startup.
+    1. Added FlexInfo() memory region usage report to the terminal menu.
+    2. Added I2C Device Scanner Report to the terminal at startup.
     3. Split the .h files into .h and .cpp file pairs.  As a result there are around 13 or 14 new .cpp files.
     4. Deleted AGC and Step .h files, they were very small and are now part of Controls.cpp.
     5. Reduced memory usage from 79% to 64%. likely because some data was being duplicated.
     6. Started using FLASHMEM decoration to assign certain code/data to FLASH region. Startup() and several utility functions for example.
     7. Do not use the ENET feature yet.  There are some code changes required to make that feature compile.
+    8. When all features excluding ENET are on, ITCM memory is at 89%. Report below.
+    * Memory Usage (FlexInfo)
+    * FLASH: 217976  2.68% of 7936kB (7908488 Bytes free) FLASHMEM, PROGMEM
+    *      ITCM:  115944 88.46% of  128kB (  15128 Bytes free) (RAM1) FASTRUN
+    * PSRAM: none
+    * OCRAM:
+    *    524288 Bytes (512 kB)
+-   *     12960 Bytes (12 kB) DMAMEM
+-   *     42792 Bytes (41 kB) Heap
+    *    468536 Bytes heap free (457 kB), 55752 Bytes OCRAM in use (54 kB).
+    * DTCM:
+    *    393216 Bytes (384 kB)
+-   *    205504 Bytes (200 kB) global variable
+    *      4392 Bytes (4 kB) max. stack so far
+    * =========
+    *    183320 Bytes free (179 kB), 209896 Bytes in use (204 kB).
+    * *** End of Report ***
+
 
 ## 3/28/2021
 
