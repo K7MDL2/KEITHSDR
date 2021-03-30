@@ -1,3 +1,5 @@
+#ifndef _SDR_RA8875_
+#define _SDR_RA8875_
 //  SDR_RA8875.INO
 //
 //  Main PRogram File
@@ -10,8 +12,215 @@
 //
 // _______________________________________ Setup_____________________________________________
 //
-#include "SDR_RA8875.h"
 
+#include "SDR_RA8875.h"
+#include "SDR_Data.h"
+// Now pickup build time options from RadioConfig.h
+#include "RadioConfig.h"        // Majority of declarations here to drive teh #ifdefs that follow
+
+#ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
+ #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
+ SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
+                                // For 60M coverage requires and updated libary file set.
+#endif // SV1AFN_BPF
+
+// Choose your actual pin assignments for any you may have.
+Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
+
+#define VFO_PPR 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+// I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
+
+#ifdef I2C_ENCODERS              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
+/*This is a basic example for using the I2C Encoder V2
+  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
+  It's also printet when the push button is released.
+  When the encoder is turned the led turn green
+  When the encoder reach the max or min the led turn red
+  When the encoder is pushed, the led turn blue
+
+  Connections with Teensy 4.1:
+  - -> GND
+  + -> 3.3V
+  SDA -> 18
+  SCL -> 19
+  INT -> 29
+*/
+  #include <i2cEncoderLibV2.h>              // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
+                                            // Hardware verson 2.1, Arduino library version 1.40.
+  //Class initialization with the I2C addresses
+  extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
+  extern i2cEncoderLibV2 AF_ENC; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//
+  #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.
+#else 
+  Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
+  //Encoder AF(29,28);   // AF gain control - not used yet
+  //Encoder RF(33,34);   // RF gain control - not used yet 
+#endif // I2C_ENCODER
+
+#ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
+ #include <si5351.h>            // Using this liunrary because it support the B and C version PLLs with external ref clock
+ Si5351 si5351;
+#else // OCXO_10MHZ
+ #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu
+ Si5351mcu si5351;
+#endif // OCXO_10MHZ
+
+#ifdef USE_RA8875
+  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+#endif // USE_RA8875
+
+#ifdef I2C_LCD
+  #include <LiquidCrystal_I2C.h>
+  LiquidCrystal_I2C lcd(LCD_ADR,LCD_COL, LCD_LINES);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+#endif
+
+void FLASHMEM I2C_Scanner(void);
+void FLASHMEM MF_Service(int8_t counts);
+void FLASHMEM RampVolume(float vol, int16_t rampType);
+void FLASHMEM printHelp(void);
+void FLASHMEM printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
+void FLASHMEM respondToByte(char c);
+//
+// --------------------------------------------User Profile Selection --------------------------------------------------------
+//
+//#define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables. 
+//
+#ifdef USE_ENET_PROFILE
+    uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
+#else
+    uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+#endif
+//
+//----------------------------------------------------------------------------------------------------------------------------
+//
+// These should be saved in EEPROM periodically along with several other parameters
+uint8_t     curr_band   = BAND4;    // global tracks our current band setting.  
+uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+uint32_t    VFOB        = 0;
+int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+
+//control display and serial interaction
+bool                enable_printCPUandMemory = false;   // CPU , memory and temperature
+void                togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
+uint8_t             popup = 0;                          // experimental flag for pop up windows
+int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
+volatile int32_t    Freq_Peak = 0;
+uint8_t display_state;   // something to hold the button state for the display pop-up window later.
+
+#ifdef USE_RA8875
+  RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+#endif
+
+#ifdef ENET
+    extern uint8_t enet_ready;
+    extern unsigned long enet_start_fail_time;
+    extern uint8_t rx_count;
+#endif
+
+//
+//============================================ End of Spectrum Setup Section =====================================================
+//
+// Audio Library setup stuff
+//const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
+//const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
+//const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+//const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
+//const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
+
+const int audio_block_samples = 128;          // do not change this!
+AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
+
+const int myInput = AUDIO_INPUT_LINEIN;
+//const int myInput = AUDIO_INPUT_MIC;
+                            
+AudioInputI2S_F32       Input(audio_settings);
+AudioMixer4_F32         FFT_Switch1(audio_settings);
+AudioMixer4_F32         FFT_Switch2(audio_settings);
+AudioFilterFIR_F32      Hilbert1(audio_settings);
+AudioFilterFIR_F32      Hilbert2(audio_settings);
+AudioFilterBiquad_F32   CW_Filter(audio_settings);
+AudioMixer4_F32         RX_Summer(audio_settings);
+AudioAnalyzePeak_F32    S_Peak(audio_settings); 
+AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
+AudioAnalyzePeak_F32    I_Peak(audio_settings);
+AudioAnalyzePeak_F32    CW_Peak(audio_settings);
+AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
+AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
+//AudioAnalyzeFFT2048_IQ_F32  myFFT;
+//AudioAnalyzeFFT1024_IQ_F32  myFFT;
+//AudioAnalyzeFFT256_IQ_F32 myFFT;
+AudioOutputI2S_F32      Output(audio_settings);
+
+#ifdef TEST_SINEWAVE_SIG
+//AudioSynthSineCosine_F32   sinewave1;
+//AudioSynthSineCosine_F32   sinewave2;
+//AudioSynthSineCosine_F32   sinewave3;
+AudioSynthWaveformSine_F32 sinewave1;
+AudioSynthWaveformSine_F32 sinewave2;
+AudioSynthWaveformSine_F32 sinewave3;
+AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
+AudioConnection_F32     patchCord4x(sinewave3,0,  FFT_Switch1,3);
+AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
+AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
+#endif
+
+AudioConnection_F32     patchCord4a(Input,0,      FFT_Switch1,0);
+AudioConnection_F32     patchCord4b(Input,1,      FFT_Switch2,0);
+AudioConnection_F32     patchCord4c(Output,0,     FFT_Switch1,1);
+AudioConnection_F32     patchCord4d(Output,1,     FFT_Switch2,1);
+AudioConnection_F32     patchCord1a(Input,0,      Hilbert1,0);
+AudioConnection_F32     patchCord1b(Input,1,      Hilbert2,0);
+AudioConnection_F32     patchCord1c(Hilbert1,0,   Q_Peak,0);
+AudioConnection_F32     patchCord1d(Hilbert2,0,   I_Peak,0);
+AudioConnection_F32     patchCord2e(Hilbert1, 0,  RX_Summer,0);
+AudioConnection_F32     patchCord2f(Hilbert2, 0,  RX_Summer,1);
+AudioConnection_F32     patchCord2g(RX_Summer,0,  S_Peak,0);
+AudioConnection_F32     patchCord2h(RX_Summer,0,  CW_Filter,0);
+AudioConnection_F32     patchCord2i(CW_Filter,0,  CW_Peak,0);
+AudioConnection_F32     patchCord2i1(CW_Filter,0, CW_RMS,0);
+AudioConnection_F32     patchCord2j(CW_Filter,0,  Output,0);
+AudioConnection_F32     patchCord2k(CW_Filter,0,  Output,1);
+AudioConnection_F32     patchCord4f(FFT_Switch1,0, myFFT,0);
+AudioConnection_F32     patchCord4g(FFT_Switch2,0, myFFT,1);
+
+AudioControlSGTL5000    codec1;
+
+#include <Metro.h>
+// Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
+Metro touch         = Metro(50);    // used to check for touch events
+Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro meter         = Metro(400);   // used to update the meters
+Metro popup_timer   = Metro(500);   // used to check for popup screen request
+Metro NTP_updateTx  = Metro(10000); // NTP Request Time interval
+Metro NTP_updateRx  = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
+Metro MF_Timeout    = Metro(4000);// MultiFunction Knob and Switch 
+
+uint8_t enc_ppr_response;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
+                            // 600ppr is very fast at 1Hz steps, worse at 10Khz!
+
+// Set this to be the default MF knob function when it does not have settings focus from a button touch.
+// Choose any from the MF Knob aware list below.
+uint8_t MF_client;  // Flag for current owner of MF knob services
+//
+//============================================  Start of Spectrum Setup Section =====================================================
+//
+
+// used for spectrum object
+//#define FFT_SIZE                  4096            // need a constant for array size declarion so manually set this value here   Could try a macro later
+int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
+float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
+extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
+int16_t         FFT_Source          = 0;            // used to switch teh FFT input source around
+extern Metro spectrum_waterfall_update;             // Timer used for controlling the Spectrum module update rate.
+
+//
+// -------------------------------------Setup() -------------------------------------------------------------------
+//
+FLASHMEM 
 void setup()
 {
     Serial.begin(115200);
@@ -22,10 +231,12 @@ void setup()
     Wire.begin();
     Wire.setClock(100000); // Increase i2C bus transfer data rate from default of 100KHz
     I2C_Scanner();
+    enc_ppr_response = VFO_PPR;
+    MF_client = user_settings[user_Profile].default_MF_client;
 
-#ifdef  I2C_ENCODER   
+#ifdef  I2C_ENCODERS  
     set_I2CEncoders();
-#endif
+#endif // I2C_ENCODERS
 
 #ifdef SV1AFN_BPF
       bpf.begin((int) 0, (TwoWire*) &Wire);
@@ -145,6 +356,7 @@ void setup()
     //==================================== Frequency Set ==========================================
     VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
     VFOB = bandmem[curr_band].vfo_B_last;
+    // Assignments for our encoder knobs, if any
     initVfo(); // initialize the si5351 vfo
     changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
     displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
@@ -245,26 +457,26 @@ void loop()
         newFreq = 0;
     }
 
-    newFreq += VFO.read(); // faster to poll for change since last read
-    // accumulate conts until we have enough to act on for scaling factor to work right.
+    newFreq += VFO.read();    // faster to poll for change since last read
+                              // accumulate counts until we have enough to act on for scaling factor to work right.
     if (newFreq != 0 && abs(newFreq) > enc_ppr_response) // newFreq is a positive or negative number of counts since last read.
     {
-        newFreq /= enc_ppr_response; // adjust for high vs low PPR encoders.  600ppr is too fast!
+        newFreq /= enc_ppr_response;    // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
-        VFO.readAndReset(); // zero out counter fo rnext read.
+        VFO.readAndReset();             // zero out counter fo rnext read.
         newFreq = 0;
     }
 
-    if (MF_Timeout.check() == 1 && MF_client != default_MF_client)
+    if (MF_Timeout.check() == 1 && MF_client != user_settings[user_Profile].default_MF_client)
     {
         Serial.print("Switching to Default MF knob assignment, current owner is = ");
         Serial.println(MF_client);
-        unset_MF_Service(default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+        unset_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
     }
 
-    #ifdef I2C_ENCODER
+    #ifdef I2C_ENCODERS
     /* Watch for the INT pin to go low */
-    if (digitalRead(IntPin) == LOW) 
+    if (digitalRead(I2C_INT_PIN) == LOW) 
     {
         /* Check the status of the encoder and call the callback */
         if(MF_ENC.updateStatus())
@@ -282,7 +494,7 @@ void loop()
         counts = (int8_t) round(multiKnob(0)/4);
         MF_Service(counts);
     }
-    #endif // I2C_ENCODER
+    #endif // I2C_ENCODERS
 
     if (meter.check() == 1) // update our meters
     {
@@ -307,6 +519,7 @@ void loop()
         printCPUandMemory(millis(), 3000); //print every 3000 msec
 
 #ifdef ENET  // Don't compile this code if no ethernet usage intended
+
     if (user_settings[user_Profile].enet_enabled) // only process enet if enabled.
     {
         if (!enet_ready)
@@ -351,6 +564,7 @@ void loop()
 // Ramps the volume down to specified level 0 to 1.0 range using 1 of 3 types.  It remembers the original volume level so
 // you are reducing it by a factor then raisinmg back up a factor toward the orignal volume setting.
 // Range is 1.0 for full original and 0 for off.
+FLASHMEM 
 void RampVolume(float vol, int16_t rampType)
 {
     const char *rampName[] = {
@@ -384,6 +598,7 @@ void RampVolume(float vol, int16_t rampType)
 // _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
 //
 //This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
+
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
 {
     //static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
@@ -394,7 +609,7 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
         lastUpdate_millis = 0; //handle wrap-around of the clock
     if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis)
     { //is it time to update the user interface?
-        Serial.print("CPU Cur/Peak: ");
+        Serial.print("\nCPU Cur/Peak: ");
         Serial.print(audio_settings.processorUsage());
         Serial.print("%/");
         Serial.print(audio_settings.processorUsageMax());
@@ -408,16 +623,20 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
         Serial.print(AudioMemoryUsage_F32());
         Serial.print("/");
         Serial.println(AudioMemoryUsageMax_F32());
+        Serial.println("*** End of Report ***");
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
-        blink_MFG_RGB();
+        #ifdef I2C_ENCODERS
+          blink_MFG_RGB();
+        #endif // I2C_ENCODERS
     }
 }
 //
 // _______________________________________ Console Parser ____________________________________
 //
 //switch yard to determine the desired action
+FLASHMEM
 void respondToByte(char c)
 {
     char s[2];
@@ -436,6 +655,12 @@ void respondToByte(char c)
         Serial.println("Toggle printing of memory and CPU usage.");
         togglePrintMemoryAndCPU();
         break;
+    case 'M':
+    case 'm':
+        Serial.println("\nMemory Usage (FlexInfo)");
+        flexRamInfo();
+        Serial.println("*** End of Report ***");
+        break;
     default:
         Serial.print("You typed ");
         Serial.print(s);
@@ -445,13 +670,16 @@ void respondToByte(char c)
 //
 // _______________________________________ Print Help Menu ____________________________________
 //
+FLASHMEM 
 void printHelp(void)
 {
     Serial.println();
     Serial.println("Help: Available Commands:");
     Serial.println("   h: Print this help");
     Serial.println("   C: Toggle printing of CPU and Memory usage");
+    Serial.println("   M: Print Detailed Memory Region Usage Report");
 }
+#ifndef I2C_ENCODERS
 //
 // ---------------------------------  multiKnob() -----------------------------------------------
 //
@@ -473,20 +701,22 @@ int32_t multiKnob(uint8_t clear)
 
     if (clear)
     {
-        Multi.readAndReset(); // toss results, zero the encoder
+        //Multi.readAndReset(); // toss results, zero the encoder
         mf_count = 0;
     }
     else
-        mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
+    {}    //mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
     return mf_count;
 }
+#endif  // I2C_ENCODERS
 
 // Deregister the MF_client
+FLASHMEM
 void unset_MF_Service(uint8_t client_name)
 {
     if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
     {
-        MF_client = default_MF_client;    // assign new owner to default for now.
+        MF_client = user_settings[user_Profile].default_MF_client;    // assign new owner to default for now.
         return;   
     }
     // This must be from a timeout or a new button before timeout
@@ -510,7 +740,7 @@ void unset_MF_Service(uint8_t client_name)
         case ATTEN_BTN:
         default     : {          
         // No button for VFO tune, atten button stays on
-            MF_client = default_MF_client;
+            MF_client = user_settings[user_Profile].default_MF_client;
         } break;
     
     } 
@@ -522,13 +752,14 @@ void unset_MF_Service(uint8_t client_name)
 
 // Potential owners can query the MF_client variable to see who owns the MF knob.  
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
+FLASHMEM 
 void set_MF_Service(uint8_t client_name)
 {
     
-    #ifndef I2C_ENCODER   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
+    #ifndef I2C_ENCODERS   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
     multiKnob(1);       // for non-I2C encoder, clear the counts.
-    #endif //  I2C_ENCODER
-    unset_MF_Service(default_MF_client);
+    #endif //  I2C_ENCODERS
+    unset_MF_Service(user_settings[user_Profile].default_MF_client);
     MF_client = client_name;    
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
                          // When it expires it will be switched to default
@@ -541,7 +772,7 @@ void set_MF_Service(uint8_t client_name)
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
 static uint16_t old_ts;
-
+FLASHMEM 
 void MF_Service(int8_t counts)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
@@ -591,6 +822,7 @@ void MF_Service(int8_t counts)
 //
 //  Scans for any I2C connected devices and reports them to the serial terminal.  Usually done early in startup.
 //
+FLASHMEM 
 void I2C_Scanner(void)
 {
   byte error, address; //variable for error and I2C address
@@ -629,5 +861,7 @@ void I2C_Scanner(void)
   else
     Serial.println("done\n");
 
-  delay(500); // wait 5 seconds for the next I2C scan
+  //delay(500); // wait 5 seconds for the next I2C scan
 }
+
+#endif  // _SDR_RA8875_
