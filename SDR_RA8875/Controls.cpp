@@ -29,7 +29,11 @@ extern struct   AGC                 agc_set[];
 extern struct   Spectrum_Parms      Sp_Parms_Def[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
-extern          AudioControlSGTL5000 codec1;
+extern AudioControlSGTL5000         codec1;
+extern radioNoiseBlanker_F32        NoiseBlanker1;
+extern radioNoiseBlanker_F32        NoiseBlanker2;
+extern AudioEffectCompressor2_F32   compressor1; // Audio Compressor
+extern AudioEffectCompressor2_F32   compressor2; // Audio Compressor
 extern          uint8_t             popup;
 extern          void                RampVolume(float vol, int16_t rampType);
 extern volatile int32_t             Freq_Peak;
@@ -776,7 +780,23 @@ void NB()
     if (user_settings[user_Profile].nb_en > NBOFF)
         user_settings[user_Profile].nb_en = NBOFF;
     else if (user_settings[user_Profile].nb_en == NBOFF)
-        user_settings[user_Profile].nb_en = NB1;
+        user_settings[user_Profile].nb_en = NB2;  // start with 2 for now.  Eventually will have an adjustment
+
+    if (user_settings[user_Profile].nb_en > NBOFF)
+    {
+        NoiseBlanker1.enable(true); // turn on NB for I
+        NoiseBlanker2.enable(true); // turn on NB for Q
+        // void setNoiseBlanker(float32_t _threshold, uint16_t _nAnticipation, uint16_t _nDecay)
+        NoiseBlanker1.setNoiseBlanker(user_settings[user_Profile].nb_en, 5, 8);   // for I
+        NoiseBlanker2.setNoiseBlanker(user_settings[user_Profile].nb_en, 5, 8);   // for Q
+        // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
+        // nAnticipation is 1 to 125
+        // Decay is 1 to 10.
+    }
+    else
+        NoiseBlanker1.enable(false);  //  NB block is bypassed for I
+        NoiseBlanker2.enable(false);  //  NB block is bypassed for Q
+
     displayNB();
     //Serial.print("Set NB to ");
     //Serial.println(user_settings[user_Profile].nb_en);

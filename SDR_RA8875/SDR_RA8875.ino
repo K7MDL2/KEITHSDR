@@ -154,6 +154,10 @@ AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accor
 //AudioAnalyzeFFT1024_IQ_F32  myFFT;
 //AudioAnalyzeFFT256_IQ_F32 myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
+radioNoiseBlanker_F32   NoiseBlanker1(audio_settings);
+radioNoiseBlanker_F32   NoiseBlanker2(audio_settings);
+AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
+AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
 
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
@@ -168,24 +172,32 @@ AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
 AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
 #endif
 
-AudioConnection_F32     patchCord4a(Input,0,      FFT_Switch1,0);
-AudioConnection_F32     patchCord4b(Input,1,      FFT_Switch2,0);
-AudioConnection_F32     patchCord4c(Output,0,     FFT_Switch1,1);
-AudioConnection_F32     patchCord4d(Output,1,     FFT_Switch2,1);
-AudioConnection_F32     patchCord1a(Input,0,      Hilbert1,0);
-AudioConnection_F32     patchCord1b(Input,1,      Hilbert2,0);
-AudioConnection_F32     patchCord1c(Hilbert1,0,   Q_Peak,0);
-AudioConnection_F32     patchCord1d(Hilbert2,0,   I_Peak,0);
-AudioConnection_F32     patchCord2e(Hilbert1, 0,  RX_Summer,0);
-AudioConnection_F32     patchCord2f(Hilbert2, 0,  RX_Summer,1);
-AudioConnection_F32     patchCord2g(RX_Summer,0,  S_Peak,0);
-AudioConnection_F32     patchCord2h(RX_Summer,0,  CW_Filter,0);
-AudioConnection_F32     patchCord2i(CW_Filter,0,  CW_Peak,0);
-AudioConnection_F32     patchCord2i1(CW_Filter,0, CW_RMS,0);
-AudioConnection_F32     patchCord2j(CW_Filter,0,  Output,0);
-AudioConnection_F32     patchCord2k(CW_Filter,0,  Output,1);
-AudioConnection_F32     patchCord4f(FFT_Switch1,0, myFFT,0);
-AudioConnection_F32     patchCord4g(FFT_Switch2,0, myFFT,1);
+AudioConnection_F32     patchCord5a(Input,0,         NoiseBlanker1,0);
+AudioConnection_F32     patchCord5b(Input,1,         NoiseBlanker2,0);
+AudioConnection_F32     patchCord4a(Input,0,         FFT_Switch1,0);
+AudioConnection_F32     patchCord4b(Input,1,         FFT_Switch2,0);
+
+//AudioConnection_F32     patchCord6a(NoiseBlanker1,0,         compressor1, 0);
+//AudioConnection_F32     patchCord6b(NoiseBlanker2,0,         compressor2, 0);
+//AudioConnection_F32     patchCord4a(compressor1,0,        FFT_Switch1,0);
+//AudioConnection_F32     patchCord4b(compressor2,0,        FFT_Switch2,0);
+
+AudioConnection_F32     patchCord4c(Output,0,       FFT_Switch1,1);
+AudioConnection_F32     patchCord4d(Output,1,       FFT_Switch2,1);
+AudioConnection_F32     patchCord1a(NoiseBlanker1,0,        Hilbert1,0);
+AudioConnection_F32     patchCord1b(NoiseBlanker2,1,        Hilbert2,0);
+AudioConnection_F32     patchCord1c(Hilbert1,0,     Q_Peak,0);
+AudioConnection_F32     patchCord1d(Hilbert2,0,     I_Peak,0);
+AudioConnection_F32     patchCord2e(Hilbert1, 0,    RX_Summer,0);
+AudioConnection_F32     patchCord2f(Hilbert2, 0,    RX_Summer,1);
+AudioConnection_F32     patchCord2g(RX_Summer,0,    S_Peak,0);
+AudioConnection_F32     patchCord2h(RX_Summer,0,    CW_Filter,0);
+AudioConnection_F32     patchCord2i(CW_Filter,0,    CW_Peak,0);
+AudioConnection_F32     patchCord2i1(CW_Filter,0,   CW_RMS,0);
+AudioConnection_F32     patchCord2j(CW_Filter,0,    Output,0);
+AudioConnection_F32     patchCord2k(CW_Filter,0,    Output,1);
+AudioConnection_F32     patchCord4f(FFT_Switch1,0,  myFFT,0);
+AudioConnection_F32     patchCord4g(FFT_Switch2,0,  myFFT,1);
 
 AudioControlSGTL5000    codec1;
 
@@ -210,11 +222,11 @@ uint8_t MF_client;  // Flag for current owner of MF knob services
 //
 
 // used for spectrum object
-//#define FFT_SIZE                  4096            // need a constant for array size declarion so manually set this value here   Could try a macro later
+//#define FFT_SIZE                  4096            // Need a constant for array size declarion so manually set this value here.  Could try a macro later
 int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
-int16_t         FFT_Source          = 0;            // used to switch teh FFT input source around
+int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
 extern Metro spectrum_waterfall_update;             // Timer used for controlling the Spectrum module update rate.
 
 //
@@ -481,9 +493,10 @@ void loop()
         /* Check the status of the encoder and call the callback */
         if(MF_ENC.updateStatus())
         {
-            uint8_t mfg = MF_ENC.readStatus();
-            Serial.print("****Checked MF_Enc status = ");
-            Serial.println(mfg);
+            MF_ENC.readStatus();
+            //uint8_t mfg = MF_ENC.readStatus();
+            //Serial.print("****Checked MF_Enc status = ");
+            //Serial.println(mfg);
         }
     }
     #else

@@ -4,7 +4,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 3/30/2021
 
-    1.Fixed ethernet feature, all features working now after the .h/.cpp split
+    1. Fixed ethernet feature, all features working now after the .h/.cpp split.
+    2. Added Noise Blanker block into each I and Q chain to start experimenting with it. Threshold is set by the NB_en database value, anticipation and decay are hard cosed today in the NB buttomn control function.
+    3. Staged AGC (aka AudiCompressor) into the chain to start finding best adjustments.  Not active just yet.
 
 ## 3/29/2021
 
