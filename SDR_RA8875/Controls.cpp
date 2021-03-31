@@ -26,6 +26,7 @@ extern struct   Standard_Button     std_btn[];
 extern struct   Label               labels[];
 extern struct   Filter_Settings     filter[];
 extern struct   AGC                 agc_set[];
+extern struct   NB                  nb[];
 extern struct   Spectrum_Parms      Sp_Parms_Def[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
@@ -777,26 +778,35 @@ void Xmit()
 // NB button
 void NB()
 {
-    if (user_settings[user_Profile].nb_en > NBOFF)
+
+    user_settings[user_Profile].nb_en += 1;
+
+    if (user_settings[user_Profile].nb_en >= NB_SET_NUM)
         user_settings[user_Profile].nb_en = NBOFF;
-    else if (user_settings[user_Profile].nb_en == NBOFF)
-        user_settings[user_Profile].nb_en = NB2;  // start with 2 for now.  Eventually will have an adjustment
+    else if (user_settings[user_Profile].nb_en <= NBOFF)
+        user_settings[user_Profile].nb_en = NBOFF;
 
     if (user_settings[user_Profile].nb_en > NBOFF)
     {
         NoiseBlanker1.enable(true); // turn on NB for I
         NoiseBlanker2.enable(true); // turn on NB for Q
         // void setNoiseBlanker(float32_t _threshold, uint16_t _nAnticipation, uint16_t _nDecay)
-        NoiseBlanker1.setNoiseBlanker(user_settings[user_Profile].nb_en, 5, 8);   // for I
-        NoiseBlanker2.setNoiseBlanker(user_settings[user_Profile].nb_en, 5, 8);   // for Q
+        NoiseBlanker1.setNoiseBlanker(nb[user_settings[user_Profile].nb_en].nb_threshold,
+          nb[user_settings[user_Profile].nb_en].nb_nAnticipation,
+          nb[user_settings[user_Profile].nb_en].nb_decay);   // for I
+        NoiseBlanker2.setNoiseBlanker(nb[user_settings[user_Profile].nb_en].nb_threshold,
+          nb[user_settings[user_Profile].nb_en].nb_nAnticipation,
+          nb[user_settings[user_Profile].nb_en].nb_decay);   // for Q
         // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
         // nAnticipation is 1 to 125
         // Decay is 1 to 10.
     }
     else
+    {
         NoiseBlanker1.enable(false);  //  NB block is bypassed for I
         NoiseBlanker2.enable(false);  //  NB block is bypassed for Q
-
+    }
+    
     displayNB();
     //Serial.print("Set NB to ");
     //Serial.println(user_settings[user_Profile].nb_en);

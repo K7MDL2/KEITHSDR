@@ -30,6 +30,7 @@ extern struct Frequency_Display disp_Freq[];
 extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
 extern struct AGC agc_set[];
+extern struct NB nb[];
 extern struct Modes_List modeList[];
 extern struct TuneSteps tstep[];
 
@@ -256,7 +257,9 @@ void displayFine()
 }
 
 void displayNB()
-{;
+{
+	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_en].nb_name);
+    sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_en].nb_name);
 	Serial.print("NB is "); Serial.println(user_settings[user_Profile].nb_en);
 	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);

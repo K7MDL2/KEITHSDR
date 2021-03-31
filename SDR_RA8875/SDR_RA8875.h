@@ -110,10 +110,10 @@
 #define VFO_A       1
 #define VFO_B       0
 #define NBOFF       0
-#define NB1         2
-#define NB2         3
-#define NB3         5
-#define NB4         10
+#define NB1         1
+#define NB2         2
+#define NB3         3
+#define NB4         4
 #define NROFF       0
 #define NR1         1
 #define NR2         2
@@ -131,6 +131,7 @@
 #define TS_STEPS    6
 #define FILTER      9
 #define AGC_SET_NUM 4
+#define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   20      // number of labels in the table
 #define STD_BTN_NUM 32      // number of buttons in the table
@@ -328,6 +329,14 @@ struct AGC {
     float       agc_threshold;
     float       agc_attack;
     float       agc_decay;
+};
+
+// Noise Blanker Settings
+struct NB {
+    char        nb_name[10];        // A friendly name for display
+    float       nb_threshold;       // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
+    float       nb_nAnticipation;   // nAnticipation is 1 to 125
+    float       nb_decay;           // Decay is 1 to 10.
 };
 
 // per-band settings for common user adjustments that are band dependent. The index is the band number.
