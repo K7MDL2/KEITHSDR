@@ -5,7 +5,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 ## 3/30/2021
 
     1. Fixed ethernet feature, all features working now after the .h/.cpp split.
-    2. Added Noise Blanker block into each I and Q chain to start experimenting with it. Threshold is set by the NB_en database value, anticipation and decay are hard cosed today in the NB buttomn control function.
+    2. Added Noise Blanker block into each I and Q chain to start experimenting with it. The NB parameter set is chosen by user_Settings[user_Profile].NB_en database value which has threshold, nAnticipation, and decay values.  The NB button and status label now show which number or nothing for off (NB- or NB-X)
     3. Staged AGC (aka AudiCompressor) into the chain to start finding best adjustments.  Not active just yet.
 
 ## 3/29/2021
