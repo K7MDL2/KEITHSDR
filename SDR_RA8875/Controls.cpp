@@ -80,6 +80,7 @@ void AFgain(int8_t delta);
 void setRFgain();
 void RFgain(int8_t delta);
 void setRefLevel();
+void setNBLevel(int8_t delta);
 void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);
@@ -175,6 +176,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     RefLevel(0);    // 0 just updates things to be current value
     RFgain(0);
     AFgain(0);
+    setNBLevel(0);
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future
@@ -700,7 +702,7 @@ void AFgain(int8_t delta)
 
 //Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
 
-    if (_afLevel > 100)         // Limit the value vbetween 0.0 and 1.0 (100%)
+    if (_afLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
         _afLevel = 100;
     if (_afLevel < 1)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
@@ -748,7 +750,7 @@ void RFgain(int8_t delta)
 
 //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
-    if (_rfLevel > 100)         // Limit the value vbetween 0.0 and 1.0 (100%)
+    if (_rfLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
         _rfLevel = 100;
     if (_rfLevel < 1)
         _rfLevel = 1;    // do not use 0 to prevent divide/0 error
@@ -765,7 +767,7 @@ void RFgain(int8_t delta)
 // XMIT button
 void Xmit()
 {
-    if (user_settings[user_Profile].xmit== ON)
+    if (user_settings[user_Profile].xmit == ON)
         user_settings[user_Profile].xmit = OFF;
     else if (user_settings[user_Profile].xmit == OFF)
         user_settings[user_Profile].xmit = ON;
@@ -778,40 +780,69 @@ void Xmit()
 // NB button
 void NB()
 {
+    if (user_settings[user_Profile].nb_en == OFF)
+    {   
+        user_settings[user_Profile].nb_en = ON;
+        setNBLevel(0);      // update to current setting
+        set_MF_Service(NB_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+    }
+    else 
+    {
+        user_settings[user_Profile].nb_en = OFF;
+        unset_MF_Service(NB_BTN); // Deregister
+        setNBLevel(0);     // update to current seting but setNBLevel wil see it is turned off and bypass the NB component
+    }
+    //Serial.print("Set NB to ");
+    //Serial.println(user_settings[user_Profile].nb_en);
+    displayNB();
+}
 
-    user_settings[user_Profile].nb_en += 1;
+// Adjust the NB level. NB() turn on and off only calling this to initiialize the current level with delta = 0    
+void setNBLevel(int8_t delta)
+{
+    float _nbLevel;
 
-    if (user_settings[user_Profile].nb_en >= NB_SET_NUM)
-        user_settings[user_Profile].nb_en = NBOFF;
-    else if (user_settings[user_Profile].nb_en <= NBOFF)
-        user_settings[user_Profile].nb_en = NBOFF;
+    _nbLevel = user_settings[user_Profile].nb_level;   // Get last known value
 
-    if (user_settings[user_Profile].nb_en > NBOFF)
+//Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
+
+    _nbLevel += delta;      // increment up or down
+
+//Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
+
+    if (_nbLevel >= NB_SET_NUM-1)         // Limit the value
+        _nbLevel = NB_SET_NUM-1;
+    if (_nbLevel <= 1)
+        _nbLevel = 1;
+
+    user_settings[user_Profile].nb_level = _nbLevel;  // We have our new table index value
+
+    if (user_settings[user_Profile].nb_en > OFF)   // Adjust the value if on
     {
         NoiseBlanker1.enable(true); // turn on NB for I
         NoiseBlanker2.enable(true); // turn on NB for Q
         // void setNoiseBlanker(float32_t _threshold, uint16_t _nAnticipation, uint16_t _nDecay)
-        NoiseBlanker1.setNoiseBlanker(nb[user_settings[user_Profile].nb_en].nb_threshold,
-          nb[user_settings[user_Profile].nb_en].nb_nAnticipation,
-          nb[user_settings[user_Profile].nb_en].nb_decay);   // for I
-        NoiseBlanker2.setNoiseBlanker(nb[user_settings[user_Profile].nb_en].nb_threshold,
-          nb[user_settings[user_Profile].nb_en].nb_nAnticipation,
-          nb[user_settings[user_Profile].nb_en].nb_decay);   // for Q
+        NoiseBlanker1.setNoiseBlanker(nb[user_settings[user_Profile].nb_level].nb_threshold,
+          nb[user_settings[user_Profile].nb_level].nb_nAnticipation,
+          nb[user_settings[user_Profile].nb_level].nb_decay);   // for I
+        NoiseBlanker2.setNoiseBlanker(nb[user_settings[user_Profile].nb_level].nb_threshold,
+          nb[user_settings[user_Profile].nb_level].nb_nAnticipation,
+          nb[user_settings[user_Profile].nb_level].nb_decay);   // for Q
         // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
         // nAnticipation is 1 to 125
         // Decay is 1 to 10.
     }
-    else
+    else  // NB is disabled so bypass 
     {
         NoiseBlanker1.enable(false);  //  NB block is bypassed for I
         NoiseBlanker2.enable(false);  //  NB block is bypassed for Q
     }
     
+    //Serial.print("NB level set to  "); 
+    //Serial.println(_nbLevel);
     displayNB();
-    //Serial.print("Set NB to ");
-    //Serial.println(user_settings[user_Profile].nb_en);
 }
-    
+
 // NR button
 void NR()
 {

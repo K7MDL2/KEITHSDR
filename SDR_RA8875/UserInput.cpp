@@ -4,15 +4,6 @@
 
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "SDR_Data.h"
-/*
-#include "Spectrum_RA8875.h"
-#include "Controls.h"
-#include "Display.h"
-#include "Vfo.h"
-#include "Tuner.h"
-#include "UserInput.h"
-*/
 
 #define BUTTON_TOUCH    40  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
 //#define MAXTOUCHLIMIT    2  //1...5
@@ -41,8 +32,8 @@ extern void set_MF_Service(uint8_t client_name);
 extern struct Frequency_Display disp_Freq[];
 
 // Function declarations
-void Button_Handler(int16_t x, uint16_t y); 
-void Gesture_Handler(uint8_t gesture);
+void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime); 
+void Gesture_Handler(uint8_t gesture, uint8_t holdtime);
 void setPanel(void);
 void Touch( void);
 
@@ -68,6 +59,7 @@ void Touch( void)
     uint8_t current_touches = 0;
     static uint8_t previous_touch = 0;
     uint16_t x,y,i;
+    static uint8_t holdtime = 0;
   
     if (tft.touched())
     {      
@@ -138,8 +130,10 @@ void Touch( void)
             // Update elapsed time
             if (gesture_timer.check() == 1)
             {
-                previous_touch = 0;// Our timer has expired
+                //previous_touch = 0;// Our timer has expired
                 Serial.println("Touch Timer expired");
+                holdtime += 1;  // count the number of timer periods the button was presses and held for drag and press and hold feature
+Serial.print(" New holdtime is "); Serial.println(holdtime);
                 return;  // can calc the distance once we hav a valid event;
             }
             tft.updateTS();             
@@ -187,17 +181,19 @@ void Touch( void)
             // if only 1 touch and X or Y distance is OK for a button call the button event handler with coordinates
             if (previous_touch == 1 && (abs(touch_evt.distance[0][0]) < BUTTON_TOUCH && abs(touch_evt.distance[0][1]) < BUTTON_TOUCH))
             {
-                Button_Handler(touch_evt.start_coordinates[0][0],  touch_evt.start_coordinates[0][1]);  // pass X and Y
+                Button_Handler(touch_evt.start_coordinates[0][0],  touch_evt.start_coordinates[0][1], holdtime);  // pass X and Y, and duration
             }
             else  // Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
             {   
-                Gesture_Handler(previous_touch);   // moved enough to be a gesture
+                Gesture_Handler(previous_touch, holdtime);   // moved enough to be a gesture
             }
             previous_touch = 0;   // Done, reset this for a new event
             touch_evt.distance[0][0] = 0;   // zero out 1st touch point
             touch_evt.distance[0][1] = 0;       
             touch_evt.distance[1][0] = 0;   // zero out 2nd touch point
-            touch_evt.distance[1][1] = 0;       
+            touch_evt.distance[1][1] = 0;
+Serial.print(" holdtime is "); Serial.println(holdtime);
+            holdtime = 0; 
         }   // End State 4
     }
 }
@@ -210,7 +206,7 @@ void Touch( void)
 *   So we will track the touch point time and coordinates and figure it out on our own.
 *
 */
-void Gesture_Handler(uint8_t gesture)
+void Gesture_Handler(uint8_t gesture, uint8_t holdtime)
 {
     // Get our various coordinates
     int16_t T1_X = touch_evt.distance[0][0];  
@@ -367,7 +363,7 @@ void Gesture_Handler(uint8_t gesture)
 //      7.  A multi-function knob or panel switch or remote command may call a control function and no touch involved.
 //      The control and display functions must proceed.
 //  
-void Button_Handler(int16_t x, uint16_t y)
+void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
@@ -380,7 +376,7 @@ void Button_Handler(int16_t x, uint16_t y)
         //Serial.println((ptr+i)->label);
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
         {
-            if ((ptr+i)->show)  // if the show property ius active, call the button function to act on it.
+            if ((ptr+i)->show && holdtime < 2)  // if the show property ius active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 switch (i)
                 {
@@ -416,6 +412,17 @@ void Button_Handler(int16_t x, uint16_t y)
                     case FN_BTN:        setPanel();     break;
                     default: Serial.print("Found a button with SHOW on but has no function to call.  Index = ");
                         Serial.println(i); break;
+                }
+            }
+            if ((ptr+i)->show && holdtime > 1)  // if the show property ius active, call the button function to act on it.
+            {   // used the index to the table to match up a function to call
+                switch (i)
+                {
+                    case NB_BTN:        NB();           break; //Increment the mode from current value           
+                    case AGC_BTN:       AGC();          break;   
+                    case ATTEN_BTN:     Atten(-1);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
+                    default: Serial.print("Found a button with SHOW on WITH LONG PRESS but has no function to call.  Index = ");
+                       Serial.println(i); break;
                 }
             }
             if ((ptr+i)->enabled)    // TOUCHTUNE button - This uses the enabled field so treated on its own

@@ -24,8 +24,8 @@
 #include <Arduino.h>
 
 // Function declarations
-void Button_Handler(int16_t x, uint16_t y); 
-void Gesture_Handler(uint8_t gesture);
+void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime); 
+void Gesture_Handler(uint8_t gesture, uint8_t holdtime);
 void setPanel(void);
 void Touch( void);
 

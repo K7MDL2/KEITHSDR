@@ -109,7 +109,6 @@
 #define BW4_0       8
 #define VFO_A       1
 #define VFO_B       0
-#define NBOFF       0
 #define NB1         1
 #define NB2         2
 #define NB3         3
@@ -290,6 +289,7 @@ struct User_Settings {
     uint8_t     enet_enabled;       // Allow initialization and operation of ethernet hardware
     uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)
     uint8_t     nb_en;              // Noise Blanker mode.  0 is off.  1+ is mode
+    uint8_t     nb_level;           // 0 to NB_SET_NUM records in the table
     uint8_t     nr_en;              // Noise Reduction.  0 is off.  1+ is mode
     uint8_t     spot;               // Spot  0 is off.  1+ is mode
     uint16_t    pitch;              // Pitch  0 is off.  1+ is mode

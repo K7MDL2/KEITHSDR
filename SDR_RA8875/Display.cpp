@@ -258,9 +258,10 @@ void displayFine()
 
 void displayNB()
 {
-	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_en].nb_name);
-    sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_en].nb_name);
-	Serial.print("NB is "); Serial.println(user_settings[user_Profile].nb_en);
+	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
+    sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
+	Serial.print("NB is "); Serial.print(user_settings[user_Profile].nb_en);
+	Serial.print("   NB Level is "); Serial.println(user_settings[user_Profile].nb_level);
 	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }

@@ -177,15 +177,15 @@ AudioConnection_F32     patchCord5b(Input,1,         NoiseBlanker2,0);
 AudioConnection_F32     patchCord4a(Input,0,         FFT_Switch1,0);
 AudioConnection_F32     patchCord4b(Input,1,         FFT_Switch2,0);
 
-//AudioConnection_F32     patchCord6a(NoiseBlanker1,0,         compressor1, 0);
-//AudioConnection_F32     patchCord6b(NoiseBlanker2,0,         compressor2, 0);
-//AudioConnection_F32     patchCord4a(compressor1,0,        FFT_Switch1,0);
-//AudioConnection_F32     patchCord4b(compressor2,0,        FFT_Switch2,0);
+//AudioConnection_F32     patchCord6a(NoiseBlanker1,0, compressor1, 0);
+//AudioConnection_F32     patchCord6b(NoiseBlanker2,0, compressor2, 0);
+//AudioConnection_F32     patchCord4a(compressor1,0,   FFT_Switch1,0);
+//AudioConnection_F32     patchCord4b(compressor2,0,   FFT_Switch2,0);
 
 AudioConnection_F32     patchCord4c(Output,0,       FFT_Switch1,1);
 AudioConnection_F32     patchCord4d(Output,1,       FFT_Switch2,1);
-AudioConnection_F32     patchCord1a(NoiseBlanker1,0,        Hilbert1,0);
-AudioConnection_F32     patchCord1b(NoiseBlanker2,1,        Hilbert2,0);
+AudioConnection_F32     patchCord1a(NoiseBlanker1,0, Hilbert1,0);
+AudioConnection_F32     patchCord1b(NoiseBlanker2,1, Hilbert2,0);
 AudioConnection_F32     patchCord1c(Hilbert1,0,     Q_Peak,0);
 AudioConnection_F32     patchCord1d(Hilbert2,0,     I_Peak,0);
 AudioConnection_F32     patchCord2e(Hilbert1, 0,    RX_Summer,0);
@@ -749,6 +749,7 @@ void unset_MF_Service(uint8_t client_name)
         case  REFLVL_BTN: {
             setRefLevel();
         } break;
+        case NB_BTN:
         case MFTUNE:
         case ATTEN_BTN:
         default     : {          
@@ -822,6 +823,9 @@ void MF_Service(int8_t counts)
             #ifdef DIG_STEP_ATT
               setAtten_dB(att_tmp);  // set attenuator level to value in database for this band           
             #endif
+        } break;
+        case  NB_BTN: {
+            setNBLevel(counts);
         } break;
         case MFTUNE :
         default     : {   

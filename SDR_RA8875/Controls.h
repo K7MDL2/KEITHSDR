@@ -48,6 +48,7 @@ void AFgain(int8_t delta);
 void setRFgain();
 void RFgain(int8_t delta);
 void setRefLevel();
+void setNBLevel(int8_t delta);
 void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);

@@ -29,7 +29,7 @@
                             // This is ignored if OCXO_10MHz is defined.
                             // DEPENDS on your crystal being 25Mhz
 
-const int si5351_correction = 0;  // frequency correction for the si5351A PLL board crystal or TXCO.
+#define si5351_CORRECTION  0  // frequency correction for the si5351A PLL board crystal or TXCO.
                             // The 5351mcu library uses Hz offset, etherkit and others use ppb.
 
 #define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander

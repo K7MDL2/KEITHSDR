@@ -95,7 +95,7 @@ void initVfo(void)
         #endif //si5351_TCXO
         
         // The lines below are stanard to any crystal
-        si5351.correction(-400);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
+        si5351.correction(si5351_CORRECTION);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
         si5351.setPower(0, SIOUT_8mA);   // 0 is Clock 0
         si5351.setFreq(0, (VFOA+Fc)*4);  // Multiply x4 for RX board
         si5351.enable(0);   // these enable/disables are optional
