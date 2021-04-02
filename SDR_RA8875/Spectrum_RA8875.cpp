@@ -32,7 +32,8 @@ void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 const char* formatFreq(uint32_t Freq);
-static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
+//static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
+inline uint16_t Color565(uint8_t r,uint8_t g,uint8_t b);
 
 int16_t wf_time_line = 5000;
 int16_t fftFreq_refresh = 1000;
