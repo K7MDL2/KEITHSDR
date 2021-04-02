@@ -124,7 +124,8 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF,   5, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON,   0, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},
-    { ON, OFF,   0,   0, 140, 800,270, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune area definition.
+    { ON, OFF,   0,   0, 190,1023,320, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune area definition.
+    // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
 };
 
 #endif  // USE_RA8875
@@ -163,7 +164,7 @@ struct Label labels[LABEL_NUM] = {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben  nblvl nren  spot  pitch  notch xmit fine VFO-AB  DefMFknob   enc1        enc2       enc3    
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB3,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN}, 
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN}, 
     {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN},
     {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN}
 };

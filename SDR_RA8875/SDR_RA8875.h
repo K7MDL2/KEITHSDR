@@ -109,10 +109,14 @@
 #define BW4_0       8
 #define VFO_A       1
 #define VFO_B       0
+
 #define NB1         1
 #define NB2         2
 #define NB3         3
 #define NB4         4
+#define NB5         4
+#define NB6         4
+
 #define NROFF       0
 #define NR1         1
 #define NR2         2
