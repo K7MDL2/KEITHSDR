@@ -10,9 +10,6 @@
 
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "Display.h"
-//#include "Vfo.h"
-//#include "SDR_Data.h"
 #include "Tuner.h"
 
 extern uint8_t curr_band;   // global tracks our current band setting.

@@ -4,13 +4,16 @@
 //
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "SDR_Data.h"
 #include "CW_Tune.h"
-//#include "OpenAudio_ArduinoLibrary.h"
 
 extern AudioAnalyzePeak_F32 CW_Peak;  
 extern AudioAnalyzeRMS_F32 CW_RMS; 
-extern RA8875 tft;
+
+#ifdef USE_RA8875
+	extern RA8875 tft;
+#else 
+	extern RA8876_t3 tft;
+#endif
  
 ////////////////////////// this is the S meter code/////totall uncalibrated use at your own risk
 void Code_Peak()

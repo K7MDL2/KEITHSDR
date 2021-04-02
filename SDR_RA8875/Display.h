@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 #include <Arduino.h>
 
-// Function Declarations
+//void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 const char* formatVFO(uint32_t vfo);
 void draw_2_state_Button(uint8_t button, uint8_t *function_ptr);
 void refreshScreen(void);

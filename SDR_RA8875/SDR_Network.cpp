@@ -18,7 +18,8 @@
 #include <NativeEthernetUdp.h>
 #include <TimeLib.h>
 
-#define BUFFER_SIZE         (4100)    
+#define BUFFER_SIZE         4100    
+#define RX_BUFFER_SIZE		255
 // Choose or create your desired time zone offset or use 0 for UTC.
 //const int timeZone = 1;     // Central European Time
 const int timeZone = 0;     // UTC
@@ -79,12 +80,12 @@ char ReplyBuffer[] = "Random Reply";        // a string to send back
 // our variables
 uint8_t enet_ready = 0;
 unsigned long enet_start_fail_time = 0;
-uint8_t rx_buffer[BUFFER_SIZE];
+uint8_t rx_buffer[RX_BUFFER_SIZE];
 uint8_t tx_buffer[BUFFER_SIZE];
 uint8_t rx_count = 0;
 uint8_t tx_count = 0;
 uint8_t enet_data_out = 0;
-uint8_t sdata[BUFFER_SIZE], *pSdata1=sdata, *pSdata2=sdata;
+uint8_t sdata[RX_BUFFER_SIZE], *pSdata1=sdata, *pSdata2=sdata;
 extern uint8_t user_Profile;
 extern uint8_t NTP_hour;  //NTP time 
 extern uint8_t NTP_min;
@@ -195,7 +196,7 @@ uint8_t enet_read(void)
         rx_buffer[0] = _NULL;
         if (count > 0)
         {
-            Udp.read(rx_buffer, BUFFER_SIZE);
+            Udp.read(rx_buffer, RX_BUFFER_SIZE);
             rx_buffer[count] = '\0';
             rx_count = count;          
             Serial.println(rx_count);

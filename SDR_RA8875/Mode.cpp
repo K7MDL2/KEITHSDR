@@ -4,9 +4,8 @@
 //
 
 #include "SDR_RA8875.h"
-//#include "SDR_Data.h"
 #include "RadioConfig.h"
-#include "Mode.h"
+//#include "Mode.h"
 
 extern AudioMixer4_F32  RX_Summer; 
 extern AudioMixer4_F32  FFT_Switch1;

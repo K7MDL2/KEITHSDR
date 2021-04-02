@@ -14,6 +14,8 @@
 
 #ifdef USE_RA8875
 	extern RA8875 tft;
+#else 
+	extern RA8876_t3 tft;
 #endif
 
 extern          uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
@@ -31,8 +33,7 @@ extern struct   Spectrum_Parms      Sp_Parms_Def[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
 extern AudioControlSGTL5000         codec1;
-extern radioNoiseBlanker_F32        NoiseBlanker1;
-extern radioNoiseBlanker_F32        NoiseBlanker2;
+extern radioNoiseBlanker_F32        NoiseBlanker;
 extern AudioEffectCompressor2_F32   compressor1; // Audio Compressor
 extern AudioEffectCompressor2_F32   compressor2; // Audio Compressor
 extern          uint8_t             popup;
@@ -190,18 +191,31 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
 
 void pop_win(uint8_t init)
 {
+    return;
     if(init)
     {
         popup_timer.interval(300);
-        tft.setActiveWindow(200, 600, 160, 360);
-        tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_GREY);
-        tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
+        #ifdef USE_RA8875
+            tft.setActiveWindow(200, 600, 160, 360);
+            tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_GREY);
+            tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
+        #else
+            tft.activeWindowXY(200, 160);
+            tft.activeWindowWH(400,200);
+            tft.fillRoundRect(200,160, 400, 200, 20, 20, RA8875_LIGHT_GREY);
+            tft.drawRoundRect(200,160, 400, 200, 20, 20, RA8875_RED);
+        #endif
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(CENTER, CENTER, true);
         tft.print("this is a future keyboard");
         delay(1000);
-        tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_ORANGE);
-        tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
+        #ifdef USE_RA8875
+            tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_ORANGE);
+            tft.drawRoundRect(200,160, 400, 200, 20, RA8875_RED);
+        #else
+            tft.fillRoundRect(200,160, 400, 200, 20, 20, RA8875_LIGHT_ORANGE);
+            tft.drawRoundRect(200,160, 400, 200, 20, 20, RA8875_RED);
+        #endif
         tft.setCursor(CENTER, CENTER, true);
         tft.print("Thanks for watching, GoodBye!");
         delay(600);
@@ -209,8 +223,15 @@ void pop_win(uint8_t init)
    // }
    // else 
    // {
-        tft.fillRoundRect(200,160, 400, 290, 20, RA8875_BLACK);
-        tft.setActiveWindow();
+        #ifdef USE_RA8875
+            tft.fillRoundRect(200,160, 400, 290, 20, RA8875_BLACK);
+            tft.setActiveWindow();
+        #else
+            tft.fillRoundRect(200, 160, 400, 290, 20, 20, RA8875_BLACK);
+            tft.activeWindowXY(200,160);
+            tft.activeWindowWH(400,290);
+        #endif
+
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
         drawSpectrumFrame(user_settings[user_Profile].sp_preset);
@@ -819,23 +840,20 @@ void setNBLevel(int8_t delta)
 
     if (user_settings[user_Profile].nb_en > OFF)   // Adjust the value if on
     {
-        NoiseBlanker1.enable(true); // turn on NB for I
-        NoiseBlanker2.enable(true); // turn on NB for Q
+        NoiseBlanker.showError(1);
+        NoiseBlanker.useTwoChannel(true);  // true enables a path through the "I"  or left side for I and Q
+        NoiseBlanker.enable(true); // turn on NB for I
         // void setNoiseBlanker(float32_t _threshold, uint16_t _nAnticipation, uint16_t _nDecay)
-        NoiseBlanker1.setNoiseBlanker(nb[user_settings[user_Profile].nb_level].nb_threshold,
+        NoiseBlanker.setNoiseBlanker(nb[user_settings[user_Profile].nb_level].nb_threshold,
           nb[user_settings[user_Profile].nb_level].nb_nAnticipation,
           nb[user_settings[user_Profile].nb_level].nb_decay);   // for I
-        NoiseBlanker2.setNoiseBlanker(nb[user_settings[user_Profile].nb_level].nb_threshold,
-          nb[user_settings[user_Profile].nb_level].nb_nAnticipation,
-          nb[user_settings[user_Profile].nb_level].nb_decay);   // for Q
         // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
         // nAnticipation is 1 to 125
         // Decay is 1 to 10.
     }
     else  // NB is disabled so bypass 
     {
-        NoiseBlanker1.enable(false);  //  NB block is bypassed for I
-        NoiseBlanker2.enable(false);  //  NB block is bypassed for Q
+        NoiseBlanker.enable(false);  //  NB block is bypassed
     }
     
     //Serial.print("NB level set to  "); 
@@ -950,8 +968,8 @@ void BandDn()
 // BAND button
 void Band()
 {
-    popup = 1;
-    pop_win(1);
+    //popup = 1;
+    //pop_win(1);
     changeBands(1);  // increment up 1 band for now until the pop up windows buttons and/or MF are working
     displayBand();
     //Serial.print("Set Band to ");

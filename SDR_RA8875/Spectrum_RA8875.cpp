@@ -5,7 +5,6 @@
 //  
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "SDR_Data.h"
 #include "Spectrum_RA8875.h"
 
 // From main file where sampling rate and other audio library features are set
@@ -14,12 +13,16 @@ extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
 //extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;       
-extern RA8875                   tft;
 extern uint32_t                 VFOA;
 extern uint32_t                 VFOB;
 extern struct Band_Memory bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern volatile int32_t  Freq_Peak;
+#ifdef USE_RA8875
+	extern RA8875 tft;
+#else 
+	extern RA8876_t3 tft;
+#endif
 
 //function declarations
 void Spectrum_Parm_Generator(int16_t parm_set);
@@ -29,6 +32,7 @@ void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 const char* formatFreq(uint32_t Freq);
+static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
 
 int16_t wf_time_line = 5000;
 int16_t fftFreq_refresh = 1000;
@@ -41,7 +45,14 @@ int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectru
 int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 int16_t fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
 
-/*
+// Function Declarations
+
+//-------------- COLOR CONVERSION -----------------------------------------------------------
+	inline uint16_t Color565(uint8_t r,uint8_t g,uint8_t b) { return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3); }
+//	inline uint16_t Color24To565(int32_t color_) { return ((((color_ >> 16) & 0xFF) / 8) << 11) | ((((color_ >> 8) & 0xFF) / 4) << 5) | (((color_) &  0xFF) / 8);}
+//	inline uint16_t htmlTo565(int32_t color_) { return (uint16_t)(((color_ & 0xF80000) >> 8) | ((color_ & 0x00FC00) >> 5) | ((color_ & 0x0000F8) >> 3));}
+//	inline void 	Color565ToRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b){r = (((color & 0xF800) >> 11) * 527 + 23) >> 6; g = (((color & 0x07E0) >> 5) * 259 + 33) >> 6; b = ((color & 0x001F) * 527 + 23) >> 6;}
+
 //function declarations
 void Spectrum_Parm_Generator(int16_t parm_set);
 void spectrum_update(int16_t s);
@@ -50,7 +61,6 @@ void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 const char* formatFreq(uint32_t Freq);
-*/
 
 // Spectrum Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
 // These globals are othewise ignored
@@ -70,10 +80,10 @@ int16_t spectrum_preset = SPECTRUM_PRESET;   // <<<==== Set this value.  Range i
 int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
 int16_t spectrum_y              = 139;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-int16_t spectrum_height         = 270;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+int16_t spectrum_height         = 390;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
 int16_t spectrum_center         = 40;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
-int16_t spectrum_width          = 800;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
+int16_t spectrum_width          = 512;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
 int16_t spectrum_span           = 20;       // Value in KHz.  Ths will be the maximum span shown in the display graphs.  
                                             // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
                                             // Max value and resolutoin (pixels per bin) is dependent on sample frequency
@@ -92,11 +102,16 @@ Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 
 // use the generator finction to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
-#define PRESETS 10  // number of parameter records with our preset spectrum window values
+// #define PRESETS 10  // number of parameter records with our preset spectrum window values - this value moved to the .h file
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
-    //W        LE  RE  CG                                            x   y   w  h  x  sp st clr sc mode scal reflvl
-    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,5,590,1.0,0.9,0,40,-155, 90},
+    //W        LE  RE  CG                                            x   y   w  h  x  sp st clr sc mode scal reflvl wfrate
+    #ifdef USE_RA8875
+    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,0,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
+    #else
+    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,340,1.0,0.9,0,40,-180, 40},
+    {508, 2,2, 4, 512,258,14,8,143,165,165,528,520,142,213,307,307, 2,139, 512,390,40,20,5,440,1.0,0.9,0,40,-180,100},
+    #endif        
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
     {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25,2,310,1.7,0.9,0,60,-180,100},    //smaller centered
     {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25,3,950,2.0,0.7,1,40,-185, 60},  // low wide high gain
@@ -256,17 +271,25 @@ void spectrum_update(int16_t s)
         // Takes a snapshot of the current window without the bottom row. Stores it in Layer 2 then brings it back beginning at the 2nd row. 
         //    Then write new row data into the missing top row to get a scroll effect using display hardware, not the CPU.
         //    Documentation for BTE: BTE_move(int16_t SourceX, int16_t SourceY, int16_t Width, int16_t Height, int16_t DestX, int16_t DestY, uint8_t SourceLayer=0, uint8_t DestLayer=0, bool Transparent = false, uint8_t ROP=RA8875_BTEROP_SOURCE, bool Monochrome=false, bool ReverseDir = false);                  
-        tft.BTE_move(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, ptr->wf_height-4, ptr->l_graph_edge+1, ptr->wf_top_line+2, 1, 2);  // Layer 1 to Layer 2
-        while (tft.readStatus());  // Make sure it is done.  Memory moves can take time.
-        
-        // Move the block back on Layer 1 but place it 1 row down from the top
-        tft.BTE_move(ptr->l_graph_edge+1, ptr->wf_top_line+2, ptr->wf_sp_width, ptr->wf_height-4, ptr->l_graph_edge+1, ptr->wf_top_line+2, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.
-        while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.        
-    
+        #ifdef USE_RA8875
+            tft.BTE_move(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, ptr->wf_height-4, ptr->l_graph_edge+1, ptr->wf_top_line+2, 1, 2);  // Layer 1 to Layer 2
+            while (tft.readStatus());  // Make sure it is done.  Memory moves can take time.
+            
+            // Move the block back on Layer 1 but place it 1 row down from the top
+            tft.BTE_move(ptr->l_graph_edge+1, ptr->wf_top_line+2, ptr->wf_sp_width, ptr->wf_height-4, ptr->l_graph_edge+1, ptr->wf_top_line+2, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.
+            while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.        
+        #else   // RA8876
+            tft.selectScreen(PAGE1_START_ADDR);
+            tft.boxPut(PAGE2_START_ADDR, ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, ptr->wf_bottom_line-2, ptr->l_graph_edge+1, ptr->wf_top_line+2);                    
+            tft.check2dBusy();     
+            tft.selectScreen(PAGE1_START_ADDR);       
+            tft.boxGet(PAGE2_START_ADDR, ptr->l_graph_edge+1, ptr->wf_top_line+2, ptr->wf_sp_width, ptr->wf_bottom_line-1, ptr->l_graph_edge+1, ptr->wf_top_line+2);
+            tft.check2dBusy();            
+        #endif  // USE_RA8875
         // draw a periodic time stamp line
         if (waterfall_timestamp.check() == 1)
             //tft.drawRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, RA8875_GREEN);  // x start, y start, width, height, colors w x h           
-            tft.drawFastHLine(ptr->l_graph_edge+1, ptr->wf_top_line+2, ptr->wf_sp_width, myLT_GREY);  // x start, y start, width, height, colors w x h           
+            tft.drawFastHLine(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, myLT_GREY);  // x start, y start, width, height, colors w x h           
         else  // Draw the new line at the top
             tft.writeRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, (uint16_t*) &line_buffer);  // x start, y start, width, height, array of colors w x h
 
@@ -364,12 +387,18 @@ void spectrum_update(int16_t s)
             pix_n16 = pixelnew[i];  // convert float to uint16_t to match the draw functions type
             pix_o16 = pixelold[i];
 
-            // Linit access to the spectrum box to control misbehaved pixel and bar draws
+
+            // Limit access to the spectrum box to control misbehaved pixel and bar draws
+//TODO fix for RA8876
+//#ifdef USE_RA8875            
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);
+//#endif
             
             //
             //------------------------ Code below is writing only in the active spectrum window ----------------------
             //
+            //if (i == 2)
+            //    tft.clearActiveScreen();
 
             if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
             {
@@ -472,7 +501,10 @@ void spectrum_update(int16_t s)
             }
         }
             
+//TODO fix for RA8876
+//#ifdef USE_RA8875            
         tft.setActiveWindow();  // restore access to whole screen
+//#endif
         //
         //------------------------ Code above is writing only in the active spectrum window ----------------------
         //
@@ -584,32 +616,6 @@ void spectrum_update(int16_t s)
     }
 }
 //
-//____________________________________________________Color Mapping _____________________________________
-//       
-
-int16_t colorMap(int16_t val, int16_t color_temp) 
-{
-    float red;
-    float green;
-    float blue;
-    float temp = val / 65536.0 * color_temp;
-  //Serial.print("temp="); Serial.println(temp);
-    if (temp < 0.5) 
-    {
-        red = 0.0;
-        green = temp * 2;
-        blue = 2 * (0.5 - color_temp);
-    } 
-    else 
-    {
-        red = temp;
-        green = (1.0 - color_temp);
-        blue = 0.0;
-    }
-    //Serial.print("  CM="); Serial.print(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val="); Serial.println(val);Color24To565
-    return tft.Color565(red * 256, green * 256, blue * 256);
-}
-//
 //--------------------------------------------------------------------------------------------------------------------------------------------
 //                                                              drawSpectrumFrame 
 //--------------------------------------------------------------------------------------------------------------------------------------------
@@ -685,11 +691,12 @@ void drawSpectrumFrame(uint8_t s)
 void initSpectrum_RA8875(void)
 {
     //tft.begin(RA8875_800x480);   // likely redundant but just in case and allows to be used standalone.
-
+#ifdef USE_RA8875
     // Setup for scrollig attributes
     tft.useLayers(1);       //mainly used to turn of layers!    
     tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
     tft.setScrollMode(LAYER1ONLY);    // One of these 4 modes {SIMULTANEOUS, LAYER1ONLY, LAYER2ONLY, BUFFERED }
+#endif
 }
 //
 //--------------------------------------------------  Spectrum parameter generator tool ------------------------------------------------------------------------
@@ -930,3 +937,56 @@ const char* formatFreq(uint32_t Freq)
 	//Serial.print("Freq: ");Serial.println(Freq_str);
 	return Freq_str;
 }
+//
+//____________________________________________________Color Mapping _____________________________________
+//       
+int16_t colorMap(int16_t val, int16_t color_temp) 
+{
+    float red;
+    float green;
+    float blue;
+    float temp = val / 65536.0 * (color_temp);
+  //Serial.print("temp="); Serial.println(temp);
+    if (temp < 0.5) 
+    {
+        red = 0.0;
+        green = temp * 2;
+        blue = 2 * (0.5 - color_temp);
+    } 
+    else 
+    {
+        red = temp;
+        green = (1.0 - color_temp);
+        blue = 0.0;
+    }
+    //Serial.print("  CM="); Serial.print(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val="); Serial.println(val);Color24To565
+    return Color565(red * 256, green * 256, blue * 256);
+}
+/*
+// Pass 8-bit (each) R,G,B, get back 16-bit packed color
+static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b) {
+    return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+}
+
+//color565toRGB		- converts 565 format 16 bit color to RGB
+static void color565toRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b) {
+    r = (color>>8)&0x00F8;
+    g = (color>>3)&0x00FC;
+    b = (color<<3)&0x00F8;
+}
+
+//color565toRGB14		- converts 16 bit 565 format color to 14 bit RGB (2 bits clear for math and sign)
+//returns 00rrrrr000000000,00gggggg00000000,00bbbbb000000000
+//thus not overloading sign, and allowing up to double for additions for fixed point delta
+static void color565toRGB14(uint16_t color, int16_t &r, int16_t &g, int16_t &b) {
+    r = (color>>2)&0x3E00;
+    g = (color<<3)&0x3F00;
+    b = (color<<9)&0x3E00;
+}
+
+//RGB14tocolor565		- converts 14 bit RGB back to 16 bit 565 format color
+static uint16_t RGB14tocolor565(int16_t r, int16_t g, int16_t b)
+{
+    return (((r & 0x3E00) << 2) | ((g & 0x3F00) >>3) | ((b & 0x3E00) >> 9));
+}
+*/

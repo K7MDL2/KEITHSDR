@@ -20,37 +20,31 @@
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
- SVN1AFN_BandpassFilters bpf;   // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
+ SVN1AFN_BandpassFilters bpf;  // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
                                 // For 60M coverage requires and updated libary file set.
 #endif // SV1AFN_BPF
 
 // Choose your actual pin assignments for any you may have.
 Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
 
-#define VFO_PPR 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
-// I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
-
 #ifdef I2C_ENCODERS              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
-/*This is a basic example for using the I2C Encoder V2
-  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
-  It's also printet when the push button is released.
-  When the encoder is turned the led turn green
-  When the encoder reach the max or min the led turn red
-  When the encoder is pushed, the led turn blue
+// This is a basic example for using the I2C Encoder V2
+//  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
+//  It's also printet when the push button is released.
+//  When the encoder is turned the led turn green
+//  When the encoder reach the max or min the led turn red
+//  When the encoder is pushed, the led turn blue
 
-  Connections with Teensy 4.1:
-  - -> GND
-  + -> 3.3V
-  SDA -> 18
-  SCL -> 19
-  INT -> 29
-*/
-  #include <i2cEncoderLibV2.h>              // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
-                                            // Hardware verson 2.1, Arduino library version 1.40.
+//  Connections with Teensy 4.1:
+//  - -> GND
+//  + -> 3.3V
+//  SDA -> 18
+//  SCL -> 19
+//  INT -> 29
+  #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.
   //Class initialization with the I2C addresses
   extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
-  extern i2cEncoderLibV2 AF_ENC; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//
-  #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.
+  extern i2cEncoderLibV2 AF_ENC; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
 #else 
   Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
   //Encoder AF(29,28);   // AF gain control - not used yet
@@ -65,22 +59,22 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
  Si5351mcu si5351;
 #endif // OCXO_10MHZ
 
-#ifdef USE_RA8875
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#endif // USE_RA8875
+//#ifdef USE_RA8875
+  //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+//#endif // USE_RA8875
 
 #ifdef I2C_LCD
   #include <LiquidCrystal_I2C.h>
   LiquidCrystal_I2C lcd(LCD_ADR,LCD_COL, LCD_LINES);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 #endif
 
-void FLASHMEM I2C_Scanner(void);
-void FLASHMEM MF_Service(int8_t counts);
-void FLASHMEM RampVolume(float vol, int16_t rampType);
-void FLASHMEM printHelp(void);
-void FLASHMEM printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
-void FLASHMEM respondToByte(char c);
+void I2C_Scanner(void);
+void MF_Service(int8_t counts);
+void RampVolume(float vol, int16_t rampType);
+void printHelp(void);
+void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
+void respondToByte(char c);
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
@@ -106,10 +100,13 @@ void                togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !
 uint8_t             popup = 0;                          // experimental flag for pop up windows
 int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
 volatile int32_t    Freq_Peak = 0;
-uint8_t display_state;   // something to hold the button state for the display pop-up window later.
+uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+#else
+  RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
+  FT5206 cts = FT5206(CTP_INT);;
 #endif
 
 #ifdef ENET
@@ -152,10 +149,9 @@ AudioAnalyzeRMS_F32     CW_RMS(audio_settings);
 AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
 //AudioAnalyzeFFT2048_IQ_F32  myFFT;
 //AudioAnalyzeFFT1024_IQ_F32  myFFT;
-//AudioAnalyzeFFT256_IQ_F32 myFFT;
+//AudioAnalyzeFFT256_IQ_F32   myFFT;
 AudioOutputI2S_F32      Output(audio_settings);
-radioNoiseBlanker_F32   NoiseBlanker1(audio_settings);
-radioNoiseBlanker_F32   NoiseBlanker2(audio_settings);
+radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
 AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
 AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
 
@@ -172,32 +168,37 @@ AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
 AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
 #endif
 
-AudioConnection_F32     patchCord5a(Input,0,         NoiseBlanker1,0);
-AudioConnection_F32     patchCord5b(Input,1,         NoiseBlanker2,0);
-AudioConnection_F32     patchCord4a(Input,0,         FFT_Switch1,0);
-AudioConnection_F32     patchCord4b(Input,1,         FFT_Switch2,0);
+// Copnnections for FFT Only - chooses either the input or the output to display in the spectrum plot
+AudioConnection_F32     patchCord7a(Input,0,         FFT_Switch1,0);
+AudioConnection_F32     patchCord7b(Input,1,         FFT_Switch2,0);
+AudioConnection_F32     patchCord6a(Output,0,        FFT_Switch1,1);
+AudioConnection_F32     patchCord6b(Output,1,        FFT_Switch2,1);
+AudioConnection_F32     patchCord5a(FFT_Switch1,0,   myFFT,0);
+AudioConnection_F32     patchCord5b(FFT_Switch2,0,   myFFT,1);
 
-//AudioConnection_F32     patchCord6a(NoiseBlanker1,0, compressor1, 0);
-//AudioConnection_F32     patchCord6b(NoiseBlanker2,0, compressor2, 0);
-//AudioConnection_F32     patchCord4a(compressor1,0,   FFT_Switch1,0);
-//AudioConnection_F32     patchCord4b(compressor2,0,   FFT_Switch2,0);
+// TEST trying out new NB and AGC features  - use selected lines below as make sense
+AudioConnection_F32     patchCord10a(Input,0,         NoiseBlanker,0);
+AudioConnection_F32     patchCord10b(Input,0,         NoiseBlanker,1);
+//AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
+//AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
+//AudioConnection_F32     patchCord9a(compressor1,0,   Hilbert1,0);
+//AudioConnection_F32     patchCord9b(compressor2,0,   Hilbert2,0);
+AudioConnection_F32     patchCord11a(NoiseBlanker,0,  Hilbert1,0);
+AudioConnection_F32     patchCord11b(NoiseBlanker,1,  Hilbert2,0);
 
-AudioConnection_F32     patchCord4c(Output,0,       FFT_Switch1,1);
-AudioConnection_F32     patchCord4d(Output,1,       FFT_Switch2,1);
-AudioConnection_F32     patchCord1a(NoiseBlanker1,0, Hilbert1,0);
-AudioConnection_F32     patchCord1b(NoiseBlanker2,1, Hilbert2,0);
-AudioConnection_F32     patchCord1c(Hilbert1,0,     Q_Peak,0);
-AudioConnection_F32     patchCord1d(Hilbert2,0,     I_Peak,0);
-AudioConnection_F32     patchCord2e(Hilbert1, 0,    RX_Summer,0);
-AudioConnection_F32     patchCord2f(Hilbert2, 0,    RX_Summer,1);
-AudioConnection_F32     patchCord2g(RX_Summer,0,    S_Peak,0);
-AudioConnection_F32     patchCord2h(RX_Summer,0,    CW_Filter,0);
-AudioConnection_F32     patchCord2i(CW_Filter,0,    CW_Peak,0);
-AudioConnection_F32     patchCord2i1(CW_Filter,0,   CW_RMS,0);
-AudioConnection_F32     patchCord2j(CW_Filter,0,    Output,0);
-AudioConnection_F32     patchCord2k(CW_Filter,0,    Output,1);
-AudioConnection_F32     patchCord4f(FFT_Switch1,0,  myFFT,0);
-AudioConnection_F32     patchCord4g(FFT_Switch2,0,  myFFT,1);
+// Normal Audio Chain
+//AudioConnection_F32     patchCord1a(Input,0,  Hilbert1,0);
+//AudioConnection_F32     patchCord1b(Input,1,  Hilbert2,0);
+AudioConnection_F32     patchCord2a(Hilbert1,0,      Q_Peak,0);
+AudioConnection_F32     patchCord2b(Hilbert2,0,      I_Peak,0);
+AudioConnection_F32     patchCord2c(Hilbert1, 0,     RX_Summer,0);
+AudioConnection_F32     patchCord2d(Hilbert2, 0,     RX_Summer,1);
+AudioConnection_F32     patchCord3a(RX_Summer,0,     S_Peak,0);
+AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
+AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
+AudioConnection_F32     patchCord4b(CW_Filter,0,    CW_RMS,0);
+AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
+AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
 
 AudioControlSGTL5000    codec1;
 
@@ -211,7 +212,7 @@ Metro NTP_updateTx  = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx  = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout    = Metro(4000);// MultiFunction Knob and Switch 
 
-uint8_t enc_ppr_response;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
+uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
 
 // Set this to be the default MF knob function when it does not have settings focus from a button touch.
@@ -232,7 +233,7 @@ extern Metro spectrum_waterfall_update;             // Timer used for controllin
 //
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
-FLASHMEM 
+//FLASHMEM 
 void setup()
 {
     Serial.begin(115200);
@@ -241,9 +242,8 @@ void setup()
 
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
-    Wire.setClock(100000); // Increase i2C bus transfer data rate from default of 100KHz
+    Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
     I2C_Scanner();
-    enc_ppr_response = VFO_PPR;
     MF_client = user_settings[user_Profile].default_MF_client;
 
 #ifdef  I2C_ENCODERS  
@@ -251,14 +251,31 @@ void setup()
 #endif // I2C_ENCODERS
 
 #ifdef SV1AFN_BPF
-      bpf.begin((int) 0, (TwoWire*) &Wire);
-      bpf.setBand(HFNone);
-      bpf.setPreamp(false);
-      bpf.setAttenuator(false);
+    bpf.begin((int) 0, (TwoWire*) &Wire);
+    bpf.setBand(HFNone);
+    bpf.setPreamp(false);
+    bpf.setAttenuator(false);
 #endif
 
+#ifdef USE_RA8875
     tft.begin(RA8875_800x480);
-    tft.setRotation(0);
+#else
+    tft.begin(30000000UL);
+    cts.begin();
+    cts.setTouchLimit(MAXTOUCHLIMIT);
+    tft.touchEnable(false);   // Ensure the resitive ocntroller, if any is off
+    tft.backlight(true);
+    tft.displayOn(true);
+    tft.graphicMode(true);
+    tft.clearActiveScreen();
+    tft.setActiveWindow();
+    tft.selectScreen(0);  // Select screen page 0
+    tft.fillScreen(BLACK);
+    tft.setBackGroundColor(BLACK);
+    tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+#endif
+    tft.setRotation(0); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
+                        // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
 
 #if defined(USE_FT5206_TOUCH)
     tft.useCapINT(RA8875_INT);
@@ -266,8 +283,10 @@ void setup()
     tft.enableCapISR(true);
     tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
 #else
-    tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
-#endif
+    #ifdef USE_RA8875
+        //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
+    #endif  // USE_RA8875
+#endif // USE_FT5206_TOUCH
 
 #ifdef DIG_STEP_ATT
     // Initialize the I/O for digital step attenuator if used.
@@ -287,7 +306,7 @@ void setup()
 
     //--------------------------   Setup our Audio System -------------------------------------
 
-    AudioMemory_F32(80, audio_settings);
+    AudioMemory_F32(100, audio_settings);
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
@@ -322,19 +341,19 @@ void setup()
     #endif
     
     AudioInterrupts();
-/*   Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
+    //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
-    if(mndx = 1 || mndx==2)
-    { 
-      FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
-      FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
-    )  
-    else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
-    { 
-      FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
-      FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
-    }
-    */
+    //if(mndx = 1 || mndx==2)
+    //{ 
+   //   FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
+   //   FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
+    //)  
+    //else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
+    //{ 
+    //  FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
+    //  FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
+   // }
+    
 #ifdef TEST_SINEWAVE_SIG
     // Create a synthetic sine wave, for testing
     // To use this, edit the connections above
@@ -424,7 +443,7 @@ void setup()
         user_settings[user_Profile].mute = ON;
         displayMute();
     }
-    
+
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     printHelp();
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
@@ -448,6 +467,7 @@ void loop()
             if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
                 spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
     }
+    
     uint32_t time_n = millis() - time_old;
 
     if (time_n > delta)
@@ -487,16 +507,18 @@ void loop()
     }
 
     #ifdef I2C_ENCODERS
+    Serial.println(MF_ENC.readVersion());
     /* Watch for the INT pin to go low */
     if (digitalRead(I2C_INT_PIN) == LOW) 
     {
+        Serial.println("test");
         /* Check the status of the encoder and call the callback */
         if(MF_ENC.updateStatus())
         {
-            MF_ENC.readStatus();
-            //uint8_t mfg = MF_ENC.readStatus();
-            //Serial.print("****Checked MF_Enc status = ");
-            //Serial.println(mfg);
+            //MF_ENC.readStatus();
+            uint8_t mfg = MF_ENC.readStatus();
+            Serial.print("****Checked MF_Enc status = ");
+            Serial.println(mfg);
         }
     }
     #else
@@ -577,7 +599,7 @@ void loop()
 // Ramps the volume down to specified level 0 to 1.0 range using 1 of 3 types.  It remembers the original volume level so
 // you are reducing it by a factor then raisinmg back up a factor toward the orignal volume setting.
 // Range is 1.0 for full original and 0 for off.
-FLASHMEM 
+//FLASHMEM 
 void RampVolume(float vol, int16_t rampType)
 {
     const char *rampName[] = {
@@ -649,7 +671,7 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
 // _______________________________________ Console Parser ____________________________________
 //
 //switch yard to determine the desired action
-FLASHMEM
+//FLASHMEM
 void respondToByte(char c)
 {
     char s[2];
@@ -683,7 +705,7 @@ void respondToByte(char c)
 //
 // _______________________________________ Print Help Menu ____________________________________
 //
-FLASHMEM 
+//FLASHMEM 
 void printHelp(void)
 {
     Serial.println();
@@ -724,7 +746,7 @@ int32_t multiKnob(uint8_t clear)
 #endif  // I2C_ENCODERS
 
 // Deregister the MF_client
-FLASHMEM
+//FLASHMEM
 void unset_MF_Service(uint8_t client_name)
 {
     if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
@@ -766,7 +788,7 @@ void unset_MF_Service(uint8_t client_name)
 
 // Potential owners can query the MF_client variable to see who owns the MF knob.  
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
-FLASHMEM 
+//FLASHMEM 
 void set_MF_Service(uint8_t client_name)
 {
     
@@ -786,7 +808,7 @@ void set_MF_Service(uint8_t client_name)
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
 static uint16_t old_ts;
-FLASHMEM 
+//FLASHMEM 
 void MF_Service(int8_t counts)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
@@ -839,7 +861,7 @@ void MF_Service(int8_t counts)
 //
 //  Scans for any I2C connected devices and reports them to the serial terminal.  Usually done early in startup.
 //
-FLASHMEM 
+//FLASHMEM 
 void I2C_Scanner(void)
 {
   byte error, address; //variable for error and I2C address

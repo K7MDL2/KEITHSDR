@@ -2,6 +2,17 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/1/2021
+
+    1. Enabled support for the RA8876 controller based 7" display with FT5206 compatible touch controller.  
+    2. Use #ifdef USE_RA8875 define to enable the RA8875, else it will use the RA8876.
+    3. The touch conmtroller is upside down on the RA8876 7" screen. Part of the RA8876 changes involve correcting for that. Other size displays may be different.
+
+## 3/31/2021
+
+    1. NB now controlled by the MF knob smae as teh other controls like Atten and RF gain.
+    2. Started adding Long Press logic to help with control for those MF enabled buttons.
+
 ## 3/30/2021
 
     1. Fixed ethernet feature, all features working now after the .h/.cpp split.

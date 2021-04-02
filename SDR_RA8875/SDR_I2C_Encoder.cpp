@@ -4,9 +4,11 @@
 
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-#include "SDR_I2C_Encoder.h"
+//#include "SDR_I2C_Encoder.h"
 
 #ifdef I2C_ENCODERS
+
+#include <i2cEncoderLibV2.h>
 // These are the per-encoder function declarations
 void blink_MFG_RGB(void);
 void set_I2CEncoders(void);
@@ -30,7 +32,8 @@ void encoder_thresholds(i2cEncoderLibV2* obj);
 extern void MF_Service(int8_t counts);
 
 //Callback when the MF Gain encoder is rotated
-void encoder_rotated(i2cEncoderLibV2* obj) {
+void encoder_rotated(i2cEncoderLibV2* obj) 
+{Serial.println("Rotated");
   if (obj->readStatus(i2cEncoderLibV2::RINC))
     Serial.print("Increment: ");
   else
@@ -52,7 +55,10 @@ void encoder_rotated(i2cEncoderLibV2* obj) {
     case ATTEN_BTN:     if (bandmem[curr_band].attenuator_dB > 30 || bandmem[curr_band].attenuator_dB < 2)
                             tval = 0xFF0000;  // Change to red
                             break;
-    case REFLVL_BTN:     if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
+    case REFLVL_BTN:    if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
+                            tval = 0xFF0000;  // Change to red
+                            break;
+    case NB_BTN:        if (user_settings[user_Profile].nb_level >= 5 || user_settings[user_Profile].nb_level <=1)
                             tval = 0xFF0000;  // Change to red
                             break;
     default: obj->writeRGBCode(tval); break;
@@ -67,7 +73,8 @@ void encoder_click(i2cEncoderLibV2* obj) {
 }
 
 //Callback when the encoder reach the max or min
-void encoder_thresholds(i2cEncoderLibV2* obj) {
+void encoder_thresholds(i2cEncoderLibV2* obj) 
+{
   if (obj->readStatus(i2cEncoderLibV2::RMAX))
     Serial.println("Max!");
   else
@@ -77,15 +84,30 @@ void encoder_thresholds(i2cEncoderLibV2* obj) {
 }
 
 //Callback when the fading process finish and set the RGB led off
-void encoder_fade(i2cEncoderLibV2* obj) {
+void encoder_fade(i2cEncoderLibV2* obj) 
+{
   obj->writeRGBCode(0x000000);
 }
 
 void set_I2CEncoders()
 {
     pinMode(I2C_INT_PIN, INPUT);
-
+Serial.println("Setup ENC");
     // MF KNOB - Multi-Fucntion knob setup.
+
+    AF_ENC.reset();
+    AF_ENC.begin(
+        i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
+        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE
+        | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+    //  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+    //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+
+    AF_ENC.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a daabase value also*/
+    AF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
+    AF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
+    AF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
+
     MF_ENC.reset();
     MF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
@@ -100,16 +122,21 @@ void set_I2CEncoders()
     MF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
 
     /* Configure the events */
-    MF_ENC.onChange = encoder_rotated;
+    //MF_ENC.onChange = encoder_rotated;
     MF_ENC.onButtonRelease = encoder_click;
     MF_ENC.onMinMax = encoder_thresholds;
     MF_ENC.onFadeProcess = encoder_fade;
+    AF_ENC.onButtonRelease = encoder_click;
+    AF_ENC.onMinMax = encoder_thresholds;
+    AF_ENC.onFadeProcess = encoder_fade;
 
-    /* Enable the I2C Encoder V2 interrupts according to the previus attached callback */
+    /* Enable the I2C Encoder V2 interrupts according to the previous attached callback */
     MF_ENC.autoconfigInterrupt();
-    //AF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
-    //AF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-    //AF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
+    AF_ENC.autoconfigInterrupt();
+    //MF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
+    MF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+    AF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+    //MF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
     blink_MFG_RGB();
 }
 
@@ -123,7 +150,7 @@ void blink_MFG_RGB(void)
     MF_ENC.writeRGBCode(0x0000FF);
     delay(250);
     MF_ENC.writeRGBCode(0x000000);
-
+Serial.println("Blink RGB");
     MF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif // I2C_ENCODER

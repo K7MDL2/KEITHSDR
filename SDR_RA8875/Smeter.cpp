@@ -8,7 +8,11 @@
 
 //#include <Audio.h> 
 extern AudioAnalyzePeak_F32 S_Peak;  
-extern RA8875 tft;
+#ifdef USE_RA8875
+	extern RA8875 tft;
+#else 
+	extern RA8876_t3 tft;
+#endif
 extern uint8_t user_Profile;
 extern struct User_Settings user_settings[];
 
@@ -64,9 +68,11 @@ void Peak()
 		else 
 			sprintf(string,"      S-9+%02.0f",dbuv);
 		
+		#ifdef USE_RA8875
 		if (user_settings[user_Profile].enet_enabled)
 			tft.ringMeter(s, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
 		else
 			tft.ringMeter(s, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);  // move it up a bit since there is no clock
+		#endif
 	}
 }

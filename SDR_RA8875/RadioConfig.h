@@ -16,11 +16,15 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
+#define USE_RA8875        // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+                            // When commented out it will default to the RA8876 controller and FT5206 touch controller
+                            // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
+
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
 
-//#define si5351_TCXO       // If yor si5351 PLl has a TCXO then turn off the load capacitors.
-                            // DEPENDS on a modified si5351mcu mod by library by K7MDL.  
+//#define si5351_TCXO       // If your Si5351 PLL module has a TCXO then turn off the load capacitors.
+                            // DEPENDS on a modified si5351mcu mod by library by K7MDL.
                             // Alternative is to use the Etherkit library or Adafruit or other. 
 
 #define si5351_XTAL_25MHZ   // This depends on what your PLL uses.
@@ -32,7 +36,7 @@
 #define si5351_CORRECTION  0  // frequency correction for the si5351A PLL board crystal or TXCO.
                             // The 5351mcu library uses Hz offset, etherkit and others use ppb.
 
-#define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
+//#define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
                             // DEPENDS on a PE4302 connected for variable attenuation
                             // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
                             //   You can use this without relays or the BPF board
@@ -53,7 +57,7 @@
                             // the size of the display.
                             // DEPENDS on LCD I2C hardware connected or it will hang on I2C comms timeouts
 
- //#define I2C_ENCODER      // I2C connected encoders. Here we are using the RGB LED version from
+//#define I2C_ENCODERS     // I2C connected encoders. Here we are using the RGB LED version from
                             // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
                             // Hardware verson 2.1, Arduino library version 1.40.
 
@@ -75,10 +79,14 @@
 #define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
-    #define I2C_ENCODERS
+    #ifdef USE_RA8875 
+     #undef USE_RA8875            // UNcomment this line to use RA8876
+    #endif
+    //#define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
     #define si5351_TCXO             // set load cap to 0pF for TCXO
     #define si5351_XTAL_25MHZ       // choose 25MHz tcxo or crystal, else 27Mhz
+    #define USE_DHCP
     #define ENET
     #define USE_ENET_PROFILE
     //#define REMOTE_OPS
@@ -95,16 +103,16 @@
 #define VFO_ENC_PIN_A 4
 #define VFO_ENC_PIN_B 5
 
-#define VFO_PPR 60;  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+#define VFO_PPR 60  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
-// MF Knob Encoder  is ewither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
+// MF Knob Encoder  is e                                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
 #ifdef I2C_ENCODERS
   #define I2C_INT_PIN 29
 #else
   #define MF_ENC_PIN_A 40   // list pins for any non I2C aux encoders.
   #define MF_ENC_PIN_B 39
-#endif // I2C_ENCODER
+#endif // I2C_ENCODERS
 
 // -------------------------  PE4302 6 bit Digital Step Attenuator -----------------------------
 //      Digital step attenuator.  0-31.5dB in 0.5dB steps. Connected via I2C port expander.
@@ -121,36 +129,88 @@
 //--------------------------------- RA8875 LCD TOUCH DISPLAY INIT & PINS --------------------------
 //
 
-#define USE_RA8875        // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
-
 #ifdef USE_RA8875
+  #define  SCREEN_WIDTH      800 
+  #define  SCREEN_HEIGHT     480
   #define  RA8875_INT        14   //any pin
   #define  RA8875_CS         10   //any digital pin
   #define  RA8875_RESET      9    //any pin or nothing!
   #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   #include <SPI.h>                // included with Arduino
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+  //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
   #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-#endif // USE_RA8875
+#else // If RA88756 is not used then assume the RA8876_t3 1024x600 is.
 //
 //
 //
 //--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
 //
-#ifndef USE_RA8875
 #define USE_RA8876_t3
-#endif
-#ifdef USE_RA8876_t3
-  #define  RA8876_INT        14   //any pin
-  #define  RA8876_CS         10   //any digital pin
-  #define  RA8876_RESET      9    //any pin or nothing!
-  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <RA8876_t3.h>           // Github
-  RA8876 tft = RA8876(RA8875_CS,RA8875_RESET); //initiate the display object
-  // Some defines for ease of use 
+//
+#define  SCREEN_WIDTH      1024 
+#define  SCREEN_HEIGHT     600
+//#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+//#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+#include <RA8876_t3.h>           // Github
+#include <FT5206.h>
+#define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
+#define  RA8876_CS         10   //any digital pin
+#define  RA8876_RESET      9    //any pin or nothing!
+#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+
+
+// From RA8875/_settings/RA8875ColorPresets.h
+// Colors preset (RGB565)
+const uint16_t	RA8875_BLACK            = 0x0000;
+const uint16_t 	RA8875_WHITE            = 0xFFFF;
+const uint16_t	RA8875_RED              = 0xF800;
+const uint16_t	RA8875_GREEN            = 0x07E0;
+const uint16_t	RA8875_BLUE             = 0x001F;
+const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE;//0x07FF;
+const uint16_t 	RA8875_MAGENTA          = 0xF81F;
+const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN;//0xFFE0;  
+const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
+const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
+const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
+const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
+const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
+const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*30
+
+// From RA8876_t3/RA8876Registers.h
+#define BLACK		    0x0000
+#define WHITE		    0xffff
+#define RED		  	  0xf800
+#define LIGHTRED	  0xfc10
+#define CRIMSON		  0x8000
+#define GREEN		    0x07e0
+#define PALEGREEN	  0x87f0
+#define DARKGREEN	  0x0400
+#define BLUE		    0x001f
+#define LIGHTBLUE	  0x051f
+#define SKYBLUE		  0x841f
+#define DARKBLUE	  0x0010
+#define YELLOW		  0xffe0
+#define LIGHTYELLOW	0xfff0
+#define DARKYELLOW	0x8400 // mustard
+#define CYAN		    0x07ff
+#define LIGHTCYAN	  0x87ff
+#define DARKCYAN	  0x0410
+#define MAGENTA		  0xf81f
+#define VIOLET		  0xfc1f
+#define BLUEVIOLET	0x8010
+#define ORCHID		  0xA145 
+// Otehr sources of RGB coplpr definitions
+#define NAVY        0x000F
+#define MAROON      0x7800
+#define PURPLE      0x780F
+#define OLIVE       0x7BE0
+#define LIGHTGREY   0xC618
+#define DARKGREY    0x7BEF
+#define ORANGE      0xFD20
+#define GREENYELLOW 0xAFE5
+#define PINK        0xF81F
+    // Some defines for ease of use 
   //#define myDARKGREY  31727u
 #endif // USE_RA8876_t3
 

@@ -74,7 +74,6 @@
     //  If xAxis=3  f=fs/2 on right edge, f=0 in middle
     //  The default is 3 (requires no call)               2
 
-#define SCREEN_WIDTH            800             // Change this to the maximum pixels you want to display up to max of screen width.  This uses memory.
 #define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 
 //function declarations

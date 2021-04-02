@@ -12,7 +12,13 @@ Metro gesture_timer=Metro(700);  // Change this to tune the button press timing.
 extern Metro popup_timer; // used to check for popup screen request
 
 // Our  extern declarations. Mostly needed for button activities.
-extern RA8875   tft;
+#ifdef USE_RA8875
+	extern RA8875 tft;
+#else 
+	extern RA8876_t3    tft;
+    extern FT5206       cts;
+    uint8_t registers[FT5206_REGISTERS];
+#endif
 //extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
 extern void RampVolume(float vol, int16_t rampType);
 //extern void Spectrum_Parm_Generator(int);
@@ -31,6 +37,7 @@ extern uint8_t popup;
 extern void set_MF_Service(uint8_t client_name);
 extern struct Frequency_Display disp_Freq[];
 
+
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime); 
 void Gesture_Handler(uint8_t gesture, uint8_t holdtime);
@@ -46,6 +53,32 @@ struct Touch_Control{
 int16_t         distance[MAXTOUCHLIMIT][2];  // signed value used for direction.  5 touch points with X and Y values each.
 } static touch_evt;   // create a static instance of the structure to remember between events
 
+uint8_t Touched()
+{
+    #ifdef USE_RA8875
+        return tft.touched();
+    #else
+        return cts.touched();
+    #endif 
+}
+
+void touch_update()
+{
+    #ifdef USE_RA8875
+        tft.updateTS();
+    #else  // FT5206/5213
+        cts.getTSregisters(registers);
+    #endif
+}
+
+uint8_t get_Touches()
+{
+    #ifdef USE_RA8875
+        return tft.getTouches(); 
+    #else  // FT5206/5213
+        return cts.getTScoordinates(touch_evt.start_coordinates, registers);
+    #endif
+}
 //
 // _______________________________________ Touch() ____________________________
 // 
@@ -60,12 +93,12 @@ void Touch( void)
     static uint8_t previous_touch = 0;
     uint16_t x,y,i;
     static uint8_t holdtime = 0;
-  
-    if (tft.touched())
+
+    if (Touched())
     {      
         x = y = 0;
-        tft.updateTS();                      
-        current_touches = tft.getTouches(); 
+        touch_update();
+        current_touches = get_Touches();
         //Serial.print("Gesture Register=");  // used to test if controller gesture detection really works. It does not do very well.
         //Serial.println(tft.getGesture());
 
@@ -98,15 +131,25 @@ void Touch( void)
             //   2a. Store event time start (or reset timer) and coordinates into a structure
             //   2b. Set previous_touch = 1.                        
             previous_touch = current_touches;  // will be 1 for buttons, 2 for gestures
-            tft.updateTS();    // get current facts         
-            tft.getTScoordinates(touch_evt.start_coordinates);  // Store the starting coordinates into the structure
-            tft.getTScoordinates(touch_evt.last_coordinates);  // Easy way to effectively zero out the last coordinates
+            touch_update();    // get current facts  
+            #ifdef USE_RA8875     
+                tft.getTScoordinates(touch_evt.start_coordinates);  // Store the starting coordinates into the structure
+                tft.getTScoordinates(touch_evt.last_coordinates);  // Easy way to effectively zero out the last coordinates
+            #else
+                cts.getTScoordinates(touch_evt.start_coordinates, registers);  // Store the starting coordinates into the structure
+                cts.getTScoordinates(touch_evt.last_coordinates, registers);  // Easy way to effectively zero out the last coordinates
+            #endif
             //touch_evt.distanceX = touch_evt.distanceY = 0; // reset distance to 0
 
             for (i = 0; i< current_touches; i++)   /// Debug info
             {
+                #ifdef USE_RA8875
                 x = touch_evt.start_coordinates[i][0];
                 y = touch_evt.start_coordinates[i][1];
+                #else
+                x = SCREEN_WIDTH -touch_evt.start_coordinates[i][0];
+                y = SCREEN_HEIGHT - touch_evt.start_coordinates[i][1];
+                #endif
                 //Serial.print("Touch START time="); Serial.print(touch_evt.touch_start); 
                 Serial.print(" touch point#="); Serial.print(i);
                 Serial.print(" x="); Serial.print(x);
@@ -136,8 +179,12 @@ void Touch( void)
 Serial.print(" New holdtime is "); Serial.println(holdtime);
                 return;  // can calc the distance once we hav a valid event;
             }
-            tft.updateTS();             
-            tft.getTScoordinates(touch_evt.last_coordinates);  // Update curent coordinates
+            touch_update(); 
+            #ifdef USE_RA8875
+                tft.getTScoordinates(touch_evt.last_coordinates);  // Update curent coordinates
+            #else
+                cts.getTScoordinates(touch_evt.last_coordinates, registers);  // Update curent coordinates
+            #endif
             return;           
         }
         // STATE 4
@@ -148,8 +195,26 @@ Serial.print(" New holdtime is "); Serial.println(holdtime);
         //   4b. If only 1 touch, coordinates have moved far enough, must be a swipe.
         //   4c. If 2 touches, coordinates have not moved far enough, then set previous_touches to 0 and return, false alarm.
         //   4d. If 2 touches, cordnates have moved far enough, now direction can be determined. It must be a pinch gesture.           
-            tft.updateTS();             
-            tft.getTScoordinates(touch_evt.last_coordinates);  // Update curent coordinates
+            touch_update(); 
+            #ifdef USE_RA8875
+                tft.getTScoordinates(touch_evt.last_coordinates);  // Update curent coordinates
+            #else
+                cts.getTScoordinates(touch_evt.last_coordinates, registers);  // Update current coordinates
+                // RA8876 touch controller is upside down to correct for that here.  This is our last data collection
+                touch_evt.start_coordinates[0][0] = tft.width() - touch_evt.start_coordinates[0][0];   // zero out 1st touch point
+                touch_evt.start_coordinates[0][1] = tft.height() - touch_evt.start_coordinates[0][1];       
+                touch_evt.start_coordinates[1][0] = tft.width() - touch_evt.start_coordinates[1][0];   // zero out 2nd touch point
+                touch_evt.start_coordinates[1][1] = tft.height() - touch_evt.start_coordinates[1][1];
+                touch_evt.start_coordinates[2][0] = tft.width() - touch_evt.start_coordinates[2][0];   // zero out 2nd touch point
+                touch_evt.start_coordinates[2][1] = tft.height() - touch_evt.start_coordinates[2][1];
+
+                touch_evt.last_coordinates[0][0] = tft.width() - touch_evt.last_coordinates[0][0];   // zero out 1st touch point
+                touch_evt.last_coordinates[0][1] = tft.height() - touch_evt.last_coordinates[0][1];       
+                touch_evt.last_coordinates[1][0] = tft.width() - touch_evt.last_coordinates[1][0];   // zero out 2nd touch point
+                touch_evt.last_coordinates[1][1] = tft.height() - touch_evt.last_coordinates[1][1];
+                touch_evt.last_coordinates[2][0] = tft.width() - touch_evt.last_coordinates[2][0];   // zero out 2nd touch point
+                touch_evt.last_coordinates[2][1] = tft.height() - touch_evt.last_coordinates[2][1];
+            #endif
             /// If the coordinates have moved far enough, it is a gesture not a button press.  
             //  Store the disances for touch even 0 now.
             touch_evt.distance[0][0] = (touch_evt.last_coordinates[0][0] - touch_evt.start_coordinates[0][0]);
@@ -181,7 +246,7 @@ Serial.print(" New holdtime is "); Serial.println(holdtime);
             // if only 1 touch and X or Y distance is OK for a button call the button event handler with coordinates
             if (previous_touch == 1 && (abs(touch_evt.distance[0][0]) < BUTTON_TOUCH && abs(touch_evt.distance[0][1]) < BUTTON_TOUCH))
             {
-                Button_Handler(touch_evt.start_coordinates[0][0],  touch_evt.start_coordinates[0][1], holdtime);  // pass X and Y, and duration
+                Button_Handler(touch_evt.start_coordinates[0][0], touch_evt.start_coordinates[0][1], holdtime);  // pass X and Y, and duration
             }
             else  // Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
             {   
@@ -236,18 +301,18 @@ void Gesture_Handler(uint8_t gesture, uint8_t holdtime)
             ////------------------ SWIPE ----------------------------------------------------////
             if ( abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
             {               
-                //Serial.println("\nSwipe Vertical");
+                Serial.println("\nSwipe Vertical");
                 ////------------------ SWIPE DOWN  -------------------------------------------
                 if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
                 {                    
-                    //Serial.println(" Swipe DOWN"); 
+                    Serial.println(" Swipe DOWN"); 
                     //Serial.println("Band -");
                     changeBands(-1);                                     
                 } 
                 ////------------------ SWIPE UP  -------------------------------------------
                 else
                 {
-                    //Serial.println(" Swipe UP");
+                    Serial.println(" Swipe UP");
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
                     //Serial.println("Band +");
                     changeBands(1);                                     
@@ -257,7 +322,7 @@ void Gesture_Handler(uint8_t gesture, uint8_t holdtime)
             else  // X moved, not Y, horizontal swipe
             {
                 ////------------------ SWIPE LEFT  -------------------------------------------
-                //Serial.println("\nSwipe Horizontal");
+                Serial.println("\nSwipe Horizontal");
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {     
                     selectFrequency(-1);           

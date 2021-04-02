@@ -6,10 +6,14 @@
 //
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-#include "Quadrature.h"
-//#include "SDR_Data.h"
+//#include "Quadrature.h"
 
-extern RA8875 tft;
+#ifdef USE_RA8875
+	extern RA8875 tft;
+#else 
+	extern RA8876_t3 tft;
+#endif
+
 extern AudioAnalyzePeak_F32         Q_Peak;          
 extern AudioAnalyzePeak_F32         I_Peak;         
 
