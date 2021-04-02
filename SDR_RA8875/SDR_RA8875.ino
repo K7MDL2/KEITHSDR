@@ -107,8 +107,7 @@ uint8_t             display_state;   // something to hold the button state for t
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 #else
   RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
-  FT5206 cts = FT5206(CTP_INT);;
-  extern void setActiveWindow();
+  FT5206 cts = FT5206(CTP_INT); 
 #endif
 
 #ifdef ENET
@@ -270,7 +269,6 @@ void setup()
     tft.displayOn(true);
     tft.graphicMode(true);
     tft.clearActiveScreen();
-    setActiveWindow();
     tft.selectScreen(0);  // Select screen page 0
     tft.fillScreen(BLACK);
     tft.setBackGroundColor(BLACK);

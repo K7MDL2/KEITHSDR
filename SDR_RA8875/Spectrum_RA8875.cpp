@@ -22,6 +22,10 @@ extern volatile int32_t  Freq_Peak;
 	extern RA8875 tft;
 #else 
 	extern RA8876_t3 tft;
+    int16_t	_activeWindowXL = 0;
+    int16_t _activeWindowXR = SCREEN_WIDTH;
+    int16_t	_activeWindowYT = 0;
+    int16_t _activeWindowYB = SCREEN_HEIGHT;
 #endif
 
 //function declarations
@@ -395,7 +399,7 @@ void spectrum_update(int16_t s)
             // Limit access to the spectrum box to control misbehaved pixel and bar draws
             #ifdef USE_RA8875
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);            
-            #elsif
+            #else
             //NOTE - setActiveWindow function in the RA8876_t3 library is marked at protected:  Change it to public:
             // Instead we are using own copies for RA8876
             setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);            
@@ -1002,9 +1006,6 @@ static uint16_t RGB14tocolor565(int16_t r, int16_t g, int16_t b)
 #ifndef USE_RA8875
 // These are from the RA8875 library because they are marked protected in the RA8876 library.  
 // Putting copies of them here eliminate the need to change the library but will lose certain features like rotation to portrait. 
-
-static int16_t  					_activeWindowXL,	_activeWindowXR;
-static int16_t  					_activeWindowYT,    _activeWindowYB;
 
 /**************************************************************************/
 void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB)
