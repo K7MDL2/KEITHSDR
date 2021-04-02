@@ -10,6 +10,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4. NOTES: I2C Encoders do not work. 
     5. In RA8876 mode Swipes in any direction do NOT work yet.
     6. Added Noise Blanker (NB) to input I and Q. There are 6 predefined sets to try out.  Change those values in the NB table in SDR_Data.h.
+    7. Added copies of setActiveWindow() functions from RA8875 library to Spectrum_RA8875.cpp for use with RA8876. The RA8876_t3 library has the function marked "protected:"  Rather than require everyone modify the library, the fucntion are now local in RA8876 mode.  It won't work if the display is rotated to portrait mode.
 
 ## 3/31/2021
 

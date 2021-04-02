@@ -75,6 +75,7 @@ void RampVolume(float vol, int16_t rampType);
 void printHelp(void);
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
 void respondToByte(char c);
+
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
@@ -107,6 +108,7 @@ uint8_t             display_state;   // something to hold the button state for t
 #else
   RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
   FT5206 cts = FT5206(CTP_INT);;
+  extern void setActiveWindow();
 #endif
 
 #ifdef ENET
@@ -268,7 +270,7 @@ void setup()
     tft.displayOn(true);
     tft.graphicMode(true);
     tft.clearActiveScreen();
-    tft.setActiveWindow();
+    setActiveWindow();
     tft.selectScreen(0);  // Select screen page 0
     tft.fillScreen(BLACK);
     tft.setBackGroundColor(BLACK);

@@ -34,6 +34,9 @@ int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 const char* formatFreq(uint32_t Freq);
 //static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
 inline uint16_t Color565(uint8_t r,uint8_t g,uint8_t b);
+void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
+void setActiveWindow(void);
+void _updateActiveWindow(bool full);
 
 int16_t wf_time_line = 5000;
 int16_t fftFreq_refresh = 1000;
@@ -390,11 +393,13 @@ void spectrum_update(int16_t s)
 
 
             // Limit access to the spectrum box to control misbehaved pixel and bar draws
-//TODO fix for RA8876
-//#ifdef USE_RA8875            
-            tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);
-//#endif
-            
+            #ifdef USE_RA8875
+            tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);            
+            #elsif
+            //NOTE - setActiveWindow function in the RA8876_t3 library is marked at protected:  Change it to public:
+            // Instead we are using own copies for RA8876
+            setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);            
+            #endif
             //
             //------------------------ Code below is writing only in the active spectrum window ----------------------
             //
@@ -502,10 +507,11 @@ void spectrum_update(int16_t s)
             }
         }
             
-//TODO fix for RA8876
-//#ifdef USE_RA8875            
-        tft.setActiveWindow();  // restore access to whole screen
-//#endif
+#ifdef USE_RA8875            
+            tft.setActiveWindow();  // restore access to whole screen
+        #else
+            setActiveWindow();  // restore access to whole screen
+#endif
         //
         //------------------------ Code above is writing only in the active spectrum window ----------------------
         //
@@ -963,6 +969,7 @@ int16_t colorMap(int16_t val, int16_t color_temp)
     //Serial.print("  CM="); Serial.print(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val="); Serial.println(val);Color24To565
     return Color565(red * 256, green * 256, blue * 256);
 }
+
 /*
 // Pass 8-bit (each) R,G,B, get back 16-bit packed color
 static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b) {
@@ -991,3 +998,55 @@ static uint16_t RGB14tocolor565(int16_t r, int16_t g, int16_t b)
     return (((r & 0x3E00) << 2) | ((g & 0x3F00) >>3) | ((b & 0x3E00) >> 9));
 }
 */
+
+#ifndef USE_RA8875
+// These are from the RA8875 library because they are marked protected in the RA8876 library.  
+// Putting copies of them here eliminate the need to change the library but will lose certain features like rotation to portrait. 
+
+static int16_t  					_activeWindowXL,	_activeWindowXR;
+static int16_t  					_activeWindowYT,    _activeWindowYB;
+
+/**************************************************************************/
+void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB)
+{
+	//if (_portrait){ swapvals(XL,YT); swapvals(XR,YB);}
+
+//	if (XR >= SCREEN_WIDTH) XR = SCREEN_WIDTH;
+//	if (YB >= SCREEN_HEIGHT) YB = SCREEN_HEIGHT;
+	
+	_activeWindowXL = XL; _activeWindowXR = XR;
+	_activeWindowYT = YT; _activeWindowYB = YB;
+	_updateActiveWindow(false);
+}
+
+/**************************************************************************/
+/*!		
+		Set the Active Window as FULL SCREEN
+*/
+/**************************************************************************/
+void setActiveWindow(void)
+{
+	_activeWindowXL = 0; _activeWindowXR = SCREEN_WIDTH;
+	_activeWindowYT = 0; _activeWindowYB = SCREEN_HEIGHT;
+	//if (_portrait){swapvals(_activeWindowXL,_activeWindowYT); swapvals(_activeWindowXR,_activeWindowYB);}
+	_updateActiveWindow(true);
+}
+
+/**************************************************************************/
+/*!
+		this update the RA8875 Active Window registers
+		[private]
+*/
+/**************************************************************************/
+void _updateActiveWindow(bool full)
+{ 
+	if (full){
+		// X
+		tft.activeWindowXY(0, 0);
+		tft.activeWindowWH(SCREEN_WIDTH, SCREEN_HEIGHT);;
+	} else {
+		tft.activeWindowXY(_activeWindowXL, _activeWindowYT);
+		tft.activeWindowWH(_activeWindowXR-_activeWindowXL, _activeWindowYB-_activeWindowYT);		
+	}
+}
+#endif
