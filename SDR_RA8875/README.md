@@ -7,8 +7,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     1. Fixed Swipes when in RA8876 Configuration. Oddity in the FT5206 library which is used with the RA8876.
     2. Added a feedback beep when a button is touched. Uses the pitch and rogerBeep_Vol level value in the user_settings table.  To turn off the beep set the volume to 0.0 in the table.
     3. Added an attempt to auto-tune a CW signal when you TouchTune in CW mode. It adds the pitch frequency to the peak signal frequency, if there is one. If not then it jsut jumps to the screen's touch point frequency.
-    4. Startup the volume is set low.  Press audio or atten buttons to restore normal volume. Investigating.
-    5. Waterfall timestamp lines do not draw across the screen properly on RA8876 display controllers.
+    4. Waterfall timestamp lines do not draw across the screen properly on RA8876 display controllers.
 
 ## 4/2/2021
 

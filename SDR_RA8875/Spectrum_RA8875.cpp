@@ -32,7 +32,7 @@ extern volatile int32_t  Freq_Peak;
 void Spectrum_Parm_Generator(int16_t parm_set);
 void spectrum_update(int16_t s);
 void drawSpectrumFrame(uint8_t s);
-void initSpectrum_RA8875(void);
+void initSpectrum(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 const char* formatFreq(uint32_t Freq);
@@ -699,7 +699,7 @@ void drawSpectrumFrame(uint8_t s)
 //
 //   Must be called before any text is written tothe screen. If not that text will be corrupted.
 //
-void initSpectrum_RA8875(void)
+void initSpectrum(void)
 {
     //tft.begin(RA8875_800x480);   // likely redundant but just in case and allows to be used standalone.
 #ifdef USE_RA8875
@@ -707,6 +707,8 @@ void initSpectrum_RA8875(void)
     tft.useLayers(1);       //mainly used to turn of layers!    
     tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
     tft.setScrollMode(LAYER1ONLY);    // One of these 4 modes {SIMULTANEOUS, LAYER1ONLY, LAYER2ONLY, BUFFERED }
+#else
+    tft.selectScreen(0);   // For the RA8876 this is the equivalent of Layer1Only
 #endif
 }
 //

@@ -80,7 +80,7 @@
 void Spectrum_Parm_Generator(int16_t parm_set);
 void spectrum_update(int16_t s);
 void drawSpectrumFrame(uint8_t s);
-void initSpectrum_RA8875(void);
+void initSpectrum(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 const char* formatFreq(uint32_t Freq);

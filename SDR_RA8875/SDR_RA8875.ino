@@ -252,63 +252,63 @@ void setup()
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
+    
+    #ifdef  I2C_ENCODERS  
+        set_I2CEncoders();
+    #endif // I2C_ENCODERS
 
-#ifdef  I2C_ENCODERS  
-    set_I2CEncoders();
-#endif // I2C_ENCODERS
+    #ifdef SV1AFN_BPF
+        bpf.begin((int) 0, (TwoWire*) &Wire);
+        bpf.setBand(HFNone);
+        bpf.setPreamp(false);
+        bpf.setAttenuator(false);
+    #endif
 
-#ifdef SV1AFN_BPF
-    bpf.begin((int) 0, (TwoWire*) &Wire);
-    bpf.setBand(HFNone);
-    bpf.setPreamp(false);
-    bpf.setAttenuator(false);
-#endif
-
-#ifdef USE_RA8875
-    tft.begin(RA8875_800x480);
-#else
-    tft.begin(30000000UL);
-    cts.begin();
-    cts.setTouchLimit(MAXTOUCHLIMIT);
-    tft.touchEnable(false);   // Ensure the resitive ocntroller, if any is off
-    tft.backlight(true);
-    tft.displayOn(true);
-    tft.graphicMode(true);
-    tft.clearActiveScreen();
-    tft.selectScreen(0);  // Select screen page 0
-    tft.fillScreen(BLACK);
-    tft.setBackGroundColor(BLACK);
-    tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
-#endif
+    #ifdef USE_RA8875
+        tft.begin(RA8875_800x480);
+    #else    
+        tft.begin(30000000UL);
+        cts.begin();
+        cts.setTouchLimit(MAXTOUCHLIMIT);
+        tft.touchEnable(false);   // Ensure the resitive ocntroller, if any is off
+        tft.backlight(true);
+        tft.displayOn(true);
+        tft.graphicMode(true);
+        tft.clearActiveScreen();
+        tft.selectScreen(0);  // Select screen page 0
+        tft.fillScreen(BLACK);
+        tft.setBackGroundColor(BLACK);
+        tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+    #endif
     tft.setRotation(0); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
 
-#if defined(USE_FT5206_TOUCH)
-    tft.useCapINT(RA8875_INT);
-    tft.setTouchLimit(MAXTOUCHLIMIT);
-    tft.enableCapISR(true);
-    tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
-#else
-    #ifdef USE_RA8875
-        //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
-    #endif  // USE_RA8875
-#endif // USE_FT5206_TOUCH
+    #if defined(USE_FT5206_TOUCH)
+        tft.useCapINT(RA8875_INT);
+        tft.setTouchLimit(MAXTOUCHLIMIT);
+        tft.enableCapISR(true);
+        tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+    #else
+        #ifdef USE_RA8875
+            //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
+        #endif  // USE_RA8875
+    #endif // USE_FT5206_TOUCH
 
-#ifdef DIG_STEP_ATT
-    // Initialize the I/O for digital step attenuator if used.
-    pinMode(Atten_DATA, OUTPUT);
-    pinMode(Atten_CLK, OUTPUT);
-    pinMode(Atten_LE, OUTPUT);
-    digitalWrite(Atten_DATA,  (uint8_t) OFF);
-    digitalWrite(Atten_CLK,  (uint8_t) OFF);
-    digitalWrite(Atten_LE,  (uint8_t) OFF);
-#endif
+    #ifdef DIG_STEP_ATT
+        // Initialize the I/O for digital step attenuator if used.
+        pinMode(Atten_DATA, OUTPUT);
+        pinMode(Atten_CLK, OUTPUT);
+        pinMode(Atten_LE, OUTPUT);
+        digitalWrite(Atten_DATA,  (uint8_t) OFF);
+        digitalWrite(Atten_CLK,  (uint8_t) OFF);
+        digitalWrite(Atten_LE,  (uint8_t) OFF);
+    #endif
 
-#ifdef I2C_LCD    // initialize the I2C LCD
-    lcd.init(); 
-    lcd.backlight();
-    lcd.print("Keith's SDR");
-#endif
+    #ifdef I2C_LCD    // initialize the I2C LCD
+        lcd.init(); 
+        lcd.backlight();
+        lcd.print("Keith's SDR");
+    #endif
 
     //--------------------------   Setup our Audio System -------------------------------------
 
@@ -375,8 +375,8 @@ void setup()
 #endif
 
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
-    RX_Summer.gain(0, -3.0); // Leave at 1.0
-    RX_Summer.gain(1, 3.0);  // -1 for LSB out
+    //RX_Summer.gain(0, -3.0); // Leave at 1.0
+    //RX_Summer.gain(1, 3.0);  // -1 for LSB out
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
     // Uncomment one these to try other window functions
@@ -387,7 +387,7 @@ void setup()
     myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
-    initSpectrum_RA8875();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    initSpectrum();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
     curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
     user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
     spectrum_preset = user_settings[user_Profile].sp_preset;
@@ -396,7 +396,7 @@ void setup()
     VFOB = bandmem[curr_band].vfo_B_last;
     // Assignments for our encoder knobs, if any
     initVfo(); // initialize the si5351 vfo
-    changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
+    //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
     displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
     Spectrum_Parm_Generator(spectrum_preset);                 // use this to generate new set of params for the current window size values.
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
@@ -411,7 +411,8 @@ void setup()
     Serial.println("MHz");
 
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
-#ifdef ENET
+
+    #ifdef ENET
     if (user_settings[user_Profile].enet_enabled)
     {
         struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
@@ -430,7 +431,7 @@ void setup()
         Serial.println(">Ethernet System Startup");
         //setSyncProvider(getNtpTime);
     }
-#endif
+    #endif
 
     // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
     if (user_settings[user_Profile].spkr_en == ON)
@@ -450,7 +451,7 @@ void setup()
         user_settings[user_Profile].mute = ON;
         displayMute();
     }
-
+    changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     printHelp();
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
