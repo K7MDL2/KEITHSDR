@@ -4,7 +4,7 @@
 
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "SDR_I2C_Encoder.h"
+#include "SDR_I2C_Encoder.h"
 
 #ifdef I2C_ENCODERS
 
@@ -34,7 +34,8 @@ extern void MF_Service(int8_t counts);
 
 //Callback when the MF Gain encoder is rotated
 void encoder_rotated(i2cEncoderLibV2* obj) 
-{Serial.println("Rotated");
+{
+Serial.println("Rotated");
   if (obj->readStatus(i2cEncoderLibV2::RINC))
     Serial.print("Increment: ");
   else
@@ -92,14 +93,14 @@ void encoder_fade(i2cEncoderLibV2* obj)
 
 void set_I2CEncoders()
 {
-    pinMode(I2C_INT_PIN, INPUT);
+    pinMode(I2C_INT_PIN, INPUT_PULLUP);
 Serial.println("Setup ENC");
     // MF KNOB - Multi-Fucntion knob setup.
 
     AF_ENC.reset();
     AF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
-        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE
+        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE
         | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
@@ -107,7 +108,7 @@ Serial.println("Setup ENC");
     MF_ENC.reset();
     MF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
-        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE
+        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE
         | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
