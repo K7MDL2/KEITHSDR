@@ -234,7 +234,7 @@ extern Metro spectrum_waterfall_update;             // Timer used for controllin
 //
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
-//FLASHMEM 
+FLASHMEM 
 void setup()
 {
     Serial.begin(115200);
@@ -339,21 +339,23 @@ void setup()
     FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
     FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     #endif
-    
     AudioInterrupts();
+   
+    /*
     //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
-    //if(mndx = 1 || mndx==2)
-    //{ 
-   //   FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
-   //   FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
-    //)  
-    //else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
-    //{ 
-    //  FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
-    //  FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
-   // }
-    
+    if(mndx = 1 || mndx==2)
+    { 
+      FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
+      FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
+    )  
+    else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
+    { 
+      FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
+      FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
+    }
+    */
+
 #ifdef TEST_SINEWAVE_SIG
     // Create a synthetic sine wave, for testing
     // To use this, edit the connections above
@@ -599,7 +601,7 @@ void loop()
 // Ramps the volume down to specified level 0 to 1.0 range using 1 of 3 types.  It remembers the original volume level so
 // you are reducing it by a factor then raisinmg back up a factor toward the orignal volume setting.
 // Range is 1.0 for full original and 0 for off.
-//FLASHMEM 
+FLASHMEM 
 void RampVolume(float vol, int16_t rampType)
 {
     const char *rampName[] = {
@@ -633,7 +635,7 @@ void RampVolume(float vol, int16_t rampType)
 // _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
 //
 //This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
-
+FLASHMEM
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
 {
     //static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
@@ -671,7 +673,7 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
 // _______________________________________ Console Parser ____________________________________
 //
 //switch yard to determine the desired action
-//FLASHMEM
+FLASHMEM
 void respondToByte(char c)
 {
     char s[2];
@@ -705,7 +707,7 @@ void respondToByte(char c)
 //
 // _______________________________________ Print Help Menu ____________________________________
 //
-//FLASHMEM 
+FLASHMEM 
 void printHelp(void)
 {
     Serial.println();
@@ -746,7 +748,7 @@ int32_t multiKnob(uint8_t clear)
 #endif  // I2C_ENCODERS
 
 // Deregister the MF_client
-//FLASHMEM
+FLASHMEM
 void unset_MF_Service(uint8_t client_name)
 {
     if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
@@ -788,7 +790,7 @@ void unset_MF_Service(uint8_t client_name)
 
 // Potential owners can query the MF_client variable to see who owns the MF knob.  
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
-//FLASHMEM 
+FLASHMEM 
 void set_MF_Service(uint8_t client_name)
 {
     
@@ -808,7 +810,7 @@ void set_MF_Service(uint8_t client_name)
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
 static uint16_t old_ts;
-//FLASHMEM 
+FLASHMEM 
 void MF_Service(int8_t counts)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
@@ -861,7 +863,7 @@ void MF_Service(int8_t counts)
 //
 //  Scans for any I2C connected devices and reports them to the serial terminal.  Usually done early in startup.
 //
-//FLASHMEM 
+FLASHMEM 
 void I2C_Scanner(void)
 {
   byte error, address; //variable for error and I2C address
