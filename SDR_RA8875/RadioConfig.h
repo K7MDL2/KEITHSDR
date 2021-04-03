@@ -82,7 +82,7 @@
     #ifdef USE_RA8875 
      #undef USE_RA8875            // UNcomment this line to use RA8876
     #endif
-    //#define I2C_ENCODERS
+    #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
     #define si5351_TCXO             // set load cap to 0pF for TCXO
     #define si5351_XTAL_25MHZ       // choose 25MHz tcxo or crystal, else 27Mhz
@@ -103,12 +103,16 @@
 #define VFO_ENC_PIN_A 4
 #define VFO_ENC_PIN_B 5
 
-#define VFO_PPR 60  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+#define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
-// MF Knob Encoder  is e                                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
+// I2C connected encoders use this this pin to signal interrupts
+// Knob assignments are the user_settings database                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
 #ifdef I2C_ENCODERS
-  #define I2C_INT_PIN 29
+  #define I2C_INT_PIN   29
+  #define MF_ENC_ADDR  (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+  #define ENC2_ADDR    (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+  //#define ENC3_ADDR    (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/     
 #else
   #define MF_ENC_PIN_A 40   // list pins for any non I2C aux encoders.
   #define MF_ENC_PIN_B 39
@@ -140,7 +144,7 @@
   //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
   //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
   #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-#else // If RA88756 is not used then assume the RA8876_t3 1024x600 is.
+#else // If RA8876 is not used then assume the RA8876_t3 1024x600 is.
 //
 //
 //

@@ -7,10 +7,15 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     1. Enabled support for the RA8876 controller based 7" display with FT5206 compatible touch controller. Use #ifdef USE_RA8875 define to enable the RA8875, else it will use the RA8876.  
     2. RA8875 is enabled by default in RadioConfig.h
     3. The touch screen is mounted upside down on the RA8876 7" screen relative to the RA8875 4.3" display. Part of the RA8876 changes involve correcting for that. Other size displays may be different.
-    4. NOTE: Only the MF I2C Encoder works.  Working on gettng a 2nd working right. 
+    4. I2C Encoders now work. Need to run I2C bus at 100K vs 400K.
     5. In RA8876 mode Swipes in any direction do NOT work yet.
     6. Added Noise Blanker (NB) to input I and Q. There are 6 predefined sets to try out.  Change those values in the NB table in SDR_Data.h.
     7. Added copies of setActiveWindow() functions from RA8875 library to Spectrum_RA8875.cpp for use with RA8876. The RA8876_t3 library has the function marked "protected:"  Rather than require everyone modify the library, the fucntion are now local in RA8876 mode.  It won't work if the display is rotated to portrait mode.
+    8. I2C knobs can be added and enabled by #defines in the RadioConfig file to specify the addresses. There is code to support 3 I2C knobs today. The VFO is a mchanical encoder. If more than 3 I2C knopbs are needed, just clone a couple code blocks in SDR_I2C_Encoder.cpp to set them up and add 1 variable for each to the end of the user_settings table structure that is the actual assignment.
+    9. The user_settings table currently has 4 variables for encoder knobs, I2C or not. They are Default, Encoder 1, 2 and 3 assigned functions. Encoder 1 is always treated as a MF (MultiFunction) knob. If you assign Encoder 1 and default to be the same then it will act as a dedicated knob until you hit a MF-aware button, and then that new button only has control for a short time.
+    10. Any function the MF knob can control today is a candidate for assignment to a dedicated knob. All the encoders share the same code path as the MF knob. The MF knob is a bit special in that it has a timer and buttons can temporarily reassign it's function ID.
+    11. Multiple mechanical encoders can be added in a similar way except they do not require the setup code that I2C knobs require. If you have no I2C knobs then by default a mechanical MF knob is defined and if you have one connected, it will just work (using thr right configured pins of course). Adding more requires cloning the bit of mechanical MF encoder code, make the database assignments, and have the new code call MF_Service(counts, knob) function with "knob" assigned to the function ID which is simply the button #define number such as ATTEN_BTN or RFGAIN_BTN, the same ID used for all control and display functions as it is the index into the buttons table for all things buttons.
+    12. All the I2C buttons light green when in motion. They turn red at the range limits (if any) and when motion stops, the light fades.  They turn blue when pushed. They are capable of double push and press and hold usage which we will take advantage of later.
 
 ## 3/31/2021
 

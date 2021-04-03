@@ -15,7 +15,7 @@ struct Band_Memory bandmem[BANDS] = {
     { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 10, PREAMP_OFF,  0,  1,  -165},
     { "60M", 4990000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 2,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,  6, PREAMP_OFF,  0,  2,  -178},
     { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON,  2, PREAMP_OFF,  0,  3,  -162},
-    { "30M",10100000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4,  ATTEN_ON,  1,  PREAMP_ON,  0,  4,  -155},
+    { "30M", 9990000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4,  ATTEN_ON,  1,  PREAMP_ON,  0,  4,  -155},
     { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5, 3,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT3, 5,  ATTEN_ON,  7,  PREAMP_ON,  0,  5,  -155},
     { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND6, 5,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6,  ATTEN_ON,  7,  PREAMP_ON,  0,  6,  -160},
     { "15M",21100000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7,  ATTEN_ON, 10,  PREAMP_ON,  0,  7,  -155},
@@ -163,10 +163,10 @@ struct Label labels[LABEL_NUM] = {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben  nblvl nren  spot  pitch  notch xmit fine VFO-AB  DefMFknob   enc1        enc2       enc3    
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN}, 
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE, AFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben  nblvl nren  spot  pitch  notch xmit fine VFO-AB  DefMFknob   enc1      enc2      enc3    
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, RFGAIN_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, RFGAIN_BTN,  AFGAIN_BTN},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, AFGAIN_BTN,  RFGAIN_BTN}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -176,6 +176,7 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     {310, 53, 274,  40,   3,  0,  0, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_28, RA8875_RED,   6,   6}, // VFO Stby Digits
     {588, 53,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_24, RA8875_RED,   9,   7}  // VFO Stby Label
 };
+
 
 struct AGC agc_set[AGC_SET_NUM] = {
     {"AGC- ",2,0,0,-36.0,12.0,6.0},

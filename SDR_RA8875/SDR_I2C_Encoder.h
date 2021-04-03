@@ -14,8 +14,15 @@
 
 #ifdef I2C_ENCODERS
 // These are the per-encoder function declarations
+#ifdef MF_ENC_ADDR
 void blink_MF_RGB(void);
-void blink_AF_RGB(void);
+#endif
+#ifdef ENC2_ADDR
+void blink_ENC2_RGB(void);
+#endif
+#ifdef ENC3_ADDR
+void blink_ENC3_RGB(void);
+#endif
 void set_I2CEncoders(void);
 
 // These are generic callback functions - meaning when a hardware event occurs these functions are 

@@ -44,7 +44,8 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
   #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.
   //Class initialization with the I2C addresses
   extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
-  extern i2cEncoderLibV2 AF_ENC; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+  extern i2cEncoderLibV2 ENC2; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+  extern i2cEncoderLibV2 ENC3; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.// 
 #else 
   Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
   //Encoder AF(29,28);   // AF gain control - not used yet
@@ -70,7 +71,7 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
 #endif
 
 void I2C_Scanner(void);
-void MF_Service(int8_t counts);
+void MF_Service(int8_t counts, int8_t knob);
 void RampVolume(float vol, int16_t rampType);
 void printHelp(void);
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
@@ -243,14 +244,12 @@ void setup()
 
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
-    Wire.setClock(100000); // Increase i2C bus transfer data rate from default of 100KHz
+    Wire.setClock(100000); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
 
 #ifdef  I2C_ENCODERS  
     set_I2CEncoders();
-    blink_AF_RGB();
-    blink_MF_RGB();
 #endif // I2C_ENCODERS
 
 #ifdef SV1AFN_BPF
@@ -511,31 +510,42 @@ void loop()
     }
 
     #ifdef I2C_ENCODERS
-    //Serial.println(MF_ENC.readVersion());
+    uint8_t mfg;
+
     /* Watch for the INT pin to go low */
-    //MF_ENC.updateStatus();
-    //AF_ENC.updateStatus();
     if (digitalRead(I2C_INT_PIN) == LOW) 
     {
-        /* Check the status of the encoder and call the callback */
-        if(MF_ENC.updateStatus() || MF_ENC.updateStatus())
-        {
-            Serial.print("****Checked AF_Enc status = ");
-            uint8_t mfg = AF_ENC.readStatus();
-            Serial.println(mfg);
-
-            Serial.print("****Checked MF_Enc status = ");
+        #ifdef MF_ENC_ADDR
+        // Check the status of the encoder (if enabled) and call the callback
+        if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
+        {            
             mfg = MF_ENC.readStatus();
-            Serial.println(mfg);
+            if (mfg) { Serial.print("****Checked MF_Enc status = "); Serial.println(mfg); }
         }
+        #endif
+        #ifdef ENC2_ADDR
+        if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client)
+        {
+            mfg = ENC2.readStatus();
+            if (mfg) {Serial.print("****Checked Encoder #2 status = "); Serial.println(mfg); }
+        }
+        #endif
+        #ifdef ENC3_ADDR
+        if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client)
+        {
+            mfg = ENC3.readStatus();
+            if (mfg) {Serial.print("****Checked Encoder #3 status = "); Serial.println(mfg); }
+        }
+        #endif
     }
+    
     #else
     // Use a mechanical encoder on the GPIO pisn, if any.
     if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
     {
         static int8_t counts = 0;   
         counts = (int8_t) round(multiKnob(0)/4);
-        MF_Service(counts);
+        MF_Service(counts, MF_client);
     }
     #endif // I2C_ENCODERS
 
@@ -641,7 +651,7 @@ void RampVolume(float vol, int16_t rampType)
 // _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
 //
 //This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
-FLASHMEM
+
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
 {
     //static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
@@ -818,18 +828,19 @@ void set_MF_Service(uint8_t client_name)
 //
 static uint16_t old_ts;
 FLASHMEM 
-void MF_Service(int8_t counts)
+void MF_Service(int8_t counts, int8_t knob)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
         return;
     
-    MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
-                         // When it experies it will be switched to default
+    if (knob == MF_client)
+        MF_Timeout.reset();  // if it isthe MF_Client then reset (extend) timeout timer as long as there is activity.  
+                            // When it experies it will be switched to default
 
     //Serial.print("MF Knob Client ID is ");
     //Serial.println(MF_client);
 
-    switch (MF_client)      // Give this owner control until timeout
+    switch (knob)      // Give this owner control until timeout
     {
         case MFNONE: {
             // no current owner, return
@@ -861,7 +872,7 @@ void MF_Service(int8_t counts)
         case MFTUNE :
         default     : {   
             old_ts = bandmem[curr_band].tune_step;
-            bandmem[curr_band].tune_step = 5;
+            bandmem[curr_band].tune_step =3;
             selectFrequency(counts);
             bandmem[curr_band].tune_step = old_ts;
         } break;        

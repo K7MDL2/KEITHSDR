@@ -370,9 +370,9 @@ void Rate(int8_t swiped)
 			direction = 1;   // cycle upwards
 		}
 
-		if (_fndx >= TS_STEPS-1)
+		if (_fndx >= 2)   //TS_STEPS-1)
 		{
-			_fndx = TS_STEPS-1;
+			_fndx = 2;  //TS_STEPS-1;
 			direction = -1;
 		}
 		
@@ -381,8 +381,8 @@ void Rate(int8_t swiped)
 		else	
 			_fndx += swiped;  // forces a step higher or lower then current
 		
-		if (_fndx > TS_STEPS-1)   // ensure we are still in range
-			_fndx = TS_STEPS - 1;  // just in case it over ranges, bad stuff happens when it does
+		if (_fndx >= 2)  //TS_STEPS-1)   // ensure we are still in range
+			_fndx = 2;  //TS_STEPS - 1;  // just in case it over ranges, bad stuff happens when it does
 		if (_fndx < 1)
 			_fndx = 1;  // just in case it over ranges, bad stuff happens when it does		
 	}

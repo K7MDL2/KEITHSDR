@@ -302,9 +302,9 @@ struct User_Settings {
     uint8_t     fine;               // Fine tune state.  0 is off.  1+ is mode
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
     uint8_t     default_MF_client;  // The default "client" assignment for the the MF Knob.
-    uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs
-    uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs
-    uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs
+    uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
+    uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
+    uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
 };
 
 struct Frequency_Display {
