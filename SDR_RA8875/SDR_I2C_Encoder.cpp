@@ -43,7 +43,7 @@ Serial.println("Rotated");
   Serial.println(obj->readCounterInt());
   int16_t count = obj->readCounterInt();
   MF_Service(count);
-  MF_ENC.writeCounter((int32_t) 0); // Reset the counter value
+  obj->writeCounter((int32_t) 0); // Reset the counter value
   // Update the color
   uint32_t tval = 0x00FF00;  // Set the default color to green
   switch(MF_client)
@@ -93,11 +93,12 @@ void encoder_fade(i2cEncoderLibV2* obj)
 
 void set_I2CEncoders()
 {
-    pinMode(I2C_INT_PIN, INPUT_PULLUP);
+    pinMode(I2C_INT_PIN, INPUT);
 Serial.println("Setup ENC");
     // MF KNOB - Multi-Fucntion knob setup.
 
     AF_ENC.reset();
+    delay(20);
     AF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
         | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE
@@ -106,9 +107,10 @@ Serial.println("Setup ENC");
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
 
     MF_ENC.reset();
+    delay(20);
     MF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
-        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE
+        | i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE
         | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!

@@ -243,12 +243,14 @@ void setup()
 
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
-    Wire.setClock(400000); // Increase i2C bus transfer data rate from default of 100KHz
+    Wire.setClock(100000); // Increase i2C bus transfer data rate from default of 100KHz
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
 
 #ifdef  I2C_ENCODERS  
     set_I2CEncoders();
+    blink_AF_RGB();
+    blink_MF_RGB();
 #endif // I2C_ENCODERS
 
 #ifdef SV1AFN_BPF
@@ -511,19 +513,20 @@ void loop()
     #ifdef I2C_ENCODERS
     //Serial.println(MF_ENC.readVersion());
     /* Watch for the INT pin to go low */
-    MF_ENC.updateStatus());
-    AF_ENC.updateStatus());
+    //MF_ENC.updateStatus();
+    //AF_ENC.updateStatus();
     if (digitalRead(I2C_INT_PIN) == LOW) 
     {
-        Serial.println("test");
         /* Check the status of the encoder and call the callback */
         if(MF_ENC.updateStatus() || MF_ENC.updateStatus())
         {
-            MF_ENC.readStatus();
-            AF_ENC.readStatus();
-            //uint8_t mfg = MF_ENC.readStatus();
+            Serial.print("****Checked AF_Enc status = ");
+            uint8_t mfg = AF_ENC.readStatus();
+            Serial.println(mfg);
+
             Serial.print("****Checked MF_Enc status = ");
-            //Serial.println(mfg);
+            mfg = MF_ENC.readStatus();
+            Serial.println(mfg);
         }
     }
     #else
