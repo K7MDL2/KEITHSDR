@@ -103,6 +103,7 @@ uint8_t             popup = 0;                          // experimental flag for
 int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
 volatile int32_t    Freq_Peak = 0;
 uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
+float               alert_tone_vol = 0.0;
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -156,12 +157,13 @@ AudioOutputI2S_F32      Output(audio_settings);
 radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
 AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
 AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
+AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
 
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
 //AudioSynthSineCosine_F32   sinewave2;
 //AudioSynthSineCosine_F32   sinewave3;
-AudioSynthWaveformSine_F32 sinewave1;
+
 AudioSynthWaveformSine_F32 sinewave2;
 AudioSynthWaveformSine_F32 sinewave3;
 AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
@@ -201,6 +203,7 @@ AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
 AudioConnection_F32     patchCord4b(CW_Filter,0,    CW_RMS,0);
 AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
 AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+AudioConnection_F32     patchCord4e(sinewave1,0,     Output,0);
 
 AudioControlSGTL5000    codec1;
 
@@ -244,7 +247,7 @@ void setup()
 
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
-    Wire.setClock(100000); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
+    Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
 
@@ -356,14 +359,16 @@ void setup()
       FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
     }
     */
+    // Set up an alert tone for feedback   Can also blink KED knobs if used.
+    alert_tone_vol = 0.0;
+    sinewave1.amplitude(alert_tone_vol);
+    sinewave1.frequency(600.0); //    Alert tones
 
 #ifdef TEST_SINEWAVE_SIG
     // Create a synthetic sine wave, for testing
     // To use this, edit the connections above
     // # sources to test edges and middle of BW
     float sinewave_vol = 0.005;
-    sinewave1.amplitude(sinewave_vol);
-    sinewave1.frequency(4000.000); //
     sinewave2.amplitude(sinewave_vol);
     sinewave2.frequency(5000.000); //
     sinewave3.amplitude(sinewave_vol);

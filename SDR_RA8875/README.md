@@ -2,6 +2,10 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/3/2021
+
+    1. Fixed Swipes when in RA8876 Cnfiguration. Oddity in the FT5206 library which is used with the RA8876.
+
 ## 4/2/2021
 
     1. Enabled support for the RA8876 controller based 7" display with FT5206 compatible touch controller. Use #ifdef USE_RA8875 to enable the RA8875, else it will use the RA8876.  
