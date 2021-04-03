@@ -665,7 +665,8 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
         #ifdef I2C_ENCODERS
-          blink_MFG_RGB();
+          blink_MF_RGB();
+          blink_AF_RGB();
         #endif // I2C_ENCODERS
     }
 }

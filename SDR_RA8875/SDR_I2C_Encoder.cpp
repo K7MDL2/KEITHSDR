@@ -10,7 +10,8 @@
 
 #include <i2cEncoderLibV2.h>
 // These are the per-encoder function declarations
-void blink_MFG_RGB(void);
+void blink_MF_RGB(void);
+void blink_AF_RGB(void);
 void set_I2CEncoders(void);
 
 extern uint8_t MF_client;     // Flag for current owner of MF knob services
@@ -103,11 +104,6 @@ Serial.println("Setup ENC");
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
     //  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
 
-    AF_ENC.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a daabase value also*/
-    AF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
-    AF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
-    AF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
-
     MF_ENC.reset();
     MF_ENC.begin(
         i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE
@@ -120,12 +116,19 @@ Serial.println("Setup ENC");
     MF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
     MF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
     MF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
+    
+    AF_ENC.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a daabase value also*/
+    AF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
+    AF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
+    AF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
 
     /* Configure the events */
-    //MF_ENC.onChange = encoder_rotated;
+    MF_ENC.onChange = encoder_rotated;
     MF_ENC.onButtonRelease = encoder_click;
     MF_ENC.onMinMax = encoder_thresholds;
     MF_ENC.onFadeProcess = encoder_fade;
+    
+    AF_ENC.onChange = encoder_rotated;
     AF_ENC.onButtonRelease = encoder_click;
     AF_ENC.onMinMax = encoder_thresholds;
     AF_ENC.onFadeProcess = encoder_fade;
@@ -133,14 +136,19 @@ Serial.println("Setup ENC");
     /* Enable the I2C Encoder V2 interrupts according to the previous attached callback */
     MF_ENC.autoconfigInterrupt();
     AF_ENC.autoconfigInterrupt();
+
     //MF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
+    
     MF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
     AF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+    
     //MF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
-    blink_MFG_RGB();
+    
+    blink_MF_RGB();
+    blink_AF_RGB();
 }
 
-void blink_MFG_RGB(void)
+void blink_MF_RGB(void)
 {
     /* blink the RGB LED */
     MF_ENC.writeRGBCode(0xFF0000);
@@ -150,7 +158,21 @@ void blink_MFG_RGB(void)
     MF_ENC.writeRGBCode(0x0000FF);
     delay(250);
     MF_ENC.writeRGBCode(0x000000);
-Serial.println("Blink RGB");
+Serial.println("Blink MF RGB");
     MF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
+}
+
+void blink_AF_RGB(void)
+{
+    /* blink the RGB LED */
+    AF_ENC.writeRGBCode(0xFF0000);
+    delay(250);
+    AF_ENC.writeRGBCode(0x00FF00);
+    delay(250);
+    AF_ENC.writeRGBCode(0x0000FF);
+    delay(250);
+    AF_ENC.writeRGBCode(0x000000);
+Serial.println("Blink AF RGB");
+    AF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif // I2C_ENCODER
