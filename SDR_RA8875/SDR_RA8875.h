@@ -296,6 +296,7 @@ struct User_Settings {
     uint8_t     nb_level;           // 0 to NB_SET_NUM records in the table
     uint8_t     nr_en;              // Noise Reduction.  0 is off.  1+ is mode
     uint8_t     spot;               // Spot  0 is off.  1+ is mode
+    float       rogerBeep_Vol;      // feedback beeps level  Range 0.0 to 1.0. 
     uint16_t    pitch;              // Pitch  0 is off.  1+ is mode
     uint8_t     notch;              // Notch mode.  0 is off.  1+ is mode
     uint8_t     xmit;               // xmit state.  0 is off.  1+ is mode

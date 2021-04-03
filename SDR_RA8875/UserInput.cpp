@@ -10,7 +10,6 @@
 
 Metro gesture_timer=Metro(700);  // Change this to tune the button press timing. A drag will be > than this time.
 extern Metro popup_timer; // used to check for popup screen request
-extern float alert_tone_vol;
 
 // Our  extern declarations. Mostly needed for button activities.
 #ifdef USE_RA8875
@@ -37,7 +36,8 @@ extern AudioControlSGTL5000 codec1;
 extern uint8_t popup;
 extern void set_MF_Service(uint8_t client_name);
 extern struct Frequency_Display disp_Freq[];
-
+extern AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
+extern void rogerBeep(bool enable);
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime); 
@@ -92,13 +92,17 @@ uint8_t get_Touches()
 void Touch( void)
 {
     uint8_t current_touches = 0;
-    static uint8_t previous_touch = 0;
-    uint16_t x,y,i, x1, y1;
+    static uint8_t previous_touch = 0;    
     static uint8_t holdtime = 0;
+
 //#define DBG_GESTURE
+
+#ifdef DBG_GESTURE
+    uint16_t  x, y, i, x1, y1;
+#endif
+
     if (Touched())
     {      
-        x = y = 0;
         touch_update();
         current_touches = get_Touches();
         //Serial.print("Gesture Register=");  // used to test if controller gesture detection really works. It does not do very well.
@@ -506,10 +510,8 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
     if (popup)
         popup_timer.reset();
 
-    // Create a feedback beep
-    alert_tone_vol = 0.6;
-    delay(100);
-    alert_tone_vol = 0.0;
+    // feedback beep
+    rogerBeep(true);  // a timer will shut it off.
 
     struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
     for ( uint16_t i=0; i < STD_BTN_NUM; i++ )

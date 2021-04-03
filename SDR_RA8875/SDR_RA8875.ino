@@ -76,6 +76,7 @@ void RampVolume(float vol, int16_t rampType);
 void printHelp(void);
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
 void respondToByte(char c);
+void rogerBeep(bool enable);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -103,7 +104,7 @@ uint8_t             popup = 0;                          // experimental flag for
 int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
 volatile int32_t    Freq_Peak = 0;
 uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
-float               alert_tone_vol = 0.0;
+bool                rogerBeep_flag = false;
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -197,13 +198,13 @@ AudioConnection_F32     patchCord2a(Hilbert1,0,      Q_Peak,0);
 AudioConnection_F32     patchCord2b(Hilbert2,0,      I_Peak,0);
 AudioConnection_F32     patchCord2c(Hilbert1, 0,     RX_Summer,0);
 AudioConnection_F32     patchCord2d(Hilbert2, 0,     RX_Summer,1);
+AudioConnection_F32     patchCord2e(sinewave1,0,     RX_Summer,2);
 AudioConnection_F32     patchCord3a(RX_Summer,0,     S_Peak,0);
 AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
 AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
-AudioConnection_F32     patchCord4b(CW_Filter,0,    CW_RMS,0);
+AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
 AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
 AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
-AudioConnection_F32     patchCord4e(sinewave1,0,     Output,0);
 
 AudioControlSGTL5000    codec1;
 
@@ -215,7 +216,8 @@ Metro meter         = Metro(400);   // used to update the meters
 Metro popup_timer   = Metro(500);   // used to check for popup screen request
 Metro NTP_updateTx  = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx  = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
-Metro MF_Timeout    = Metro(4000);// MultiFunction Knob and Switch 
+Metro MF_Timeout    = Metro(4000);  // MultiFunction Knob and Switch 
+Metro rogerBeep_timer = Metro(80); // Feedback beep for button touches
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -360,9 +362,6 @@ void setup()
     }
     */
     // Set up an alert tone for feedback   Can also blink KED knobs if used.
-    alert_tone_vol = 0.0;
-    sinewave1.amplitude(alert_tone_vol);
-    sinewave1.frequency(600.0); //    Alert tones
 
 #ifdef TEST_SINEWAVE_SIG
     // Create a synthetic sine wave, for testing
@@ -564,6 +563,12 @@ void loop()
     if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     {
         // Service popup window
+    }
+    
+    // The timer and flag are set by the rogerBeep() function
+    if (rogerBeep_flag && rogerBeep_timer.check() == 1)   
+    {
+        rogerBeep(false);    
     }
 
     //respond to Serial commands
@@ -794,6 +799,7 @@ void unset_MF_Service(uint8_t client_name)
         } break;
         case  REFLVL_BTN: {
             setRefLevel();
+            Serial.println("unsetREF");
         } break;
         case NB_BTN:
         case MFTUNE:
@@ -833,7 +839,7 @@ void set_MF_Service(uint8_t client_name)
 //
 static uint16_t old_ts;
 FLASHMEM 
-void MF_Service(int8_t counts, int8_t knob)
+void MF_Service(int8_t counts, uint8_t knob)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
         return;
@@ -858,6 +864,7 @@ void MF_Service(int8_t counts, int8_t knob)
         } break;
         case  REFLVL_BTN: {
             RefLevel(counts*-1);
+            Serial.println("setREF");
         } break;
         case  ATTEN_BTN: {
             if (counts> 31)
@@ -927,5 +934,28 @@ void I2C_Scanner(void)
 
   //delay(500); // wait 5 seconds for the next I2C scan
 }
+
+// Turns on or off a tone injected in the RX_summer block.  
+// Function that calls for a rogerBeep sets a global flag.
+// The main loop starts a timer for a short beep an calls this to turn the tone on or off.
+void rogerBeep(bool enable)
+{
+    if (enable)
+    {
+        rogerBeep_flag = true;
+        rogerBeep_timer.reset();
+        sinewave1.amplitude(user_settings[user_Profile].rogerBeep_Vol);
+        sinewave1.frequency((float) user_settings[user_Profile].pitch); //    Alert tones
+    }
+    else 
+    {
+        //if (rogerBeep_timer.check() == 1)   // make sure another event does not cut it off early
+        //{ 
+            rogerBeep_flag = false;
+            sinewave1.amplitude(0.0);
+        //}
+    }
+}
+
 
 #endif  // _SDR_RA8875_

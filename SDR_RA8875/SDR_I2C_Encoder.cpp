@@ -37,7 +37,7 @@ void encoder_rotated(i2cEncoderLibV2* obj);
 void encoder_click(i2cEncoderLibV2* obj);
 void encoder_thresholds(i2cEncoderLibV2* obj);
 
-extern void MF_Service(int8_t counts, int8_t knob);
+extern void MF_Service(int8_t counts, uint8_t knob);
 
 //Callback when the MF Gain encoder is rotated
 void encoder_rotated(i2cEncoderLibV2* obj) 

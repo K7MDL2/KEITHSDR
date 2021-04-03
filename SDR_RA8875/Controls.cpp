@@ -168,8 +168,8 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
-    selectBandwidth(bandmem[curr_band].filter);
     Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
+    selectBandwidth(bandmem[curr_band].filter);
      //dB level is set elsewhere and uses value in the dB in this function.
     Preamp(-1);     // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     //selectMode(0);  
@@ -187,6 +187,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh();
     RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+    Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
 }
 
 void pop_win(uint8_t init)
@@ -1007,14 +1008,20 @@ void TouchTune(int16_t touch_Freq)
     {
         VFOA += _newfreq;
         if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 800)
-            VFOA = Freq_Peak;
+            if (bandmem[curr_band].mode_A == CW)
+                VFOA = Freq_Peak + user_settings[user_Profile].pitch;
+            else
+                VFOA = Freq_Peak;
         //Serial.println(formatVFO(VFOA));
     }
     else
     {
         VFOB += _newfreq; 
         if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 800)
-            VFOB = Freq_Peak;
+            if (bandmem[curr_band].mode_B == CW)
+                VFOB = Freq_Peak + user_settings[user_Profile].pitch;
+            else
+                VFOB = Freq_Peak;
         //Serial.println(formatVFO(VFOB));
     }
     selectFrequency(0);
@@ -1068,7 +1075,7 @@ void setAtten_dB(int8_t atten)
     digitalWrite(Atten_LE,   (uint8_t) OFF);
     digitalWrite(Atten_DATA, (uint8_t) OFF);
     digitalWrite(Atten_CLK,  (uint8_t) OFF);
-     delayMicroseconds(10);
+    delayMicroseconds(10);
     //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
     //    Start with the MSB first so start at the left end of the string   
     for(i=0;i<6;i++)

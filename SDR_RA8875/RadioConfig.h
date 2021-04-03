@@ -50,7 +50,7 @@
                             // DEPENDS on ethernet jack and cable connected
                             // Choose to use DHCP or a static IP address for the SDR
 
-#define USE_DHCP            // USe DHCP rather then define a static IP address (which is Defined further below)
+#define USE_DHCP            // Use DHCP rather then define a static IP address (which is Defined further below)
 
 // #define I2C_LCD          // Turn of or on the optional I2C character LCD display.   
                             // Look below to set the i2c address of the display and
