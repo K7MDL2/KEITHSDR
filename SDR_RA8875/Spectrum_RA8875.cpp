@@ -42,7 +42,7 @@ void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
 void setActiveWindow(void);
 void _updateActiveWindow(bool full);
 
-int16_t wf_time_line = 5000;
+int16_t wf_time_line = 15000;
 int16_t fftFreq_refresh = 1000;
 Metro waterfall_timestamp=Metro(wf_time_line);  // Used to draw a time stamp line across the waterfall window.  Cha
 Metro fftFreq_timestamp = Metro(fftFreq_refresh);
@@ -117,7 +117,7 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,0,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     #else
-    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,340,1.0,0.9,0,40,-180, 40},
+    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,340,1.0,0.9,0,40,-180, 60},
     {508, 2,2, 4, 512,258,14,8,143,165,165,528,520,142,213,307,307, 2,139, 512,390,40,20,5,440,1.0,0.9,0,40,-180,100},
     #endif        
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
@@ -296,8 +296,8 @@ void spectrum_update(int16_t s)
         #endif  // USE_RA8875
         // draw a periodic time stamp line
         if (waterfall_timestamp.check() == 1)
-            //tft.drawRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, RA8875_GREEN);  // x start, y start, width, height, colors w x h           
-            tft.drawFastHLine(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, myLT_GREY);  // x start, y start, width, height, colors w x h           
+            tft.drawRect(ptr->l_graph_edge+1, ptr->wf_top_line+2, 20, 1, LIGHTGREY);  // x start, y start, width, height, colors w x h           
+            //tft.drawFastHLine(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, myLT_GREY);  // x start, y start, width, height, colors w x h           
         else  // Draw the new line at the top
             tft.writeRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, (uint16_t*) &line_buffer);  // x start, y start, width, height, array of colors w x h
 
