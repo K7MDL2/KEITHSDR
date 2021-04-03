@@ -7,7 +7,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     1. Enabled support for the RA8876 controller based 7" display with FT5206 compatible touch controller. Use #ifdef USE_RA8875 define to enable the RA8875, else it will use the RA8876.  
     2. RA8875 is enabled by default in RadioConfig.h
     3. The touch screen is mounted upside down on the RA8876 7" screen relative to the RA8875 4.3" display. Part of the RA8876 changes involve correcting for that. Other size displays may be different.
-    4. NOTES: I2C Encoders do not work. 
+    4. NOTE: Only the MF I2C Encoder works.  Working on gettng a 2nd working right. 
     5. In RA8876 mode Swipes in any direction do NOT work yet.
     6. Added Noise Blanker (NB) to input I and Q. There are 6 predefined sets to try out.  Change those values in the NB table in SDR_Data.h.
     7. Added copies of setActiveWindow() functions from RA8875 library to Spectrum_RA8875.cpp for use with RA8876. The RA8876_t3 library has the function marked "protected:"  Rather than require everyone modify the library, the fucntion are now local in RA8876 mode.  It won't work if the display is rotated to portrait mode.
