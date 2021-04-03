@@ -441,8 +441,8 @@ void Mute()
 // MENU
 void Menu()
 {   
-    popup = 1;
-    pop_win(1);
+    //popup = 1;
+    //pop_win(1);
     Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
     if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              

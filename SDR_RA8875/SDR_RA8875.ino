@@ -451,7 +451,10 @@ void setup()
         user_settings[user_Profile].mute = ON;
         displayMute();
     }
-    changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
+    
+    changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
+                        // Call changeBands() here after volume to get proper startup volume
+
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     printHelp();
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
