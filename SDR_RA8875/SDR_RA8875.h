@@ -126,6 +126,42 @@
 #define NTCH1       1
 #define NTCH2       2
 
+// Some defines for ease of use 
+#define myDARKGREY  31727u
+// From RA8876_t3/RA8876Registers.h
+#define BLACK		    0x0000
+#define WHITE		    0xffff
+#define RED		  	  0xf800
+#define LIGHTRED	  0xfc10
+#define CRIMSON		  0x8000
+#define GREEN		    0x07e0
+#define PALEGREEN	  0x87f0
+#define DARKGREEN	  0x0400
+#define BLUE		    0x001f
+#define LIGHTBLUE	  0x051f
+#define SKYBLUE		  0x841f
+#define DARKBLUE	  0x0010
+#define YELLOW		  0xffe0
+#define LIGHTYELLOW	0xfff0
+#define DARKYELLOW	0x8400 // mustard
+#define CYAN		    0x07ff
+#define LIGHTCYAN	  0x87ff
+#define DARKCYAN	  0x0410
+#define MAGENTA		  0xf81f
+#define VIOLET		  0xfc1f
+#define BLUEVIOLET	0x8010
+#define ORCHID		  0xA145 
+// Otehr sources of RGB coplpr definitions
+#define NAVY        0x000F
+#define MAROON      0x7800
+#define PURPLE      0x780F
+#define OLIVE       0x7BE0
+#define LIGHTGREY   0xC618
+#define DARKGREY    0x7BEF
+#define ORANGE      0xFD20
+#define GREENYELLOW 0xAFE5
+#define PINK        0xF81F
+
 // This group defines thw number of records in each structure
 #define MODES_NUM   4
 #define FREQ_DISP_NUM  4
