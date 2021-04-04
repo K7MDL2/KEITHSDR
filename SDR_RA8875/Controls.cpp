@@ -178,6 +178,9 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     RFgain(0);
     AFgain(0);
     setNBLevel(0);
+    struct Spectrum_Parms *ptr = &Sp_Parms_Def[spectrum_preset];  // clear the screen on band change
+    tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+20, ptr->wf_sp_width-2, ptr->sp_height-22, myBLACK);
+    tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future
@@ -1008,7 +1011,7 @@ void TouchTune(int16_t touch_Freq)
     if (bandmem[curr_band].VFO_AB_Active == VFO_A)
     {
         VFOA += _newfreq;
-        if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 800)
+        if ((abs((int32_t) VFOA - (int32_t) Freq_Peak)) < 800)
             if (bandmem[curr_band].mode_A == CW)
                 VFOA = Freq_Peak + user_settings[user_Profile].pitch;
             else
@@ -1018,7 +1021,7 @@ void TouchTune(int16_t touch_Freq)
     else
     {
         VFOB += _newfreq; 
-        if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 800)
+        if ((abs((int32_t) VFOB - (int32_t) Freq_Peak)) < 800)
             if (bandmem[curr_band].mode_B == CW)
                 VFOB = Freq_Peak + user_settings[user_Profile].pitch;
             else

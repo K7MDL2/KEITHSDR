@@ -117,7 +117,7 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     #else
-    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,340,1.0,0.9,1,40,-180,80},
+    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,310,1.0,0.9,1,40,-180,80},
     {508, 2,2, 4, 512,258,14,8,143,165,165,528,520,142,213,307,307, 2,139, 512,390,40,20,5,440,1.0,0.9,0,40,-180,100},
     #endif        
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
@@ -447,30 +447,36 @@ void spectrum_update(int16_t s)
                         //{
                         //    if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
                         //    {
+                                if (pixelnew[i] <= ptr->sp_top_line+1) pixelnew[i] = ptr->sp_top_line+1;
+                                if (pixelold[i] <= ptr->sp_top_line+1) pixelold[i] = ptr->sp_top_line+1;
+                                if (pixelnew[i] >= ptr->sp_bottom_line-1) pixelnew[i] = ptr->sp_bottom_line-1;
+                                if (pixelold[i] >= ptr->sp_bottom_line-1) pixelold[i] = ptr->sp_bottom_line-1;
                                 
+                                //if (i > 3) pixelnew[i] = (pixelnew[i]+pixelnew[i-1])/2;
+                                //if (pixelnew[i] - pixelnew[i-1] > 40) pixelnew[i] = pixelnew[i-1];
+
                                 //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16, myBLACK); // delete old pixel
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16, myYELLOW); // write new pixel    
-                                                           
-                                // Double up the dots to make the spectrum more dense and visible                                
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-1, myBLACK); // delete old pixel
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-1, myYELLOW); // write new pixel  
-                                
-                                // Triple up the dots to make the spectrum more dense and visible                                
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-2, myBLACK); // delete old pixel
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-2, myYELLOW); // write new pixel  
-                       
-                                // Experimental  - draw a 2 pixel wide segment fopr more visibility
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16, myYELLOW); // write new pixel
 
                                 // --->> This is a good working line but wastes time erasing mostly black space from the top down.
-                                tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK); //BLACK);                            
+                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK);   // works with some artifacts
+                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, ptr->sp_height-2, myBLACK);// works with some artifacts  
+                                
+                                tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
+                                
+                                //int v_pos = ptr->sp_bottom_line - pixelold[i];
+                                //if (v_pos > ptr->sp_top_line+1) v_pos = ptr->sp_top_line+1; 
+
+                                //tft.drawRect(ptr->l_graph_edge+1+i, pixelold[i], 2, ptr->sp_bottom_line-1 - pixelold[i], myBLACK);
                                 
                                 // Try to find a more efficient way here to erase
-                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, pixelold[i-1], abs(ptr->sp_bottom_line-1 - pixelold[i]),  BLACK); //BLACK);                                
+                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, pixelold[i-1], abs(ptr->sp_bottom_line-1 - pixelold[i]),  BLACK);                              
                                 // This one works but leaves it messy under the line.  Above the line is clear. 122ms  Flickers the numbers at the top.
-                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelold[i], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelold[i])+2,   myBLACK); //BLACK);                         
+                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelold[i], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelold[i])+2,   BLACK);                        
+                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelnew[i-1])+2,   BLACK);                         
                                 
                                 // This draws a good shaped line.  The trick is to erase the old one.  Might try BTE or Chromakey or alpha blending                                
-                                tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, pixelnew[i],   myYELLOW); //BLACK);    
+                                tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, pixelnew[i],  YELLOW);
                                 
                                 pixelold[i] = pixelnew[i]; 
 
@@ -484,7 +490,7 @@ void spectrum_update(int16_t s)
             if (i == (ptr->wf_sp_width/2))
             {
             // draw a grid line for XX dB level             
-                tft.setTextColor(myLT_GREY);
+                tft.setTextColor(myLT_GREY,BLACK);
                 tft.setFont(Arial_10);
                 
                 int grid_step = ptr->spect_sp_scale;
@@ -515,7 +521,7 @@ void spectrum_update(int16_t s)
         //-----------------------   This part onward is outside the active window ------------------------------
         //
         // Update graph scale, ref level, power and freq
-        tft.setTextColor(myLT_GREY);
+        tft.setTextColor(myLT_GREY,BLACK);
         tft.setFont(Arial_12);
 
         fft_pk_bin = find_FFT_Max(L_EDGE+2, L_EDGE+ptr->wf_sp_width-2);   // get new frequency and power values for strongest signal 
@@ -531,7 +537,7 @@ void spectrum_update(int16_t s)
         if (fftMaxPower > fftPower_pk_last)
         { 
             fftPower_pk_last = fftMaxPower;            
-            tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
+            //tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
             tft.setCursor(ptr->l_graph_edge+30,        ptr->sp_txt_row+30); // Write the legend
             tft.print("P: "); 
             tft.setCursor(ptr->l_graph_edge+46,        ptr->sp_txt_row+30);  // write the value
@@ -548,7 +554,7 @@ void spectrum_update(int16_t s)
                 
         // Calculate and print the frequency of the strongest signal if possible 
         //Serial.print("Freq="); Serial.println(fftFrequency, 3); 
-        tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 140, 13, RA8875_BLACK);
+        //tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 140, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
@@ -560,7 +566,7 @@ void spectrum_update(int16_t s)
 
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);
         tft.print("S:   "); // actual value is updated elsewhere   
-        tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);       
+        //tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);       
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+64, ptr->sp_txt_row+30);
         tft.print(ptr->spect_sp_scale);     
         
@@ -572,7 +578,7 @@ void spectrum_update(int16_t s)
         // Write the Reference Level to top line area
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+100, ptr->sp_txt_row+30);
         tft.print("R:   ");  // actual value is updated elsewhere            
-        tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
+        //tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
         //tft.print(sp_floor_avg,0);
         tft.print(ptr-> spect_floor);
@@ -588,20 +594,20 @@ void spectrum_update(int16_t s)
         tft.setTextColor(myLT_GREY);
         tft.setFont(Arial_12);
 
-        tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+        //tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
         tft.print(formatFreq(_VFO_ - (ptr->wf_sp_width*fft_bin_size)));       // Write left side of graph Freq
         
-        tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+        //tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
         tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
         tft.print(formatFreq(_VFO_));   // Write center of graph Freq   
         
-        tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+        //tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
         tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
         tft.print(formatFreq(_VFO_ + (ptr->wf_sp_width*fft_bin_size)));  // Write right side of graph Freq
         
         // Write the dB range of the window 
-        tft.setTextColor(myLT_GREY);
+        tft.setTextColor(myLT_GREY,BLACK);
         tft.setFont(Arial_10);
         tft.setCursor(ptr->r_graph_edge-40, ptr->sp_top_line+8);
         tft.print("H:   ");  // actual value is updated elsewhere
