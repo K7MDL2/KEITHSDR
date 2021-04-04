@@ -176,8 +176,8 @@ AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
 // Copnnections for FFT Only - chooses either the input or the output to display in the spectrum plot
 AudioConnection_F32     patchCord7a(Input,0,         FFT_Switch1,0);
 AudioConnection_F32     patchCord7b(Input,1,         FFT_Switch2,0);
-AudioConnection_F32     patchCord6a(Output,0,        FFT_Switch1,1);
-AudioConnection_F32     patchCord6b(Output,1,        FFT_Switch2,1);
+AudioConnection_F32     patchCord6a(Input,0,        FFT_Switch1,1);
+AudioConnection_F32     patchCord6b(Input,1,        FFT_Switch2,1);
 AudioConnection_F32     patchCord5a(FFT_Switch1,0,   myFFT,0);
 AudioConnection_F32     patchCord5b(FFT_Switch2,0,   myFFT,1);
 
@@ -375,8 +375,8 @@ void setup()
 #endif
 
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
-    //RX_Summer.gain(0, -3.0); // Leave at 1.0
-    //RX_Summer.gain(1, 3.0);  // -1 for LSB out
+    RX_Summer.gain(0, -3.0); // Leave at 1.0
+    RX_Summer.gain(1, 3.0);  // -1 for LSB out
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
     // Uncomment one these to try other window functions
@@ -451,7 +451,7 @@ void setup()
         user_settings[user_Profile].mute = ON;
         displayMute();
     }
-    
+
     changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
                         // Call changeBands() here after volume to get proper startup volume
 

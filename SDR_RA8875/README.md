@@ -6,9 +6,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
     1. Fixed Swipes when in RA8876 Configuration. Oddity in the FT5206 library which is used with the RA8876.
     2. Added a feedback beep when a button is touched. Uses the pitch and rogerBeep_Vol level value in the user_settings table.  To turn off the beep set the volume to 0.0 in the table.
-    3. Added an attempt to auto-tune a CW signal when you TouchTune in CW mode. It adds the pitch frequency to the peak signal frequency, if there is one. If not then it jsut jumps to the screen's touch point frequency.
+    3. Added an attempt to auto-tune a CW signal when you TouchTune in CW mode. It adds the pitch frequency to the peak signal frequency, if there is one. If not then it just jumps to the screen's touch point frequency.
     4. Waterfall timestamp line changed to a short tick line every 15 sceonds on left side.
-    5. Fixed display stoppage when the Menu button was pressed, a remnant of the old pop up window on that button and the band button.  The pop ups will return in a sequel.
+    5. Fixed display stoppage when the Menu or Display buttons were pressed, remnants of the old pop up window on that button and the band button.  The pop ups will return in a sequel. The Display button now switched between LINE and BAR mode cleanly.
+    6. Converted the spectrum display DOT mode to LINE mode for a more traditional spectrum image.  Loop time is around 120ms.  A lot of energy is required to clear the old vertical space before the new line is drawn. Clearing the whole rectangle then draw the 1022 line segments is fast but give a bit of flicker. The current method is smooth but overwrites the on-screen indicators so those will need to be relocated outside of the window.
 
 ## 4/2/2021
 

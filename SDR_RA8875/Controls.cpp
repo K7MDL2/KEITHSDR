@@ -990,8 +990,9 @@ void Display()
         display_state = 1;
         Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 1;
     }
-    popup = 1;
-    pop_win(1);
+    drawSpectrumFrame(spectrum_preset);
+    //popup = 1;
+    //pop_win(1);
     displayDisplay();
     //Serial.print("Set Display Button to ");
     //Serial.println(display_state);

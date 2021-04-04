@@ -112,12 +112,12 @@ Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 // Just copy and paste from the serial terminal into each record row.
 // #define PRESETS 10  // number of parameter records with our preset spectrum window values - this value moved to the .h file
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
-    //W        LE  RE  CG                                            x   y   w  h  x  sp st clr sc mode scal reflvl wfrate
+    //W        LE  RE  CG                                            x   y   w  h  x sp st clr sc mode scal reflvl wfrate
     #ifdef USE_RA8875
-    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,0,40,-155, 90},
+    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     #else
-    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,340,1.0,0.9,0,40,-180, 60},
+    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,340,1.0,0.9,1,40,-180,80},
     {508, 2,2, 4, 512,258,14,8,143,165,165,528,520,142,213,307,307, 2,139, 512,390,40,20,5,440,1.0,0.9,0,40,-180,100},
     #endif        
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
@@ -267,6 +267,8 @@ void spectrum_update(int16_t s)
                       break; 
             };
 
+// /Serial.println(tft.grandient( (uint16_t) pix_n16));
+
             // Fc Blanking
             if (i >= (ptr->wf_sp_width/2)-blanking  && i <= (ptr->wf_sp_width/2)+blanking+1)
             {
@@ -407,9 +409,12 @@ void spectrum_update(int16_t s)
             //
             //------------------------ Code below is writing only in the active spectrum window ----------------------
             //
-            //if (i == 2)
-            //    tft.clearActiveScreen();
-
+            if (i == 2)
+            {
+                //tft.clearActiveScreen();
+                //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+20, ptr->wf_sp_width-2, ptr->sp_height-22, myBLACK);
+                //tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);  
+            }
             if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
             {
                 if ((i < ptr->wf_sp_width-2) && (pix_n16 > ptr->sp_top_line+2) && (pix_n16 < ptr->sp_bottom_line-2)  ) // will blank out the center spike
@@ -434,17 +439,17 @@ void spectrum_update(int16_t s)
                             }
                         }
                     }
-                    else if (ptr->spect_dot_bar_mode == 1)  // DOT mode
+                    else  // DOT mode
                     {   // DOT Mode
                         // alternate way: draw pixels
                         // only plot pixel, if at a new position
-                        if (pix_o16 != pix_n16) 
-                        {
-                            if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
-                            {
+                        //if (pix_o16 != pix_n16) 
+                        //{
+                        //    if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
+                        //    {
                                 
-                                tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16, myBLACK); // delete old pixel
-                                tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16, myYELLOW); // write new pixel    
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16, myBLACK); // delete old pixel
+                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16, myYELLOW); // write new pixel    
                                                            
                                 // Double up the dots to make the spectrum more dense and visible                                
                                 //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-1, myBLACK); // delete old pixel
@@ -453,35 +458,23 @@ void spectrum_update(int16_t s)
                                 // Triple up the dots to make the spectrum more dense and visible                                
                                 //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16-2, myBLACK); // delete old pixel
                                 //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16-2, myYELLOW); // write new pixel  
-                                
-                                //Serial.println(tft.grandient( (uint16_t) pix_n16));
-                                // Experimetnal  - draw a 2 pixel wide segment fopr more visibility
-                                //tft.drawFastHLine(ptr->l_graph_edge+1+i, pix_o16, 2,   myBLACK); //BLACK);                         
-                                //tft.drawFastHLine(ptr->l_graph_edge+1+i, pix_n16, 2,   myYELLOW); //BLACK);
-                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, pix_o16-1, 2,   myBLACK); //BLACK);                         
-                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, pix_n16-1, 2,   myYELLOW); //BLACK);                                
+                       
+                                // Experimental  - draw a 2 pixel wide segment fopr more visibility
 
+                                // --->> This is a good working line but wastes time erasing mostly black space from the top down.
+                                tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK); //BLACK);                            
+                                
+                                // Try to find a more efficient way here to erase
+                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, pixelold[i-1], abs(ptr->sp_bottom_line-1 - pixelold[i]),  BLACK); //BLACK);                                
+                                // This one works but leaves it messy under the line.  Above the line is clear. 122ms  Flickers the numbers at the top.
+                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelold[i], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelold[i])+2,   myBLACK); //BLACK);                         
+                                
+                                // This draws a good shaped line.  The trick is to erase the old one.  Might try BTE or Chromakey or alpha blending                                
+                                tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, pixelnew[i],   myYELLOW); //BLACK);    
+                                
                                 pixelold[i] = pixelnew[i]; 
 
-                            }
-                        }
-                    }
-                    // Under Dev - attempting to draw connecting line between dots  Lines are drawn all over for some reason TBD.
-                    else if (ptr->spect_dot_bar_mode == 2 && pix_o16 != pix_n16) 
-                    { 
-                        //if ((pix_n16 > ptr->sp_top_line+10 && pix_n16 < ptr->sp_bottom_line-10) && 
-                         //       (pix_o16 > ptr->sp_top_line+10 && pix_o16 < ptr->sp_bottom_line-10))
-                        //{
-                            //Serial.println(pixelnew[i]);
-
-                            tft.drawLine(ptr->l_graph_edge+1+i,    (int16_t) pixelold[i-1],    ptr->l_graph_edge+1+i,   (int16_t) pixelold[i], myBLACK); // BLACK);                    
-                            tft.drawLine(ptr->l_graph_edge+1+i,    (int16_t) pixelnew[i-1],    ptr->l_graph_edge+1+i,   (int16_t) pixelnew[i], myYELLOW); // GREEN);                    
-                            
-                            //tft.drawLine(ptr->l_graph_edge+1+i,  (int16_t) pixelold[i-1], myBLACK); // delete old pixel
-                            //tft.drawLine(ptr->l_graph_edge+1+i,  (int16_t) pixelnew[i-1], myYELLOW); // write new pixel
-                            //tft.drawLine(ptr->l_graph_edge+1+i,  pix_o16,     myBLACK); // delete old pixel                             
-                            //tft.drawLine(ptr->l_graph_edge+1+i,  pix_n16,     myYELLOW); // write new pixel
-                            pixelold[i] = pixelnew[i]; 
+                            //}
                         //}
                     }
                 }
@@ -708,7 +701,7 @@ void initSpectrum(void)
     tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
     tft.setScrollMode(LAYER1ONLY);    // One of these 4 modes {SIMULTANEOUS, LAYER1ONLY, LAYER2ONLY, BUFFERED }
 #else
-    tft.selectScreen(0);   // For the RA8876 this is the equivalent of Layer1Only
+    tft.selectScreen(PAGE1_START_ADDR);   // For the RA8876 this is the equivalent of Layer1Only
 #endif
 }
 //
