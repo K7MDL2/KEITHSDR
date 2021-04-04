@@ -1015,21 +1015,25 @@ void TouchTune(int16_t touch_Freq)
     if (bandmem[curr_band].VFO_AB_Active == VFO_A)
     {
         VFOA += _newfreq;
-        if ((abs((int32_t) VFOA - (int32_t) Freq_Peak)) < 800)
+        if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 800)
+        {
             if (bandmem[curr_band].mode_A == CW)
                 VFOA = Freq_Peak + user_settings[user_Profile].pitch;
             else
                 VFOA = Freq_Peak;
+        }
         //Serial.println(formatVFO(VFOA));
     }
     else
     {
         VFOB += _newfreq; 
-        if ((abs((int32_t) VFOB - (int32_t) Freq_Peak)) < 800)
+        if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 800)
+        {
             if (bandmem[curr_band].mode_B == CW)
                 VFOB = Freq_Peak + user_settings[user_Profile].pitch;
             else
                 VFOB = Freq_Peak;
+        }
         //Serial.println(formatVFO(VFOB));
     }
     selectFrequency(0);
