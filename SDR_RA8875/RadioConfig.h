@@ -76,7 +76,7 @@
 #define SPECTRUM_PRESET 0   // The spectrum layout record default value.  
 
 // K7MDL specific Build Configuration rolled up into one #define
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
