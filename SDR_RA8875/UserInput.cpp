@@ -37,7 +37,7 @@ extern uint8_t popup;
 extern void set_MF_Service(uint8_t client_name);
 extern struct Frequency_Display disp_Freq[];
 extern AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
-extern void rogerBeep(bool enable);
+extern void touchBeep(bool enable);
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime); 
@@ -519,7 +519,7 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
             if ((ptr+i)->show && holdtime == 0)  // if the show property ius active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 // feedback beep
-                rogerBeep(true);  // a timer will shut it off.  
+                touchBeep(true);  // a timer will shut it off.  
                 switch (i)
                 {
                     case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
@@ -559,7 +559,7 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
             if ((ptr+i)->show && holdtime > 0)  // if the show property ius active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 // feedback beep
-                rogerBeep(true);  // a timer will shut it off.
+                touchBeep(true);  // a timer will shut it off.
                 switch (i)
                 {
                     case NB_BTN:        NB();           break; //Increment the mode from current value           
@@ -572,7 +572,7 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
             if ((ptr+i)->enabled)    // TOUCHTUNE button - This uses the enabled field so treated on its own
             {
                 // feedback beep
-                rogerBeep(true);  // a timer will shut it off.
+                touchBeep(true);  // a timer will shut it off.
                 switch (i)
                 {
                     case SPECTUNE_BTN: TouchTune(x);    break;

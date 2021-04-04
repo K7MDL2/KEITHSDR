@@ -76,7 +76,7 @@ void RampVolume(float vol, int16_t rampType);
 void printHelp(void);
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
 void respondToByte(char c);
-void rogerBeep(bool enable);
+void touchBeep(bool enable);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -104,7 +104,7 @@ uint8_t             popup = 0;                          // experimental flag for
 int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
 volatile int32_t    Freq_Peak = 0;
 uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
-bool                rogerBeep_flag = false;
+bool                touchBeep_flag = false;
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -217,7 +217,7 @@ Metro popup_timer   = Metro(500);   // used to check for popup screen request
 Metro NTP_updateTx  = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx  = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout    = Metro(4000);  // MultiFunction Knob and Switch 
-Metro rogerBeep_timer = Metro(80); // Feedback beep for button touches
+Metro touchBeep_timer = Metro(80); // Feedback beep for button touches
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -570,9 +570,9 @@ void loop()
     }
     
     // The timer and flag are set by the rogerBeep() function
-    if (rogerBeep_flag && rogerBeep_timer.check() == 1)   
+    if (touchBeep_flag && touchBeep_timer.check() == 1)   
     {
-        rogerBeep(false);    
+        touchBeep(false);    
     }
 
     //respond to Serial commands
@@ -942,12 +942,12 @@ void I2C_Scanner(void)
 // Turns on or off a tone injected in the RX_summer block.  
 // Function that calls for a rogerBeep sets a global flag.
 // The main loop starts a timer for a short beep an calls this to turn the tone on or off.
-void rogerBeep(bool enable)
+void touchBeep(bool enable)
 {
     if (enable)
     {
-        rogerBeep_flag = true;
-        rogerBeep_timer.reset();
+        touchBeep_flag = true;
+        touchBeep_timer.reset();
         sinewave1.amplitude(user_settings[user_Profile].rogerBeep_Vol);
         sinewave1.frequency((float) user_settings[user_Profile].pitch); //    Alert tones
     }
@@ -955,7 +955,7 @@ void rogerBeep(bool enable)
     {
         //if (rogerBeep_timer.check() == 1)   // make sure another event does not cut it off early
         //{ 
-            rogerBeep_flag = false;
+            touchBeep_flag = false;
             sinewave1.amplitude(0.0);
         //}
     }
