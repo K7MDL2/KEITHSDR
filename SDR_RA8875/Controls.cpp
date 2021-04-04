@@ -44,6 +44,7 @@ extern          void                unset_MF_Service(uint8_t client_name);
 extern          uint8_t             MF_client; // Flag for current owner of MF knob services
 extern          float               fft_bin_size;       // = sample_rate_Hz/(FFT_SIZE*2) -  Size of FFT bin in Hz
 extern          int16_t             spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
+extern          void                touchBeep(bool enable);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -458,6 +459,9 @@ void Menu()
 // VFO A/B
 void VFO_AB()
 {
+    // feedback beep
+    touchBeep(true);  // a timer will shut it off.
+
     if (bandmem[curr_band].VFO_AB_Active == VFO_A)
     {
         bandmem[curr_band].VFO_AB_Active = VFO_B;

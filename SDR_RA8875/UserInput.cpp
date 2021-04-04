@@ -170,6 +170,10 @@ void Touch( void)
             //touch_evt.touch_start = millis();
             //touch_evt.elapsed_time = 0;  // may not need this, use metro timer instead
             #endif  //  DBG_GESTURE   
+            
+            // check for 0,0 empty touch event and restart if so.
+            if (touch_evt.start_coordinates[0][0] == 0 && touch_evt.start_coordinates[0][1] == 0)
+                return;
 
             gesture_timer.reset();   // reset timer
             return;
@@ -592,6 +596,8 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
         {
             if ((pLabel+i)->show)  // if the show property ius active, call the button function to act on it.
             {   
+                // feedback beep
+                touchBeep(true);  // a timer will shut it off.
                 // used the index to the table to match up a function to call
                 switch (i)
                 {
