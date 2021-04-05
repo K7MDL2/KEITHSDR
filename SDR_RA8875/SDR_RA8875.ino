@@ -2,7 +2,7 @@
 #define _SDR_RA8875_
 //  SDR_RA8875.INO
 //
-//  Main PRogram File
+//  Main Program File
 //
 //  Spectrum, Display, full F32 library conversion completed 3/2021. Uses FFTXXXX_IQ_F32 FFT I and Q version files
 //      XXXX can be the 256, 1024, 2048 or 4096 versions.
@@ -184,7 +184,7 @@ AudioConnection_F32     patchCord5b(FFT_Switch2,0,   myFFT,1);
 
 // TEST trying out new NB and AGC features  - use selected lines below as make sense
 AudioConnection_F32     patchCord10a(Input,0,         NoiseBlanker,0);
-AudioConnection_F32     patchCord10b(Input,0,         NoiseBlanker,1);
+AudioConnection_F32     patchCord10b(Input,1,         NoiseBlanker,1);
 //AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
 //AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
 //AudioConnection_F32     patchCord9a(compressor1,0,   Hilbert1,0);
