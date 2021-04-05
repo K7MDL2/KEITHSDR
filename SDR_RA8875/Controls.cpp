@@ -179,9 +179,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     RFgain(0);
     AFgain(0);
     setNBLevel(0);
-    struct Spectrum_Parms *ptr = &Sp_Parms_Def[spectrum_preset];  // clear the screen on band change
-    tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+20, ptr->wf_sp_width-2, ptr->sp_height-22, myBLACK);
-    tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);
+    drawSpectrumFrame(spectrum_preset);
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future

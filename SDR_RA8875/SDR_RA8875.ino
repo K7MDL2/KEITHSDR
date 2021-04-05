@@ -111,6 +111,7 @@ bool                touchBeep_flag = false;
 #else
   RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
   FT5206 cts = FT5206(CTP_INT); 
+  extern void setActiveWindow();
 #endif
 
 #ifdef ENET
@@ -237,7 +238,6 @@ extern int16_t  spectrum_preset;                    // Specify the default layou
 int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
 extern Metro spectrum_waterfall_update;             // Timer used for controlling the Spectrum module update rate.
 
-//
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
 FLASHMEM 
@@ -271,14 +271,26 @@ void setup()
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
         tft.touchEnable(false);   // Ensure the resitive ocntroller, if any is off
-        tft.backlight(true);
-        tft.displayOn(true);
+        tft.displayImageStartAddress(PAGE1_START_ADDR); 
+        tft.displayImageWidth(SCREEN_WIDTH);
+        tft.displayWindowStartXY(0,0);
+        // specify the page 2 for the current canvas
+        tft.canvasImageStartAddress(PAGE2_START_ADDR);
+        // specify the page 1 for the current canvas
+        tft.canvasImageStartAddress(PAGE1_START_ADDR);
+        tft.canvasImageWidth(SCREEN_WIDTH);
+        //tft.activeWindowXY(0,0);
+        //tft.activeWindowWH(SCREEN_WIDTH,SCREEN_HEIGHT);
+        setActiveWindow();
         tft.graphicMode(true);
         tft.clearActiveScreen();
         tft.selectScreen(0);  // Select screen page 0
         tft.fillScreen(BLACK);
         tft.setBackGroundColor(BLACK);
         tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+        tft.backlight(true);
+        tft.displayOn(true);
+
     #endif
     tft.setRotation(0); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
@@ -293,6 +305,8 @@ void setup()
             //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
         #endif  // USE_RA8875
     #endif // USE_FT5206_TOUCH
+    
+    initSpectrum();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 
     #ifdef DIG_STEP_ATT
         // Initialize the I/O for digital step attenuator if used.
@@ -387,7 +401,6 @@ void setup()
     myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
-    initSpectrum();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
     curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
     user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
     spectrum_preset = user_settings[user_Profile].sp_preset;
@@ -406,6 +419,7 @@ void setup()
                                                               // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
                                                               // Generator never modifies the globals so never affects the layout itself.
                                                               // Print out our starting frequency for testing
+    drawSpectrumFrame(6);
     Serial.print("\nInitial Dial Frequency is ");
     Serial.print(formatVFO(VFOA));
     Serial.println("MHz");
@@ -477,6 +491,7 @@ void loop()
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
             if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
                 spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+                spectrum_update(6);
     }
     
     uint32_t time_n = millis() - time_old;

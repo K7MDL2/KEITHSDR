@@ -85,25 +85,25 @@ int16_t spectrum_preset = SPECTRUM_PRESET;   // <<<==== Set this value.  Range i
 ///******************************************************************************************************************************
 
 // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
-int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
+int16_t spectrum_x              = 550;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-int16_t spectrum_y              = 139;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-int16_t spectrum_height         = 390;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
-int16_t spectrum_center         = 40;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
+int16_t spectrum_y              = 179;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+int16_t spectrum_height         = 230;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+int16_t spectrum_center         = 70;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
-int16_t spectrum_width          = 512;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
+int16_t spectrum_width          = 200;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
 int16_t spectrum_span           = 20;       // Value in KHz.  Ths will be the maximum span shown in the display graphs.  
                                             // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
                                             // Max value and resolutoin (pixels per bin) is dependent on sample frequency
                                             // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
                                             // 12500 would result in 2 pixels per bin. Bad numbers here should be corrected to best fit by the function
-int16_t spectrum_wf_style       = 5;        // Range 1- 6. Specifies the Waterfall style.
-int16_t spectrum_wf_colortemp   = 440;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
+int16_t spectrum_wf_style       = 2;        // Range 1- 6. Specifies the Waterfall style.
+int16_t spectrum_wf_colortemp   = 310;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
 float   spectrum_wf_scale       = 1.0;      // 0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
 float   spectrum_LPFcoeff       = 0.9;      // 1.0f to 0.0f. Data smoothing
-int16_t spectrum_dot_bar_mode   = 0;        // 0=bar, 1=DOT, 3=Line. Spectrum box . Line mode is experimental
+int16_t spectrum_dot_bar_mode   = 1;        // 0=bar, 1=DOT, 3=Line. Spectrum box . Line mode is experimental
 int16_t spectrum_sp_scale       = 40;       // 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
-int16_t spectrum_floor          = -180;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
+int16_t spectrum_floor          = -160;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
 int16_t spectrum_wf_rate        = 100;          // window update rate in ms.  25 is fast enough to see dit and dahs well
 
 Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
@@ -116,19 +116,23 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
     #ifdef USE_RA8875
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
+    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-155, 90},
+    {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     #else
-    {1020,2,2, 2,1022,512,14,8,143,165,165,528,520,142,213,307,307, 0,139,1024,390,40,20,2,310,1.0,0.9,1,40,-180,80},
-    {508, 2,2, 4, 512,258,14,8,143,165,165,528,520,142,213,307,307, 2,139, 512,390,40,20,5,440,1.0,0.9,0,40,-180,100},
+    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,2,310,1.0,0.9,1,40,-180, 60},
+    { 508,1,1,  1, 509,254,14,8,214,236,236,528,520,113,171,349,349,  0,210, 510,319,40,20,2,310,1.0,0.9,0,40,-180,120},
+    { 508,1,1,513,1021,766,14,8,214,236,236,528,520,113,171,349,349,512,210, 510,319,40,20,2,310,1.0,0.9,1,40,-180,120},
+    {298,1,1,601,899,749,14,8,304,326,326,499,491,99,66,425,425,600,300,300,200,60,20,2,310,1.0,0.9,0,40,-160,100},
     #endif        
     {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60,-180, 80},  // Small wide bottom screen area to fit under pop up wndows.
-    {396,2, 2,202,598,400,14,8,243,265,265,438,430, 99, 66,364,364,200,239,400,200,60,25,2,310,1.7,0.9,0,60,-180,100},    //smaller centered
-    {500,0,49,149,650,400,14,8,243,265,265,438,430, 82, 83,347,347,100,239,599,200,25,25,3,950,2.0,0.7,1,40,-185, 60},  // low wide high gain
+    {498,1,1,1,499,249,14,8,143,165,165,408,400,94,141,259,259,0,139,500,270,40,20,2,310,1.0,0.9,0,40,-160,100},    //smaller centered
+    {198,1,1,551,749,649,14,8,183,205,205,408,400,136,59,341,341,550,179,200,230,70,20,2,310,1.0,0.9,1,40,-130,100},  // low wide high gain
     {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25,2,320,1.0,0.9,1,30,-180, 75},     //60-100 good
     {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25,2,310,1.7,0.9,0,60,-180,100},
     {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25,2,310,1.7,0.9,0,40,-180,100},
     {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,2,450,0.7,0.9,1,40,-180, 40},
     {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25,5,440,1.0,0.9,0,40,-180, 30}
-    }; 
+}; 
 
 // Place to hold custom data, enventually in EEPROM
 struct Spectrum_Parms Sp_Parms_Custom[1] = {};
@@ -273,7 +277,7 @@ void spectrum_update(int16_t s)
             if (i >= (ptr->wf_sp_width/2)-blanking  && i <= (ptr->wf_sp_width/2)+blanking+1)
             {
                 line_buffer[i] = myBLACK;    
-                if (i == (ptr->wf_sp_width)/2)
+                if (i == ((ptr->wf_sp_width)/2) + 1)
                     line_buffer[i] = myLT_GREY;  // draw center Fc line in waterfall
             }
         }   // Done with copying the FFT output array
@@ -288,14 +292,16 @@ void spectrum_update(int16_t s)
             // Move the block back on Layer 1 but place it 1 row down from the top
             tft.BTE_move(ptr->l_graph_edge+1, ptr->wf_top_line+2, ptr->wf_sp_width, ptr->wf_height-4, ptr->l_graph_edge+1, ptr->wf_top_line+2, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.
             while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.        
-        #else   // RA8876
-            tft.selectScreen(PAGE1_START_ADDR);
+        #else   // RA8876  
+            tft.canvasImageStartAddress(PAGE2_START_ADDR);
             tft.boxPut(PAGE2_START_ADDR, ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, ptr->wf_bottom_line-2, ptr->l_graph_edge+1, ptr->wf_top_line+2);                    
             tft.check2dBusy();     
-            tft.selectScreen(PAGE1_START_ADDR);       
+            
+            tft.canvasImageStartAddress(PAGE1_START_ADDR);
             tft.boxGet(PAGE2_START_ADDR, ptr->l_graph_edge+1, ptr->wf_top_line+2, ptr->wf_sp_width, ptr->wf_bottom_line-1, ptr->l_graph_edge+1, ptr->wf_top_line+2);
-            tft.check2dBusy();            
+            tft.check2dBusy();              
         #endif  // USE_RA8875
+        
         // draw a periodic time stamp line
         if (waterfall_timestamp.check() == 1)
             tft.drawRect(ptr->l_graph_edge+1, ptr->wf_top_line+2, 20, 1, LIGHTGREY);  // x start, y start, width, height, colors w x h           
@@ -308,8 +314,24 @@ void spectrum_update(int16_t s)
         //
         // Done with waterfall, now draw the spectrum section
         // start at 2 to prevent reading out of bounds during averaging formula
+                    // Draw our image on canvas 2 which is not visible
+
+        #ifdef USE_RA8875
+            tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2); 
+            tft.writeTo(L2);         //L1, L2, CGRAM, PATTERN, CURSOR     
+            tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);       
+        #else            
+            //  NOTE - setActiveWindow function in the RA8876_t3 library is marked at protected:  Change it to public:
+            // Instead we are using own copies for RA8876
+            // For RA8876 switch to hidden Page 2, draw our line as normal then at end, 
+            // do a BTE mem copy from page 2 to page 1 for a flicker free, clean screen drawn fast.
+            tft.canvasImageStartAddress(PAGE2_START_ADDR);
+            // Blank the plot area and we will draw a new line, flicker free!
+            setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+1, ptr->sp_bottom_line-1);
+            tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);
+        #endif
+
         for (i = 2; i < (ptr->wf_sp_width-1); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
-        //for  (i=2; i < (FFT_SIZE)-2; i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         {       
             // average a few values to smooth the line a bit
             float avg_pix2 = (pixelnew[i]+pixelnew[i+1])/2;     // avg of 2 bins            
@@ -397,15 +419,7 @@ void spectrum_update(int16_t s)
             pix_n16 = pixelnew[i];  // convert float to uint16_t to match the draw functions type
             pix_o16 = pixelold[i];
 
-
             // Limit access to the spectrum box to control misbehaved pixel and bar draws
-            #ifdef USE_RA8875
-            tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);            
-            #else
-            //NOTE - setActiveWindow function in the RA8876_t3 library is marked at protected:  Change it to public:
-            // Instead we are using own copies for RA8876
-            setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2);            
-            #endif
             //
             //------------------------ Code below is writing only in the active spectrum window ----------------------
             //
@@ -413,7 +427,7 @@ void spectrum_update(int16_t s)
             {
                 //tft.clearActiveScreen();
                 //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+20, ptr->wf_sp_width-2, ptr->sp_height-22, myBLACK);
-                //tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);  
+                //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
             }
             if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
             {
@@ -430,54 +444,46 @@ void spectrum_update(int16_t s)
                     {
                         if (pix_o16 != pix_n16) 
                         {                          
-                            if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
+                            if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
                             {
                                 //common way: draw bars                                                                        
-                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_o16, ptr->sp_bottom_line-pix_o16,    myBLACK); // GREEN);
-                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);
+                                #ifdef USE_RA8875
+                                    //tft.drawFastVLine(ptr->l_graph_edge+i, pix_o16, ptr->sp_bottom_line-pix_o16,    myBLACK); // GREEN);
+                                    tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);
+                                #else
+                                    tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);
+                                #endif
+                                
                                 pixelold[i] = pixelnew[i];
                             }
                         }
                     }
                     else  // DOT mode
-                    {   // DOT Mode
-                        // alternate way: draw pixels
-                        // only plot pixel, if at a new position
-                        //if (pix_o16 != pix_n16) 
-                        //{
-                        //    if (pix_n16 > ptr->sp_top_line+2 && pix_n16 < ptr->sp_bottom_line-2)
+                    {   
+                        // DOT Mode
+                            if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
                         //    {
-                                if (pixelnew[i] <= ptr->sp_top_line+1) pixelnew[i] = ptr->sp_top_line+1;
-                                if (pixelold[i] <= ptr->sp_top_line+1) pixelold[i] = ptr->sp_top_line+1;
-                                if (pixelnew[i] >= ptr->sp_bottom_line-1) pixelnew[i] = ptr->sp_bottom_line-1;
-                                if (pixelold[i] >= ptr->sp_bottom_line-1) pixelold[i] = ptr->sp_bottom_line-1;
-                                
-                                //if (i > 3) pixelnew[i] = (pixelnew[i]+pixelnew[i-1])/2;
-                                //if (pixelnew[i] - pixelnew[i-1] > 40) pixelnew[i] = pixelnew[i-1];
-
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_o16, myBLACK); // delete old pixel
-                                //tft.drawPixel(ptr->l_graph_edge+1+i, pix_n16, myYELLOW); // write new pixel
 
                                 // --->> This is a good working line but wastes time erasing mostly black space from the top down.
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK);   // works with some artifacts
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, ptr->sp_height-2, myBLACK);// works with some artifacts  
-                                
-                                tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
-                                
-                                //int v_pos = ptr->sp_bottom_line - pixelold[i];
-                                //if (v_pos > ptr->sp_top_line+1) v_pos = ptr->sp_top_line+1; 
-
+                                                                
+                                #ifdef USE_RA8875
+                                // For the RA8875 erase the column we are about to draw in.  The RA8876 blanks the whole box and used BTE
+                                    //tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
+                                #endif
                                 //tft.drawRect(ptr->l_graph_edge+1+i, pixelold[i], 2, ptr->sp_bottom_line-1 - pixelold[i], myBLACK);
                                 
                                 // Try to find a more efficient way here to erase
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, pixelold[i-1], abs(ptr->sp_bottom_line-1 - pixelold[i]),  BLACK);                              
                                 // This one works but leaves it messy under the line.  Above the line is clear. 122ms  Flickers the numbers at the top.
                                 //tft.drawLine(ptr->l_graph_edge+1+i, pixelold[i], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelold[i])+2,   BLACK);                        
-                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelnew[i-1])+2,   BLACK);                         
-                                
-                                // This draws a good shaped line.  The trick is to erase the old one.  Might try BTE or Chromakey or alpha blending                                
-                                tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, pixelnew[i],  YELLOW);
-                                
+                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelnew[i-1])+2,   BLACK);                                                         
+
+                                // Ths will be drawn on Canvas 2 if this is a RA8876                                
+                                //if (pixelnew[i] < ptr->sp_bottom_line && i > 3 )
+                                tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  YELLOW);
+
                                 pixelold[i] = pixelnew[i]; 
 
                             //}
@@ -506,22 +512,24 @@ void spectrum_update(int16_t s)
                     }
                 }
                 // redraw the center line
-                //tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);  
+                tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
             }
-        }
-            
+        } // end of spectrum pixel plotting
+
+ 
 #ifdef USE_RA8875            
             tft.setActiveWindow();  // restore access to whole screen
         #else
-            setActiveWindow();  // restore access to whole screen
+           // setActiveWindow();  // restore access to whole screen
+            //tft.selectScreen(0);
 #endif
         //
-        //------------------------ Code above is writing only in the active spectrum window ----------------------
+        //------------------------ Code above is writing only in the active spectrum window  (RA8875 only)----------------------
         //
-        //-----------------------   This part onward is outside the active window ------------------------------
+        //-----------------------   This part onward is outside the active window (for RA8875 only)------------------------------
         //
         // Update graph scale, ref level, power and freq
-        tft.setTextColor(myLT_GREY,BLACK);
+        tft.setTextColor(myLT_GREY, BLACK);
         tft.setFont(Arial_12);
 
         fft_pk_bin = find_FFT_Max(L_EDGE+2, L_EDGE+ptr->wf_sp_width-2);   // get new frequency and power values for strongest signal 
@@ -537,7 +545,7 @@ void spectrum_update(int16_t s)
         if (fftMaxPower > fftPower_pk_last)
         { 
             fftPower_pk_last = fftMaxPower;            
-            //tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
+            tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
             tft.setCursor(ptr->l_graph_edge+30,        ptr->sp_txt_row+30); // Write the legend
             tft.print("P: "); 
             tft.setCursor(ptr->l_graph_edge+46,        ptr->sp_txt_row+30);  // write the value
@@ -590,38 +598,60 @@ void spectrum_update(int16_t s)
             spect_ref_last = sp_floor_avg;   // update memory
         }    
             
-        // Update the span labels with current VFO frequencies    
-        tft.setTextColor(myLT_GREY);
-        tft.setFont(Arial_12);
-
-        //tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
-        tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-        tft.print(formatFreq(_VFO_ - (ptr->wf_sp_width*fft_bin_size)));       // Write left side of graph Freq
-        
-        //tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
-        tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
-        tft.print(formatFreq(_VFO_));   // Write center of graph Freq   
-        
-        //tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
-        tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
-        tft.print(formatFreq(_VFO_ + (ptr->wf_sp_width*fft_bin_size)));  // Write right side of graph Freq
-        
         // Write the dB range of the window 
         tft.setTextColor(myLT_GREY,BLACK);
         tft.setFont(Arial_10);
-        tft.setCursor(ptr->r_graph_edge-40, ptr->sp_top_line+8);
+        tft.setCursor(ptr->r_graph_edge-50, ptr->sp_top_line+8);
         tft.print("H:   ");  // actual value is updated elsewhere
-        tft.setCursor(ptr->r_graph_edge-28, ptr->sp_top_line+8); 
+        tft.setCursor(ptr->r_graph_edge-38, ptr->sp_top_line+8); 
+        tft.print(ptr->sp_height);
 
         // Reset spectrum screen blanking timeout
         spectrum_clear.reset();
-    }
+
+        #ifdef USE_RA8875
+            // Insert RA8875 BTE_move
+            tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
+            tft.BTE_move(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_height-2, ptr->l_graph_edge+1, ptr->sp_top_line+1, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.
+            while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.
+            tft.setActiveWindow();
+        #else
+            // BTE block copy it to page 1 spectrum window area. No flicker this way, no artifacts since we clear the window each time.            
+            tft.boxGet(PAGE2_START_ADDR, ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_bottom_line-1, ptr->l_graph_edge+1, ptr->sp_top_line+1);
+            tft.check2dBusy();            
+            tft.canvasImageStartAddress(PAGE1_START_ADDR);
+            setActiveWindow();
+        #endif
+
+        // Update the span labels with current VFO frequencies    
+        tft.setTextColor(myLT_GREY, BLACK);
+        tft.setFont(Arial_12);
+
+        static uint32_t old_VFO_ = 0;
+
+        if (old_VFO_ != _VFO_)
+        {
+            tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+            tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
+            tft.print(formatFreq(_VFO_ - (ptr->wf_sp_width*fft_bin_size)));       // Write left side of graph Freq
+            
+            tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+            tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
+            tft.print(formatFreq(_VFO_));   // Write center of graph Freq   
+            
+            tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
+            tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
+            tft.print(formatFreq(_VFO_ + (ptr->wf_sp_width*fft_bin_size)));  // Write right side of graph Freq
+            old_VFO_ = _VFO_;   // save to minimize updates for no reason.
+        }
+    }                
     else      // Clear stale data
     {
         if (spectrum_clear.check() == 1)      // Spectrum Screen blanking timer
         {
-            tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width-2, ptr->sp_height-2, myBLACK);
-            tft.drawFastVLine(ptr->c_graph, ptr->sp_top_line, ptr->sp_height-2 , myLT_GREY); //myLT_GREY);  
+            Serial.println("*** Cleared Screen, no data to Draw! ***");
+            //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width-2, ptr->sp_height-2, myBLACK);
+            //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
         }
     }
 }
@@ -665,7 +695,7 @@ void drawSpectrumFrame(uint8_t s)
         // Therefore always call the generator before DraSpectrum to create a new set of params
     
     // Set up the Waterfall scroll box area 
-    //These 2 lines are used to test alignments, normally leave them commented out.  The scroll region is over the same area
+    //The scroll region is over the same area
     tft.drawRect(ptr->l_graph_edge,    ptr->wf_top_line,    ptr->wf_sp_width+2,   ptr->wf_height,    myLT_GREY);  // x start, y start, width, height, array of colors w x h
     tft.fillRect(ptr->l_graph_edge+1,  ptr->wf_top_line+1,  ptr->wf_sp_width,     ptr->wf_height-2,  myBLACK);
     // Set the scroll region for the watefall.  We only need to write 1 new top line and block shift the rest down 1.
@@ -678,17 +708,17 @@ void drawSpectrumFrame(uint8_t s)
     // Draw Tick marks and Span Labels
     tft.drawLine(ptr->l_graph_edge+1,                        ptr->sp_tick_row,      ptr->l_graph_edge+1,                        ptr->sp_tick_row-ptr->tick_height, myLT_GREY);
     tft.drawLine(ptr->l_graph_edge+(ptr->wf_sp_width/4),     ptr->sp_tick_row,      ptr->l_graph_edge+(ptr->wf_sp_width/4),     ptr->sp_tick_row-ptr->tick_height, myLT_GREY);
-    tft.drawLine(ptr->l_graph_edge+1+(ptr->wf_sp_width/2),   ptr->sp_tick_row,      ptr->l_graph_edge+1+(ptr->wf_sp_width/2),   ptr->sp_tick_row-ptr->tick_height, myLT_GREY);
+    tft.drawLine(ptr->l_graph_edge+1+(ptr->wf_sp_width/2)+1, ptr->sp_tick_row,      ptr->l_graph_edge+1+(ptr->wf_sp_width/2)+1, ptr->sp_tick_row-ptr->tick_height, myLT_GREY);
     tft.drawLine(ptr->l_graph_edge+((ptr->wf_sp_width/4)*3), ptr->sp_tick_row,      ptr->l_graph_edge+((ptr->wf_sp_width/4)*3), ptr->sp_tick_row-ptr->tick_height, myLT_GREY);
     tft.drawLine(ptr->l_graph_edge+ptr->wf_sp_width-1,       ptr->sp_tick_row,      ptr->l_graph_edge+ptr->wf_sp_width-1,       ptr->sp_tick_row-ptr->tick_height, myLT_GREY);
     
     // draw the spectrum box center grid line for tuning help.
-    tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY); //BLACK);
+    //tft.drawFastVLine(ptr->l_graph_edge+1+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
     
     // Draw the ticks on the bottom of Waterfall window also
     tft.drawLine(ptr->l_graph_edge+1,                         ptr->wf_bottom_line,   ptr->l_graph_edge+1,                        ptr->wf_tick_row, myLT_GREY);
     tft.drawLine(ptr->l_graph_edge+(ptr->wf_sp_width/4),      ptr->wf_bottom_line,   ptr->l_graph_edge+(ptr->wf_sp_width/4),     ptr->wf_tick_row, myLT_GREY);
-    tft.drawLine(ptr->l_graph_edge+1+(ptr->wf_sp_width/2),    ptr->wf_bottom_line,   ptr->l_graph_edge+1+(ptr->wf_sp_width/2),   ptr->wf_tick_row, myLT_GREY);
+    tft.drawLine(ptr->l_graph_edge+1+(ptr->wf_sp_width/2)+1,  ptr->wf_bottom_line,   ptr->l_graph_edge+1+(ptr->wf_sp_width/2)+1, ptr->wf_tick_row, myLT_GREY);
     tft.drawLine(ptr->l_graph_edge+(ptr->wf_sp_width/4)*3,    ptr->wf_bottom_line,   ptr->l_graph_edge+(ptr->wf_sp_width/4)*3,   ptr->wf_tick_row, myLT_GREY);
     tft.drawLine(ptr->l_graph_edge+ptr->wf_sp_width-1,        ptr->wf_bottom_line,   ptr->l_graph_edge+ptr->wf_sp_width-1,       ptr->wf_tick_row, myLT_GREY);    
 }
@@ -772,7 +802,7 @@ void Spectrum_Parm_Generator(int16_t parm_set)
     struct Spectrum_Parms *ptr = &Sp_Parms_Custom[parm_set];
 
     //int wf_sp_width;  // This is the actual graph space width to be used.  Max is fft_bins, can be smaller.
-    ptr->border_space_min = 2;  // Left and right side space. Graph space would be this this value*2 less.
+    ptr->border_space_min = 1;  // Left and right side space. Graph space would be this this value*2 less.
     ptr->border_space = ptr->border_space_min;
     if (spectrum_width > tft.width())
         spectrum_width = tft.width();
@@ -789,7 +819,7 @@ void Spectrum_Parm_Generator(int16_t parm_set)
     }
     ptr->l_graph_edge     = spectrum_x + ptr->border_space;
     ptr->r_graph_edge     = ptr->l_graph_edge + ptr->wf_sp_width;      
-    ptr->c_graph          = ptr->l_graph_edge + ptr->wf_sp_width/2;  // center of graph window areas
+    ptr->c_graph          = ptr->l_graph_edge + ptr->wf_sp_width/2 -1;  // center of graph window areas
 
     // Work our way down vertically.  Add padding where needed
     ptr->sp_txt_row_height   = 14;   // space for span freequency marker labels

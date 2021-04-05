@@ -125,6 +125,6 @@ struct Spectrum_Parms {
 
 // use the generator function to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
-#define PRESETS 10  // number of parameter records with our preset spectrum window values
+#define PRESETS 12  // number of parameter records with our preset spectrum window values
 
 #endif  // _SPECTRUM_RA8875_H_

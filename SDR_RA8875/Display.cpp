@@ -80,7 +80,7 @@ void displayFreq(void)
 	
 	// Put a box around the VFO section (use BLACK to turn it off)
 	//tft.drawRect(pVAct->bx-1, pVAct->by-1, pVAct->bw+2, pVAct->bh+pVStby->bh+4, pVAct->box_clr);
-	tft.drawLine(0, pVAct->bh+pVStby->bh+10, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+10, RA8875_LIGHT_ORANGE);
+	tft.drawLine(0, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE);
 	//tft.drawRect(0, 15, 192, 65, RA8875_LIGHT_ORANGE);
 	
 	// Draw Active VFO box and Label
@@ -94,7 +94,7 @@ void displayFreq(void)
 	tft.drawRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->ol_clr);
 	tft.fillRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->bg_clr);
 	tft.drawRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->ol_clr);
-	
+
 	// Write the Active VFO
 	tft.setFont(pMAct->txt_Font);
 	tft.setCursor(pMAct->bx+pMAct->padx, pMAct->by+pMAct->pady);
@@ -125,7 +125,7 @@ void displayFreq(void)
       lcd.print(formatVFO(VFOB));
     #endif
 	}
-	
+
 	// Write the standby VFO
 	tft.setFont(pMStby->txt_Font);
 	tft.setCursor(pMStby->bx+pMStby->padx, pMStby->by+pMStby->pady);
@@ -325,7 +325,7 @@ void displayTime(void)
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
-// These buttons have no associated labels so are simly button updates
+// These buttons have no associated labels so are simply button updates
 void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				}
 void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
 void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	}

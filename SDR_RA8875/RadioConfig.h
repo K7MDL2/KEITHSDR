@@ -73,14 +73,14 @@
 
 //#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
 
-#define SPECTRUM_PRESET 0   // The spectrum layout record default value.  
+#define SPECTRUM_PRESET  5  // The spectrum layout record default value.  
 
 // K7MDL specific Build Configuration rolled up into one #define
 //#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-     #undef USE_RA8875            // UNcomment this line to use RA8876
+     //#undef USE_RA8875            // UNcomment this line to use RA8876
     #endif
     #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz

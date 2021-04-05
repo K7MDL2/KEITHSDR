@@ -164,7 +164,7 @@ struct Label labels[LABEL_NUM] = {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1      enc2      enc3    
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND5,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, RFGAIN_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, RFGAIN_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
     {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, RFGAIN_BTN,  AFGAIN_BTN},
     {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, AFGAIN_BTN,  RFGAIN_BTN}
 };

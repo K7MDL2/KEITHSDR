@@ -2,6 +2,21 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/5/2021
+
+    1. Can now running 2 instances of the spectrum window. On the RA8875 I get loop time of about 110ms for 1 larger and 1 smaller window and 90ms on the RA8876 with 2 510px wide windows. That is faster than the single full size window in prior builds for 2 reasons listed below. It is now essentially video quality since there is no flicker and I can increase the refresh rate to aboput 60-70ms.
+        1. Less total pixels drawn
+            a. Erasing old lines doubles our time
+            b. 2 smaller windows have fewer total lines to draw.
+        2. I changed the method to plot the spectrum areas to be similar to the waterfall. 
+            a. For each update I fill a black rectangle on a hidden 2nd page or layer.
+            b. I then write the spectrum plot lines or bars on the 2nd page
+            c. I write the onscreen information (Peak frequency, scales, etc) to Page 2
+            d. Use BTE mem copy to move the block to Page 1 in the spectrum window
+    These changes cut the total lines/bars drawn by half and we get instant refresh so no flicker. Since the info text inside the window is written after the line draws, they are never overwritten and remain clear and flicker free also.
+    2. The RA8876 has issues with smaller size windows breaking the waterfall memory copy and writing outside the window boundaries.  Also one side waterfall will not update. So plenty of work to do on the RA8876. The RA8875 works fine.
+    3. Todays version of Spectrum_RA8875.ino has 2 lines added to draw the 2nd window frame then update it at the same time as the main window.  I will restore that to single window in the next build update but is now in the version history and you can look at past versions to see what was done.
+
 ## 4/3/2021
 
     1. Fixed Swipes when in RA8876 Configuration. Oddity in the FT5206 library which is used with the RA8876.
