@@ -543,6 +543,7 @@ uint16_t colorInterpolation(uint8_t r1,uint8_t g1,uint8_t b1,uint8_t r2,uint8_t 
 				(uint8_t)(((1.0 - pos2) * b1) + (pos2 * b2))
 	);
 }
+#endif
 
 #ifdef LATER1
 /**************************************************************************/
@@ -736,7 +737,7 @@ void _circle_helper(int16_t x0, int16_t y0, int16_t r, uint16_t color, bool fill
 		drawPixel(x0,y0,color);
 		return;
 	}
-	if (r > RA8876_HEIGHT / 2) r = (RA8876_HEIGHT / 2) - 1;//this is the (undocumented) hardware limit of RA8875
+	if (r > SCREEN_HEIGHT / 2) r = (SCREEN_HEIGHT / 2) - 1;//this is the (undocumented) hardware limit of RA8875
 	
 	if (_textMode) _setTextMode(false);//we are in text mode?
 	#if defined(USE_RA8876_SEPARATE_TEXT_COLOR)
@@ -797,8 +798,8 @@ void RA8875::_rect_helper(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t c
 void _rect_helper(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, bool filled)
 {
 	if (_portrait) {swapvals(x1,y1); swapvals(x2,y2);}
-	if ((x1 < 0 && x2 < 0) || (x1 >= RA8875_WIDTH && x2 >= RA8875_WIDTH) ||
-	    (y1 < 0 && y2 < 0) || (y1 >= RA8875_HEIGHT && y2 >= RA8875_HEIGHT))
+	if ((x1 < 0 && x2 < 0) || (x1 >= SCREEN_WIDTH && x2 >= SCREEN_WIDTH) ||
+	    (y1 < 0 && y2 < 0) || (y1 >= SCREEN_HEIGHT && y2 >= SCREEN_HEIGHT))
 		return;	// All points are out of bounds, don't draw anything
 
 	_checkLimits_helper(x1,y1);	// Truncate rectangle that is off screen, still draw remaining rectangle
@@ -1117,8 +1118,10 @@ void fillWindow(uint16_t color)
 	_waitPoll(RA8876_DCR, RA8876_DCR_LINESQUTRI_STATUS, _RA887_WAITPOLL_TIMEOUT_DCR_LINESQUTRI_STATUS);
 	#if defined(USE_RA8876_SEPARATE_TEXT_COLOR)
 		_TXTrecoverColor = true;
+
 	#endif
 }
+
 
 /**************************************************************************/
 /*!
@@ -1156,37 +1159,6 @@ void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 	_circle_helper(x0, y0, r, color, false);
 }
 
-
-/**************************************************************************/
-/*!
-      Draw filled circle
-	  Parameters:
-      x0: The 0-based x location of the center of the circle
-      y0: The 0-based y location of the center of the circle
-      r: radius
-      color: RGB565 color
-*/
-/**************************************************************************/
-/*
-void RA8875::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
-{
-	_center_helper(x0,y0);
-	if (r <= 0) return;
-	_circle_helper(x0, y0, r, color, true);
-}
-*/
-
-void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
-{
-	_center_helper(x0,y0);
-	if (r < 1) return;
-	if (r == 1) {
-		drawPixel(x0,y0,color);
-		return;
-	}
-	_circle_helper(x0, y0, r, color, true);
-}
-
 /**************************************************************************/
 /*!
       Draw a filled curve
@@ -1212,7 +1184,7 @@ void fillCurve(int16_t xCenter, int16_t yCenter, int16_t longAxis, int16_t short
 	_ellipseCurve_helper(xCenter, yCenter, longAxis, shortAxis, curvePart, color, true);
 }
 
-#endif // LATER
+//#endif // LATER
 
 
 
