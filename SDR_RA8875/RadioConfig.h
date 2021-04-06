@@ -62,7 +62,7 @@
                             // Hardware verson 2.1, Arduino library version 1.40.
 
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
-#ifdef USE_ENET_PROFILE           // Depends on ENET
+#ifdef USE_ENET_PROFILE     // Depends on ENET
     #define ENET
 #endif // USE_ENET_PROFILE
 
@@ -71,9 +71,26 @@
     #define ENET
 #endif  // REMOTE_OPS
 
-//#define TEST_SINEWAVE_SIG // Turns on sinewave generators for display in the spectrum FFT only.
+//#define TEST_SINEWAVE_SIG       // Turns on sinewave generators for display in the spectrum FFT only.
 
-#define SPECTRUM_PRESET  5  // The spectrum layout record default value.  
+#define SPECTRUM_PRESET  0        // The spectrum layout record default value.
+                                  // 0 is recommended for full screen.
+                                  // 5 for smaller 2 window size                                      .
+
+#define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
+                            // Comment this ouot to dispable all PANADAPTER settings.
+
+#define PANADAPTER_LO   8215000 // Frequency of radio's IF output in Hz. 
+                                // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
+                                // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+
+#define PANADAPTER_MODE_OFFSET_DATA 1500    // this is the offset added by the radio in certain modes
+                                            // It is usually the Center frequency of the filter
+                                            // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+
+#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
+                            // Most radio IFs are inverted, though it can change depending on frequency
+                            // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
 // K7MDL specific Build Configuration rolled up into one #define
 //#define K7MDL_BUILD

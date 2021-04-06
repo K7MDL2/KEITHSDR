@@ -72,7 +72,7 @@
     //  If xAxis=1  f=fs/2 in middle, f=0 on left edge    - Fc on left
     //  If xAxis=2  f=fs/2 on left edge, f=0 in middle 
     //  If xAxis=3  f=fs/2 on right edge, f=0 in middle
-    //  The default is 3 (requires no call)               2
+    //  The default is 3 (requires no call)
 
 #define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
 

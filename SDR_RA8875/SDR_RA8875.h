@@ -178,7 +178,8 @@
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
 // using #define method as it is easiet to relate the purpose and more obvious which row it is mapped to.
-#define PANEL_ROWS  7       // 5-2 = Panel #.  0 is disable, 1 is not used, 2 3, and 4 values are Panel to display.
+#define PANEL_ROWS  7       // Set Number of panels + 2.  0 is disable, 1 is not used.
+                            // numbers 2 and up are the panel index number (panel number -2) for the panel to display.
 //  There are 6 100px wide buttons that can swap places, enabled/dispable by the function button for a row
 //Anchor buttons normally stay put
 //Panel 1  Fn is an anchor, the rest swap out

@@ -405,8 +405,13 @@ void setup()
     user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
     spectrum_preset = user_settings[user_Profile].sp_preset;
     //==================================== Frequency Set ==========================================
+    #ifdef PANADAPTER
+    VFOA = PANADAPTER_LO;
+    VFOB = PANADAPTER_LO;
+    #else
     VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
     VFOB = bandmem[curr_band].vfo_B_last;
+    #endif
     // Assignments for our encoder knobs, if any
     initVfo(); // initialize the si5351 vfo
     //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
@@ -419,7 +424,7 @@ void setup()
                                                               // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
                                                               // Generator never modifies the globals so never affects the layout itself.
                                                               // Print out our starting frequency for testing
-    drawSpectrumFrame(6);
+    //drawSpectrumFrame(6);   // for 2nd window
     Serial.print("\nInitial Dial Frequency is ");
     Serial.print(formatVFO(VFOA));
     Serial.println("MHz");
@@ -491,7 +496,7 @@ void loop()
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
             if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
                 spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
-                spectrum_update(6);
+                // spectrum_update(6);  // for 2nd window
     }
     
     uint32_t time_n = millis() - time_old;

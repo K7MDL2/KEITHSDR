@@ -4,6 +4,14 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 4/5/2021
 
+    1. PANADAPTER Configuration settings added. There are a few PANADAPTER_xxx #defines added to RadioConfig.h along with related code changes. This configures the SDR to replace the VFO with a with a fixed LO. This means the VFO is not used and the VFO encoder knob will be reassigned for other purposes TBD.  
+    2. The displayed FFT data tuning "direction" can be inverted as many radio's IFs are inverted, meaning, if you tune up, the signal goes down at the IF output.  This can be radio and band dependent. The FFT setAxis(x) function is used to flip FFT data order to correct for this.
+    3. I am testing this on the 8.215MHz IF output of my K3. I plan to do the same with a modified FT-817 next month when that rig will be in my reach again. A serial CAT port and likely an accessory port connection will round out the feature set to make our SDR a control head with panadapter for the FT-817 and other radios if so desired.
+    4. This panadapter implementation far from complete, especially without info from a radio to be informed of band/inversion/mode/filter Fc changes. The actual frequency of the radio or transverter will be displayed in the VFO display.
+    5. If you change the SDR into DATA mode the PANADAPTER_MODE_OFFSET value is added to the LO frequency to recenter the SDR display. The K3 in DATA mode will have the IF offset by the filter Fc. Use this value as the OFFSET value.  This can be automated with a serial CAT link. For now you have to manually match modes with the radio.
+
+## 4/5/2021
+
     1. Can now running 2 instances of the spectrum window. On the RA8875 I get loop time of about 110ms for 1 larger and 1 smaller window and 90ms on the RA8876 with 2 510px wide windows. That is faster than the single full size window in prior builds for 2 reasons listed below. It is now essentially video quality since there is no flicker and I can increase the refresh rate to aboput 60-70ms.
         1. Less total pixels drawn
             a. Erasing old lines doubles our time

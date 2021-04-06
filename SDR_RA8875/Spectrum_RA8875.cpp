@@ -52,7 +52,17 @@ int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectru
 int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
 int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 int16_t fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
-
+/*
+On ordering of the frequencies, this ends up being dependent on the mixer wring. If you switch the ends on a transformer and you switch + and - frequencies.  So, I decided to make the order from the FFT programmable.  There is a new function setXAxis(uint8_t xAxis);  It follows these rules:
+   If xAxis=0  f=fs/2 in middle, f=0 on right edge
+   If xAxis=1  f=fs/2 in middle, f=0 on left edge
+   If xAxis=2  f=fs/2 on left edge, f=0 in middle
+   If xAxis=3  f=fs/2 on right edge, f=0 in middle
+The default is 3 (requires no call) and I believe it is the same as the I16/F32 converted 256 code that Keith supplied, way back.  But that is not important.  Just change xAxis, call
+  myFFT.setXAxis(2);
+in your INO setup(), or 0 or 1, and pretty soon it will be what you want, maybe.
+*/
+uint8_t fft_axis                = FFT_AXIS;
 // Function Declarations
 
 //-------------- COLOR CONVERSION -----------------------------------------------------------
@@ -680,7 +690,13 @@ void drawSpectrumFrame(uint8_t s)
     else
         spectrum_waterfall_update.interval(120);   // set to somethign acceptable in case the stored value does not exist or is too low.
 
-    myFFT.setXAxis(FFT_AXIS);    // Set the FFT bin order to our needs
+    #ifdef PANADAPTER_INVERT
+        fft_axis = 3;
+    #else
+        fft_axis = FFT_AXIS;
+    #endif
+    
+    myFFT.setXAxis(fft_axis);    // Set the FFT bin order to our needs
     
     tft.fillRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLACK);  // x start, y start, width, height, array of colors w x h
     //tft.drawRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLUE);  // x start, y start, width, height, array of colors w x h
@@ -925,7 +941,7 @@ int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and 
     //myFFT.setOutputType(FFT_POWER);   // change to power, return it to FFT_DBFS at end
     myFFT.windowFunction(AudioWindowHanning1024);
     // Get pointer to data array of powers, float output[512];
-    // setAxis(FFT_AXIS=2) is called in drawSpectrumFrame() to set the bin order to lowest frequency at 0 bin and highest at bin 1023
+    //  setAxis(fft_axis)  // Called in drawSpectrumFrame() to set the bin order to lowest frequency at 0 bin and highest at bin 1023
     float *pPwr = myFFT.getData();
     // Find biggest bin
     for(int ii=bin_min; ii<bin_max; ii++)  

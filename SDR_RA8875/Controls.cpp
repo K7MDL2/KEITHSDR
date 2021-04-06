@@ -278,6 +278,7 @@ void setMode(int8_t dir)
     
     //Serial.println("Set Mode");  
     displayMode();
+    selectFrequency(0);  // Call in case a mode change requires a frequency offset 
 }
 
 // ---------------------------Filter() ---------------------------

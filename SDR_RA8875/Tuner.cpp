@@ -27,7 +27,10 @@ extern void RampVolume(float vol, int16_t rampType);
 static const uint32_t topFreq = 54000000;  // sets receiver upper  frequency limit 30 MHz
 static const uint32_t bottomFreq = 1000000; // sets the receiver lower frequency limit 1.6 MHz
 
-void selectFrequency(int32_t newFreq)
+//
+//-------------------------- selectFrequency --------------------------------------
+//
+void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is required for mode
 {
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
   	uint32_t Freq;
@@ -42,16 +45,30 @@ void selectFrequency(int32_t newFreq)
   		  Freq = topFreq;        
   	if (Freq <= bottomFreq)            
   		  Freq = bottomFreq;   
-  	
+
+  	// If this is configured to be a pandapter then change from VFO to fixed LO.	
   	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
   	{
-  		  VFOA = Freq;
-  		  bandmem[curr_band].vfo_A_last = VFOA;
+		#ifdef PANADAPTER
+        	Freq = PANADAPTER_LO;
+			if (bandmem[curr_band].mode_A == DATA)      
+				Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode
+		#else
+  			VFOA = Freq;
+  			bandmem[curr_band].vfo_A_last = VFOA;
+		#endif
+	
   	}
   	else
   	{
-  		  VFOB = Freq;
-  		  bandmem[curr_band].vfo_B_last = VFOB;
+		#ifdef PANADAPTER
+			Freq = PANADAPTER_LO;
+			if (bandmem[curr_band].mode_B == DATA)      
+            	Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode    
+		#else
+			VFOB = Freq;
+  			bandmem[curr_band].vfo_B_last = VFOB;
+		#endif		  
   	}
   
   	#ifdef SV1AFN_BPF
