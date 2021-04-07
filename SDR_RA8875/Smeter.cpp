@@ -12,6 +12,7 @@ extern AudioAnalyzePeak_F32 S_Peak;
 	extern RA8875 tft;
 #else 
 	extern RA8876_t3 tft;
+	extern void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 #endif
 extern uint8_t user_Profile;
 extern struct User_Settings user_settings[];
@@ -69,10 +70,18 @@ void Peak()
 			sprintf(string,"      S-9+%02.0f",dbuv);
 		
 		#ifdef USE_RA8875
-		if (user_settings[user_Profile].enet_enabled)
-			tft.ringMeter(s, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
-		else
-			tft.ringMeter(s, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);  // move it up a bit since there is no clock
-		#endif
+			#ifdef ENET
+				tft.ringMeter(s, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
+			#else  // ENET
+				tft.ringMeter(s, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);	// move it up a bit since there is no clock
+			#endif  //  ENET
+		#else // USE_RA8875
+			#ifdef ENET
+				tft.drawCircleSquare(850, 5, 1010, 120, 10, 10, RA8875_LIGHT_GREY);
+				ringMeter(s, 0, 10, 865, 20, 65, string, 3, 1, 90, 8);
+			#else // ENET
+				ringMeter(s, 0, 10, 850, 20, 65, string, 3, 1, 90, 8); 	// move it up a bit since there is no clock
+			#endif  // ENET	
+		#endif // USE_RA8875
 	}
 }

@@ -290,7 +290,6 @@ void setup()
         tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
         tft.backlight(true);
         tft.displayOn(true);
-
     #endif
     tft.setRotation(0); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
@@ -360,7 +359,7 @@ void setup()
     FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     #endif
     AudioInterrupts();
-   
+
     /*
     //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters

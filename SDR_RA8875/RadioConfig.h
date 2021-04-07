@@ -75,7 +75,7 @@
 
 #define SPECTRUM_PRESET  0        // The spectrum layout record default value.
                                   // 0 is recommended for full screen.
-                                  // 5 for smaller 2 window size                                      .
+                                  // 5 for smaller 2 window size.
 
 #define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
                             // Comment this ouot to dispable all PANADAPTER settings.
@@ -97,7 +97,7 @@
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-     //#undef USE_RA8875            // UNcomment this line to use RA8876
+    #undef USE_RA8875            // UNcomment this line to use RA8876
     #endif
     #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz

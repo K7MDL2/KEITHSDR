@@ -522,7 +522,7 @@ void spectrum_update(int16_t s)
                     }
                 }
                 // redraw the center line
-                tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
+                tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+2, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
             }
         } // end of spectrum pixel plotting
 

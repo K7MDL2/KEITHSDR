@@ -36,13 +36,24 @@ extern struct NB nb[];
 extern struct Modes_List modeList[];
 extern struct TuneSteps tstep[];
 
+void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
+void drawAlert(int x, int y , int side, boolean draw);
+void setTextDatum(uint8_t d);
+int drawCentreString(const char *string, int dX, int poY, int font);
+void setTextPadding(uint16_t x_width);
+int16_t textWidth(const char *string, int font);
+int drawString(const char *string, int poX, int poY, int font);
+unsigned int rainbow(byte value);
 void _triangle_helper(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, bool filled);
+void drawQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2,int16_t x3, int16_t y3, uint16_t color);
+void fillQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color, bool triangled) ;
 
 struct User_Settings *pTX = &user_settings[user_Profile];
 struct Frequency_Display *pVAct  = &disp_Freq[0];     // pointer to Active VFO Digits record
 struct Frequency_Display *pMAct  = &disp_Freq[1];     // pointer to Active VFO Label record
 struct Frequency_Display *pVStby = &disp_Freq[2];     // pointer to Standby VFO Digits record
 struct Frequency_Display *pMStby = &disp_Freq[3];     // pointer to Standby VFO Label record
+
 
 uint8_t	_textMode = false;
 uint8_t _portrait = false;
@@ -488,6 +499,94 @@ void displayRefresh(void)
 }
 
 #ifndef USE_RA8875
+
+/*
+ An example showing 'ring' analogue meter on a RA8875/8876 TFT
+ color screen
+
+ Needs Fonts 2, 4 and 7 (also Font 6 if using a large size meter)
+ */
+
+// Meter colour schemes
+#define RED2RED 0
+#define GREEN2GREEN 1
+#define BLUE2BLUE 2
+#define BLUE2RED 3
+#define GREEN2RED 4
+#define RED2GREEN 5
+
+uint16_t  textcolor   = 0xFFFF;
+uint16_t  textbgcolor = 0x0000;
+uint16_t _width    = tft.width();
+uint16_t _height   = tft.height();
+uint8_t textsize  = 1;
+uint8_t padX = 0;
+bool textwrap  = true;
+uint8_t textdatum = 0; // Left text alignment is default
+uint32_t runTime = -99999;       // time for next update
+
+int reading = 0; // Value to be displayed
+int d = 0; // Variable used for the sinewave test waveform
+boolean alert = 0;
+int8_t ramp = 1;
+
+//These enumerate the text plotting alignment (reference datum point)
+#define TL_DATUM 0 // Top left (default)
+#define TC_DATUM 1 // Top centre
+#define TR_DATUM 2 // Top right
+#define ML_DATUM 3 // Middle left
+#define CL_DATUM 3 // Centre left, same as above
+#define MC_DATUM 4 // Middle centre
+#define CC_DATUM 4 // Centre centre, same as above
+#define MR_DATUM 5 // Middle right
+#define CR_DATUM 5 // Centre right, same as above
+#define BL_DATUM 6 // Bottom left
+#define BC_DATUM 7 // Bottom centre
+#define BR_DATUM 8 // Bottom right
+
+uint16_t  addr_row = 0xFFFF;
+uint16_t  addr_col = 0xFFFF;
+uint16_t  win_xe = 0xFFFF;
+uint16_t  win_ye = 0xFFFF;
+
+#ifdef LOAD_GLCD
+  fontsloaded = 0x0002; // Bit 1 set
+#endif
+
+#ifdef LOAD_FONT2
+  fontsloaded |= 0x0004; // Bit 2 set
+#endif
+
+#ifdef LOAD_FONT4
+  fontsloaded |= 0x0010; // Bit 4 set
+#endif
+
+#ifdef LOAD_FONT6
+  fontsloaded |= 0x0040; // Bit 6 set
+#endif
+
+#ifdef LOAD_FONT7
+  fontsloaded |= 0x0080; // Bit 7 set
+#endif
+
+#ifdef LOAD_FONT8
+  fontsloaded |= 0x0100; // Bit 8 set
+#endif
+
+typedef struct {
+  const unsigned char *chartbl;
+  const unsigned char *widthtbl;
+  unsigned       char height;
+} fontinfo;
+
+// This is a structure to conveniently hold infomation on the fonts
+// Stores font character image address pointer, width table and height
+
+const fontinfo fontdata [] = {
+   { 0, 0, 0 },
+   { 0, 0, 8 }
+};
+
 /**************************************************************************/
 /*!
 	  calculate a grandient color
@@ -543,9 +642,7 @@ uint16_t colorInterpolation(uint8_t r1,uint8_t g1,uint8_t b1,uint8_t r2,uint8_t 
 				(uint8_t)(((1.0 - pos2) * b1) + (pos2 * b2))
 	);
 }
-#endif
 
-#ifdef LATER1
 /**************************************************************************/
 /*!
       ringMeter 
@@ -593,9 +690,11 @@ void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, co
 	uint16_t w = r / 4;    // Width of outer ring is 1/4 of radius
 	const uint8_t seg = 5; // Segments are 5 degrees wide = 60 segments for 300 degrees
 	// Draw colour blocks every inc degrees
-	for (int16_t i = -angle; i < angle; i += inc) {
+	for (int16_t i = -angle; i < angle; i += inc) 
+	{
 		colour = RA8875_BLACK;
-		switch (colorScheme) {
+		switch (colorScheme) 
+		{
 			case 0:
 				colour = RA8875_RED;
 				break; // Fixed colour
@@ -650,53 +749,80 @@ void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, co
 		int16_t x3 = xEnd * r + x;
 		int16_t y3 = yEnd * r + y;
 
-		if (i < curAngle) { // Fill in coloured segments with 2 triangles
-			fillQuad(x0, y0, x1, y1, x2, y2, x3, y3, colour, false);
-		} else {// Fill in blank segments
-			fillQuad(x0, y0, x1, y1, x2, y2, x3, y3, backSegColor, false);
+		if (i < curAngle) 
+		{ 
+			// Fill in coloured segments with 2 triangles
+			switch (colorScheme) 
+			{
+				case 0: colour = RA8875_RED; break; // Fixed colour
+				case 1: colour = RA8875_GREEN; break; // Fixed colour
+				case 2: colour = RA8875_BLUE; break; // Fixed colour
+				case 3: colour = rainbow(map(i, -angle, angle, 0, 127)); break; // Full spectrum blue to red
+				case 4: colour = rainbow(map(i, -angle, angle, 70, 127)); break; // Green to red (high temperature etc)
+				case 5: colour = rainbow(map(i, -angle, angle, 127, 63)); break; // Red to green (low battery etc)
+			   default: colour = RA8875_BLUE; break; // Fixed colour
+			}
+			tft.fillTriangle(x0, y0, x1, y1, x2, y2, colour);
+			tft.fillTriangle(x1, y1, x2, y2, x3, y3, colour);
+			//static int16_t text_color = colour; // Save the last colour drawn
 		}
+		else // Fill in blank segments
+		{
+			tft.fillTriangle(x0, y0, x1, y1, x2, y2, BLACK);
+			tft.fillTriangle(x1, y1, x2, y2, x3, y3, BLACK);
+		}
+
 	}
+	// Convert value to a string
+	char buf[10];
+	byte len = 3; if (val > 999) len = 5;
+	dtostrf(val, len, 0, buf);
+	buf[len] = ' '; buf[len+1] = 0; // Add blanking space and terminator, helps to centre text too!
+	//Set the text colour to default
+	tft.setTextSize(1);
+	/*   Not using tis overange feature - could change the S-Unit text color though
+	if (val<minV || val>maxV) 
+	{
+		drawAlert(x,y+90,50,1);
+	}
+	else 
+	{
+		drawAlert(x,y+90,50,0);
+	}
+	*/
+	tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+	// Uncomment next line to set the text colour to the last segment value!
+	tft.setTextColor(colour, RA8875_BLACK);
+	setTextDatum(MC_DATUM);
+	// Print value, if the meter is large then use big font 8, othewise use 4
+	if (r > 84) 
+	{
+		setTextPadding(55*3); // Allow for 3 digits each 55 pixels wide
+		drawString(buf, x, y, 8); // Value in middle
+	}
+	else 
+	{
+		setTextPadding(3 * 14); // Allow for 3 digits each 14 pixels wide
+		setTextPadding(55*3); // Allow for 3 digits each 55 pixels wide
+		drawString(buf, x, y, 4); // Value in middle
+		drawCentreString("!", x, y + 6, 4);
+	}
+
+	tft.setTextSize(1);
+	setTextPadding(0);
+	// Print units, if the meter is large then use big font 4, othewise use 2
+	tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+	if (r > 84) 
+		//tft.printf(buf, x, y, 4); // Value in middle
+		drawString(units, x, y + 60, 4); // Units display
+	else 
+		//tft.printf(units, x, y + 15, 2); // Units display
+		drawString(units, x, y + 15, 2); // Units display
+}
 
 /**************************************************************************/
 /*!
-      Draw filled circle
-	  Parameters:
-      x0: The 0-based x location of the center of the circle
-      y0: The 0-based y location of the center of the circle
-      r: radius
-      color: RGB565 color
-*/
-/**************************************************************************/
-/*
-void RA8875::fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
-{
-	_center_helper(x0,y0);
-	if (r <= 0) return;
-	_circle_helper(x0, y0, r, color, true);
-}
-*/
-		
-	//inline __attribute__((always_inline)) 	
-	void _center_helper(int16_t &x, int16_t &y)
-		__attribute__((always_inline)) {
-			if (x == CENTER) x = _width/2;
-			if (y == CENTER) y = _height/2;
-	}
-
-void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
-{
-	_center_helper(x0,y0);
-	if (r < 1) return;
-	if (r == 1) {
-		drawPixel(x0,y0,color);
-		return;
-	}
-	_circle_helper(x0, y0, r, color, true);
-}
-
-/**************************************************************************/
-/*!
-      Draw a quadrilater by connecting 4 points
+      Draw a quadrilateral by connecting 4 points
 	  Parameters:
 	  x0:
 	  y0:
@@ -711,482 +837,383 @@ void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 /**************************************************************************/
 void drawQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2,int16_t x3, int16_t y3, uint16_t color) 
 {
-	drawLine(x0, y0, x1, y1, color);//low 1
-	drawLine(x1, y1, x2, y2, color);//high 1
-	drawLine(x2, y2, x3, y3, color);//high 2
-	drawLine(x3, y3, x0, y0, color);//low 2
+	tft.drawLine(x0, y0, x1, y1, color);//low 1
+	tft.drawLine(x1, y1, x2, y2, color);//high 1
+	tft.drawLine(x2, y2, x3, y3, color);//high 2
+	tft.drawLine(x3, y3, x0, y0, color);//low 2
 }
 
-/*
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-+					GEOMETRIC PRIMITIVE HELPERS STUFF								 +
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-*/
-/**************************************************************************/
-/*!
-      helper function for circles
-	  [private]
-*/
-/**************************************************************************/
-void _circle_helper(int16_t x0, int16_t y0, int16_t r, uint16_t color, bool filled)//0.69b32 fixed an undocumented hardware limit
+void drawAlert(int x, int y , int side, boolean draw)
 {
-	if (_portrait) swapvals(x0,y0);//0.69b21
-
-	if (r < 1) r = 1;
-	if (r < 2) {//NEW
-		drawPixel(x0,y0,color);
-		return;
-	}
-	if (r > SCREEN_HEIGHT / 2) r = (SCREEN_HEIGHT / 2) - 1;//this is the (undocumented) hardware limit of RA8875
-	
-	if (_textMode) _setTextMode(false);//we are in text mode?
-	#if defined(USE_RA8876_SEPARATE_TEXT_COLOR)
-		_TXTrecoverColor = true;
-	#endif
-	if (color != _foreColor) setForegroundColor(color);//0.69b30 avoid several SPI calls
-	
-	_writeRegister(RA8876_DCHR0,    x0 & 0xFF);
-	_writeRegister(RA8876_DCHR0 + 1,x0 >> 8);
-
-	_writeRegister(RA8876_DCVR0,    y0 & 0xFF);
-	_writeRegister(RA8876_DCVR0 + 1,y0 >> 8);	   
-	_writeRegister(RA8876_DCRR,r); 
-
-	writeCommand(RA8876_DCR);
-	#if defined(_FASTCPU)
-		_slowDownSPI(true);
-	#endif
-	filled == true ? _writeData(RA8876_DCR_CIRCLE_START | RA8876_DCR_FILL) : _writeData(RA8876_DCR_CIRCLE_START | RA8876_DCR_NOFILL);
-	_waitPoll(RA8876_DCR, RA8876_DCR_CIRCLE_STATUS, _RA8876_WAITPOLL_TIMEOUT_DCR_CIRCLE_STATUS);//ZzZzz
-	#if defined(_FASTCPU)
-		_slowDownSPI(false);
-	#endif
+  if (draw && !alert) {
+    tft.fillTriangle(x, y, x+30, y+47, x-30, y+47, rainbow(95));
+    tft.setTextColor(RA8875_BLACK);
+    drawCentreString("!", x, y + 6, 4);
+    alert = 1;
+  }
+  else if (!draw) {
+    tft.fillTriangle(x, y, x+30, y+47, x-30, y+47, RA8875_BLACK);
+    alert = 0;
+  }
 }
 
-
-/**************************************************************************/
-/*!
-		helper function for rects (filled or not)
-		[private]
-*/
-/**************************************************************************/
-/*
-void RA8875::_rect_helper(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bool filled)
+// #########################################################################
+// Return a 16 bit rainbow colour
+// #########################################################################
+unsigned int rainbow(byte value)
 {
-	if (w < 0 || h < 0) return;//why draw invisible rects?(MrTOM temp fix)
-	if (w >= _width) return;
-	if (h >= _height) return;
-	
-	if (_portrait) {swapvals(x,y); swapvals(w,h);}
+  // Value is expected to be in range 0-127
+  // The value is converted to a spectrum colour from 0 = blue through to 127 = red
 
-	_checkLimits_helper(x,y);
+  byte red = 0; // Red is the top 5 bits of a 16 bit colour value
+  byte green = 0;// Green is the middle 6 bits
+  byte blue = 0; // Blue is the bottom 5 bits
 
-	if (_textMode) _setTextMode(false);//we are in text mode?
-	#if defined(USE_RA8875_SEPARATE_TEXT_COLOR)
-		_TXTrecoverColor = true;
-	#endif
-	if (color != _foreColor) setForegroundColor(color);
-	
-	_line_addressing(x,y,w,h);
+  byte quadrant = value / 32;
 
-	writeCommand(RA8875_DCR);
-	filled == true ? _writeData(0xB0) : _writeData(0x90);
-	_waitPoll(RA8875_DCR, RA8875_DCR_LINESQUTRI_STATUS);
-}
-*/
-
-void _rect_helper(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, bool filled)
-{
-	if (_portrait) {swapvals(x1,y1); swapvals(x2,y2);}
-	if ((x1 < 0 && x2 < 0) || (x1 >= SCREEN_WIDTH && x2 >= SCREEN_WIDTH) ||
-	    (y1 < 0 && y2 < 0) || (y1 >= SCREEN_HEIGHT && y2 >= SCREEN_HEIGHT))
-		return;	// All points are out of bounds, don't draw anything
-
-	_checkLimits_helper(x1,y1);	// Truncate rectangle that is off screen, still draw remaining rectangle
-	_checkLimits_helper(x2,y2);
-
-	if (_textMode) _setTextMode(false);	//we are in text mode?
-	#if defined(USE_RA8875_SEPARATE_TEXT_COLOR)
-		_TXTrecoverColor = true;
-	#endif
-	if (color != _foreColor) setForegroundColor(color);
-	
-	if (x1==x2 && y1==y2)		// Width & height can still be 1 pixel, so render as a pixel
-		drawPixel(x1,y1,color);
-	else {
-		_line_addressing(x1,y1,x2,y2);
-
-		writeCommand(RA8876_DCR);
-		filled == true ? _writeData(0xB0) : _writeData(0x90);
-		_waitPoll(RA8876_DCR, RA8876_DCR_LINESQUTRI_STATUS, _RA8876_WAITPOLL_TIMEOUT_DCR_LINESQUTRI_STATUS);
-	}
+  if (quadrant == 0) {
+    blue = 31;
+    green = 2 * (value % 32);
+    red = 0;
+  }
+  if (quadrant == 1) {
+    blue = 31 - (value % 32);
+    green = 63;
+    red = 0;
+  }
+  if (quadrant == 2) {
+    blue = 0;
+    green = 63;
+    red = value % 32;
+  }
+  if (quadrant == 3) {
+    blue = 0;
+    green = 63 - 2 * (value % 32);
+    red = 31;
+  }
+  return (red << 11) + (green << 5) + blue;
 }
 
+// #########################################################################
+// Return a value in range -1 to +1 for a given phase angle in degrees
+// #########################################################################
+float sineWave(int phase) {
+  return sin(phase * 0.0174532925);
+}
 
-/**************************************************************************/
-/*!
-      helper function for triangles
-	  [private]
-*/
-/**************************************************************************/
-void _triangle_helper(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, bool filled)
+/***************************************************************************************
+** Function name:           setTextDatum
+** Description:             Set the text position reference datum
+***************************************************************************************/
+void setTextDatum(uint8_t d)
 {
-	if (x0 >= _width || x1 >= _width || x2 >= _width) return;
-	if (y0 >= _height || y1 >= _height || y2 >= _height) return;
-	
-	if (_portrait) {swapvals(x0,y0); swapvals(x1,y1); swapvals(x2,y2);}
-	/*
-	if (x0 == x1 && y0 == y1){
-		drawLine(x0, y0, x2, y2,color);
-		return;
-	} else if (x0 == x2 && y0 == y2){
-		drawLine(x0, y0, x1, y1,color);
-		return;
-	} else if (x0 == x1 && y0 == y1 && x0 == x2 && y0 == y2) {//new
-        drawPixel(x0, y0, color);
-		return;
-	}
-	*/
-	/*
-	if (y0 > y1) {swapvals(y0, y1); swapvals(x0, x1);}			// Sort points from Y < to >
-	if (y1 > y2) {swapvals(y2, y1); swapvals(x2, x1);}
-	if (y0 > y1) {swapvals(y0, y1); swapvals(x0, x1);}
-	*/
-/*	
-	if (y0 == y2) { // Handle awkward all-on-same-line case as its own thing
-		int16_t a, b;
-        a = b = x0;
-		if (x1 < a) {     
-			a = x1;
-		} else if (x1 > b) {
-			b = x1;
-		}
-        if (x2 < a) { 
-			a = x2;
-		} else if (x2 > b) {
-			b = x2;
-		}
-        drawFastHLine(a, y0, b-a+1, color);
-        return;
+  textdatum = d;
+}
+
+/***************************************************************************************
+** Function name:           setTextPadding
+** Description:             Define padding width (aids erasing old text and numbers)
+***************************************************************************************/
+void setTextPadding(uint16_t x_width)
+{
+  padX = x_width;
+}
+
+/***************************************************************************************
+** Function name:           drawString
+** Description :            draw string with padding if it is defined
+***************************************************************************************/
+int drawString(const char *string, int poX, int poY, int font)
+{
+  int16_t sumX = 0;
+  uint8_t padding = 1;
+  unsigned int cheight = 0;
+
+  if (textdatum || padX)
+  {
+    // Find the pixel width of the string in the font
+    unsigned int cwidth  = textWidth(string, font);
+
+    // Get the pixel height of the font
+    cheight = pgm_read_byte( &fontdata[font].height ) * textsize;
+
+    switch(textdatum) {
+      case TC_DATUM:
+        poX -= cwidth/2;
+        padding = 2;
+        break;
+      case TR_DATUM:
+        poX -= cwidth;
+        padding = 3;
+        break;
+      case ML_DATUM:
+        poY -= cheight/2;
+        padding = 1;
+        break;
+      case MC_DATUM:
+        poX -= cwidth/2;
+        poY -= cheight/2;
+        padding = 2;
+        break;
+      case MR_DATUM:
+        poX -= cwidth;
+        poY -= cheight/2;
+        padding = 3;
+        break;
+      case BL_DATUM:
+        poY -= cheight;
+        padding = 1;
+        break;
+      case BC_DATUM:
+        poX -= cwidth/2;
+        poY -= cheight;
+        padding = 2;
+        break;
+      case BR_DATUM:
+        poX -= cwidth;
+        poY -= cheight;
+        padding = 3;
+        break;
     }
-*/	
+    // Check coordinates are OK, adjust if not
+    if (poX < 0) poX = 0;
+    if (poX+cwidth>_width)   poX = _width - cwidth;
+    if (poY < 0) poY = 0;
+    if (poY+cheight>_height) poY = _height - cheight;
+  }
 
-	// Avoid drawing lines here due to hardware bug in certain circumstances when a
-	// specific shape triangle is drawn after a line. This bug can still happen, but
-	// at least the user has control over fixing it.
-	// Not drawing a line here is slower, but drawing a non-filled "triangle" is
-	// slightly faster than a filled "triangle".
-	//
-	// bug example: tft.drawLine(799,479, 750,50, RA8875_BLUE)
-	//              tft.fillTriangle(480,152, 456,212, 215,410, RA8875_GREEN)
-	// MrTom
-	//
-	if (x0 == x1 && y0 == y1 && x0 == x2 && y0 == y2) {			// All points are same
-		drawPixel(x0,y0, color);
-		return;
-	} else if ((x0 == x1 && y0 == y1) || (x0 == x2 && y0 == y2) || (x1 == x2 && y1 == y2)){
-		filled = false;									// Two points are same
-	} else if (x0 == x1 && x0 == x2){
-		filled = false;									// Vertical line
-	} else if (y0 == y1 && y0 == y2){
-		filled = false;									// Horizontal line
-	}
-	if (filled){
-		if (_check_area(x0,y0, x1,y1, x2,y2) < 0.9) {
-			filled = false;			// Draw non-filled triangle to avoid filled triangle bug when two vertices are close together.
-		}
-	}
+  //while (*string) sumX += drawChar(*(string++), poX+sumX, poY, font);
+  tft.setCursor(poX+sumX, poY);
+  tft.setFont(Arial_14);
+  tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+  while (*string) sumX += tft.print(*(string++));
+//#define PADDING_DEBUG
 
-	if (_textMode) _setTextMode(false);//we are in text mode?
-	
-	#if defined(USE_RA8876_SEPARATE_TEXT_COLOR)
-		_TXTrecoverColor = true;
-	#endif
-	if (color != _foreColor) setForegroundColor(color);//0.69b30 avoid several SPI calls
-	
-	//_checkLimits_helper(x0,y0);
-	//_checkLimits_helper(x1,y1);
-	
-	_line_addressing(x0,y0,x1,y1);
-	//p2
+#ifndef PADDING_DEBUG
+  if((padX>sumX) && (textcolor!=textbgcolor))
+  {
+    int padXc = poX+sumX; // Maximum left side padding
+    switch(padding) {
+      case 1:
+        tft.fillRect(padXc,poY,padX-sumX,cheight, textbgcolor);
+        break;
+      case 2:
+        tft.fillRect(padXc,poY,(padX-sumX)>>1,cheight, textbgcolor);
+        padXc = (padX-sumX)>>1;
+        if (padXc>poX) padXc = poX;
+        tft.fillRect(poX - padXc,poY,(padX-sumX)>>1,cheight, textbgcolor);
+        break;
+      case 3:
+        if (padXc>padX) padXc = padX;
+        tft.fillRect(poX + sumX - padXc,poY,padXc-sumX,cheight, textbgcolor);
+        break;
+    }
+  }
+#else
 
-	_writeRegister(RA8876_DTPH0,    x2 & 0xFF);
-	_writeRegister(RA8876_DTPH0 + 1,x2 >> 8);
-	_writeRegister(RA8876_DTPV0,    y2 & 0xFF);
-	_writeRegister(RA8876_DTPV0 + 1,y2 >> 8);
-	
-	writeCommand(RA8876_DCR);
-	filled == true ? _writeData(0xA1) : _writeData(0x81);
-	
-	_waitPoll(RA8876_DCR, RA8876_DCR_LINESQUTRI_STATUS, _RA8876_WAITPOLL_TIMEOUT_DCR_LINESQUTRI_STATUS);
+  // This is debug code to show text (green box) and blanked (white box) areas
+  // to show that the padding areas are being correctly sized and positioned
+  if((padX>sumX) && (textcolor!=textbgcolor))
+  {
+    int padXc = poX+sumX; // Maximum left side padding
+    tft.drawRect(poX,poY,sumX,cheight, GREEN);
+    switch(padding) {
+      case 1:
+        tft.drawRect(padXc,poY,padX-sumX,cheight, WHITE);
+        break;
+      case 2:
+        tft.drawRect(padXc,poY,(padX-sumX)>>1, cheight, WHITE);
+        padXc = (padX-sumX)>>1;
+        if (padXc>poX) padXc = poX;
+        tft.drawRect(poX - padXc,poY,(padX-sumX)>>1,cheight, WHITE);
+        break;
+      case 3:
+        if (padXc>padX) padXc = padX;
+        tft.drawRect(poX + sumX - padXc,poY,padXc-sumX,cheight, WHITE);
+        break;
+    }
+  }
+#endif
+
+return sumX;
 }
 
-/**************************************************************************/
-/*!
-		Graphic line addressing helper
-		[private]
-*/
-/**************************************************************************/
-void _line_addressing(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
+/***************************************************************************************
+** Function name:           drawCentreString
+** Descriptions:            draw string centred on dX
+***************************************************************************************/
+int drawCentreString(const char *string, int dX, int poY, int font)
 {
-	//X0
-	_writeRegister(RA8876_DLHSR0,    x0 & 0xFF);
-	_writeRegister(RA8876_DLHSR0 + 1,x0 >> 8);
-	//Y0
-	_writeRegister(RA8876_DLVSR0,    y0 & 0xFF);
-	_writeRegister(RA8876_DLVSR0 + 1,y0 >> 8);
-	//X1
-	_writeRegister(RA8876_DLHER0,    x1 & 0xFF);
-	_writeRegister(RA8876_DLHER0 + 1,x1 >> 8);
-	//Y1
-	_writeRegister(RA8876_DLVER0,    y1 & 0xFF);
-	_writeRegister(RA8876_DLVER0 + 1,y1 >> 8);
+  byte tempdatum = textdatum;
+  int sumX = 0;
+  textdatum = TC_DATUM;
+  sumX = drawString(string, dX, poY, font);
+  textdatum = tempdatum;
+  return sumX;
 }
 
-/**************************************************************************/
-/*!	
-		curve addressing helper
-		[private]
-*/
-/**************************************************************************/
-void _curve_addressing(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
+/***************************************************************************************
+** Function name:           drawRightString
+** Descriptions:            draw string right justified to dX
+***************************************************************************************/
+int drawRightString(const char *string, int dX, int poY, int font)
 {
-	//center
-	_writeRegister(RA8876_DEHR0,    x0 & 0xFF);
-	_writeRegister(RA8876_DEHR0 + 1,x0 >> 8);
-	_writeRegister(RA8876_DEVR0,    y0 & 0xFF);
-	_writeRegister(RA8876_DEVR0 + 1,y0 >> 8);
-	//long,short ax
-	_writeRegister(RA8876_ELL_A0,    x1 & 0xFF);
-	_writeRegister(RA8876_ELL_A0 + 1,x1 >> 8);
-	_writeRegister(RA8876_ELL_B0,    y1 & 0xFF);
-	_writeRegister(RA8876_ELL_B0 + 1,y1 >> 8);
+  byte tempdatum = textdatum;
+  int sumX = 0;
+  textdatum = TR_DATUM;
+  sumX = drawString(string, dX, poY, font);
+  textdatum = tempdatum;
+  return sumX;
 }
 
-/**************************************************************************/
-/*!	
-		sin e cos helpers
-		[private]
-*/
-/**************************************************************************/
-float _cosDeg_helper(float angle)
+/***************************************************************************************
+** Function name:           textWidth
+** Description:             Return the width in pixels of a string in a given font
+***************************************************************************************/
+int16_t textWidth(const char *string, int font)
 {
-	float radians = angle / (float)360 * 2 * PI;
-	return cos(radians);
+  unsigned int str_width  = 0;
+  char uniCode;
+  char *widthtable;
+
+  if (font>1 && font<9)
+  widthtable = (char *)pgm_read_word( &(fontdata[font].widthtbl ) ) - 32; //subtract the 32 outside the loop
+  else return 0;
+
+  while (*string)
+  {
+    uniCode = *(string++);
+#ifdef LOAD_GLCD
+    if (font == 1) str_width += 6;
+    else
+#endif
+    str_width += pgm_read_byte( widthtable + uniCode); // Normally we need to subract 32 from uniCode
+  }
+  return str_width * textsize;
 }
 
-float _sinDeg_helper(float angle)
+/***************************************************************************************
+** Function name:           fillCircle
+** Description:             draw a filled circle
+***************************************************************************************/
+void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 {
-	float radians = angle / (float)360 * 2 * PI;
-	return sin(radians);
+  tft.drawFastVLine(x0, y0 - r, r + r + 1, color);
+  //fillCircleHelper(x0, y0, r, 3, 0, color);
 }
 
-/**************************************************************************/
-/*!	
-		change the arc default parameters
-*/
-/**************************************************************************/
-void setArcParams(float arcAngleMax, int arcAngleOffset)
+/***************************************************************************************
+** Function name:           fillCircleHelper
+** Description:             Support function for filled circle drawing
+***************************************************************************************/
+
+// Used to do circles and roundrects
+void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color)
 {
-	_arcAngle_max = arcAngleMax;
-	_arcAngle_offset = arcAngleOffset;
+  int16_t f     = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = -r - r;
+  int16_t x     = 0;
+
+  delta++;
+  while (x < r) {
+    if (f >= 0) {
+      r--;
+      ddF_y += 2;
+      f     += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f     += ddF_x;
+
+    if (cornername & 0x1) {
+      tft.drawFastVLine(x0 + x, y0 - r, r + r + delta, color);
+      tft.drawFastVLine(x0 + r, y0 - x, x + x + delta, color);
+    }
+    if (cornername & 0x2) {
+      tft.drawFastVLine(x0 - x, y0 - r, r + r + delta, color);
+      tft.drawFastVLine(x0 - r, y0 - x, x + x + delta, color);
+    }
+  }
 }
 
-/**************************************************************************/
-/*!	
-		change the angle offset parameter from default one
-*/
-/**************************************************************************/
-void setAngleOffset(int16_t angleOffset)
-{
-	_angle_offset = ANGLE_OFFSET + angleOffset;
-}
-
-/**************************************************************************/
-/*! PRIVATE
-		Write in a register
-		Parameters:
-		reg: the register
-		val: the data
-*/
-/**************************************************************************/
-void _writeRegister(const uint8_t reg, uint8_t val) 
-{
-	writeCommand(reg);
-	_writeData(val);
-}
-
-
-/**************************************************************************/
-/*!
-		Write data
-		Parameters:
-		d: the data
-*/
-/**************************************************************************/
-void _writeData(uint8_t data) 
-{
-	startSend();
-	#if defined(___DUESTUFF) && defined(SPI_DUE_MODE_EXTENDED)
-		SPI.transfer(_cs, RA8875_DATAWRITE, SPI_CONTINUE); 
-		SPI.transfer(_cs, data, SPI_LAST);
-	#else
-		#if (defined(__AVR__) && defined(_FASTSSPORT)) || defined(SPARK)
-			_spiwrite(RA8875_DATAWRITE);
-			_spiwrite(data);
-		#else
-			#if defined(__MK64FX512__) || defined(__MK66FX1M0__)  || defined(__IMXRT1062__) || defined(__MKL26Z64__)
-				_pspi->transfer(RA8876_DATAWRITE);
-				_pspi->transfer(data);
-			#else
-				SPI.transfer(RA8875_DATAWRITE);
-				SPI.transfer(data);
-			#endif
-		#endif
-	#endif
-	_endSend();
-}
-
-/**************************************************************************/
-/*! PRIVATE
-		Write a command
-		Parameters:
-		d: the command
-*/
-/**************************************************************************/
-void writeCommand(const uint8_t d) 
-{
-	startSend();
-	#if defined(___DUESTUFF) && defined(SPI_DUE_MODE_EXTENDED)
-		SPI.transfer(_cs, RA8875_CMDWRITE, SPI_CONTINUE); 
-		SPI.transfer(_cs, d, SPI_LAST);
-	#else
-		#if (defined(__AVR__) && defined(_FASTSSPORT)) || defined(SPARK)
-			_spiwrite(RA8875_CMDWRITE);
-			_spiwrite(d);
-		#else
-			#if defined(__MK64FX512__) || defined(__MK66FX1M0__)  || defined(__IMXRT1062__) || defined(__MKL26Z64__)
-				_pspi->transfer(RA8875_CMDWRITE);
-				_pspi->transfer(d);
-			#else
-				SPI.transfer(RA8875_CMDWRITE);
-				SPI.transfer(d);
-			#endif
-		#endif
-	#endif
-	_endSend();
-}
-
-/**************************************************************************/
-/*!
-      Draw a filled quadrilater by connecting 4 points
-	  Parameters:
-	  x0:
-	  y0:
-	  x1:
-	  y1:
-	  x2:
-	  y2:
-	  x3:
-	  y3:
-      color: RGB565 color
-	  triangled: if true a full quad will be generated, false generate a low res quad (faster)
-	  *NOTE: a bug in _triangle_helper create some problem, still fixing....
-*/
-/**************************************************************************/
-void fillQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color, bool triangled) 
-{
-	  _triangle_helper(x0, y0, x1, y1, x2, y2, color,true);
-	  if (triangled) _triangle_helper(x2, y2, x3, y3, x0, y0, color,true);
-      _triangle_helper(x1, y1, x2, y2, x3, y3, color,true);
-}
-
-
-/**************************************************************************/
-/*!
-      Fill the ActiveWindow by using a specified RGB565 color
-	  Parameters:
-	  color: RGB565 color (default=BLACK)
-*/
-/**************************************************************************/
-void fillWindow(uint16_t color)
-{  
-	_line_addressing(0,0,RA8876_WIDTH-1, RA8876_HEIGHT-1);
-	setForegroundColor(color);
-	writeCommand(RA8876_DCR);
-	_writeData(0xB0);
-	_waitPoll(RA8876_DCR, RA8876_DCR_LINESQUTRI_STATUS, _RA887_WAITPOLL_TIMEOUT_DCR_LINESQUTRI_STATUS);
-	#if defined(USE_RA8876_SEPARATE_TEXT_COLOR)
-		_TXTrecoverColor = true;
-
-	#endif
-}
-
-
-/**************************************************************************/
-/*!
-      clearScreen it's different from fillWindow because it doesn't depends
-	  from the active window settings so it will clear all the screen.
-	  It should be used only when needed since it's slower than fillWindow.
-	  parameter:
-	  color: 16bit color (default=BLACK)
-*/
-/**************************************************************************/
-void clearScreen(uint16_t color)//0.69b24
-{  
-	setActiveWindow();
-	fillWindow(color);
-}
-
-/**************************************************************************/
-/*!
-      Draw circle
-	  Parameters:
-      x0: The 0-based x location of the center of the circle
-      y0: The 0-based y location of the center of the circle
-      r: radius
-      color: RGB565 color
-*/
-/**************************************************************************/
+/***************************************************************************************
+** Function name:           drawCircle
+** Description:             Draw a circle outline
+***************************************************************************************/
 void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 {
-	_center_helper(x0,y0);
-	if (r < 1) return;
-	if (r < 2) {
-		drawPixel(x0,y0,color);
-		return;
-	}
-	_circle_helper(x0, y0, r, color, false);
+  int16_t f = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = - r - r;
+  int16_t x = 0;
+
+  //fastSetup();
+
+  tft.drawPixel(x0 + r, y0  , color);
+  tft.drawPixel(x0 - r, y0  , color);
+  tft.drawPixel(x0  , y0 - r, color);
+  tft.drawPixel(x0  , y0 + r, color);
+
+  while (x < r) {
+    if (f >= 0) {
+      r--;
+      ddF_y += 2;
+      f += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f += ddF_x;
+
+    tft.drawPixel(x0 + x, y0 + r, color);
+    tft.drawPixel(x0 - x, y0 + r, color);
+    tft.drawPixel(x0 - x, y0 - r, color);
+    tft.drawPixel(x0 + x, y0 - r, color);
+
+    tft.drawPixel(x0 + r, y0 + x, color);
+    tft.drawPixel(x0 - r, y0 + x, color);
+    tft.drawPixel(x0 - r, y0 - x, color);
+    tft.drawPixel(x0 + r, y0 - x, color);
+  }
 }
 
-/**************************************************************************/
-/*!
-      Draw a filled curve
-      Parameters:
-      xCenter:]   x location of the ellipse center
-      yCenter:   y location of the ellipse center
-      longAxis:  Size in pixels of the long axis
-      shortAxis: Size in pixels of the short axis
-      curvePart: Curve to draw in clock-wise dir: 0[180-270�],1[270-0�],2[0-90�],3[90-180�]
-      color: RGB565 color
-*/
-/**************************************************************************/
-void fillCurve(int16_t xCenter, int16_t yCenter, int16_t longAxis, int16_t shortAxis, uint8_t curvePart, uint16_t color)
+/***************************************************************************************
+** Function name:           drawCircleHelper
+** Description:             Support function for circle drawing
+***************************************************************************************/
+void drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color)
 {
-	curvePart = curvePart % 4; //limit to the range 0-3
-	if (_portrait) {//fix a problem with rotation
-		if (curvePart == 0) {
-			curvePart = 2;
-		} else if (curvePart == 2) {
-			curvePart = 0;
-		}
-	}
-	_ellipseCurve_helper(xCenter, yCenter, longAxis, shortAxis, curvePart, color, true);
+  int16_t f     = 1 - r;
+  int16_t ddF_x = 1;
+  int16_t ddF_y = -2 * r;
+  int16_t x     = 0;
+
+  while (x < r) {
+    if (f >= 0) {
+      r--;
+      ddF_y += 2;
+      f     += ddF_y;
+    }
+    x++;
+    ddF_x += 2;
+    f     += ddF_x;
+    if (cornername & 0x4) {
+      tft.drawPixel(x0 + x, y0 + r, color);
+      tft.drawPixel(x0 + r, y0 + x, color);
+    }
+    if (cornername & 0x2) {
+      tft.drawPixel(x0 + x, y0 - r, color);
+      tft.drawPixel(x0 + r, y0 - x, color);
+    }
+    if (cornername & 0x8) {
+      tft.drawPixel(x0 - r, y0 + x, color);
+      tft.drawPixel(x0 - x, y0 + r, color);
+    }
+    if (cornername & 0x1) {
+      tft.drawPixel(x0 - r, y0 - x, color);
+      tft.drawPixel(x0 - x, y0 - r, color);
+    }
+  }
 }
 
-//#endif // LATER
-
-
-
-#endif  // USE_RA8875
-
+#endif // ifndef USE_RA8875

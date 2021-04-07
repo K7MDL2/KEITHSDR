@@ -4,6 +4,11 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 4/5/2021
 
+    1. Ported the S-Unit "ringMeter" over to the RA8876 and moved it into a box in the upper right corner of the 7" display. This will make room for moving a few indicators around into the empty space on this larger display.  Will likely move the clock into the far upper right corner.
+    2. For the RA8875, the ringmeter code uses the RA8875 library.  For the RA8876 it is run as local fucntions.  There is very little dependency on specific display capabilities in this port so you can use this on most any display now.  All the code in is Display.cpp and is called in SMeter.cpp.
+
+## 4/5/2021
+
     1. PANADAPTER Configuration settings added. There are a few PANADAPTER_xxx #defines added to RadioConfig.h along with related code changes. This configures the SDR to replace the VFO with a with a fixed LO. This means the VFO is not used and the VFO encoder knob will be reassigned for other purposes TBD.  
     2. The displayed FFT data tuning "direction" can be inverted as many radio's IFs are inverted, meaning, if you tune up, the signal goes down at the IF output.  This can be radio and band dependent. The FFT setAxis(x) function is used to flip FFT data order to correct for this.
     3. I am testing this on the 8.215MHz IF output of my K3. I plan to do the same with a modified FT-817 next month when that rig will be in my reach again. A serial CAT port and likely an accessory port connection will round out the feature set to make our SDR a control head with panadapter for the FT-817 and other radios if so desired.
