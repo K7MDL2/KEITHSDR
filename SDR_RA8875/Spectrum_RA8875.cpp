@@ -329,17 +329,17 @@ void spectrum_update(int16_t s)
         #ifdef USE_RA8875
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2); 
             tft.writeTo(L2);         //L1, L2, CGRAM, PATTERN, CURSOR     
-            tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);       
         #else            
             // NOTE - setActiveWindow() function in the RA8876_t3 library is marked as protected: Can change it to public:
             // Instead we are using own copies for RA8876
-            // For RA8876 switch to hidden Page 2, draw our line as normal then at end, 
+            // For RA8876 switch to hidden Page 2, draw our line and all label/info text as normal then at end, 
             // do a BTE mem copy from page 2 to page 1 for a flicker free, clean screen drawn fast.
             tft.canvasImageStartAddress(PAGE2_START_ADDR);
             // Blank the plot area and we will draw a new line, flicker free!
             setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+1, ptr->sp_bottom_line-1);
-            tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);
-        #endif
+            #endif
+        
+        tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);
 
         for (i = 2; i < (ptr->wf_sp_width-1); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         {       
