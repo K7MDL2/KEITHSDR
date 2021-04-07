@@ -468,29 +468,23 @@ void spectrum_update(int16_t s)
                             }
                         }
                     }
-                    else  // DOT mode
+                    else  // was DOT mode, now LINE mode
                     {   
                         // DOT Mode
                             if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
                         //    {
-
+                                // DOT Mode
                                 // --->> This is a good working line but wastes time erasing mostly black space from the top down.
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK);   // works with some artifacts
                                 //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, ptr->sp_height-2, myBLACK);// works with some artifacts  
-                                                                
+
+                                // LINE Mode                     
                                 #ifdef USE_RA8875
                                 // For the RA8875 erase the column we are about to draw in.  The RA8876 blanks the whole box and used BTE
                                     //tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
                                 #endif
-                                //tft.drawRect(ptr->l_graph_edge+1+i, pixelold[i], 2, ptr->sp_bottom_line-1 - pixelold[i], myBLACK);
-                                
-                                // Try to find a more efficient way here to erase
-                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, pixelold[i-1], abs(ptr->sp_bottom_line-1 - pixelold[i]),  BLACK);                              
-                                // This one works but leaves it messy under the line.  Above the line is clear. 122ms  Flickers the numbers at the top.
-                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelold[i], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelold[i])+2,   BLACK);                        
-                                //tft.drawLine(ptr->l_graph_edge+1+i, pixelnew[i-1], ptr->l_graph_edge+1+i, abs(ptr->sp_bottom_line-pixelnew[i-1])+2,   BLACK);                                                         
 
-                                // Ths will be drawn on Canvas 2 if this is a RA8876                                
+                                // This will be drawn on Canvas 2 if this is a RA8876, layer 2 if a RA8875                               
                                 //if (pixelnew[i] < ptr->sp_bottom_line && i > 3 )
                                 tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  YELLOW);
 
@@ -526,18 +520,6 @@ void spectrum_update(int16_t s)
             }
         } // end of spectrum pixel plotting
 
- 
-#ifdef USE_RA8875            
-            tft.setActiveWindow();  // restore access to whole screen
-        #else
-           // setActiveWindow();  // restore access to whole screen
-            //tft.selectScreen(0);
-#endif
-        //
-        //------------------------ Code above is writing only in the active spectrum window  (RA8875 only)----------------------
-        //
-        //-----------------------   This part onward is outside the active window (for RA8875 only)------------------------------
-        //
         // Update graph scale, ref level, power and freq
         tft.setTextColor(myLT_GREY, BLACK);
         tft.setFont(Arial_12);
@@ -619,6 +601,12 @@ void spectrum_update(int16_t s)
         // Reset spectrum screen blanking timeout
         spectrum_clear.reset();
 
+        //
+        //------------------------ Code above is writing only in the active spectrum window  (RA8875 only)----------------------
+        //
+        //-----------------------   This part onward is outside the active window (for RA8875 only)------------------------------
+        //
+        
         #ifdef USE_RA8875
             // Insert RA8875 BTE_move
             tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
