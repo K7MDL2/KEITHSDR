@@ -163,9 +163,11 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
   
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-    curr_band = target_band;    // Set out new band
-    VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
-    VFOB = bandmem[curr_band].vfo_B_last;
+    #ifndef PANADAPTER    
+        curr_band = target_band;    // Set out new band
+        VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
+        VFOB = bandmem[curr_band].vfo_B_last;
+    #endif
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector

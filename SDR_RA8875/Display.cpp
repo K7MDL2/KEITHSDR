@@ -3,7 +3,7 @@
 //
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "Display.h"
+#include "Display.h"
 
 #ifdef USE_RA8875
 	extern RA8875 tft;
@@ -340,6 +340,34 @@ void displayTime(void)
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
+void displayMeter(int val, const char *string)
+{
+/*
+	#ifdef USE_RA8875
+		#ifdef ENET
+			tft.ringMeter(val, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
+		#else  // ENET
+			tft.ringMeter(val, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);	// move it up a bit since there is no clock
+		#endif  //  ENET
+	#else // USE_RA8875
+		#ifdef ENET
+			//tft.drawCircleSquare(std_btn[SMETER_BTN].bx, 41, 1020, 120, 10, 10, RA8875_LIGHT_GREY);
+			ringMeter(val, 0, 10, 900, 48, 50, string, 3, 1, 90, 8);
+		#else // ENET
+			ringMeter(val, 0, 10, 850, 20, 65, string, 3, 1, 90, 8); 	// move it up a bit since there is no clock
+		#endif  // ENET	
+	#endif // USE_RA8875
+*/
+    uint16_t colorscheme = 3;
+	ringMeter(val, 0, 5, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
+	static uint8_t startup_flag = 0;
+	if (startup_flag == 0)
+	{
+		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);
+		startup_flag = 1;  // only draw this box on startup then write smeter direct. The button fills the inside each update so cannot use it.
+	}
+}
+
 // These buttons have no associated labels so are simply button updates
 void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				}
 void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
@@ -466,6 +494,7 @@ void displayRefresh(void)
 	if (enet_ready)
 		displayTime();
 	#endif
+	//displayMeter();
 	// Panel 1 buttons
 	displayMode();
 	displayFilter();
@@ -798,6 +827,7 @@ void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, co
 	// Uncomment next line to set the text colour to the last segment value!
 	//tft.setTextColor(colour, RA8875_BLACK);
 	x -= 32;
+	y -= 8;
 	tft.setCursor(x,y);
 	tft.fillRect(x,y,65,14,BLACK);  // Clear text space
 	tft.print(units);

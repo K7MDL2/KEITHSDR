@@ -69,19 +69,6 @@ void Peak()
 		else 
 			sprintf(string,"S-9+%02.0f",dbuv);
 		
-		#ifdef USE_RA8875
-			#ifdef ENET
-				tft.ringMeter(s, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
-			#else  // ENET
-				tft.ringMeter(s, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);	// move it up a bit since there is no clock
-			#endif  //  ENET
-		#else // USE_RA8875
-			#ifdef ENET
-				tft.drawCircleSquare(880, 41, 1020, 120, 10, 10, RA8875_LIGHT_GREY);
-				ringMeter(s, 0, 10, 900, 48, 50, string, 3, 1, 90, 8);
-			#else // ENET
-				ringMeter(s, 0, 10, 850, 20, 65, string, 3, 1, 90, 8); 	// move it up a bit since there is no clock
-			#endif  // ENET	
-		#endif // USE_RA8875
+		displayMeter((int) s, string);  // Call the button object display function. 
 	}
 }

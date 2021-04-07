@@ -173,7 +173,7 @@
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   20      // number of labels in the table
-#define STD_BTN_NUM 32      // number of buttons in the table
+#define STD_BTN_NUM 33      // number of buttons in the table
 
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
@@ -220,7 +220,8 @@
 
 // Not in a Panel
 #define UTCTIME_BTN 30      // NTP UTC time when ethernet (and internet) is available 
-#define SPECTUNE_BTN 31     // Convertes a touch in the spectrum window to a frequency to tune too.
+#define SMETER_BTN  31      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
+#define SPECTUNE_BTN 32     // Convertes a touch in the spectrum window to a frequency to tune too.
 
 // The #define button numbers act as the ID of possible owners of MF knob services
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
@@ -290,7 +291,7 @@ struct Standard_Button {
  //DisplayXXX() also looks at SHOW to decide whether to draw something. 
  //
 struct Label {
-    uint8_t  enabled;       // Not used for Labels today. Cn be used for state tracking. 
+    uint8_t  enabled;       // Not used for Labels today. Can be used for state tracking. 
     uint8_t  show;          // ON= Show key. 0 = Hide key. Used to Hide a label without disabling it.
     uint16_t x;             // coordinates used by both touch and display systems
 	uint16_t y;

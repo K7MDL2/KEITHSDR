@@ -4,6 +4,11 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 4/6/2021
 
+    1. The S-meter is now a button type object so its size and location are controlled by the button table, including the outline as well. The ringMeter uses the button's x,y, and h values to write direct to the interior of the button including attempting to resize the meter best it can.
+    2. The function displayMeter(val, string) is used to update the Meter object. Since the button properties include color for background and text, any other function could use the meter button to display its own suff. For example, when the MF knob is active on RF gain, the meter can change color and style perhaps, and show the RF gain visually during adjustment. When the MF knob timer expires, the meter reverts back to S-meter default state.  As of today, only the S-meter usage is active.
+
+## 4/6/2021
+
     1. Ported the S-Unit "ringMeter" over to the RA8876 and moved it into a box in the upper right corner of the 7" display. This will make room for moving a few indicators around into the empty space on this larger display. Moved the clock into the far upper right corner.
     2. For the RA8875, the ringmeter code uses the RA8875 library.  For the RA8876 it is run as local functions.  There is very little dependency on specific display capabilities in this port so you can use this on most any display now.  All the code in is Display.cpp and is called in SMeter.cpp.
     3. Centered VFO panel.
