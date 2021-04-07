@@ -71,22 +71,26 @@ void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is requ
 		#endif		  
   	}
   
-  	#ifdef SV1AFN_BPF
-  	if (Freq < bandmem[curr_band].edge_lower || Freq > bandmem[curr_band].edge_upper)
-  	{
-  		RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-  		//Serial.print("BPF Set to "); Serial.println("Bypassed");  
-        bpf.setBand(HFBand(HFBypass));
-  		RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-  	}
-  	else
-  	{
-    	//RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-    	//Serial.print("BPF Set to "); Serial.println(bandmem[curr_band].preselector);  
-        bpf.setBand(HFBand(bandmem[curr_band].preselector));
-    	//RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-  	}
-  	#endif
+	#ifdef PANADAPTER
+		bpf.setBand(HFBand(HFBypass));
+	#else
+		#ifdef SV1AFN_BPF
+		if (Freq < bandmem[curr_band].edge_lower || Freq > bandmem[curr_band].edge_upper)
+		{
+			RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+			//Serial.print("BPF Set to "); Serial.println("Bypassed");  
+			bpf.setBand(HFBand(HFBypass));
+			RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+		}
+		else
+		{
+			//RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+			//Serial.print("BPF Set to "); Serial.println(bandmem[curr_band].preselector);  
+			bpf.setBand(HFBand(bandmem[curr_band].preselector));
+			//RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+		}
+		#endif
+	#endif
   
     displayFreq(); // show freq on display
     SetFreq(Freq); // send freq to SI5351

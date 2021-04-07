@@ -653,6 +653,12 @@ void loop()
 FLASHMEM 
 void RampVolume(float vol, int16_t rampType)
 {
+    #ifdef PANADAPTER
+        vol = 1.0; // No relays changes so not needed in this mode.
+        codec1.dacVolume(vol);
+        return;
+    #endif
+
     const char *rampName[] = {
         "No Ramp (instant)", // loud pop due to instant change
         "Normal Ramp",       // graceful transition between volume levels
