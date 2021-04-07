@@ -342,22 +342,6 @@ void displayTime(void)
 
 void displayMeter(int val, const char *string)
 {
-/*
-	#ifdef USE_RA8875
-		#ifdef ENET
-			tft.ringMeter(val, 0, 10, 650, 45, 65, string, 3, 1, 90, 8);
-		#else  // ENET
-			tft.ringMeter(val, 0, 10, 650, 20, 65, string, 3, 1, 90, 8);	// move it up a bit since there is no clock
-		#endif  //  ENET
-	#else // USE_RA8875
-		#ifdef ENET
-			//tft.drawCircleSquare(std_btn[SMETER_BTN].bx, 41, 1020, 120, 10, 10, RA8875_LIGHT_GREY);
-			ringMeter(val, 0, 10, 900, 48, 50, string, 3, 1, 90, 8);
-		#else // ENET
-			ringMeter(val, 0, 10, 850, 20, 65, string, 3, 1, 90, 8); 	// move it up a bit since there is no clock
-		#endif  // ENET	
-	#endif // USE_RA8875
-*/
     uint16_t colorscheme = 3;
 	ringMeter(val, 0, 5, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	static uint8_t startup_flag = 0;
