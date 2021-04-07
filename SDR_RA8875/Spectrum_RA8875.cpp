@@ -331,7 +331,7 @@ void spectrum_update(int16_t s)
             tft.writeTo(L2);         //L1, L2, CGRAM, PATTERN, CURSOR     
             tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);       
         #else            
-            //  NOTE - setActiveWindow function in the RA8876_t3 library is marked at protected:  Change it to public:
+            // NOTE - setActiveWindow() function in the RA8876_t3 library is marked as protected: Can change it to public:
             // Instead we are using own copies for RA8876
             // For RA8876 switch to hidden Page 2, draw our line as normal then at end, 
             // do a BTE mem copy from page 2 to page 1 for a flicker free, clean screen drawn fast.
