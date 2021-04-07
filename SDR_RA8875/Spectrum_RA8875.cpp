@@ -471,27 +471,23 @@ void spectrum_update(int16_t s)
                     else  // was DOT mode, now LINE mode
                     {   
                         // DOT Mode
-                            if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
-                        //    {
-                                // DOT Mode
-                                // --->> This is a good working line but wastes time erasing mostly black space from the top down.
-                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK);   // works with some artifacts
-                                //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, ptr->sp_height-2, myBLACK);// works with some artifacts  
+                        //if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
+                            // DOT Mode
+                            // --->> This is a good working line but wastes time erasing mostly black space from the top down.
+                            //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK);   // works with some artifacts
+                            //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, ptr->sp_height-2, myBLACK);// works with some artifacts  
 
-                                // LINE Mode                     
-                                #ifdef USE_RA8875
-                                // For the RA8875 erase the column we are about to draw in.  The RA8876 blanks the whole box and used BTE
-                                    //tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
-                                #endif
+                            // LINE Mode                     
+                            #ifdef USE_RA8875
+                            // For the RA8875 erase the column we are about to draw in.  The RA8876 blanks the whole box and used BTE
+                                //tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
+                            #endif
 
-                                // This will be drawn on Canvas 2 if this is a RA8876, layer 2 if a RA8875                               
-                                //if (pixelnew[i] < ptr->sp_bottom_line && i > 3 )
-                                tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  YELLOW);
+                        // This will be drawn on Canvas 2 if this is a RA8876, layer 2 if a RA8875                               
+                        //if (pixelnew[i] < ptr->sp_bottom_line && i > 3 )
+                        tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  YELLOW);
 
-                                pixelold[i] = pixelnew[i]; 
-
-                            //}
-                        //}
+                        pixelold[i] = pixelnew[i]; 
                     }
                 }
             }
@@ -606,7 +602,7 @@ void spectrum_update(int16_t s)
         //
         //-----------------------   This part onward is outside the active window (for RA8875 only)------------------------------
         //
-        
+
         #ifdef USE_RA8875
             // Insert RA8875 BTE_move
             tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR

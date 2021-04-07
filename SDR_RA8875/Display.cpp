@@ -343,7 +343,7 @@ void displayTime(void)
 void displayMeter(int val, const char *string)
 {
     uint16_t colorscheme = 3;
-	ringMeter(val, 0, 5, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
+	ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	static uint8_t startup_flag = 0;
 	if (startup_flag == 0)
 	{
