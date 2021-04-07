@@ -91,7 +91,11 @@ void displayFreq(void)
 	
 	// Put a box around the VFO section (use BLACK to turn it off)
 	//tft.drawRect(pVAct->bx-1, pVAct->by-1, pVAct->bw+2, pVAct->bh+pVStby->bh+4, pVAct->box_clr);
-	tft.drawLine(0, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE);
+	#ifdef USE_RA8875
+	tft.drawLine(0, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE); // for 8875
+	#else
+	tft.drawLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+130, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE);  // For 8876
+	#endif // USE_RA8875
 	//tft.drawRect(0, 15, 192, 65, RA8875_LIGHT_ORANGE);
 	
 	// Draw Active VFO box and Label
@@ -780,7 +784,7 @@ void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, co
 	buf[len] = ' '; buf[len+1] = 0; // Add blanking space and terminator, helps to centre text too!
 	//Set the text colour to default
 	tft.setTextSize(1);
-	/*   Not using tis overange feature - could change the S-Unit text color though
+	/*   Not using this overange feature - could change the S-Unit text color though
 	if (val<minV || val>maxV) 
 	{
 		drawAlert(x,y+90,50,1);
@@ -790,34 +794,46 @@ void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, co
 		drawAlert(x,y+90,50,0);
 	}
 	*/
-	tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+	tft.setTextColor(BLUE, BLACK);
 	// Uncomment next line to set the text colour to the last segment value!
-	tft.setTextColor(colour, RA8875_BLACK);
-	setTextDatum(MC_DATUM);
-	// Print value, if the meter is large then use big font 8, othewise use 4
-	if (r > 84) 
-	{
-		setTextPadding(55*3); // Allow for 3 digits each 55 pixels wide
-		drawString(buf, x, y, 8); // Value in middle
-	}
-	else 
-	{
-		setTextPadding(3 * 14); // Allow for 3 digits each 14 pixels wide
-		setTextPadding(55*3); // Allow for 3 digits each 55 pixels wide
-		drawString(buf, x, y, 4); // Value in middle
-		drawCentreString("!", x, y + 6, 4);
-	}
+	//tft.setTextColor(colour, RA8875_BLACK);
+	x -= 32;
+	tft.setCursor(x,y);
+	tft.fillRect(x,y,65,14,BLACK);  // Clear text space
+	tft.print(units);
 
-	tft.setTextSize(1);
-	setTextPadding(0);
+	//setTextDatum(MC_DATUM);
+	// Print value, if the meter is large then use big font 8, othewise use 4
+	//if (r > 84) 
+	//{
+		//setTextPadding(55*3); // Allow for 3 digits each 55 pixels wide
+		//drawString(buf, x, y, 8); // Value in middle
+	//}
+	//else 
+	//{
+		//setTextPadding(3 * 14); // Allow for 3 digits each 14 pixels wide
+		//setTextPadding(55*3); // Allow for 3 digits each 55 pixels wide
+		//drawString(buf, x, y, 4); // Value in middle
+	//}
+
+	//tft.setTextSize(1);
+	//setTextPadding(0);
 	// Print units, if the meter is large then use big font 4, othewise use 2
-	tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
-	if (r > 84) 
+	//tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+	//if (r > 84)
+	//{ 
 		//tft.printf(buf, x, y, 4); // Value in middle
-		drawString(units, x, y + 60, 4); // Units display
-	else 
+		//drawString(units, x, y + 60, 4); // Units display
+		//tft.setCursor(x,y);
+		//tft.print(units);
+	//}
+	//else 
+	//{
 		//tft.printf(units, x, y + 15, 2); // Units display
-		drawString(units, x, y + 15, 2); // Units display
+		//drawString(units, x, y + 15, 2); // Units display
+		//tft.setCursor(x,y);
+		//tft.print(units);
+	//}
 }
 
 /**************************************************************************/
@@ -925,17 +941,19 @@ void setTextPadding(uint16_t x_width)
 ***************************************************************************************/
 int drawString(const char *string, int poX, int poY, int font)
 {
-  int16_t sumX = 0;
-  uint8_t padding = 1;
-  unsigned int cheight = 0;
+  	int16_t sumX = 0;
+  	uint8_t padding = 1;
+  	unsigned int cheight = 0;
+	_width = tft.width();
+	_height = tft.height();
 
-  if (textdatum || padX)
-  {
-    // Find the pixel width of the string in the font
-    unsigned int cwidth  = textWidth(string, font);
+  	if (textdatum || padX)
+  	{
+    	// Find the pixel width of the string in the font
+    	unsigned int cwidth  = textWidth(string, font);
 
-    // Get the pixel height of the font
-    cheight = pgm_read_byte( &fontdata[font].height ) * textsize;
+    	// Get the pixel height of the font
+    	cheight = pgm_read_byte( &fontdata[font].height ) * textsize;
 
     switch(textdatum) {
       case TC_DATUM:
@@ -975,13 +993,17 @@ int drawString(const char *string, int poX, int poY, int font)
         padding = 3;
         break;
     }
+	Serial.println("PARMS=");
+	Serial.println(_width);
+Serial.println(_height);
     // Check coordinates are OK, adjust if not
     if (poX < 0) poX = 0;
     if (poX+cwidth>_width)   poX = _width - cwidth;
     if (poY < 0) poY = 0;
     if (poY+cheight>_height) poY = _height - cheight;
   }
-
+Serial.println(poX);
+Serial.println(poY);
   //while (*string) sumX += drawChar(*(string++), poX+sumX, poY, font);
   tft.setCursor(poX+sumX, poY);
   tft.setFont(Arial_14);
@@ -1077,7 +1099,8 @@ int16_t textWidth(const char *string, int font)
   char *widthtable;
 
   if (font>1 && font<9)
-  widthtable = (char *)pgm_read_word( &(fontdata[font].widthtbl ) ) - 32; //subtract the 32 outside the loop
+  //widthtable = (char *)pgm_read_word( &(fontdata[font].widthtbl ) ) - 32; //subtract the 32 outside the loop
+  widthtable = (char *)( &(fontdata[font].widthtbl ) ) - 32; //subtract the 32 outside the loop
   else return 0;
 
   while (*string)
@@ -1087,7 +1110,7 @@ int16_t textWidth(const char *string, int font)
     if (font == 1) str_width += 6;
     else
 #endif
-    str_width += pgm_read_byte( widthtable + uniCode); // Normally we need to subract 32 from uniCode
+    str_width += (int) (widthtable + uniCode); // Normally we need to subract 32 from uniCode
   }
   return str_width * textsize;
 }

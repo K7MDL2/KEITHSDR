@@ -65,9 +65,9 @@ void Peak()
 
 		// rounded meter
 		if (dbuv == 0) 
-			sprintf(string,"S-%1.0f",s);
+			sprintf(string,"   S-%1.0f",s);
 		else 
-			sprintf(string,"      S-9+%02.0f",dbuv);
+			sprintf(string,"S-9+%02.0f",dbuv);
 		
 		#ifdef USE_RA8875
 			#ifdef ENET
@@ -77,8 +77,8 @@ void Peak()
 			#endif  //  ENET
 		#else // USE_RA8875
 			#ifdef ENET
-				tft.drawCircleSquare(850, 5, 1010, 120, 10, 10, RA8875_LIGHT_GREY);
-				ringMeter(s, 0, 10, 865, 20, 65, string, 3, 1, 90, 8);
+				tft.drawCircleSquare(880, 41, 1020, 120, 10, 10, RA8875_LIGHT_GREY);
+				ringMeter(s, 0, 10, 900, 48, 50, string, 3, 1, 90, 8);
 			#else // ENET
 				ringMeter(s, 0, 10, 850, 20, 65, string, 3, 1, 90, 8); 	// move it up a bit since there is no clock
 			#endif  // ENET	

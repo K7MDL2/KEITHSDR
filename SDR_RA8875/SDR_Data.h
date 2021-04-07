@@ -123,7 +123,11 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     // Placeholder for display key to eb active here also
     { ON, OFF,   5, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
-    { ON,  ON,   0, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},
+    #ifdef USE_RA8875
+    { ON,  ON,   0, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
+    #else
+    { ON,  ON,   0, 865,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
+    #endif
     { ON, OFF,   0,   0, 190,1023,320, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune area definition.
     // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
 };
@@ -155,7 +159,11 @@ struct Label labels[LABEL_NUM] = {
     {OFF,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "NB-\0"},
     {OFF,  ON,  70,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NR\0"},
     {OFF,  ON, 130,  65,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Notch\0"},
+    #ifdef USE_RA8875
     {OFF,  ON, 220,  65,  90, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Split\0"},
+    #else
+    {OFF,  ON, 320,  65,  90, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Split\0"},
+    #endif
     {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
     {OFF, OFF, 467, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
     {OFF, OFF, 583, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
@@ -171,10 +179,17 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     // x   y    w    h    r   bs  bm   outline_clr     box_clr              bg_clr      txt_clr              txt_Fnt   TX_clr     padx  pady
+    #ifdef USE_RA8875
     {204,  1, 380,  50,   3,  0,  0, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY, Arial_40, RA8875_RED,   4,   4}, // VFO Active Digits
     {588,  6,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  RA8875_GREEN,      Arial_24, RA8875_RED,   9,   7}, // VFO Active Label
     {310, 53, 274,  40,   3,  0,  0, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_28, RA8875_RED,   6,   6}, // VFO Stby Digits
     {588, 53,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_24, RA8875_RED,   9,   7}  // VFO Stby Label
+    #else
+    {304,  1, 380,  50,   3,  0,  0, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY, Arial_40, RA8875_RED,   4,   4}, // VFO Active Digits
+    {688,  6,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  RA8875_GREEN,      Arial_24, RA8875_RED,   9,   7}, // VFO Active Label
+    {410, 53, 274,  40,   3,  0,  0, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_28, RA8875_RED,   6,   6}, // VFO Stby Digits
+    {688, 53,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_24, RA8875_RED,   9,   7}  // VFO Stby Label
+    #endif  // USE_RA8875
 };
 
 
