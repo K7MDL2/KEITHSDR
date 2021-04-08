@@ -84,13 +84,18 @@
                                 // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
                                 // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-#define PANADAPTER_MODE_OFFSET_DATA 1500    // this is the offset added by the radio in certain modes
+#define PANADAPTER_MODE_OFFSET_DATA 1500    // This is the offset added by the radio in certain modes
                                             // It is usually the Center frequency of the filter
                                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
 #define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
                             // Most radio IFs are inverted, though it can change depending on frequency
                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+
+#define FT817_CAT           // Include supprt for controlling a FT8xx type radio using the Yaesu CAT serial port
+                            // Intended for use in combination with PANADAPTER mode.  
+                            // Defining this without the PANADAPTER mode enabled may cause odd effects.
+                            // DEPENDS on PANADAPTER mode
 
 // K7MDL specific Build Configuration rolled up into one #define
 //#define K7MDL_BUILD
@@ -244,5 +249,10 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
   #define LCD_COL     20
   #define LCD_LINES   2
 #endif //I2C_LCD
+
+#ifdef  FT817_CAT
+  #define HWSERIAL Serial1 // Teensy hardware Serial or USB Serial port. Set this to the hardware serial port you wish to use
+  #include <ft817.h>
+#endif  // FT817_CAT
 
 #endif //_RADIOCONFIG_H_
