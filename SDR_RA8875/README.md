@@ -2,10 +2,11 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
-## 4/6/2021
+## 4/7/2021
 
     1. The S-meter is now a button type object so its size and location are controlled by the button table, including the outline as well. The ringMeter uses the button's x,y, and h values to write direct to the interior of the button including attempting to resize the meter best it can.
     2. The function displayMeter(val, string) is used to update the Meter object. Since the button properties include color for background and text, any other function could use the meter button to display its own suff. For example, when the MF knob is active on RF gain, the meter can change color and style perhaps, and show the RF gain visually during adjustment. When the MF knob timer expires, the meter reverts back to S-meter default state.  As of today, only the S-meter usage is active.
+    3. Incorporated FT-817 library from same author as the Si5351mcu lib. This will enable reading and controlling a FT-8xx series radio from our SDR.  I am targetng the FT817 primarily first to use our SDR as a high quality panadapter and then as a control head.
 
 ## 4/6/2021
 
