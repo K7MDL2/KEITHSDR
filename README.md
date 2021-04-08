@@ -5,7 +5,7 @@ The project has a forum and more wiki pages and info at https://groups.io/g/keit
 
 This is a GitHub Repository for Group Member builds and variations of hardware and feature experiments
 
-The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 with Audio Card and RA8875 based touchscreen at 800x480.  
+The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 with Audio Card and RA8875 based capacitive touchscreen at 800x480 or a RA8876 capacitive touchscreen at 1024x600.  
   
   Features:
   
@@ -14,6 +14,7 @@ The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 
   3. Supports the FT5206 Capacitive Touch screen controller for touch and gestures.
   4. Custom gesture code replaces the poorly working internal FT5206 Gesture detection.  Found in UserInput.h
   5. Table driven UI configuration, per-band settings, and User Profile settings with centralized control functions.
+  6. Supports both RA8875 and RA8876 based displays with capacitive touch controllers
 
 See the README file in each project for specifics about that build.
 
