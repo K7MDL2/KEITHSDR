@@ -17,16 +17,17 @@ FT817 ft817;  // assign our class id
 void init_CAT_comms(void)
 {
     //Serial1.begin(38400);
-    ft817.begin(38400);
+    //setSerial(1);
+    ft817.begin(19200);
 }
 
 void print_CAT_status(void)
 {
-    Serial.print("FT-817 S-meter"); Serial.println(ft817.getSMeter());
-    Serial.print("FT-817 Active VF) Frequency"); Serial.println(ft817.getVFO());	  // get acxtual VF)
-    Serial.print("FT-817 Band VFO"); Serial.println(ft817.getBandVFO(0)); // 0 is VFOA on FT817, 1 is VFOB
-    Serial.print("FT-817 Frequency and Mode"); Serial.println(ft817.getFreqMode()); // get frequency and mode
-    Serial.print("FT-817 Mode"); Serial.println(ft817.getMode());	
+    Serial.print("FT-817 S-meter:"); Serial.println(ft817.getSMeter());
+    Serial.print("FT-817 Active VFO Frequency:"); Serial.println(ft817.getVFO());	  // get acxtual VF)
+    Serial.print("FT-817 Band VFO:"); Serial.println(ft817.getBandVFO(0)); // 0 is VFOA on FT817, 1 is VFOB
+    Serial.print("FT-817 Frequency and Mode:"); Serial.println(ft817.getFreqMode()); // get frequency and mode
+    Serial.print("FT-817 Mode:"); Serial.println(ft817.getMode());	
 }
 
 #endif  //  FT817_CAT

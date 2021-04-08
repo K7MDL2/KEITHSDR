@@ -102,7 +102,7 @@
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-    #undef USE_RA8875            // UNcomment this line to use RA8876
+      #undef USE_RA8875            // UN-comment this line to use RA8876
     #endif
     #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
@@ -253,6 +253,7 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
 #ifdef  FT817_CAT
   #define HWSERIAL Serial1 // Teensy hardware Serial or USB Serial port. Set this to the hardware serial port you wish to use
   #include <ft817.h>
+  #include "SDR_CAT.h"
 #endif  // FT817_CAT
 
 #endif //_RADIOCONFIG_H_

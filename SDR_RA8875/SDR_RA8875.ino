@@ -428,10 +428,11 @@ void setup()
     Serial.print(formatVFO(VFOA));
     Serial.println("MHz");
 
-    Serial.println("Starting the CAT port and reading some radio information if available");
-    init_CAT_comms();  // initialize the CAT port
-    print_CAT_status();  // Test Line to read daa forfm FT817 if attached.
-    
+    #ifdef FT817_CAT
+        Serial.println("Starting the CAT port and reading some radio information if available");
+        init_CAT_comms();  // initialize the CAT port
+        print_CAT_status();  // Test Line to read daa forfm FT817 if attached.
+    #endif
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
 
     #ifdef ENET
