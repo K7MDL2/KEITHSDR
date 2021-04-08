@@ -11,6 +11,6 @@
 
 
 void print_CAT_status(void);
-void init_comms(void);
+void init_CAT_comms(void);
 
 #endif  // _SDR_CAT_H_

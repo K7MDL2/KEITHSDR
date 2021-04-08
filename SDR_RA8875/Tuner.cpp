@@ -72,7 +72,9 @@ void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is requ
   	}
   
 	#ifdef PANADAPTER
-		bpf.setBand(HFBand(HFBypass));
+		#ifdef SV1AFN_BPF
+			bpf.setBand(HFBand(HFBypass));
+		#endif
 	#else
 		#ifdef SV1AFN_BPF
 		if (Freq < bandmem[curr_band].edge_lower || Freq > bandmem[curr_band].edge_upper)
