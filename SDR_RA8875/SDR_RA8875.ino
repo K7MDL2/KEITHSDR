@@ -266,6 +266,7 @@ void setup()
 
     #ifdef USE_RA8875
         tft.begin(RA8875_800x480);
+        tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees
     #else    
         tft.begin(30000000UL);
         cts.begin();
@@ -290,9 +291,10 @@ void setup()
         tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
         tft.backlight(true);
         tft.displayOn(true);
-    #endif
-    tft.setRotation(0); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
+        tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
+    #endif
+   
 
     #if defined(USE_FT5206_TOUCH)
         tft.useCapINT(RA8875_INT);

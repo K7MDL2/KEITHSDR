@@ -77,7 +77,7 @@
                                   // 0 is recommended for full screen.
                                   // 5 for smaller 2 window size.
 
-#define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
+//#define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
                             // Comment this ouot to dispable all PANADAPTER settings.
 
 #define PANADAPTER_LO   8215000 // Frequency of radio's IF output in Hz. 
@@ -88,21 +88,34 @@
                                             // It is usually the Center frequency of the filter
                                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
+//#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
                             // Most radio IFs are inverted, though it can change depending on frequency
                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-#define FT817_CAT           // Include supprt for controlling a FT8xx type radio using the Yaesu CAT serial port
+//#define FT817_CAT           // Include supprt for controlling a FT8xx type radio using the Yaesu CAT serial port
                             // Intended for use in combination with PANADAPTER mode.  
                             // Defining this without the PANADAPTER mode enabled may cause odd effects.
                             // DEPENDS on PANADAPTER mode
+
+#define SCREEN_ROTATION   2 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
+                            // 2 is 180 flip.  This will affect the touch orientation so that must be set to match your display
+                            // The 7" RA8876 display has a better off center viewing angle when the "bottom" of hte display is mounted up.
+                            // "bottom" is defined here as the bottom of the text on the back of the display.
+                            // When the 7" is mounted bottom up, the touch panel flex connector will now face down.
+                            // This orients the touch coordiniates to be "normal" and corrections need to be turned off.
+//#define TOUCH_ROTATION    // if not defined (commented out) there is no correction, the bottom of the display is mounted up.                         
+                            // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
 // K7MDL specific Build Configuration rolled up into one #define
 //#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
+    //#define FT817_CAT
     #ifdef USE_RA8875 
-      #undef USE_RA8875            // UN-comment this line to use RA8876
+      #undef USE_RA8875            // UN-comment this line to use RA8876      
+    #endif
+    #ifndef USE_RA8875
+      #define SCREEN_ROTATION 2   // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
     #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
@@ -114,6 +127,9 @@
     //#define REMOTE_OPS
     #define SV1AFN_BPF              // use the BPF board
     #define DIG_STEP_ATT            // USe the step atten
+    #ifdef FT817_CAT
+      #define PANADAPTER
+    #endif
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------

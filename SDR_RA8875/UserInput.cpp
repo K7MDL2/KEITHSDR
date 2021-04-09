@@ -95,7 +95,7 @@ void Touch( void)
     static uint8_t previous_touch = 0;    
     static uint8_t holdtime = 0;
 
-//#define DBG_GESTURE
+#define DBG_GESTURE
 
 #ifdef DBG_GESTURE
     uint16_t  x, y, i, x1, y1;
@@ -148,12 +148,14 @@ void Touch( void)
             #endif
 
             //touch_evt.distanceX = touch_evt.distanceY = 0; // reset distance to 0
-            #ifdef DBG_GESTURE   
+            #ifdef DBG_GESTURE
             for (i = 0; i< current_touches; i++)   /// Debug info
             {
-                #ifdef USE_RA8875
+                #ifndef TOUCH_ROTATION 
                 x = touch_evt.start_coordinates[i][0];
                 y = touch_evt.start_coordinates[i][1];
+                x1 = touch_evt.last_coordinates[i][0];
+                y1 = touch_evt.last_coordinates[i][1];
                 #else
                 x = tft.width() -  touch_evt.start_coordinates[i][0];
                 y = tft.height() - touch_evt.start_coordinates[i][1];
@@ -207,9 +209,11 @@ void Touch( void)
                 #ifdef DBG_GESTURE       
                 for (i = 0; i< current_touches; i++)   /// Debug info
                 {
-                    #ifdef USE_RA8875
+                    #ifndef TOUCH_ROTATION
                     x = touch_evt.start_coordinates[i][0];
                     y = touch_evt.start_coordinates[i][1];
+                    x1 =touch_evt.last_coordinates[i][0];
+                    y1 =touch_evt.last_coordinates[i][1];
                     #else
                     x = tft.width() -  touch_evt.start_coordinates[i][0];
                     y = tft.height() - touch_evt.start_coordinates[i][1];
@@ -242,29 +246,32 @@ void Touch( void)
                 tft.getTScoordinates(touch_evt.last_coordinates);  // Update current coordinates
             #else
                 cts.getTScoordinates(touch_evt.last_coordinates, registers);  // Update current coordinates
-                // RA8876 touch controller is upside down to correct for that here.  This is our last data collection
-                
-                #ifdef DBG_GESTURE
-                for (i = 0; i< previous_touch; i++)   /// Debug info
-                {
-                    #ifdef USE_RA8875
-                    x = touch_evt.start_coordinates[i][0];
-                    y = touch_evt.start_coordinates[i][1];
-                    #else
-                    x = tft.width() -  touch_evt.start_coordinates[i][0];
-                    y = tft.height() - touch_evt.start_coordinates[i][1];
-                    x1 = tft.width() -  touch_evt.last_coordinates[i][0];
-                    y1 = tft.height() - touch_evt.last_coordinates[i][1];
-                    #endif
-                    //Serial.print("Touch START time="); Serial.print(touch_evt.touch_start); 
-                    Serial.print("State 4 START #="); Serial.print(i);
-                    Serial.print(" x="); Serial.print(x);
-                    Serial.print(" x1="); Serial.print(x1);
-                    Serial.print("  y="); Serial.print(y);                 
-                    Serial.print(" y1="); Serial.println(y1);       
-                }
-                #endif  //  DBG_GESTURE
+            #endif
+  
+            #ifdef DBG_GESTURE
+            for (i = 0; i< previous_touch; i++)   /// Debug info
+            {
+                #ifndef TOUCH_ROTATION
+                x = touch_evt.start_coordinates[i][0];
+                y = touch_evt.start_coordinates[i][1];
+                x1 = touch_evt.last_coordinates[i][0];
+                y1 = touch_evt.last_coordinates[i][1];
+                #else
+                x = tft.width() -  touch_evt.start_coordinates[i][0];
+                y = tft.height() - touch_evt.start_coordinates[i][1];
+                x1 = tft.width() -  touch_evt.last_coordinates[i][0];
+                y1 = tft.height() - touch_evt.last_coordinates[i][1];
+                #endif
+                //Serial.print("Touch START time="); Serial.print(touch_evt.touch_start); 
+                Serial.print("State 4 START #="); Serial.print(i);
+                Serial.print(" x="); Serial.print(x);
+                Serial.print(" x1="); Serial.print(x1);
+                Serial.print("  y="); Serial.print(y);                 
+                Serial.print(" y1="); Serial.println(y1);       
+            }
+            #endif  //  DBG_GESTURE
 
+            #ifdef TOUCH_ROTATION  
                 touch_evt.start_coordinates[0][0] = tft.width() -  touch_evt.start_coordinates[0][0];   // 1st touch point
                 //Serial.print("START x="); Serial.print(touch_evt.start_coordinates[0][0]);
                 touch_evt.start_coordinates[0][1] = tft.height() - touch_evt.start_coordinates[0][1];       
@@ -293,7 +300,8 @@ void Touch( void)
                     touch_evt.last_coordinates[2][0] = tft.width() -  touch_evt.last_coordinates[2][0];   // 3rd touch point
                     touch_evt.last_coordinates[2][1] = tft.height() - touch_evt.last_coordinates[2][1];
                 }
-            #endif
+            #endif  //  TOUCH_ROTATION
+
             /// If the coordinates have moved far enough, it is a gesture not a button press.  
             //  Store the disances for touch even 0 now.
             touch_evt.distance[0][0] = (touch_evt.last_coordinates[0][0] - touch_evt.start_coordinates[0][0]);
