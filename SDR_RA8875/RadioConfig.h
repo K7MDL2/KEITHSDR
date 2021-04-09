@@ -97,7 +97,7 @@
                             // Defining this without the PANADAPTER mode enabled may cause odd effects.
                             // DEPENDS on PANADAPTER mode
 
-#define SCREEN_ROTATION   2 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
+#define SCREEN_ROTATION   0 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
                             // 2 is 180 flip.  This will affect the touch orientation so that must be set to match your display
                             // The 7" RA8876 display has a better off center viewing angle when the "bottom" of hte display is mounted up.
                             // "bottom" is defined here as the bottom of the text on the back of the display.
@@ -107,12 +107,12 @@
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
 // K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     //#define FT817_CAT
     #ifdef USE_RA8875 
-      #undef USE_RA8875            // UN-comment this line to use RA8876      
+      //#undef USE_RA8875            // UN-comment this line to use RA8876      
     #endif
     #ifndef USE_RA8875
       #define SCREEN_ROTATION 2   // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
@@ -125,11 +125,13 @@
     #define ENET
     #define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    #define SV1AFN_BPF              // use the BPF board
-    #define DIG_STEP_ATT            // USe the step atten
+    //#define SV1AFN_BPF              // use the BPF board
+    //#define DIG_STEP_ATT            // USe the step atten
     #ifdef FT817_CAT
       #define PANADAPTER
     #endif
+    #define PANADAPTER 
+    #define PANADAPTER_INVERT
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
