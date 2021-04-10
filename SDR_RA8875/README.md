@@ -2,6 +2,17 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/9/2021
+
+    1. Added new band 0 as a dummy or IF.  Shifts Band index for other bands up by 1. This also aligns with some band decoder library band definitions useful for PANADAPTER mode.
+    2. Decreased the height of the spectrum windows by 10px to make a bit more room for touchable labels just above the spectrum box.
+
+## 4/8/2021
+
+    1. Fixed RA8875 mode S-meter location.
+    2. New Screen rotation define now default back to 0.
+    3. Working on Pandapter mode features so configurfation might not always be set for Radio mode.
+
 ## 4/7/2021
 
     1. The S-meter is now a button type object so its size and location are controlled by the button table, including the outline as well. The ringMeter uses the button's x,y, and h values to write direct to the interior of the button including attempting to resize the meter best it can.
@@ -22,7 +33,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     4. This panadapter implementation far from complete, especially without info from a radio to be informed of band/inversion/mode/filter Fc changes. The actual frequency of the radio or transverter will be displayed in the VFO display.
     5. If you change the SDR into DATA mode the PANADAPTER_MODE_OFFSET value is added to the LO frequency to recenter the SDR display. The K3 in DATA mode will have the IF offset by the filter Fc. Use this value as the OFFSET value.  This can be automated with a serial CAT link. For now you have to manually match modes with the radio.
 
-## 4/5/2021
+## 4/4-5/2021
 
     1. Can now running 2 instances of the spectrum window. On the RA8875 I get loop time of about 110ms for 1 larger and 1 smaller window and 90ms on the RA8876 with 2 510px wide windows. That is faster than the single full size window in prior builds for 2 reasons listed below. It is now essentially video quality since there is no flicker and I can increase the refresh rate to aboput 60-70ms.
         1. Less total pixels drawn

@@ -11,24 +11,25 @@
 
 struct Band_Memory bandmem[BANDS] = { 
     // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#  SpRef
-    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND0, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 20, PREAMP_OFF,  0,  0,  -170},
-    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 10, PREAMP_OFF,  0,  1,  -165},
-    { "60M", 4990000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND2, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,  6, PREAMP_OFF,  0,  2,  -178},
+    {  "IF", 8200000, 8300000, 8215000, 8215000,VFO_A, USB, LSB, BW2_8, BAND0, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 20, PREAMP_OFF,  0,  0,  -170},
+    {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 20, PREAMP_OFF,  0,  0,  -170},
+    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND2, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 10, PREAMP_OFF,  0,  1,  -165},
+    { "60M", 4990000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND3, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,  6, PREAMP_OFF,  0,  2,  -178},
     #ifdef PANADAPTER
-    { "40M", 8000000, 8500000, 8215000, 8215000,VFO_A, USB, USB, BW3_2, BAND3, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 3,  ATTEN_ON,  5,  PREAMP_ON,  0,  3,  -147},
+    { "40M", 8000000, 8500000, 8215000, 8215000,VFO_A, USB, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 3,  ATTEN_ON,  5,  PREAMP_ON,  0,  3,  -147},
     #else
-    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND3, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON,  2, PREAMP_OFF,  0,  3,  -162},
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND4, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON,  2, PREAMP_OFF,  0,  3,  -162},
     #endif
-    { "30M", 9990000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4,  ATTEN_ON,  1,  PREAMP_ON,  0,  4,  -155},
-    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND5, 1,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT2, 5,  ATTEN_ON,  7,  PREAMP_ON,  0,  5,  -155},
-    { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND6, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6,  ATTEN_ON,  7,  PREAMP_ON,  0,  6,  -160},
-    { "15M",21100000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7,  ATTEN_ON, 10,  PREAMP_ON,  0,  7,  -155},
-    { "12M",24890000,24990000,24915000,24904000,VFO_B, USB,  CW, BW0_7, BAND8, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8,  ATTEN_ON,  4,  PREAMP_ON,  0,  8,  -170},
-    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2, BAND9, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9,  ATTEN_ON,  2,  PREAMP_ON,  0,  9,  -165},
-    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND10, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10, ATTEN_ON,  4,  PREAMP_ON,  0, 10,  -145}
+    { "30M", 9990000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND5, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4,  ATTEN_ON,  1,  PREAMP_ON,  0,  4,  -155},
+    { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND6, 1,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT2, 5,  ATTEN_ON,  7,  PREAMP_ON,  0,  5,  -155},
+    { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6,  ATTEN_ON,  7,  PREAMP_ON,  0,  6,  -160},
+    { "15M",21100000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND8, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7,  ATTEN_ON, 10,  PREAMP_ON,  0,  7,  -155},
+    { "12M",24890000,24990000,24915000,24904000,VFO_B, USB,  CW, BW0_7, BAND9, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8,  ATTEN_ON,  4,  PREAMP_ON,  0,  8,  -170},
+    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2,BAND10, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9,  ATTEN_ON,  2,  PREAMP_ON,  0,  9,  -165},
+    {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND11, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10, ATTEN_ON,  4,  PREAMP_ON,  0, 10,  -145}
 };
 
-struct Transverter xvtr[XVTRS] = {
+PROGMEM struct Transverter xvtr[XVTRS] = {
     {"50",      OFF,  XVTR1,    50,   28, 0.50, 0.0, XVTR1},
     {"144",     OFF,  XVTR2,   144,   28, 0.50, 0.0, XVTR2},
     {"222",     OFF,  XVTR3,   222,   28, 0.50, 0.0, XVTR3},
@@ -85,7 +86,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON,   0, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
     { ON,  ON,   0, 645,  40, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
-    { ON, OFF,   0,   0, 140, 800,270, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune area definition.
+    { ON, OFF,   0,   0, 200, 800,180, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune area definition.
 };
 
 #else
@@ -148,11 +149,11 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 struct Label labels[LABEL_NUM] = {
   //  en  show   x   y    w    h   r   outline_color     on_txtclr      on_color    off_txtclr     off_color  padx pady  label 
     {OFF, OFF,   0,   0,  40, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "B:\0"},   
-    {OFF,  ON,  20, 105,  60, 30, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 130, 105, 105, 30, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
-    {OFF,  ON, 280, 105,  96, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
-    {OFF,  ON, 430, 105,  72, 30, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE,  RA8875_BLACK,   RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
-    {OFF,  ON, 560, 105,  60, 30, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,    RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
+    {OFF,  ON,  20, 110,  60, 30, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON, 130, 110, 105, 30, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
+    {OFF,  ON, 280, 110,  96, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
+    {OFF,  ON, 430, 110,  72, 30, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
+    {OFF,  ON, 560, 110,  60, 30, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
     {OFF,  ON,  10,  15,  48, 22, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "ATT\0"},
     {OFF,  ON,  70,  15,  48, 22, 3, RA8875_BLACK, RA8875_BLACK, RA8875_BLUE,     myDARKGREY,  RA8875_BLACK, 6, 4, "Pre\0"},
     {OFF,  ON, 130,  15,  48, 22, 3, RA8875_CYAN,  RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 6, 4, "ATU\0"},
@@ -175,9 +176,9 @@ struct Label labels[LABEL_NUM] = {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1      enc2      enc3    
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, REFLVL_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, RFGAIN_BTN,  AFGAIN_BTN},
-    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,   MFTUNE, AFGAIN_BTN,  RFGAIN_BTN}
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  RFGAIN_BTN, RFGAIN_BTN, REFLVL_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE, RFGAIN_BTN,  AFGAIN_BTN},
+    {"User Config #3",  6, 0, OFF,  0,  0,  0, BAND6,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE, AFGAIN_BTN,  RFGAIN_BTN}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -196,7 +197,7 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
 };
 
 
-struct AGC agc_set[AGC_SET_NUM] = {
+PROGMEM struct AGC agc_set[AGC_SET_NUM] = {
     {"AGC- ",2,0,0,-36.0,12.0,6.0},
     {"AGC-S",2,0,0,-36.0,12.0,6.0},
     {"AGC-M",2,0,0,-36.0,12.0,6.0},
@@ -207,7 +208,7 @@ struct AGC agc_set[AGC_SET_NUM] = {
 // threshold recommended to be between 1.5 and 20, closer to 3 maybe best
 // nAnticipation is 1 to 125
 // Decay is 1 to 10
-struct NB nb[NB_SET_NUM] = {
+PROGMEM struct NB nb[NB_SET_NUM] = {
     {"",    1.0,   1,  1},  // use "" to leave the number blank like AGC, suggesting it is off.
     {"1",   2.0,   5,  2},  // values suggested for test in the source code   
     {"2",   4.0,   5,  8},  
@@ -217,7 +218,7 @@ struct NB nb[NB_SET_NUM] = {
     {"6",  80.0, 100,  4}
 };
 
-struct Filter_Settings filter[FILTER] = {
+PROGMEM struct Filter_Settings filter[FILTER] = {
     {"250",   250,  "Hz",    CW},
     {"500",   500,  "Hz",    CW},
     {"700",   700,  "Hz",    CW},
@@ -229,7 +230,7 @@ struct Filter_Settings filter[FILTER] = {
     {"4.00",  4200, "KHz", DATA}
 };
 
-struct TuneSteps  tstep[TS_STEPS] = {
+PROGMEM struct TuneSteps  tstep[TS_STEPS] = {
     {"1 ",   "Hz",     1,  CW},
     {"10 ",  "Hz",    10, USB},
     {"100 ", "Hz",   100, USB},
@@ -238,7 +239,7 @@ struct TuneSteps  tstep[TS_STEPS] = {
     {"5.0", "KHz",  5000, USB}
 };
 
-struct Modes_List  modeList[MODES_NUM] = {
+PROGMEM struct Modes_List modeList[MODES_NUM] = {
     {0, "CW"},
     {1, "LSB"},
     {2, "USB"},

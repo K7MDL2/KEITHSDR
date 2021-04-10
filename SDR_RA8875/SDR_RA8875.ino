@@ -240,8 +240,8 @@ extern Metro spectrum_waterfall_update;             // Timer used for controllin
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
-FLASHMEM 
-void setup()
+
+COLD void setup()
 {
     Serial.begin(115200);
     delay(500);
@@ -657,8 +657,7 @@ void loop()
 // Ramps the volume down to specified level 0 to 1.0 range using 1 of 3 types.  It remembers the original volume level so
 // you are reducing it by a factor then raisinmg back up a factor toward the orignal volume setting.
 // Range is 1.0 for full original and 0 for off.
-FLASHMEM 
-void RampVolume(float vol, int16_t rampType)
+COLD void RampVolume(float vol, int16_t rampType)
 {
     #ifdef PANADAPTER
         vol = 1.0; // No relays changes so not needed in this mode.
@@ -697,8 +696,7 @@ void RampVolume(float vol, int16_t rampType)
 // _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
 //
 //This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
-
-void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
+COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
 {
     //static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
     static unsigned long lastUpdate_millis = 0;
@@ -736,8 +734,7 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
 // _______________________________________ Console Parser ____________________________________
 //
 //switch yard to determine the desired action
-FLASHMEM
-void respondToByte(char c)
+COLD void respondToByte(char c)
 {
     char s[2];
     s[0] = c;
@@ -770,8 +767,7 @@ void respondToByte(char c)
 //
 // _______________________________________ Print Help Menu ____________________________________
 //
-FLASHMEM 
-void printHelp(void)
+COLD void printHelp(void)
 {
     Serial.println();
     Serial.println("Help: Available Commands:");
@@ -811,8 +807,7 @@ int32_t multiKnob(uint8_t clear)
 #endif  // I2C_ENCODERS
 
 // Deregister the MF_client
-FLASHMEM
-void unset_MF_Service(uint8_t client_name)
+COLD void unset_MF_Service(uint8_t client_name)
 {
     if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
     {
@@ -854,8 +849,7 @@ void unset_MF_Service(uint8_t client_name)
 
 // Potential owners can query the MF_client variable to see who owns the MF knob.  
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
-FLASHMEM 
-void set_MF_Service(uint8_t client_name)
+COLD void set_MF_Service(uint8_t client_name)
 {
     
     #ifndef I2C_ENCODERS   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
@@ -874,8 +868,7 @@ void set_MF_Service(uint8_t client_name)
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
 static uint16_t old_ts;
-FLASHMEM 
-void MF_Service(int8_t counts, uint8_t knob)
+COLD void MF_Service(int8_t counts, uint8_t knob)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
         return;
@@ -929,8 +922,7 @@ void MF_Service(int8_t counts, uint8_t knob)
 //
 //  Scans for any I2C connected devices and reports them to the serial terminal.  Usually done early in startup.
 //
-FLASHMEM 
-void I2C_Scanner(void)
+COLD void I2C_Scanner(void)
 {
   byte error, address; //variable for error and I2C address
   int nDevices;
@@ -974,7 +966,7 @@ void I2C_Scanner(void)
 // Turns on or off a tone injected in the RX_summer block.  
 // Function that calls for a rogerBeep sets a global flag.
 // The main loop starts a timer for a short beep an calls this to turn the tone on or off.
-void touchBeep(bool enable)
+COLD void touchBeep(bool enable)
 {
     if (enable)
     {

@@ -35,7 +35,7 @@ void drawSpectrumFrame(uint8_t s);
 void initSpectrum(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
-const char* formatFreq(uint32_t Freq);
+char* formatFreq(uint32_t Freq);
 //static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
 inline uint16_t Color565(uint8_t r,uint8_t g,uint8_t b);
 void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
@@ -78,7 +78,7 @@ void drawSpectrumFrame(uint8_t s);
 void initSpectrum_RA8875(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
-const char* formatFreq(uint32_t Freq);
+char* formatFreq(uint32_t Freq);
 
 // Spectrum Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
 // These globals are othewise ignored
@@ -95,26 +95,26 @@ int16_t spectrum_preset = SPECTRUM_PRESET;   // <<<==== Set this value.  Range i
 ///******************************************************************************************************************************
 
 // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
-int16_t spectrum_x              = 550;      // 0 to width of display - window width. Must fit within the button frame edges left and right
+int16_t spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
                                             // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-int16_t spectrum_y              = 179;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-int16_t spectrum_height         = 230;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
-int16_t spectrum_center         = 70;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
+int16_t spectrum_y              = 153;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+int16_t spectrum_height         = 256;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+int16_t spectrum_center         = 50;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                                             // Smaller value makes spectrum smaller, waterfall bigger
-int16_t spectrum_width          = 200;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
+int16_t spectrum_width          = 799;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
 int16_t spectrum_span           = 20;       // Value in KHz.  Ths will be the maximum span shown in the display graphs.  
                                             // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
                                             // Max value and resolutoin (pixels per bin) is dependent on sample frequency
                                             // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
                                             // 12500 would result in 2 pixels per bin. Bad numbers here should be corrected to best fit by the function
 int16_t spectrum_wf_style       = 2;        // Range 1- 6. Specifies the Waterfall style.
-int16_t spectrum_wf_colortemp   = 310;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
+int16_t spectrum_wf_colortemp   = 330;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
 float   spectrum_wf_scale       = 1.0;      // 0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
 float   spectrum_LPFcoeff       = 0.9;      // 1.0f to 0.0f. Data smoothing
-int16_t spectrum_dot_bar_mode   = 1;        // 0=bar, 1=DOT, 3=Line. Spectrum box . Line mode is experimental
+int16_t spectrum_dot_bar_mode   = 1;        // 0=bar, 1=Line. Spectrum box
 int16_t spectrum_sp_scale       = 40;       // 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
-int16_t spectrum_floor          = -160;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
-int16_t spectrum_wf_rate        = 100;          // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t spectrum_floor          = -175;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
+int16_t spectrum_wf_rate        = 90;          // window update rate in ms.  25 is fast enough to see dit and dahs well
 
 Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 
@@ -122,9 +122,9 @@ Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 // Just copy and paste from the serial terminal into each record row.
 // #define PRESETS 10  // number of parameter records with our preset spectrum window values - this value moved to the .h file
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
-    //W        LE  RE  CG                                            x   y   w  h  x sp st clr sc mode scal reflvl wfrate
+    //W        LE  RE  CG                                            x   y   w  h  c sp st clr sc mode scal reflvl wfrate
     #ifdef USE_RA8875
-    {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-183, 90},
+    {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,2,240,1.0,0.9,1,40,-175, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
@@ -148,7 +148,7 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
 struct Spectrum_Parms Sp_Parms_Custom[1] = {};
 
 
-void spectrum_update(int16_t s)
+HOT void spectrum_update(int16_t s)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.
@@ -659,7 +659,7 @@ void spectrum_update(int16_t s)
 //   Can be used for initial setup and also for refresh after a user changes the location or size, or a pop-up page window is removed requiring a redraw
 //
 //
-void drawSpectrumFrame(uint8_t s)
+COLD void drawSpectrumFrame(uint8_t s)
 {
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.
 
@@ -728,7 +728,7 @@ void drawSpectrumFrame(uint8_t s)
 //
 //   Must be called before any text is written tothe screen. If not that text will be corrupted.
 //
-void initSpectrum(void)
+COLD void initSpectrum(void)
 {
     //tft.begin(RA8875_800x480);   // likely redundant but just in case and allows to be used standalone.
 #ifdef USE_RA8875
@@ -768,7 +768,7 @@ void initSpectrum(void)
 //          
 //  TODO:  Store data structure in EEPROM
 //
-void Spectrum_Parm_Generator(int16_t parm_set)
+COLD void Spectrum_Parm_Generator(int16_t parm_set)
 {
 //    Globals Variables used:
 //  int16_t spectrum_x              // 0 to width of display - window's NE corner. Must fit within the button frame edges left and right
@@ -802,11 +802,11 @@ void Spectrum_Parm_Generator(int16_t parm_set)
     struct Spectrum_Parms *ptr = &Sp_Parms_Custom[parm_set];
 
     //int wf_sp_width;  // This is the actual graph space width to be used.  Max is fft_bins, can be smaller.
-    ptr->border_space_min = 1;  // Left and right side space. Graph space would be this this value*2 less.
+    ptr->border_space_min = 0;  // Left and right side space. Graph space would be this this value*2 less.
     ptr->border_space = ptr->border_space_min;
     if (spectrum_width > tft.width())
         spectrum_width = tft.width();
-    if (spectrum_width > (fft_bins*2) + (ptr->border_space_min*2))
+    if (spectrum_width > (fft_bins*2) + (ptr->border_space_min*2) - 1)
     {  
         // space is wider than max graph size fft_bins to pad with border space and center graph area
         ptr->border_space = (spectrum_width - (fft_bins*2))/2;   // padding for each side
@@ -815,7 +815,7 @@ void Spectrum_Parm_Generator(int16_t parm_set)
     else  // make smaller than FFT_bins
     {
         ptr->border_space = ptr->border_space_min;
-        ptr->wf_sp_width = spectrum_width - (ptr->border_space*2);
+        ptr->wf_sp_width = spectrum_width - (ptr->border_space*2) -1;
     }
     ptr->l_graph_edge     = spectrum_x + ptr->border_space;
     ptr->r_graph_edge     = ptr->l_graph_edge + ptr->wf_sp_width;      
@@ -914,7 +914,7 @@ void Spectrum_Parm_Generator(int16_t parm_set)
   //              f = (L + (2-R)/(1+R))*f_sample/1024
   //        otherwise
   //              f = (L - (2-R)/(1+R))*f_sample/1024  "
-int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and max bins to look at based on display width.
+HOT int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and max bins to look at based on display width.
 {
     float specMax = -200.0f;
     uint16_t iiMax = 0;
@@ -968,7 +968,7 @@ int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    // args for min and 
 }
 
 // Duplicate of the function in Display.h but included here to make the spectrum module self contained. Minor changes included
-const char* formatFreq(uint32_t Freq)
+HOT char* formatFreq(uint32_t Freq)
 {
 	static char Freq_str[15];
 	
@@ -982,7 +982,7 @@ const char* formatFreq(uint32_t Freq)
 //
 //____________________________________________________Color Mapping _____________________________________
 //       
-int16_t colorMap(int16_t val, int16_t color_temp) 
+HOT int16_t colorMap(int16_t val, int16_t color_temp) 
 {
     float red;
     float green;
@@ -1039,7 +1039,7 @@ static uint16_t RGB14tocolor565(int16_t r, int16_t g, int16_t b)
 // Putting copies of them here eliminate the need to change the library but will lose certain features like rotation to portrait. 
 
 /**************************************************************************/
-void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB)
+COLD void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB)
 {
 	//if (_portrait){ swapvals(XL,YT); swapvals(XR,YB);}
 
@@ -1056,7 +1056,7 @@ void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB)
 		Set the Active Window as FULL SCREEN
 */
 /**************************************************************************/
-void setActiveWindow(void)
+COLD void setActiveWindow(void)
 {
 	_activeWindowXL = 0; _activeWindowXR = SCREEN_WIDTH;
 	_activeWindowYT = 0; _activeWindowYB = SCREEN_HEIGHT;
@@ -1070,7 +1070,7 @@ void setActiveWindow(void)
 		[private]
 */
 /**************************************************************************/
-void _updateActiveWindow(bool full)
+COLD void _updateActiveWindow(bool full)
 { 
 	if (full){
 		// X

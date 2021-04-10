@@ -30,7 +30,7 @@ static const uint32_t bottomFreq = 1000000; // sets the receiver lower frequency
 //
 //-------------------------- selectFrequency --------------------------------------
 //
-void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is required for mode
+COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is required for mode
 {
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
   	uint32_t Freq;

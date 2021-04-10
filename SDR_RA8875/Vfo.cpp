@@ -18,7 +18,7 @@ extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before
 extern int32_t Fc;
 
 //////////////////////////Initialize VFO/DDS//////////////////////////////////////////////////////
-void initVfo(void)
+COLD void initVfo(void)
 {
     delay(100);
     
@@ -106,7 +106,7 @@ void initVfo(void)
     #endif
 }
 
-void SetFreq(uint32_t Freq)
+COLD void SetFreq(uint32_t Freq)
 { 
     #ifdef OCXO_10MHZ
         si5351.set_freq((Freq) *400ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency

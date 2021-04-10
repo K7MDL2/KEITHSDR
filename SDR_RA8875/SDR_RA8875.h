@@ -165,7 +165,7 @@
 // This group defines thw number of records in each structure
 #define MODES_NUM   4
 #define FREQ_DISP_NUM  4
-#define BANDS       11
+#define BANDS       12
 #define XVTRS       12
 #define TS_STEPS    6
 #define FILTER      9
@@ -432,5 +432,9 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 #define REFLVL_LBL  19      // not implemented yet
 #define SPOT_LBL    20      // not implemented yet
 */
+
+// Simple ways to designate functions to run out of fast or slower memory to help save RAM
+#define HOT FASTRUN    __attribute__((hot))
+#define COLD FLASHMEM  __attribute__((cold))
 
 #endif //_SDR_RA8875_H_

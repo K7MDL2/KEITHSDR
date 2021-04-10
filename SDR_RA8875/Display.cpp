@@ -70,7 +70,7 @@ uint8_t _colorIndex = 0;
 	inline uint16_t htmlTo565(int32_t color_) { return (uint16_t)(((color_ & 0xF80000) >> 8) | ((color_ & 0x00FC00) >> 5) | ((color_ & 0x0000F8) >> 3));}
 	inline void 	Color565ToRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b){r = (((color & 0xF800) >> 11) * 527 + 23) >> 6; g = (((color & 0x07E0) >> 5) * 259 + 33) >> 6; b = ((color & 0x001F) * 527 + 23) >> 6;}
 
-void displayFreq(void)
+COLD void displayFreq(void)
 { 
 	// bx					// X - upper left corner anchor point
 	// by					// Y - upper left corner anchor point
@@ -165,7 +165,7 @@ void displayFreq(void)
 	}
 }
 
-void displayMode(void)
+COLD void displayMode(void)
 {
 	uint8_t mode;
 
@@ -179,7 +179,7 @@ void displayMode(void)
 	draw_2_state_Button(MODE_BTN, &mode);
 }
 
-void displayFilter(void)
+COLD void displayFilter(void)
 {
 	char str[15];
 
@@ -190,7 +190,7 @@ void displayFilter(void)
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
 }
 
-void displayRate(void)
+COLD void displayRate(void)
 {	
 	if (bandmem[curr_band].tune_step >= TS_STEPS)
 		bandmem[curr_band].tune_step = TS_STEPS-1;
@@ -200,7 +200,7 @@ void displayRate(void)
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);
 }
 
-void displayAgc(void)
+COLD void displayAgc(void)
 {	
 	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
 	sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
@@ -209,7 +209,7 @@ void displayAgc(void)
 	draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
 }
 
-void displayANT(void)
+COLD void displayANT(void)
 {	
 	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
 	sprintf(labels[ANT_LBL].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
@@ -218,7 +218,7 @@ void displayANT(void)
 	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
 
-void displayRFgain(void)
+COLD void displayRFgain(void)
 {	
 	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
@@ -231,7 +231,7 @@ void displayRFgain(void)
   #endif
 }
 
-void displayAFgain(void)
+COLD void displayAFgain(void)
 {	
 	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
@@ -244,7 +244,7 @@ void displayAFgain(void)
   #endif
 }
 
-void displayAttn()
+COLD void displayAttn()
 {
 	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
 	Serial.print("Atten is "); Serial.println(bandmem[curr_band].attenuator);
@@ -252,42 +252,42 @@ void displayAttn()
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
 
-void displayPreamp()
+COLD void displayPreamp()
 {
 	Serial.print("Preamp is "); Serial.println(bandmem[curr_band].preamp);
 	drawLabel(PREAMP_LBL, &bandmem[curr_band].preamp);
 	draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
 }
 
-void displayATU()
+COLD void displayATU()
 {
 	Serial.print("ATU is "); Serial.println(bandmem[curr_band].ATU);
 	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
 }
 
-void displayRIT()
+COLD void displayRIT()
 {
 	Serial.print("RIT is "); Serial.println(bandmem[curr_band].RIT_en);
 	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
 }
 
-void displayXIT()
+COLD void displayXIT()
 {
 	Serial.print("XIT is "); Serial.println(bandmem[curr_band].XIT_en);
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
 }
 
-void displayFine()
+COLD void displayFine()
 {
 	Serial.print("Fine Tune is "); Serial.println(user_settings[user_Profile].fine);
 	drawLabel(FINE_LBL, &user_settings[user_Profile].fine);
 	draw_2_state_Button(FINE_BTN,  &user_settings[user_Profile].fine);
 }
 
-void displayNB()
+COLD void displayNB()
 {
 	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
     sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
@@ -297,21 +297,21 @@ void displayNB()
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }
 
-void displayNR()
+COLD void displayNR()
 {
 	Serial.print("NR is "); Serial.println(user_settings[user_Profile].nr_en);
 	drawLabel(NR_LBL, &user_settings[user_Profile].nr_en);
 	draw_2_state_Button(NR_BTN, &user_settings[user_Profile].nr_en);
 }
 
-void displayNotch()
+COLD void displayNotch()
 {
 	Serial.print("Notch is "); Serial.println(std_btn[NOTCH_BTN].label);
 	drawLabel(NOTCH_LBL, &user_settings[user_Profile].notch);
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
 }
 
-void displaySplit()
+COLD void displaySplit()
 {
 	char sp_label[15];
 
@@ -332,7 +332,7 @@ void displaySplit()
 	draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
 }
 
-void displayTime(void)
+COLD void displayTime(void)
 {
 	sprintf(std_btn[UTCTIME_BTN].label, "UTC:%02d:%02d:%02d", hour(), minute(), second());
 	//tft.print(std_btn[UTCTIME_BTN].label);
@@ -340,7 +340,7 @@ void displayTime(void)
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
-void displayMeter(int val, const char *string)
+COLD void displayMeter(int val, const char *string)
 {
     uint16_t colorscheme = 3;
 	#ifdef USE_RA8875
@@ -357,19 +357,19 @@ void displayMeter(int val, const char *string)
 }
 
 // These buttons have no associated labels so are simply button updates
-void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				}
-void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
-void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	}
-void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			}
-void displayBand() 		{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			}
-void displaySpot() 		{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		}
-void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			}
-void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						}
-void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		}
-void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		}
-void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			}
-void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
-void displayRefLevel()  {draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].enabled); 		}
+COLD void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				}
+COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
+COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	}
+COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			}
+COLD void displayBand() 		{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			}
+COLD void displaySpot() 		{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		}
+COLD void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			}
+COLD void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						}
+COLD void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		}
+COLD void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		}
+COLD void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			}
+COLD void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
+COLD void displayRefLevel()  {draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].enabled); 		}
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------
@@ -382,7 +382,7 @@ void displayRefLevel()  {draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].en
 //  Notes:  Default is to handle 2 states today. However, the control function can change the buttom text
 //			and set a value in the button's enabled field to track states.
 //
-void draw_2_state_Button(uint8_t button, uint8_t *function_ptr) 
+COLD void draw_2_state_Button(uint8_t button, uint8_t *function_ptr) 
 {
     struct Standard_Button *ptr = std_btn + button;     // pointer to button object passed by calling function
 	
@@ -412,7 +412,7 @@ void draw_2_state_Button(uint8_t button, uint8_t *function_ptr)
 	}
 }
 
-void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
+COLD void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
 {
 	struct Label *plabel = labels + lbl_num;
 
@@ -454,7 +454,7 @@ void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
 //
 //    formatVFO()
 //
-const char* formatVFO(uint32_t vfo)
+COLD const char* formatVFO(uint32_t vfo)
 {
 	static char vfo_str[25];
 	
@@ -473,7 +473,7 @@ const char* formatVFO(uint32_t vfo)
 //  Usage: This function calls all of the displayXXX() functions to easily refresh the
 //			screen except for the spectrum display module.
 // 
-void displayRefresh(void)
+COLD void displayRefresh(void)
 {
 	// Bottom Panel Anchor button
 	displayFn();   // make fn=1 to call displayFn() to prevent calling itself
@@ -614,7 +614,7 @@ const fontinfo fontdata [] = {
 	  return a spectrum starting at blue to red (0...127)
 */
 /**************************************************************************/
-uint16_t grandient(uint8_t val)
+COLD uint16_t grandient(uint8_t val)
 {
 	uint8_t r = 0;
 	uint8_t g = 0;
@@ -652,7 +652,7 @@ uint16_t grandient(uint8_t val)
 	  div:divisions between color1 and color 2
 */
 /**************************************************************************/
-uint16_t colorInterpolation(uint8_t r1,uint8_t g1,uint8_t b1,uint8_t r2,uint8_t g2,uint8_t b2,uint16_t pos,uint16_t div)
+COLD uint16_t colorInterpolation(uint8_t r1,uint8_t g1,uint8_t b1,uint8_t r2,uint8_t g2,uint8_t b2,uint16_t pos,uint16_t div)
 {
     if (pos == 0) return Color565(r1,g1,b1);
     if (pos >= div) return Color565(r2,g2,b2);
@@ -697,7 +697,7 @@ uint16_t colorInterpolation(uint8_t r1,uint8_t g1,uint8_t b1,uint8_t r2,uint8_t 
 	  inc: 			5...20 (5:solid, 20:sparse divisions, default:10)
 */
 /**************************************************************************/
-void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc)
+COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc)
 {
 	if (inc < 5) inc = 5;
 	if (inc > 20) inc = 20;
@@ -869,7 +869,7 @@ void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, co
       color: RGB565 color
 */
 /**************************************************************************/
-void drawQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2,int16_t x3, int16_t y3, uint16_t color) 
+COLD void drawQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2,int16_t x3, int16_t y3, uint16_t color) 
 {
 	tft.drawLine(x0, y0, x1, y1, color);//low 1
 	tft.drawLine(x1, y1, x2, y2, color);//high 1
@@ -877,7 +877,7 @@ void drawQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t 
 	tft.drawLine(x3, y3, x0, y0, color);//low 2
 }
 
-void drawAlert(int x, int y , int side, boolean draw)
+COLD void drawAlert(int x, int y , int side, boolean draw)
 {
   if (draw && !alert) {
     tft.fillTriangle(x, y, x+30, y+47, x-30, y+47, rainbow(95));
@@ -894,7 +894,7 @@ void drawAlert(int x, int y , int side, boolean draw)
 // #########################################################################
 // Return a 16 bit rainbow colour
 // #########################################################################
-unsigned int rainbow(byte value)
+COLD unsigned int rainbow(byte value)
 {
   // Value is expected to be in range 0-127
   // The value is converted to a spectrum colour from 0 = blue through to 127 = red
@@ -931,7 +931,7 @@ unsigned int rainbow(byte value)
 // #########################################################################
 // Return a value in range -1 to +1 for a given phase angle in degrees
 // #########################################################################
-float sineWave(int phase) {
+COLD float sineWave(int phase) {
   return sin(phase * 0.0174532925);
 }
 
@@ -939,7 +939,7 @@ float sineWave(int phase) {
 ** Function name:           setTextDatum
 ** Description:             Set the text position reference datum
 ***************************************************************************************/
-void setTextDatum(uint8_t d)
+COLD void setTextDatum(uint8_t d)
 {
   textdatum = d;
 }
@@ -948,7 +948,7 @@ void setTextDatum(uint8_t d)
 ** Function name:           setTextPadding
 ** Description:             Define padding width (aids erasing old text and numbers)
 ***************************************************************************************/
-void setTextPadding(uint16_t x_width)
+COLD void setTextPadding(uint16_t x_width)
 {
   padX = x_width;
 }
@@ -957,7 +957,7 @@ void setTextPadding(uint16_t x_width)
 ** Function name:           drawString
 ** Description :            draw string with padding if it is defined
 ***************************************************************************************/
-int drawString(const char *string, int poX, int poY, int font)
+COLD int drawString(const char *string, int poX, int poY, int font)
 {
   	int16_t sumX = 0;
   	uint8_t padding = 1;
@@ -1082,7 +1082,7 @@ return sumX;
 ** Function name:           drawCentreString
 ** Descriptions:            draw string centred on dX
 ***************************************************************************************/
-int drawCentreString(const char *string, int dX, int poY, int font)
+COLD int drawCentreString(const char *string, int dX, int poY, int font)
 {
   byte tempdatum = textdatum;
   int sumX = 0;
@@ -1096,7 +1096,7 @@ int drawCentreString(const char *string, int dX, int poY, int font)
 ** Function name:           drawRightString
 ** Descriptions:            draw string right justified to dX
 ***************************************************************************************/
-int drawRightString(const char *string, int dX, int poY, int font)
+COLD int drawRightString(const char *string, int dX, int poY, int font)
 {
   byte tempdatum = textdatum;
   int sumX = 0;
@@ -1110,7 +1110,7 @@ int drawRightString(const char *string, int dX, int poY, int font)
 ** Function name:           textWidth
 ** Description:             Return the width in pixels of a string in a given font
 ***************************************************************************************/
-int16_t textWidth(const char *string, int font)
+COLD int16_t textWidth(const char *string, int font)
 {
   unsigned int str_width  = 0;
   char uniCode;
@@ -1137,7 +1137,7 @@ int16_t textWidth(const char *string, int font)
 ** Function name:           fillCircle
 ** Description:             draw a filled circle
 ***************************************************************************************/
-void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
+COLD void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 {
   tft.drawFastVLine(x0, y0 - r, r + r + 1, color);
   //fillCircleHelper(x0, y0, r, 3, 0, color);
@@ -1149,7 +1149,7 @@ void fillCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 ***************************************************************************************/
 
 // Used to do circles and roundrects
-void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color)
+COLD void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int16_t delta, uint16_t color)
 {
   int16_t f     = 1 - r;
   int16_t ddF_x = 1;
@@ -1182,7 +1182,7 @@ void fillCircleHelper(int16_t x0, int16_t y0, int16_t r, uint8_t cornername, int
 ** Function name:           drawCircle
 ** Description:             Draw a circle outline
 ***************************************************************************************/
-void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
+COLD void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 {
   int16_t f = 1 - r;
   int16_t ddF_x = 1;
@@ -1222,7 +1222,7 @@ void drawCircle(int16_t x0, int16_t y0, int16_t r, uint16_t color)
 ** Function name:           drawCircleHelper
 ** Description:             Support function for circle drawing
 ***************************************************************************************/
-void drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color)
+COLD void drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornername, uint16_t color)
 {
   int16_t f     = 1 - r;
   int16_t ddF_x = 1;

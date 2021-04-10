@@ -16,7 +16,7 @@ extern AudioAnalyzeRMS_F32 CW_RMS;
 #endif
  
 ////////////////////////// this is the S meter code/////totall uncalibrated use at your own risk
-void Code_Peak()
+COLD void Code_Peak()
 {
    float s_sample;  // Raw signal strength (max per 1ms)
    float uv, dbuv;// microvolts, db-microvolts, s-units
@@ -41,7 +41,7 @@ if (CW_Peak.available())
      }
 }
 
-void Code_RMS()
+COLD void Code_RMS()
 {
    float s_sample;  // Raw signal strength (max per 1ms)
    float uv, dbuv;// microvolts, db-microvolts, s-units

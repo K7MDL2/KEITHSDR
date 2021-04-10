@@ -17,7 +17,7 @@
 extern AudioAnalyzePeak_F32         Q_Peak;          
 extern AudioAnalyzePeak_F32         I_Peak;         
 
-void Quad_Check()
+COLD void Quad_Check()
 {
  float Q_sample;  // Raw signal strength (max per 1ms) 
  float I_sample;  // Raw signal strength (max per 1ms)

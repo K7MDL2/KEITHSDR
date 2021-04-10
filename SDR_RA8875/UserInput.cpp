@@ -55,7 +55,7 @@ struct Touch_Control{
 int16_t         distance[MAXTOUCHLIMIT][2];  // signed value used for direction.  5 touch points with X and Y values each.
 } static touch_evt;   // create a static instance of the structure to remember between events
 
-uint8_t Touched()
+COLD uint8_t Touched()
 {
     #ifdef USE_RA8875
         return tft.touched();
@@ -64,7 +64,7 @@ uint8_t Touched()
     #endif 
 }
 
-void touch_update()
+COLD void touch_update()
 {
     #ifdef USE_RA8875
         tft.updateTS();
@@ -73,7 +73,7 @@ void touch_update()
     #endif
 }
 
-uint8_t get_Touches()
+COLD uint8_t get_Touches()
 {
     #ifdef USE_RA8875
         return tft.getTouches(); 
@@ -89,7 +89,7 @@ uint8_t get_Touches()
 //      Input:  None.  Assumes the FT5206 touch controller was started in setup()
 //     Output:  Calls Button_Handler() or Gesture_Handler()  
 // 
-void Touch( void)
+COLD void Touch( void)
 {
     uint8_t current_touches = 0;
     static uint8_t previous_touch = 0;    
@@ -358,7 +358,7 @@ void Touch( void)
 *   So we will track the touch point time and coordinates and figure it out on our own.
 *
 */
-void Gesture_Handler(uint8_t gesture, uint8_t holdtime)
+COLD void Gesture_Handler(uint8_t gesture, uint8_t holdtime)
 {
     // Get our various coordinates
     int16_t T1_X = touch_evt.distance[0][0];  
@@ -515,7 +515,7 @@ void Gesture_Handler(uint8_t gesture, uint8_t holdtime)
 //      7.  A multi-function knob or panel switch or remote command may call a control function and no touch involved.
 //      The control and display functions must proceed.
 //  
-void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
+COLD void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
 {
     Serial.print("Button:");Serial.print(x);Serial.print(" ");Serial.println(y);
     
@@ -564,6 +564,8 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
                     case BAND_BTN:      Band();         break;
                     case DISPLAY_BTN:   Display();      break;
                     case FN_BTN:        setPanel();     break;
+                    case UTCTIME_BTN:   break;        //nothig to do
+                    case SMETER_BTN:    break;  // nothing to do
                     default: Serial.print("Found a button with SHOW on but has no function to call.  Index = ");
                         Serial.println(i); break;
                 }
@@ -643,7 +645,7 @@ void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
 //
 // If the Fn key is touched then we need to sort through the panel field and turn on buttons
 //      only for that row or panel. We set the correct set of buttons to (show) and turn off (!show) the rest.
-void setPanel()
+COLD  void setPanel()
 {
     struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
     ptr = std_btn + FN_BTN;     // pointer to button object passed by calling function    

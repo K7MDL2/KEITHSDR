@@ -18,7 +18,7 @@ extern uint8_t user_Profile;
 extern struct User_Settings user_settings[];
 
 ////////////////////////// this is the S meter code/////totall uncalibrated use at your own risk
-void Peak()
+COLD void Peak()
 {
    float s_sample;  // Raw signal strength (max per 1ms)
    float uv, dbuv, s;// microvolts, db-microvolts, s-units

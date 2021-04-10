@@ -11,7 +11,7 @@ extern AudioMixer4_F32  RX_Summer;
 extern AudioMixer4_F32  FFT_Switch1;
 extern AudioMixer4_F32  FFT_Switch2;
 
-void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by increment delta.
+COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by increment delta.
 {
 	if(mndx == CW)
 	{

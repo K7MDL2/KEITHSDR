@@ -89,7 +89,7 @@ void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
-void Set_Spectrum_Scale(int8_t zoom_dir)
+COLD void Set_Spectrum_Scale(int8_t zoom_dir)
 {
     //Serial.println(zoom_dir);
     //extern struct Spectrum_Parms Sp_Parms_Def[];    
@@ -111,7 +111,7 @@ void Set_Spectrum_Scale(int8_t zoom_dir)
 }
 
 // Use gestures to raise and lower the spectrum reference level relative to the bottom of the window (noise floor)
-void Set_Spectrum_RefLvl(int8_t zoom_dir)
+COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
 {
     //Serial.println(zoom_dir);    
     
@@ -142,7 +142,7 @@ void Set_Spectrum_RefLvl(int8_t zoom_dir)
 // Returns 0 if cannot change bands
 // Returns 1 if success
 
-void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
+COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
 {
     // TODO search bands column for match toaccount for mapping that does not start with 0 and bands could be in odd order and disabled.
     //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
@@ -194,7 +194,7 @@ void changeBands(int8_t direction)  // neg value is down.  Can jump multiple ban
     Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
 }
 
-void pop_win(uint8_t init)
+COLD void pop_win(uint8_t init)
 {
     return;
     if(init)
@@ -255,7 +255,7 @@ void pop_win(uint8_t init)
 //         -1 = decrement the mode
     
 // MODE button
-void setMode(int8_t dir)
+COLD void setMode(int8_t dir)
 {
 	uint8_t mndx;
 
@@ -290,7 +290,7 @@ void setMode(int8_t dir)
 //      This is mode-aware. In non-CW modes we will only cycle through SSB width filters as set in the filter tables
 
 // FILTER button
-void Filter(int dir)
+COLD void Filter(int dir)
 { 
     static int direction = -1;
     int _bndx = bandmem[curr_band].filter; // Change Bandwidth  - cycle down then back to the top
@@ -361,7 +361,7 @@ void Filter(int dir)
 //      If FINE is OFF, we will not use 1Hz. If FINE = ON we only use 1 and 10Hz steps.
 
 // RATE button
-void Rate(int8_t swiped)
+COLD void Rate(int8_t swiped)
 {
     static int direction = 1;
 	int _fndx = bandmem[curr_band].tune_step;
@@ -414,7 +414,7 @@ void Rate(int8_t swiped)
 }
 
 // AGC button
-void AGC()
+COLD void AGC()
 {
     selectAgc(bandmem[curr_band].agc_mode + 1);            
     //Serial.print("Set AGC to ");
@@ -425,7 +425,7 @@ void AGC()
 }
 
 // MUTE
-void Mute()
+COLD void Mute()
 {  
     if (user_settings[user_Profile].spkr_en)
     {
@@ -444,7 +444,7 @@ void Mute()
 }
 
 // MENU
-void Menu()
+COLD void Menu()
 {   
     //popup = 1;
     //pop_win(1);
@@ -458,7 +458,7 @@ void Menu()
 }
 
 // VFO A/B
-void VFO_AB()
+COLD void VFO_AB()
 {
     // feedback beep
     touchBeep(true);  // a timer will shut it off.
@@ -489,7 +489,7 @@ void VFO_AB()
 //   toogle = 2 toggles attenuator state
 //   dB = 1-31.  Set att relay on and set attenuattion level.  0-31 is a valid range to set but we will only use 1-31
 //
-void Atten(int8_t toggle)
+COLD void Atten(int8_t toggle)
 {
     // Set the attenuation level from the value in the database
     #ifdef DIG_STEP_ATT 
@@ -541,7 +541,7 @@ void Atten(int8_t toggle)
 //   toogle = 2 toggles Preamp state
 //   toogle = -1 or any value other than 0-2 sets Preamp state to current database value. Used for startup or changing bands.
 //
-void Preamp(int8_t toggle)
+COLD void Preamp(int8_t toggle)
 {    
     if (toggle == 2)    // toggle state
     {
@@ -573,7 +573,7 @@ void Preamp(int8_t toggle)
 }
 
 // RIT button
-void RIT()
+COLD void RIT()
 {
     if (bandmem[curr_band].RIT_en == ON)
         bandmem[curr_band].RIT_en = OFF;
@@ -585,7 +585,7 @@ void RIT()
 }
     
 // XIT button
-void XIT()
+COLD void XIT()
 {
     if (bandmem[curr_band].XIT_en == ON)
         bandmem[curr_band].XIT_en = OFF;
@@ -597,7 +597,7 @@ void XIT()
 }
 
 // SPLIT button
-void Split()
+COLD void Split()
 {
     if (bandmem[curr_band].split == ON)
         bandmem[curr_band].split = OFF;
@@ -611,7 +611,7 @@ void Split()
 }
 
 // XVTR button
-void Xvtr()
+COLD void Xvtr()
 {
     if (bandmem[curr_band].xvtr_en == ON)
         bandmem[curr_band].xvtr_en = OFF;
@@ -626,7 +626,7 @@ void Xvtr()
 }
 
 // ATU button
-void ATU()
+COLD void ATU()
 {    
     if (bandmem[curr_band].ATU == ON)
         bandmem[curr_band].ATU = OFF;
@@ -641,7 +641,7 @@ void ATU()
 }
 
 // Fine button
-void Fine()
+COLD void Fine()
 {
     extern uint8_t enc_ppr_response;        
 
@@ -664,7 +664,7 @@ void Fine()
 }
 
 // ANT button
-void Ant()
+COLD void Ant()
 {
     if (bandmem[curr_band].ant_sw== 1)
         bandmem[curr_band].ant_sw = 2;
@@ -690,7 +690,7 @@ bandmem[curr_band].attenuator_dB = i;
 }
 
 // AF GAIN button activate control
-void setAFgain()
+COLD void setAFgain()
 {
     if (user_settings[user_Profile].afGain_en == OFF)      // Set button to on to track as active 
     {
@@ -717,7 +717,7 @@ void setAFgain()
 //   To jump to Min volume use -100;
 //   Normally just ask for +1 or -1
 //       
-void AFgain(int8_t delta)
+COLD void AFgain(int8_t delta)
 {
     float _afLevel;
 
@@ -745,7 +745,7 @@ void AFgain(int8_t delta)
 }
 
 // RF GAIN button activate control
-void setRFgain()
+COLD void setRFgain()
 {
     if (user_settings[user_Profile].rfGain_en == OFF)      // Set button to on to track as active 
     {
@@ -768,7 +768,7 @@ void setRFgain()
 //          -X Reduce by X%
 //          +X Increase by X%
 //
-void RFgain(int8_t delta)
+COLD void RFgain(int8_t delta)
 {
     float _rfLevel;
 
@@ -795,7 +795,7 @@ void RFgain(int8_t delta)
 }
 
 // XMIT button
-void Xmit()
+COLD void Xmit()
 {
     if (user_settings[user_Profile].xmit == ON)
         user_settings[user_Profile].xmit = OFF;
@@ -808,7 +808,7 @@ void Xmit()
 }
 
 // NB button
-void NB()
+COLD void NB()
 {
     if (user_settings[user_Profile].nb_en == OFF)
     {   
@@ -828,7 +828,7 @@ void NB()
 }
 
 // Adjust the NB level. NB() turn on and off only calling this to initiialize the current level with delta = 0    
-void setNBLevel(int8_t delta)
+COLD void setNBLevel(int8_t delta)
 {
     float _nbLevel;
 
@@ -871,7 +871,7 @@ void setNBLevel(int8_t delta)
 }
 
 // NR button
-void NR()
+COLD void NR()
 {
     if (user_settings[user_Profile].nr_en > NROFF)
         user_settings[user_Profile].nr_en = NROFF;
@@ -883,7 +883,7 @@ void NR()
 }
 
 // Enet button
-void Enet()
+COLD void Enet()
 {
     if (user_settings[user_Profile].enet_output == ON)
         user_settings[user_Profile].enet_output = OFF;
@@ -895,7 +895,7 @@ void Enet()
 }
 
 // Spot button
-void Spot()
+COLD void Spot()
 {
     if (user_settings[user_Profile].spot == OFF)
         user_settings[user_Profile].spot = ON;
@@ -907,7 +907,7 @@ void Spot()
 }
 
 // REF LEVEL button activate control
-void setRefLevel()
+COLD void setRefLevel()
 {
     if (std_btn[REFLVL_BTN].enabled ==OFF)
     {
@@ -930,7 +930,7 @@ void setRefLevel()
 
 // Ref Level adjust
 // Pass the desired new absolute value.  It will be limited to allowable range of -110 to -220
-void RefLevel(int8_t newval)
+COLD void RefLevel(int8_t newval)
 {
     bandmem[curr_band].sp_ref_lvl += newval;
     if (bandmem[curr_band].sp_ref_lvl > -110)
@@ -944,7 +944,7 @@ void RefLevel(int8_t newval)
 }
 
 // Notch button
-void Notch()
+COLD void Notch()
 {
     if (user_settings[user_Profile].notch== ON)
         user_settings[user_Profile].notch = OFF;
@@ -956,7 +956,7 @@ void Notch()
 }
 
 // BAND UP button
-void BandUp()
+COLD void BandUp()
 {
     changeBands(1);
     displayBandUp();
@@ -965,7 +965,7 @@ void BandUp()
 }
 
 // BAND DOWN button
-void BandDn()
+COLD void BandDn()
 {
     //Serial.println("BAND DN");
     changeBands(-1);
@@ -975,7 +975,7 @@ void BandDn()
 }
 
 // BAND button
-void Band()
+COLD void Band()
 {
     //popup = 1;
     //pop_win(1);
@@ -986,7 +986,7 @@ void Band()
 }
 
 // DISPLAY button
-void Display()
+COLD void Display()
 {   
     if (Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode)
     {
@@ -1006,7 +1006,7 @@ void Display()
     //Serial.println(display_state);
 }
 
-void TouchTune(int16_t touch_Freq)
+COLD void TouchTune(int16_t touch_Freq)
 {
     touch_Freq -= Sp_Parms_Def[spectrum_preset].spect_width/2;     // adjust coordinate relative to center 
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
@@ -1057,7 +1057,7 @@ void TouchTune(int16_t touch_Freq)
 *  None.
 *
 *******************************************************************************/
-void setAtten_dB(int8_t atten)
+COLD void setAtten_dB(int8_t atten)
 {
 #ifdef DIG_STEP_ATT
     uint8_t   i;
@@ -1110,7 +1110,7 @@ void setAtten_dB(int8_t atten)
 #endif  // DIG_STEP_ATT
 }
 
-void selectStep(uint8_t fndx)
+COLD void selectStep(uint8_t fndx)
 { 
 		if (fndx <= 1)
 		{
@@ -1126,7 +1126,7 @@ void selectStep(uint8_t fndx)
 	displayRate();
 }
 
-void selectAgc(uint8_t andx)
+COLD void selectAgc(uint8_t andx)
 {
 
 	// TODO   Put in some code for custom AGC. Use the AGC table of settings.

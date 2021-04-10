@@ -14,14 +14,14 @@ FT817 ft817;  // assign our class id
 
 
 // set this to the hardware serial port you wish to use
-void init_CAT_comms(void)
+COLD void init_CAT_comms(void)
 {
     //Serial1.begin(38400);
     //setSerial(1);
     ft817.begin(19200);
 }
 
-void print_CAT_status(void)
+COLD void print_CAT_status(void)
 {
     Serial.print("FT-817 S-meter:"); Serial.println(ft817.getSMeter());
     Serial.print("FT-817 Active VFO Frequency:"); Serial.println(ft817.getVFO());	  // get acxtual VF)

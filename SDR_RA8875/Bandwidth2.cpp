@@ -15,7 +15,7 @@ extern uint8_t curr_band;   // global tracks our current band setting.
 extern const struct Filter_Settings filter[];
 
 ////////////////////////////////////////////////////////////////////////////////////
-void selectBandwidth(uint8_t bndx)
+COLD void selectBandwidth(uint8_t bndx)
 {
     if(bndx==0)
     {

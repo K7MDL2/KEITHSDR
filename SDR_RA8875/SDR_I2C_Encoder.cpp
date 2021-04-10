@@ -40,7 +40,7 @@ void encoder_thresholds(i2cEncoderLibV2* obj);
 extern void MF_Service(int8_t counts, uint8_t knob);
 
 //Callback when the MF Gain encoder is rotated
-void encoder_rotated(i2cEncoderLibV2* obj) 
+COLD void encoder_rotated(i2cEncoderLibV2* obj) 
 {
 	uint8_t knob_assigned;
 
@@ -87,13 +87,13 @@ void encoder_rotated(i2cEncoderLibV2* obj)
 }
 
 //Callback when the encoder is pushed
-void encoder_click(i2cEncoderLibV2* obj) {
+COLD void encoder_click(i2cEncoderLibV2* obj) {
 	Serial.println("Push: ");
 	obj->writeRGBCode(0x0000FF);
 }
 
 //Callback when the encoder reach the max or min
-void encoder_thresholds(i2cEncoderLibV2* obj) 
+COLD void encoder_thresholds(i2cEncoderLibV2* obj) 
 {
 	if (obj->readStatus(i2cEncoderLibV2::RMAX))
 		Serial.println("Max!");
@@ -103,12 +103,12 @@ void encoder_thresholds(i2cEncoderLibV2* obj)
 }
 
 //Callback when the fading process finish and set the RGB led off
-void encoder_fade(i2cEncoderLibV2* obj) 
+COLD void encoder_fade(i2cEncoderLibV2* obj) 
 {
   	obj->writeRGBCode(0x000000);
 }
 
-void set_I2CEncoders()
+COLD void set_I2CEncoders()
 {
     pinMode(I2C_INT_PIN, INPUT_PULLUP);
     Serial.println("Setup ENC");
@@ -206,7 +206,7 @@ void set_I2CEncoders()
 }
 
 #ifdef MF_ENC_ADDR
-void blink_MF_RGB(void)
+COLD void blink_MF_RGB(void)
 {
     /* blink the RGB LED */
     MF_ENC.writeRGBCode(0xFF0000);
@@ -222,7 +222,7 @@ void blink_MF_RGB(void)
 #endif
 
 #ifdef ENC2_ADDR
-void blink_ENC2_RGB(void)
+COLD void blink_ENC2_RGB(void)
 {
     /* blink the RGB LED */
     ENC2.writeRGBCode(0xFF0000);
@@ -238,7 +238,7 @@ void blink_ENC2_RGB(void)
 #endif
 
 #ifdef ENC3_ADDR
-void blink_ENC3_RGB(void)
+COLD void blink_ENC3_RGB(void)
 {	
     /* blink the RGB LED */
     ENC3.writeRGBCode(0xFF0000);

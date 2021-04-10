@@ -83,7 +83,7 @@ void drawSpectrumFrame(uint8_t s);
 void initSpectrum(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
-const char* formatFreq(uint32_t Freq);
+char* formatFreq(uint32_t Freq);
 void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
 void setActiveWindow();
 

@@ -99,7 +99,7 @@ extern struct User_Settings user_settings[];
 EthernetUDP Udp;
 
 // Toggle UDP output data
-void toggle_enet_data_out(uint8_t mode)
+COLD void toggle_enet_data_out(uint8_t mode)
 {
 	if (mode == 1)
 	enet_data_out = 1;
@@ -121,7 +121,7 @@ void toggle_enet_data_out(uint8_t mode)
 	}
 }
 
-void teensyMAC(uint8_t *mac) 
+COLD void teensyMAC(uint8_t *mac) 
 {
   	static char teensyMac[23];
   
@@ -182,7 +182,7 @@ void teensyMAC(uint8_t *mac)
   	#endif
 }
 
-uint8_t enet_read(void)
+HOT uint8_t enet_read(void)
 {
     if (enet_ready && user_settings[user_Profile].enet_enabled)
     {
@@ -214,7 +214,7 @@ uint8_t enet_read(void)
     return 0;
 }
 
-uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
+HOT uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
 {   
 	#ifdef REMOTE_OPS
    	if (enet_ready && user_settings[user_Profile].enet_enabled && user_settings[user_Profile].enet_output)  // skip if no enet connection
@@ -230,7 +230,7 @@ uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_count)
    	return 0;
 } 
 
-void enet_start(void)
+COLD void enet_start(void)
 {
 	if (!user_settings[user_Profile].enet_enabled)
 		return;
@@ -279,7 +279,7 @@ void enet_start(void)
 //
 /*--------------------------------------- NTP code -----------------------------------*/
 //
-time_t getNtpTime()
+COLD time_t getNtpTime()
 {
     int size = Udp_NTP.parsePacket();
     if (size >= NTP_PACKET_SIZE) 
@@ -301,7 +301,7 @@ time_t getNtpTime()
 }
 
 // send an NTP request to the time server at the given address
-void sendNTPpacket(const char * address) 
+COLD void sendNTPpacket(const char * address) 
 {
     // set all bytes in the buffer to 0
     memset(packetBuffer_NTP, 0, NTP_PACKET_SIZE);
