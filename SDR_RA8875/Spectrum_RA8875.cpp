@@ -244,7 +244,7 @@ HOT void spectrum_update(int16_t s)
         { 
             if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
             {
-                Serial.println("FFT Invalid Data INF or NaN");
+                Serial.println(F("FFT Invalid Data INF or NaN"));
                 //Serial.println(*(pout+i));                
                 pixelnew[i] = -200;   // fill in the missing value with somting harmless
                 //pixelnew[i] = myFFT.read(i+1);  // hope the next one is better.
@@ -643,7 +643,7 @@ HOT void spectrum_update(int16_t s)
     {
         if (spectrum_clear.check() == 1)      // Spectrum Screen blanking timer
         {
-            Serial.println("*** Cleared Screen, no data to Draw! ***");
+            Serial.println(F("*** Cleared Screen, no data to Draw! ***"));
             //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width-2, ptr->sp_height-2, myBLACK);
             //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
         }
@@ -852,10 +852,10 @@ COLD void Spectrum_Parm_Generator(int16_t parm_set)
 // print out results to the serial terminal for manual copy into the default table.  This is 1 set of data only, for each run.  
 // Change the globals and run again for a new set
 
-    Serial.println("Start of Spectrum Parameter Generator List.");
-    Serial.println("This is a complete parameter record for the current window.");
-    Serial.println("Cut and paste the data in the braces to modify the predefined records.");
-    Serial.print("{");
+    Serial.println(F("Start of Spectrum Parameter Generator List."));
+    Serial.println(F("This is a complete parameter record for the current window."));
+    Serial.println(F("Cut and paste the data in the braces to modify the predefined records."));
+    Serial.print(F("{"));
     Serial.print(ptr->wf_sp_width); Serial.print(",");
     Serial.print(ptr->border_space_min); Serial.print(",");
     Serial.print(ptr->border_space); Serial.print(",");
@@ -888,14 +888,14 @@ COLD void Spectrum_Parm_Generator(int16_t parm_set)
     Serial.print(ptr->spect_floor);  Serial.print(",");
     Serial.print(ptr->spect_wf_rate);  Serial.print("}");
 
-    Serial.println("\nEnd of Spectrum Parameter Generator List");
-    Serial.print("Current Preset=");
+    Serial.println(F("\nEnd of Spectrum Parameter Generator List"));
+    Serial.print(F("Current Preset="));
     Serial.print(spectrum_preset);
-    Serial.print("  Selected Preset=");
+    Serial.print(F("  Selected Preset="));
     Serial.print(parm_set);
-    Serial.print("  Current Waterfall Style=");
+    Serial.print(F("  Current Waterfall Style="));
     Serial.print(spectrum_wf_style);
-    Serial.print("  Current Color Temp=");
+    Serial.print(F("  Current Color Temp="));
     Serial.println(spectrum_wf_colortemp);
 }
 //

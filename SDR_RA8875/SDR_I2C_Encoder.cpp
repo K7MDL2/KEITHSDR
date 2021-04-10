@@ -44,7 +44,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 {
 	uint8_t knob_assigned;
 
-	Serial.print("Encoder ID = ");
+	Serial.print(F("Encoder ID = "));
     Serial.println(obj->id);
 	
 	if (obj->id == user_settings[user_Profile].encoder1_client)
@@ -53,16 +53,16 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 		knob_assigned = obj->id;
 
 	if (obj->readStatus(i2cEncoderLibV2::RINC))
-		Serial.print("Increment: ");
+		Serial.print(F("Increment: "));
 	else
-		Serial.print("Decrement: ");
+		Serial.print(F("Decrement: "));
 	int16_t count = obj->readCounterInt();
 	Serial.println(count);
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
-	Serial.print("Knob Asssinged to ");
+	Serial.print(F("Knob Asssinged to "));
     Serial.println(knob_assigned);
 	switch(knob_assigned)
 	{
@@ -88,7 +88,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 
 //Callback when the encoder is pushed
 COLD void encoder_click(i2cEncoderLibV2* obj) {
-	Serial.println("Push: ");
+	Serial.println(F("Push: "));
 	obj->writeRGBCode(0x0000FF);
 }
 
@@ -96,9 +96,9 @@ COLD void encoder_click(i2cEncoderLibV2* obj) {
 COLD void encoder_thresholds(i2cEncoderLibV2* obj) 
 {
 	if (obj->readStatus(i2cEncoderLibV2::RMAX))
-		Serial.println("Max!");
+		Serial.println(F("Max!"));
 	else
-		Serial.println("Min!");
+		Serial.println(F("Min!"));
 	obj->writeRGBCode(0xFF0000);
 }
 
@@ -111,13 +111,13 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 COLD void set_I2CEncoders()
 {
     pinMode(I2C_INT_PIN, INPUT_PULLUP);
-    Serial.println("Setup ENC");
+    Serial.println(F("Setup ENC"));
 
 	#ifdef MF_ENC_ADDR
     // MF KNOB - Multi-Function knob setup.
 	if(user_settings[user_Profile].encoder1_client)  // 0 is no encoder assigned so skip this
 	{
-		Serial.println("MF Encoder Setup");
+		Serial.println(F("MF Encoder Setup"));
 		MF_ENC.reset();
 		delay(20);
 		MF_ENC.begin(
@@ -150,7 +150,7 @@ COLD void set_I2CEncoders()
 	// Encoder 2 setup
 	if(user_settings[user_Profile].encoder2_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println("Encoder #2 Setup");
+		Serial.println(F("Encoder #2 Setup"));
 		ENC2.reset();
 		delay(20);
 		ENC2.begin(
@@ -179,7 +179,7 @@ COLD void set_I2CEncoders()
 	// Encoder 3 setup
 	if(user_settings[user_Profile].encoder3_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println("Encoder #3 Setup");
+		Serial.println(F("Encoder #3 Setup"));
 		ENC3.reset();
 		delay(20);
 		ENC3.begin(
@@ -216,7 +216,7 @@ COLD void blink_MF_RGB(void)
     MF_ENC.writeRGBCode(0x0000FF);
     delay(250);
     MF_ENC.writeRGBCode(0x000000);
-	Serial.println("Blink MF RGB");
+	Serial.println(F("Blink MF RGB"));
     MF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
@@ -232,7 +232,7 @@ COLD void blink_ENC2_RGB(void)
     ENC2.writeRGBCode(0x0000FF);
     delay(250);
     ENC2.writeRGBCode(0x000000);
-	Serial.println("Blink ENC2 RGB");
+	Serial.println(F("Blink ENC2 RGB"));
     ENC2.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
@@ -248,7 +248,7 @@ COLD void blink_ENC3_RGB(void)
     ENC3.writeRGBCode(0x0000FF);
     delay(250);
     ENC3.writeRGBCode(0x000000);
-	Serial.println("Blink ENC3 RGB");
+	Serial.println(F("Blink ENC3 RGB"));
     ENC3.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif

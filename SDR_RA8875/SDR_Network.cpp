@@ -251,25 +251,25 @@ COLD void enet_start(void)
 	enet_ready = 0;
 	if (Ethernet.hardwareStatus() == EthernetNoHardware) 
 	{
-		Serial.println("Ethernet shield was not found.  Sorry, can't run the network without hardware. :(");
+		Serial.println(F("Ethernet shield was not found.  Sorry, can't run the network without hardware. :("));
 		enet_ready = 0;  // shut down usage of enet
 	}
 	else
 	{
 		//delay(1000);
-		Serial.print("Ethernet Address = ");
+		Serial.print(F("Ethernet Address = "));
 		Serial.println(Ethernet.localIP());
 		//delay(4000);
 		if (Ethernet.linkStatus() == LinkOFF) 
 		{
-			Serial.println("Ethernet cable is not connected.");
+			Serial.println(F("Ethernet cable is not connected."));
 			enet_ready = 0;
 		}
 		else
 		{  
 			enet_ready = 1;
 			//delay(100);
-			Serial.println("Ethernet cable connected.");
+			Serial.println(F("Ethernet cable connected."));
 			// start UDP
 			Udp.begin(localPort); // Startup our SDR comms
       		Udp_NTP.begin(localPort_NTP);  // startup NTP Client comms
@@ -296,7 +296,7 @@ COLD time_t getNtpTime()
 		setTime(secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR);
 		return secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
     }
-  	Serial.println("No NTP Response :-(");
+  	Serial.println(F("No NTP Response :-("));
   	return 0; // return 0 if unable to get the time
 }
 

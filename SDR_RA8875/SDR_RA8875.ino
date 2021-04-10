@@ -245,7 +245,7 @@ COLD void setup()
 {
     Serial.begin(115200);
     delay(500);
-    Serial.println("**** Running I2C Scanner ****");
+    Serial.println(F("**** Running I2C Scanner ****"));
 
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
@@ -322,7 +322,7 @@ COLD void setup()
     #ifdef I2C_LCD    // initialize the I2C LCD
         lcd.init(); 
         lcd.backlight();
-        lcd.print("Keith's SDR");
+        lcd.print(F("Keith's SDR"));
     #endif
 
     //--------------------------   Setup our Audio System -------------------------------------
@@ -426,9 +426,9 @@ COLD void setup()
                                                               // Generator never modifies the globals so never affects the layout itself.
                                                               // Print out our starting frequency for testing
     //drawSpectrumFrame(6);   // for 2nd window
-    Serial.print("\nInitial Dial Frequency is ");
+    Serial.print(F("\nInitial Dial Frequency is "));
     Serial.print(formatVFO(VFOA));
-    Serial.println("MHz");
+    Serial.println(F("MHz"));
 
     #ifdef FT817_CAT
         Serial.println("Starting the CAT port and reading some radio information if available");
@@ -446,14 +446,14 @@ COLD void setup()
         tft.setFont(Arial_14);
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(t_ptr->bx+10, t_ptr->by+10);
-        tft.print("Starting Network");
+        tft.print(F("Starting Network"));
         enet_start();
         if (!enet_ready)
         {
             enet_start_fail_time = millis(); // set timer for 10 minute self recovery in main loop
-            Serial.println(">Ethernet System Startup Failed, setting retry timer (10 minutes)");
+            Serial.println(F(">Ethernet System Startup Failed, setting retry timer (10 minutes)"));
         }
-        Serial.println(">Ethernet System Startup");
+        Serial.println(F(">Ethernet System Startup"));
         //setSyncProvider(getNtpTime);
     }
     #endif
@@ -510,7 +510,7 @@ void loop()
     if (time_n > delta)
     {
         delta = time_n;
-        Serial.print("Tms=");
+        Serial.print(F("Tms="));
         Serial.println(delta);
     }
     time_old = millis();
@@ -538,7 +538,7 @@ void loop()
 
     if (MF_Timeout.check() == 1 && MF_client != user_settings[user_Profile].default_MF_client)
     {
-        Serial.print("Switching to Default MF knob assignment, current owner is = ");
+        Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
         Serial.println(MF_client);
         unset_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
     }
@@ -554,14 +554,14 @@ void loop()
         if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
         {            
             mfg = MF_ENC.readStatus();
-            if (mfg) { Serial.print("****Checked MF_Enc status = "); Serial.println(mfg); }
+            if (mfg) { Serial.print(F("****Checked MF_Enc status = ")); Serial.println(mfg); }
         }
         #endif
         #ifdef ENC2_ADDR
         if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client)
         {
             mfg = ENC2.readStatus();
-            if (mfg) {Serial.print("****Checked Encoder #2 status = "); Serial.println(mfg); }
+            if (mfg) {Serial.print(F("****Checked Encoder #2 status = ")); Serial.println(mfg); }
         }
         #endif
         #ifdef ENC3_ADDR
@@ -706,21 +706,21 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
         lastUpdate_millis = 0; //handle wrap-around of the clock
     if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis)
     { //is it time to update the user interface?
-        Serial.print("\nCPU Cur/Peak: ");
+        Serial.print(F("\nCPU Cur/Peak: "));
         Serial.print(audio_settings.processorUsage());
-        Serial.print("%/");
+        Serial.print(F("%/"));
         Serial.print(audio_settings.processorUsageMax());
-        Serial.println("%");
-        Serial.print("CPU Temperature:");
+        Serial.println(F("%"));
+        Serial.print(F("CPU Temperature:"));
         Serial.print(InternalTemperature.readTemperatureF(), 1);
-        Serial.print("F ");
+        Serial.print(F("F "));
         Serial.print(InternalTemperature.readTemperatureC(), 1);
-        Serial.println("C");
-        Serial.print(" Audio MEM Float32 Cur/Peak: ");
+        Serial.println(F("C"));
+        Serial.print(F(" Audio MEM Float32 Cur/Peak: "));
         Serial.print(AudioMemoryUsage_F32());
-        Serial.print("/");
+        Serial.print(F("/"));
         Serial.println(AudioMemoryUsageMax_F32());
-        Serial.println("*** End of Report ***");
+        Serial.println(F("*** End of Report ***"));
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
@@ -749,19 +749,19 @@ COLD void respondToByte(char c)
         break;
     case 'C':
     case 'c':
-        Serial.println("Toggle printing of memory and CPU usage.");
+        Serial.println(F("Toggle printing of memory and CPU usage."));
         togglePrintMemoryAndCPU();
         break;
     case 'M':
     case 'm':
-        Serial.println("\nMemory Usage (FlexInfo)");
+        Serial.println(F("\nMemory Usage (FlexInfo)"));
         flexRamInfo();
-        Serial.println("*** End of Report ***");
+        Serial.println(F("*** End of Report ***"));
         break;
     default:
-        Serial.print("You typed ");
+        Serial.print(F("You typed "));
         Serial.print(s);
-        Serial.println(".  What command?");
+        Serial.println(F(".  What command?"));
     }
 }
 //
@@ -770,10 +770,10 @@ COLD void respondToByte(char c)
 COLD void printHelp(void)
 {
     Serial.println();
-    Serial.println("Help: Available Commands:");
-    Serial.println("   h: Print this help");
-    Serial.println("   C: Toggle printing of CPU and Memory usage");
-    Serial.println("   M: Print Detailed Memory Region Usage Report");
+    Serial.println(F("Help: Available Commands:"));
+    Serial.println(F("   h: Print this help"));
+    Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
+    Serial.println(F("   M: Print Detailed Memory Region Usage Report"));
 }
 #ifndef I2C_ENCODERS
 //
@@ -830,7 +830,7 @@ COLD void unset_MF_Service(uint8_t client_name)
         } break;
         case  REFLVL_BTN: {
             setRefLevel();
-            Serial.println("unsetREF");
+            Serial.println(F("unsetREF"));
         } break;
         case NB_BTN:
         case MFTUNE:
@@ -893,7 +893,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         } break;
         case  REFLVL_BTN: {
             RefLevel(counts*-1);
-            Serial.println("setREF");
+            Serial.println(F("setREF"));
         } break;
         case  ATTEN_BTN: {
             if (counts> 31)
@@ -927,7 +927,7 @@ COLD void I2C_Scanner(void)
   byte error, address; //variable for error and I2C address
   int nDevices;
 
-  Serial.println("Scanning...");
+  Serial.println(F("Scanning..."));
 
   nDevices = 0;
   for (address = 1; address < 127; address++ )
@@ -940,7 +940,7 @@ COLD void I2C_Scanner(void)
 
     if (error == 0)
     {
-      Serial.print("I2C device found at address 0x");
+      Serial.print(F("I2C device found at address 0x"));
       if (address < 16)
         Serial.print("0");
       Serial.print(address, HEX);
@@ -949,16 +949,16 @@ COLD void I2C_Scanner(void)
     }
     else if (error == 4)
     {
-      Serial.print("Unknown error at address 0x");
+      Serial.print(F("Unknown error at address 0x"));
       if (address < 16)
         Serial.print("0");
       Serial.println(address, HEX);
     }
   }
   if (nDevices == 0)
-    Serial.println("No I2C devices found\n");
+    Serial.println(F("No I2C devices found\n"));
   else
-    Serial.println("done\n");
+    Serial.println(F("done\n"));
 
   //delay(500); // wait 5 seconds for the next I2C scan
 }

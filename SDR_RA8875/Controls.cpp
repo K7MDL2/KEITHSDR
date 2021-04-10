@@ -212,7 +212,7 @@ COLD void pop_win(uint8_t init)
         #endif
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(CENTER, CENTER, true);
-        tft.print("this is a future keyboard");
+        tft.print(F("this is a future keyboard"));
         delay(1000);
         #ifdef USE_RA8875
             tft.fillRoundRect(200,160, 400, 200, 20, RA8875_LIGHT_ORANGE);
@@ -222,7 +222,7 @@ COLD void pop_win(uint8_t init)
             tft.drawRoundRect(200,160, 400, 200, 20, 20, RA8875_RED);
         #endif
         tft.setCursor(CENTER, CENTER, true);
-        tft.print("Thanks for watching, GoodBye!");
+        tft.print(F("Thanks for watching, GoodBye!"));
         delay(600);
         popup = 0;
    // }

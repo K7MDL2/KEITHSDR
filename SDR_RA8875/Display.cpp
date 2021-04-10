@@ -184,7 +184,7 @@ COLD void displayFilter(void)
 	char str[15];
 
 	sprintf(str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
-	Serial.print("Tune Rate is "); Serial.println(str);	
+	Serial.print(F("Filter is ")); Serial.println(str);	
 	sprintf(labels[FILTER_LBL].label, "%s", str);
 	drawLabel(FILTER_LBL, &bandmem[curr_band].filter);
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
@@ -195,7 +195,7 @@ COLD void displayRate(void)
 	if (bandmem[curr_band].tune_step >= TS_STEPS)
 		bandmem[curr_band].tune_step = TS_STEPS-1;
 	sprintf(labels[RATE_LBL].label, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
-	Serial.print("Tune Rate is "); Serial.println(labels[RATE_LBL].label);
+	Serial.print(F("Tune Rate is ")); Serial.println(labels[RATE_LBL].label);
 	drawLabel(RATE_LBL, &bandmem[curr_band].tune_step);
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);
 }
@@ -213,7 +213,7 @@ COLD void displayANT(void)
 {	
 	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
 	sprintf(labels[ANT_LBL].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
-	Serial.print("Antenna Switch set to "); Serial.println(std_btn[ANT_BTN].label);
+	Serial.print(F("Antenna Switch set to ")); Serial.println(std_btn[ANT_BTN].label);
 	drawLabel(ANT_LBL, &bandmem[curr_band].ant_sw);
 	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
@@ -223,7 +223,7 @@ COLD void displayRFgain(void)
 	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].rfGain);
-	Serial.print("RF Gain set to "); Serial.println(std_btn[RFGAIN_BTN].label);
+	Serial.print(F("RF Gain set to ")); Serial.println(std_btn[RFGAIN_BTN].label);
 	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain_en);
   #ifdef I2C_LCD
     lcd.setCursor(10,1);
@@ -236,7 +236,7 @@ COLD void displayAFgain(void)
 	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].afGain);
-	Serial.print("AF Gain set to "); Serial.println(std_btn[AFGAIN_BTN].label);
+	Serial.print(F("AF Gain set to ")); Serial.println(std_btn[AFGAIN_BTN].label);
 	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain_en);
   #ifdef I2C_LCD  
     lcd.setCursor(0,1);
@@ -247,42 +247,42 @@ COLD void displayAFgain(void)
 COLD void displayAttn()
 {
 	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
-	Serial.print("Atten is "); Serial.println(bandmem[curr_band].attenuator);
+	Serial.print(F("Atten is ")); Serial.println(bandmem[curr_band].attenuator);
 	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
 
 COLD void displayPreamp()
 {
-	Serial.print("Preamp is "); Serial.println(bandmem[curr_band].preamp);
+	Serial.print(F("Preamp is ")); Serial.println(bandmem[curr_band].preamp);
 	drawLabel(PREAMP_LBL, &bandmem[curr_band].preamp);
 	draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
 }
 
 COLD void displayATU()
 {
-	Serial.print("ATU is "); Serial.println(bandmem[curr_band].ATU);
+	Serial.print(F("ATU is ")); Serial.println(bandmem[curr_band].ATU);
 	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
 }
 
 COLD void displayRIT()
 {
-	Serial.print("RIT is "); Serial.println(bandmem[curr_band].RIT_en);
+	Serial.print(F("RIT is ")); Serial.println(bandmem[curr_band].RIT_en);
 	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
 }
 
 COLD void displayXIT()
 {
-	Serial.print("XIT is "); Serial.println(bandmem[curr_band].XIT_en);
+	Serial.print(F("XIT is ")); Serial.println(bandmem[curr_band].XIT_en);
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
 }
 
 COLD void displayFine()
 {
-	Serial.print("Fine Tune is "); Serial.println(user_settings[user_Profile].fine);
+	Serial.print(F("Fine Tune is ")); Serial.println(user_settings[user_Profile].fine);
 	drawLabel(FINE_LBL, &user_settings[user_Profile].fine);
 	draw_2_state_Button(FINE_BTN,  &user_settings[user_Profile].fine);
 }
@@ -291,22 +291,22 @@ COLD void displayNB()
 {
 	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
     sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
-	Serial.print("NB is "); Serial.print(user_settings[user_Profile].nb_en);
-	Serial.print("   NB Level is "); Serial.println(user_settings[user_Profile].nb_level);
+	Serial.print(F("NB is ")); Serial.print(user_settings[user_Profile].nb_en);
+	Serial.print(F("   NB Level is ")); Serial.println(user_settings[user_Profile].nb_level);
 	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }
 
 COLD void displayNR()
 {
-	Serial.print("NR is "); Serial.println(user_settings[user_Profile].nr_en);
+	Serial.print(F("NR is ")); Serial.println(user_settings[user_Profile].nr_en);
 	drawLabel(NR_LBL, &user_settings[user_Profile].nr_en);
 	draw_2_state_Button(NR_BTN, &user_settings[user_Profile].nr_en);
 }
 
 COLD void displayNotch()
 {
-	Serial.print("Notch is "); Serial.println(std_btn[NOTCH_BTN].label);
+	Serial.print(F("Notch is ")); Serial.println(std_btn[NOTCH_BTN].label);
 	drawLabel(NOTCH_LBL, &user_settings[user_Profile].notch);
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
 }
@@ -327,7 +327,7 @@ COLD void displaySplit()
 		sprintf(sp_label, "%s %s", std_btn[SPLIT_BTN].label, "Off");
 		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
 	}
-	Serial.print("Split is "); Serial.println(bandmem[curr_band].split);
+	Serial.print(F("Split is ")); Serial.println(bandmem[curr_band].split);
 	drawLabel(SPLIT_LBL, &bandmem[curr_band].split);
 	draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
 }
