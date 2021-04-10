@@ -196,7 +196,6 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     #endif  // USE_RA8875
 };
 
-
 PROGMEM struct AGC agc_set[AGC_SET_NUM] = {
     {"AGC- ",2,0,0,-36.0,12.0,6.0},
     {"AGC-S",2,0,0,-36.0,12.0,6.0},
