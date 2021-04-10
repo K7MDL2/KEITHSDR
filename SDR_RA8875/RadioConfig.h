@@ -131,7 +131,10 @@
       #define PANADAPTER
     #endif
     #define PANADAPTER 
-    #define PANADAPTER_INVERT
+    #ifdef PANADAPTER
+      #define ALL_CAT
+      #define PANADAPTER_INVERT
+    #endif
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
@@ -273,5 +276,9 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
   #include <ft817.h>
   #include "SDR_CAT.h"
 #endif  // FT817_CAT
+
+#ifdef ALL_CAT
+  #include "SDR_CAT.h"
+#endif
 
 #endif //_RADIOCONFIG_H_

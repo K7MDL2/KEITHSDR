@@ -435,6 +435,9 @@ COLD void setup()
         init_CAT_comms();  // initialize the CAT port
         print_CAT_status();  // Test Line to read daa forfm FT817 if attached.
     #endif
+    #ifdef ALL_CAT
+        CAT_setup();   // Setup teh Serial port for cnfigured Radio comm port
+    #endif
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
 
     #ifdef ENET
@@ -600,6 +603,8 @@ void loop()
     {
         touchBeep(false);    
     }
+
+    CAT_handler();
 
     //respond to Serial commands
     while (Serial.available())

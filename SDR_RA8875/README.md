@@ -7,6 +7,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     1. Added new band 0 as a dummy or IF.  Shifts Band index for other bands up by 1. This also aligns with some band decoder library band definitions useful for PANADAPTER mode.
     2. Decreased the height of the spectrum windows by 10px to make a bit more room for touchable labels just above the spectrum box.
     3. Tagged most functions as COLD which is a macro for FLASHMEM. This locates the little used functions into FLASH memory saving RAM for variables and fast run code like the spectrum update function.  Increased RAM free space from 90K to 125K.
+    4. Incorporated remoteQTH.com band decoder source, heavily modified to include the minimum needed for serial CAT port. Testing with Elecraft/Kenwood config using Serial port 6.
 
 ## 4/8/2021
 
