@@ -28,6 +28,16 @@
 #include <TimeLib.h>            // TODO  - list where to find this
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+#include <glcdfont.c>
+#include <ILI9341_fonts.h>
+//#include <FiraCode_mono_14.c>   //minipixel
+//#include <fonts/FiraCode_mono_16.c>
+//#include <fonts/FiraCode_mono_18.c>
+//#include <fonts/FiraCode_mono_20.c>
+//#include <fonts/FiraCode_mono_24.c>
+//#include <fonts/FiraCode_mono_28.c>
+//#include <fonts/FiraCode_mono_32.c>
+//#include <fonts/FiraCode_mono_40.c>
 // Below are local project files
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 #include "Spectrum_RA8875.h"    // spectrum
