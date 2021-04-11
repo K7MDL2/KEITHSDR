@@ -8,7 +8,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     2. Decreased the height of the spectrum windows by 10px to make a bit more room for touchable labels just above the spectrum box.
     3. Tagged most functions as COLD which is a macro for FLASHMEM. This locates the little used functions into FLASH memory saving RAM for variables and fast run code like the spectrum update function.  Increased RAM free space from 90K to 125K.
     4. Incorporated remoteQTH.com band decoder source, heavily modified to include the minimum needed for serial CAT port. Testing with Elecraft/Kenwood config using Serial port 6.
-    5. Any encoder knob controlling a MF knob assignable function, including the MF knob itself, will now take over the S-meter and display its setting in the segments (divded by 10) in a different color along with a number.
+    5. Any encoder knob controlling a MF knob assignable function, including the MF knob itself, will now take over the S-meter and display its setting in the segments (range 0 to 10) in a different color along with a number.  After a timeout the meter is released to normal S-meter duty.
 
 ## 4/8/2021
 
