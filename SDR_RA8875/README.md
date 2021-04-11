@@ -6,15 +6,15 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
     1. Added new band 0 as a dummy or IF.  Shifts Band index for other bands up by 1. This also aligns with some band decoder library band definitions useful for PANADAPTER mode.
     2. Decreased the height of the spectrum windows by 10px to make a bit more room for touchable labels just above the spectrum box.
-    3. Tagged most functions as COLD which is a macro for FLASHMEM. This locates the little used functions into FLASH memory saving RAM for variables and fast run code like the spectrum update function.  Increased RAM free space from 90K to 125K.
+    3. Tagged most functions as COLD which is a macro for FLASHMEM. This locates the little used functions into FLASH memory saving RAM for variables and fast run code like the spectrum update function.  Increased RAM free space from 90K to 125K. Individual strings are wrapped with the F() macro which places those constants into PROGMEM memory area saving more RAM.
     4. Incorporated remoteQTH.com band decoder source, heavily modified to include the minimum needed for serial CAT port. Testing with Elecraft/Kenwood config using Serial port 6.
     5. Any encoder knob controlling a MF knob assignable function, including the MF knob itself, will now take over the S-meter and display its setting in the segments (range 0 to 10) in a different color along with a number.  After a timeout the meter is released to normal S-meter duty.
 
 ## 4/8/2021
 
     1. Fixed RA8875 mode S-meter location.
-    2. New Screen rotation define now default back to 0.
-    3. Working on Pandapter mode features so configurfation might not always be set for Radio mode.
+    2. New Screen rotation define now defaults back to 0.
+    3. Working on Panadapter mode features so configuration might not always be set for Radio mode.
 
 ## 4/7/2021
 
