@@ -17,6 +17,7 @@ extern uint8_t user_Profile;  // global tracks our current user profile
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern Metro MF_Timeout;
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -87,8 +88,9 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 								tval = 0xFF0000;  // Change to red
 								break;
 		case REFLVL_BTN:    sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
-							MeterInUse = true;
-							displayMeter(abs(110+bandmem[curr_band].sp_ref_lvl/100), string, 5);   // val, string label, color scheme
+							MeterInUse = true; 
+							MF_Timeout.reset();
+							displayMeter((abs(bandmem[curr_band].sp_ref_lvl)-110)/10, string, 5);   // val, string label, color scheme
 							if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
 								tval = 0xFF0000;  // Change to red
 								break;

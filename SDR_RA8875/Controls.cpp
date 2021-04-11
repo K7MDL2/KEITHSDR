@@ -934,9 +934,9 @@ COLD void RefLevel(int8_t newval)
 {
     bandmem[curr_band].sp_ref_lvl += newval;
     if (bandmem[curr_band].sp_ref_lvl > -110)
-        bandmem[curr_band].sp_ref_lvl = -220; 
-    if (bandmem[curr_band].sp_ref_lvl < -220)
         bandmem[curr_band].sp_ref_lvl = -110; 
+    if (bandmem[curr_band].sp_ref_lvl < -220)
+        bandmem[curr_band].sp_ref_lvl = -220; 
     Sp_Parms_Def[spectrum_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
     displayRefLevel();
     //Serial.print("Set Reference Level to ");

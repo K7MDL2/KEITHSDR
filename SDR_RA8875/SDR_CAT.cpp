@@ -8,7 +8,7 @@
 #include "RadioConfig.h"
 #include "SDR_CAT.h"
 
-#define CAT_Serial SerialUSB
+#define CAT_Serial Serial6
 
 #ifdef FT817_CAT
 
@@ -1014,7 +1014,7 @@ COLD void PttOff(){
 
 COLD void FrequencyRequest(){
   #if defined(REQUEST)
-  if(REQUEST > 0 && (millis() - (unsigned) RequestTimeout[0] > (unsigned) RequestTimeout[1])){
+  if(REQUEST > 0 && (millis() - RequestTimeout[0] > RequestTimeout[1])){
 
     #if defined(ICOM_CIV)
       txCIV(3, 0, CIV_ADRESS);  // ([command], [freq]) 3=read
