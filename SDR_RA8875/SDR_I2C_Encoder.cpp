@@ -82,19 +82,19 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 								break;
 		case ATTEN_BTN:     sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
 							MeterInUse = true;
-							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							displayMeter(bandmem[curr_band].attenuator_dB, string, 5);   // val, string label, color scheme
 							if (bandmem[curr_band].attenuator_dB > 30 || bandmem[curr_band].attenuator_dB < 2)
 								tval = 0xFF0000;  // Change to red
 								break;
 		case REFLVL_BTN:    sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
 							MeterInUse = true;
-							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							displayMeter(abs(110+bandmem[curr_band].sp_ref_lvl/100), string, 5);   // val, string label, color scheme
 							if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
 								tval = 0xFF0000;  // Change to red
 								break;
 		case NB_BTN:        sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
 							MeterInUse = true;
-							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							displayMeter(user_settings[user_Profile].nb_level, string, 5);   // val, string label, color scheme
 							if (user_settings[user_Profile].nb_level >= 5 || user_settings[user_Profile].nb_level <=1)
 								tval = 0xFF0000;  // Change to red
 								break;
