@@ -105,6 +105,8 @@ int32_t             multiKnob(uint8_t clear);           // consumer features use
 volatile int32_t    Freq_Peak = 0;
 uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
 bool                touchBeep_flag = false;
+bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
+
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -539,11 +541,15 @@ void loop()
         newFreq = 0;
     }
 
-    if (MF_Timeout.check() == 1 && MF_client != user_settings[user_Profile].default_MF_client)
+    if (MF_Timeout.check() == 1)
     {
-        Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
-        Serial.println(MF_client);
-        unset_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+        MeterInUse = false;  
+        if (MF_client != user_settings[user_Profile].default_MF_client)
+        {
+            Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
+            Serial.println(MF_client);
+            unset_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+        }
     }
 
     #ifdef I2C_ENCODERS
@@ -813,7 +819,7 @@ int32_t multiKnob(uint8_t clear)
 
 // Deregister the MF_client
 COLD void unset_MF_Service(uint8_t client_name)
-{
+{ 
     if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
     {
         MF_client = user_settings[user_Profile].default_MF_client;    // assign new owner to default for now.
@@ -843,8 +849,7 @@ COLD void unset_MF_Service(uint8_t client_name)
         default     : {          
         // No button for VFO tune, atten button stays on
             MF_client = user_settings[user_Profile].default_MF_client;
-        } break;
-    
+        } break;         
     } 
 }
 // ---------------------------------- set_MF_Service -----------------------------------

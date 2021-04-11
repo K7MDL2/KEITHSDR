@@ -8,7 +8,7 @@
 #include "RadioConfig.h"
 #include "SDR_CAT.h"
 
-#define CAT_Serial Serial6
+#define CAT_Serial SerialUSB
 
 #ifdef FT817_CAT
 
@@ -34,7 +34,7 @@ COLD void print_CAT_status(void)
 
 #endif  //  FT817_CAT
 
-void CAT_handler() ;
+void CAT_handler();
 void BandDecoderInput();
 void BandDecoderOutput();
 void LcdDisplay();
@@ -42,7 +42,7 @@ void watchDog();
 void FrequencyRequest();
 void PttOff();
 void FreqToBandRules();
-void bandSET();
+//void bandSET();
 
 #ifdef ALL_CAT
 //#include <Arduino.h>
@@ -1531,7 +1531,7 @@ HOT void BandDecoderInput(){
                 }
                 freq = rdKS.toInt();
                 FreqToBandRules();
-                bandSET();                                              // set outputs relay
+                //bandSET();                                              // set outputs relay
 
                 #if defined(SERIAL_echo)
                     serialEcho();
@@ -1719,7 +1719,7 @@ COLD void BandDecoderOutput(){
 
 }
 //---------------------------------------------------------------------------------------------------------
-
+#ifdef BANDSET
 COLD void bandSET() {                                               // set outputs by BAND variable
 
   if(BAND==0 && previousBAND != 0){    // deactivate PTT
@@ -1842,6 +1842,7 @@ COLD void bandSET() {                                               // set outpu
     WatchdogTimeout[0] = millis();                   // set time mark
   #endif
 }
+#endif
 //---------------------------------------------------------------------------------------------------------
 
 COLD void remoteRelay() {
@@ -1877,7 +1878,7 @@ COLD void watchDog() {
     if((millis() - WatchdogTimeout[0]) > WatchdogTimeout[1]) {
       BAND=0;
       freq=0;
-      bandSET();                                 // set outputs
+      //bandSET();                                 // set outputs
     }
   #endif
 }

@@ -16,6 +16,7 @@ extern uint8_t curr_band;     // global tracks our current band setting.
 extern uint8_t user_Profile;  // global tracks our current user profile
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
+extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -66,19 +67,35 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
     Serial.println(knob_assigned);
 	switch(knob_assigned)
 	{
-		case RFGAIN_BTN:    if (user_settings[user_Profile].rfGain >= 97 || user_settings[user_Profile].rfGain <=3)
+		char string[80];   // print format stuff
+		case RFGAIN_BTN:    sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme							
+							if (user_settings[user_Profile].rfGain >= 97 || user_settings[user_Profile].rfGain <=3)								
 								tval = 0xFF0000;  // Change to red
 								break;
-		case AFGAIN_BTN:    if (user_settings[user_Profile].afGain >= 97 || user_settings[user_Profile].afGain <=3)
+		case AFGAIN_BTN:    sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							if (user_settings[user_Profile].afGain >= 97 || user_settings[user_Profile].afGain <=3)
 								tval = 0xFF0000;  // Change to red
 								break;
-		case ATTEN_BTN:     if (bandmem[curr_band].attenuator_dB > 30 || bandmem[curr_band].attenuator_dB < 2)
+		case ATTEN_BTN:     sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							if (bandmem[curr_band].attenuator_dB > 30 || bandmem[curr_band].attenuator_dB < 2)
 								tval = 0xFF0000;  // Change to red
 								break;
-		case REFLVL_BTN:    if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
+		case REFLVL_BTN:    sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
 								tval = 0xFF0000;  // Change to red
 								break;
-		case NB_BTN:        if (user_settings[user_Profile].nb_level >= 5 || user_settings[user_Profile].nb_level <=1)
+		case NB_BTN:        sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							if (user_settings[user_Profile].nb_level >= 5 || user_settings[user_Profile].nb_level <=1)
 								tval = 0xFF0000;  // Change to red
 								break;
 		default: obj->writeRGBCode(tval); break;

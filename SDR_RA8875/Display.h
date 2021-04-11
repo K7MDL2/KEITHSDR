@@ -13,7 +13,7 @@ void draw_2_state_Button(uint8_t button, uint8_t *function_ptr);
 void refreshScreen(void);
 const char * formatVFO(uint32_t vfo);
 void displayTime(void);
-void displayMeter(int val, const char *string);
+void displayMeter(int val, const char *string, uint16_t colorscheme);
 void drawLabel(uint8_t lbl_num, uint8_t *function_ptr);
 void displayRefresh();
 // Bottom Panel Anchor button

@@ -340,11 +340,10 @@ COLD void displayTime(void)
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
-COLD void displayMeter(int val, const char *string)
+COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 {
-    uint16_t colorscheme = 3;
 	#ifdef USE_RA8875
-		tft.ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
+	   	ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	#else
 		ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	#endif
@@ -519,7 +518,7 @@ COLD void displayRefresh(void)
 	displayRefLevel();
 }
 
-#ifndef USE_RA8875
+//#ifndef USE_RA8875
 
 /*
  An example showing 'ring' analogue meter on a RA8875/8876 TFT
@@ -801,6 +800,7 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 	buf[len] = ' '; buf[len+1] = 0; // Add blanking space and terminator, helps to centre text too!
 	//Set the text colour to default
 	tft.setTextSize(1);
+	tft.setFont(Arial_14);
 	/*   Not using this overange feature - could change the S-Unit text color though
 	if (val<minV || val>maxV) 
 	{
@@ -817,7 +817,7 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 	x -= 32;
 	y -= 8;
 	tft.setCursor(x,y);
-	tft.fillRect(x,y,65,14,BLACK);  // Clear text space
+	tft.fillRect(x,y,75,14,BLACK);  // Clear text space
 	tft.print(units);
 
 	//setTextDatum(MC_DATUM);
@@ -1257,4 +1257,4 @@ COLD void drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornernam
   }
 }
 
-#endif // ifndef USE_RA8875
+//	#endif // ifndef USE_RA8875

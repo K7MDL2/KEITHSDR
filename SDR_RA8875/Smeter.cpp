@@ -14,8 +14,10 @@ extern AudioAnalyzePeak_F32 S_Peak;
 	extern RA8876_t3 tft;
 	extern void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 #endif
-extern uint8_t user_Profile;
-extern struct User_Settings user_settings[];
+extern 			uint8_t 		user_Profile;
+extern struct 	User_Settings 	user_settings[];
+extern        	uint8_t       	MF_client; // Flag for current owner of MF knob services
+extern 			bool 			MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
 ////////////////////////// this is the S meter code/////totall uncalibrated use at your own risk
 COLD void Peak()
@@ -69,6 +71,7 @@ COLD void Peak()
 		else 
 			sprintf(string,"S-9+%02.0f",dbuv);
 		
-		displayMeter((int) s, string);  // Call the button object display function. 
+		if (!MeterInUse)  // don't write while the MF knob is busy with a temporary focus
+			displayMeter((int) s, string, 3);  // Call the button object display function. 
 	}
 }

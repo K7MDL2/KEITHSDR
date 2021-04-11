@@ -92,10 +92,11 @@
                             // Most radio IFs are inverted, though it can change depending on frequency
                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-//#define FT817_CAT           // Include supprt for controlling a FT8xx type radio using the Yaesu CAT serial port
+//#define ALL_CAT           // Include support for reading radio info for PANADAPTER mode CAT control over serial port or other means
                             // Intended for use in combination with PANADAPTER mode.  
                             // Defining this without the PANADAPTER mode enabled may cause odd effects.
                             // DEPENDS on PANADAPTER mode
+
 
 #define SCREEN_ROTATION   0 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
                             // 2 is 180 flip.  This will affect the touch orientation so that must be set to match your display
@@ -110,7 +111,6 @@
 #define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
-    //#define FT817_CAT
     #ifdef USE_RA8875 
       //#undef USE_RA8875            // UN-comment this line to use RA8876      
     #endif
@@ -119,21 +119,19 @@
     #endif
     #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
-    #define si5351_TCXO             // set load cap to 0pF for TCXO
-    #define si5351_XTAL_25MHZ       // choose 25MHz tcxo or crystal, else 27Mhz
+    #define si5351_TCXO             // Set load cap to 0pF for TCXO
+    #define si5351_XTAL_25MHZ       // Choose 25MHz tcxo or crystal, else 27Mhz
     #define USE_DHCP
     #define ENET
     #define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    //#define SV1AFN_BPF              // use the BPF board
-    //#define DIG_STEP_ATT            // USe the step atten
-    #ifdef FT817_CAT
-      #define PANADAPTER
-    #endif
-    #define PANADAPTER 
+    //#define SV1AFN_BPF              // Use the BPF board
+    //#define DIG_STEP_ATT            // Use the step atten
+    #define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
-      #define ALL_CAT
-      #define PANADAPTER_INVERT
+      #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
+      //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
+      #define PANADAPTER_INVERT       // Invert spectrum for inverted IF tuning direction
     #endif
 #endif  // K7MDL_BUILD
 //
