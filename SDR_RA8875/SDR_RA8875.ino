@@ -610,7 +610,9 @@ void loop()
         touchBeep(false);    
     }
 
-    CAT_handler();
+    #ifdef ALL_CAT
+        CAT_handler();
+    #endif
 
     //respond to Serial commands
     while (Serial.available())

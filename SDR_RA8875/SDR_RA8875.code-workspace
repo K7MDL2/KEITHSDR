@@ -23,11 +23,6 @@
 			"vector": "cpp",
 			"initializer_list": "cpp",
 			"streambuf": "cpp",
-			"heydings_36.c": "cpp",
-			"firacode_mono_16.c": "cpp",
-			"firacode_mono_14.c": "cpp",
-			"firacode_mono_40.c": "cpp",
-			"firacode_mono_28.c": "cpp",
 			"glcdfont.c": "cpp"
 		}
 	}
