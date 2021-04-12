@@ -108,7 +108,7 @@
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
 // K7MDL specific Build Configuration rolled up into one #define
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
@@ -118,7 +118,8 @@
       #define SCREEN_ROTATION 2   // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
     #define I2C_ENCODERS
-    //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
+    #define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
+    #define K7MDL_OCXO
     #define si5351_TCXO             // Set load cap to 0pF for TCXO
     #define si5351_XTAL_25MHZ       // Choose 25MHz tcxo or crystal, else 27Mhz
     #define USE_DHCP
@@ -127,7 +128,7 @@
     //#define REMOTE_OPS
     //#define SV1AFN_BPF              // Use the BPF board
     //#define DIG_STEP_ATT            // Use the step atten
-    #define PANADAPTER                // Enable panadapter mode
+    //#define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
