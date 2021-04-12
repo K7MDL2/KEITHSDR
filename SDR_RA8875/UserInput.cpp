@@ -38,6 +38,7 @@ extern void set_MF_Service(uint8_t client_name);
 extern struct Frequency_Display disp_Freq[];
 extern AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
 extern void touchBeep(bool enable);
+extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime); 
@@ -554,23 +555,23 @@ COLD void Button_Handler(int16_t x, uint16_t y, uint8_t holdtime)
                     case NB_BTN:        NB();           break;
                     case NR_BTN:        NR();           break;
                     case ENET_BTN:      Enet();         break;
-                    case AFGAIN_BTN:    setAFgain();    break;
-                    case RFGAIN_BTN:    setRFgain();    break;
+                    case AFGAIN_BTN:    setAFgain(2);   break;
+                    case RFGAIN_BTN:    setRFgain(2);   break;
                     case SPOT_BTN:      Spot();         break;
-                    case REFLVL_BTN:    setRefLevel();  break;
+                    case REFLVL_BTN:    setRefLevel(2); break;
                     case NOTCH_BTN:     Notch();        break;
                     case BANDUP_BTN:    BandUp();       break;
                     case BANDDN_BTN:    BandDn();       break;
                     case BAND_BTN:      Band();         break;
                     case DISPLAY_BTN:   Display();      break;
                     case FN_BTN:        setPanel();     break;
-                    case UTCTIME_BTN:   break;        //nothig to do
-                    case SMETER_BTN:    break;  // nothing to do
+                    case UTCTIME_BTN:   break;        //nothing to do
+                    case SMETER_BTN:    setAFgain(1);    break; // TODO toggle through RF and AF
                     default: Serial.print("Found a button with SHOW on but has no function to call.  Index = ");
                         Serial.println(i); break;
                 }
             }
-            if ((ptr+i)->show && holdtime > 0)  // if the show property ius active, call the button function to act on it.
+            if ((ptr+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 // feedback beep
                 touchBeep(true);  // a timer will shut it off.

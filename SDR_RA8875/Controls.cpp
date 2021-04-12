@@ -45,6 +45,9 @@ extern          uint8_t             MF_client; // Flag for current owner of MF k
 extern          float               fft_bin_size;       // = sample_rate_Hz/(FFT_SIZE*2) -  Size of FFT bin in Hz
 extern          int16_t             spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
 extern          void                touchBeep(bool enable);
+extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern          Metro               MF_Timeout;
+extern          bool                MF_default_is_active;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -77,11 +80,11 @@ void Preamp(int8_t toggle);
 void Atten(int8_t toggle);
 void VFO_AB();
 void setAtten_dB(int8_t atten);
-void setAFgain();
+void setAFgain(int8_t toggle);
 void AFgain(int8_t delta);
-void setRFgain();
+void setRFgain(int8_t toggle);
 void RFgain(int8_t delta);
-void setRefLevel();
+void setRefLevel(int8_t toggle);
 void setNBLevel(int8_t delta);
 void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
@@ -491,30 +494,46 @@ COLD void VFO_AB()
 //
 COLD void Atten(int8_t toggle)
 {
+    char string[80];   // print format stuff
     // Set the attenuation level from the value in the database
     #ifdef DIG_STEP_ATT 
       setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
     #else
-      toggle = 0;
-    #endif    
+      //toggle = 0;
+    #endif   
+
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (bandmem[curr_band].attenuator)  // toggle the attenuator tracking state
-            bandmem[curr_band].attenuator = ATTEN_OFF;
+            toggle = 0;
         else 
-            bandmem[curr_band].attenuator = ATTEN_ON;
+            toggle = 1;
     }
-    else if (toggle == 1)    // toggle is 1, turn on Atten
-        bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
-    else if (toggle == 0)    // toggle is 0, turn off Atten
-        bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
-    // any other value of toggle pass through with unchanged state, just set the relays to current state
     
-    if (bandmem[curr_band].attenuator == ATTEN_ON)
-        set_MF_Service(ATTEN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-    else
-        unset_MF_Service(ATTEN_BTN); 
+    if (toggle == 1)    // toggle is 1, turn on Atten
+    {
+        bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
+        if (MF_client != ATTEN_BTN) 
+        {
+            set_MF_Service(ATTEN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+            MF_default_is_active = false;
+            sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
+		    MeterInUse = true;
+		    displayMeter(bandmem[curr_band].attenuator_dB/3, string, 5);   // val, string label, color scheme    
+        }
+    }
 
+    if (toggle == 0) // || toggle == -1)
+    {    // toggle is 0, turn off Atten
+        bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
+        MeterInUse = false;
+        //if (toggle != -1)
+        //{
+            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MF_default_is_active = true;
+        //}
+    }
+    
     #ifdef SV1AFN_BPF
       if (bandmem[curr_band].attenuator == ATTEN_OFF)
         Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
@@ -674,7 +693,7 @@ COLD void Ant()
     //Serial.print("Set Ant Sw to ");
     //Serial.println(bandmem[curr_band].ant_sw);
 
-#ifdef DIG_STEP_ATT
+#ifdef DIG_STEP_ATT  // for testing only
 // FOR TEST of Attenuator settings
 static int i=1;
 i = bandmem[curr_band].attenuator_dB +1;
@@ -690,18 +709,42 @@ bandmem[curr_band].attenuator_dB = i;
 }
 
 // AF GAIN button activate control
-COLD void setAFgain()
+COLD void setAFgain(int8_t toggle)
 {
-    if (user_settings[user_Profile].afGain_en == OFF)      // Set button to on to track as active 
+    char string[80];   // print format stuff
+
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (user_settings[user_Profile].afGain_en)  // toggle the attenuator tracking state
+            toggle = 0;
+        else 
+            toggle = 1;
+    }
+
+    if (toggle == 1)      // Set button to on to track as active 
     {
         user_settings[user_Profile].afGain_en = ON;
-        set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+        if (MF_client != AFGAIN_BTN)
+        {
+            set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+            MF_default_is_active = false;
+            sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
+            MeterInUse = true;
+            displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme        
+        }
     }
-    else
+    
+    if (toggle == 0 || toggle == -1)
     {
         user_settings[user_Profile].afGain_en = OFF;
-        unset_MF_Service(AFGAIN_BTN); 
+        MeterInUse = false;
+        if (toggle != -1)
+        {
+            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MF_default_is_active = true;
+        }
     }
+
     //Serial.print(" AF Gain ON/OFF set to  "); 
     //Serial.println(user_settings[user_Profile].afGain_en);
     displayAFgain();
@@ -745,18 +788,42 @@ COLD void AFgain(int8_t delta)
 }
 
 // RF GAIN button activate control
-COLD void setRFgain()
+COLD void setRFgain(int8_t toggle)
 {
-    if (user_settings[user_Profile].rfGain_en == OFF)      // Set button to on to track as active 
+    char string[80];   // print format stuff
+
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        user_settings[user_Profile].rfGain_en = ON;
-        set_MF_Service(RFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+        if (user_settings[user_Profile].rfGain_en)  // toggle the attenuator tracking state
+            toggle = 0;
+        else 
+            toggle = 1;
     }
-    else
+    
+    if (toggle == 1)      // Set button to on to track as active 
+    {
+        user_settings[user_Profile].rfGain_en = ON;        
+        if (MF_client != RFGAIN_BTN) 
+        { 
+            set_MF_Service(RFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+            MF_default_is_active = false;
+            sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
+            MeterInUse = true;
+            displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
+        }
+    }
+    
+    if (toggle == 0 || toggle == -1)
     {
         user_settings[user_Profile].rfGain_en = OFF;
-        unset_MF_Service(RFGAIN_BTN); // Deregister
+        MeterInUse = false;
+        if (toggle != -1)
+        {
+            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MF_default_is_active = true;
+        }
     }
+
     //Serial.print(" RF Gain ON/OFF set to  "); 
     //Serial.println(user_settings[user_Profile].rfGain_en);
     displayRFgain();
@@ -810,17 +877,28 @@ COLD void Xmit()
 // NB button
 COLD void NB()
 {
+    char string[80];   // print format stuff
+
     if (user_settings[user_Profile].nb_en == OFF)
     {   
         user_settings[user_Profile].nb_en = ON;
-        setNBLevel(0);      // update to current setting
-        set_MF_Service(NB_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+        if (MF_client != NB_BTN) 
+        {
+            set_MF_Service(NB_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+            MF_default_is_active = false;
+            sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
+		    MeterInUse = true;
+		    displayMeter(user_settings[user_Profile].nb_level, string, 5);   // val, string label, color scheme
+            setNBLevel(0);      // update to current setting
+        }
     }
     else 
     {
         user_settings[user_Profile].nb_en = OFF;
-        unset_MF_Service(NB_BTN); // Deregister
-        setNBLevel(0);     // update to current seting but setNBLevel wil see it is turned off and bypass the NB component
+        MeterInUse = false; 
+        set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+        MF_default_is_active = true;
+        setNBLevel(0);     // update to current setting but setNBLevel will see it is turned off and bypass the NB component
     }
     //Serial.print("Set NB to ");
     //Serial.println(user_settings[user_Profile].nb_en);
@@ -907,22 +985,46 @@ COLD void Spot()
 }
 
 // REF LEVEL button activate control
-COLD void setRefLevel()
+COLD void setRefLevel(int8_t toggle)
 {
-    if (std_btn[REFLVL_BTN].enabled ==OFF)
+    char string[80];   // print format stuff
+
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (std_btn[REFLVL_BTN].enabled)  // toggle the attenuator tracking state
+            toggle = 0;
+        else 
+            toggle = 1;
+    }
+    
+    if (toggle == 1)      // Set button to on to track as active 
     {
         std_btn[REFLVL_BTN].enabled = ON;
-        set_MF_Service(REFLVL_BTN); 
+        if (MF_client != REFLVL_BTN) 
+        {
+            set_MF_Service(REFLVL_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+            MF_default_is_active = false;
+            sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
+            MeterInUse = true; 
+            displayMeter((abs(bandmem[curr_band].sp_ref_lvl)-110)/10, string, 5);   // val, string label, color scheme
+        }
         //Serial.print("Set REFLVL to ON ");
         //Serial.print(std_btn[REFLVL_BTN].enabled);
     }
-    else
+    
+    if (toggle == 0 || toggle == -1)
     {
         std_btn[REFLVL_BTN].enabled = OFF;
-        unset_MF_Service(REFLVL_BTN); // Deregister
+        MeterInUse = false; 
+        if (toggle != -1)
+        {       
+            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MF_default_is_active = true;
+        }
         //Serial.print("Set REFLVL to OFF ");
         //Serial.print(std_btn[REFLVL_BTN].enabled);
     }
+
     displayRefLevel();
     //Serial.print(" and Ref Level is ");
     //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
@@ -1059,10 +1161,6 @@ COLD void TouchTune(int16_t touch_Freq)
 *******************************************************************************/
 COLD void setAtten_dB(int8_t atten)
 {
-#ifdef DIG_STEP_ATT
-    uint8_t   i;
-    char    atten_str[8] = {'\0'};
-    char    atten_data[8] = {'\0'};
     //Serial.print("Requested new attenuator value is "); Serial.println(atten);
     if(atten > 31) 
         atten = 31;
@@ -1073,6 +1171,11 @@ COLD void setAtten_dB(int8_t atten)
     //Serial.print("Setting attenuator value to "); Serial.println(bandmem[curr_band].attenuator_dB);
     displayAttn();  // update the button value
     
+    #ifdef DIG_STEP_ATT
+    char    atten_str[8] = {'\0'};
+    char    atten_data[8] = {'\0'};
+    uint8_t   i;
+
     atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
     /* Convert to 8 bits of  0 and 1 format */
     itoa(atten, atten_str, 2);

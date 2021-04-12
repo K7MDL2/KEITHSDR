@@ -4,6 +4,12 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 ## 4/9-10/2021
 
+    1. Reworked the way the buttons activate and display on the MF meter.  They are now more consistent.  All will timeout. A new button pressed will take over from the previous one immediately, shutting off the button color except for ATT and NB which will remain in their last On/Off state. All when active will have the MF knob and the MF meter focus.
+    2. Optimized the OCXO/TCXO #defines
+    3. Tested combinations of OCXO (sine and square wave), TCXO with A and C version Si5351 boards and also a ADF4351A PLL. Various degrees of spurs occur on multiples of 5MHz. The crystals, TCXOs an OCXOs are either 10Mhz or 25Mhz.  Still investigating.
+
+## 4/9-10/2021
+
     1. Added new band 0 as a dummy or IF.  Shifts Band index for other bands up by 1. This also aligns with some band decoder library band definitions useful for PANADAPTER mode.
     2. Decreased the height of the spectrum windows by 10px to make a bit more room for touchable labels just above the spectrum box.
     3. Tagged most functions as COLD which is a macro for FLASHMEM. This locates the little used functions into FLASH memory saving RAM for variables and fast run code like the spectrum update function.  Increased RAM free space from 90K to 125K. Individual strings are wrapped with the F() macro which places those constants into PROGMEM memory area saving more RAM.

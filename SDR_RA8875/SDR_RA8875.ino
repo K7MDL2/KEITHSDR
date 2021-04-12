@@ -228,6 +228,7 @@ uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales
 // Set this to be the default MF knob function when it does not have settings focus from a button touch.
 // Choose any from the MF Knob aware list below.
 uint8_t MF_client;  // Flag for current owner of MF knob services
+bool MF_default_is_active = true;
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
@@ -254,6 +255,8 @@ COLD void setup()
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
+    MF_default_is_active = true;
+    MeterInUse = false;
     
     #ifdef  I2C_ENCODERS  
         set_I2CEncoders();
@@ -544,11 +547,13 @@ void loop()
     if (MF_Timeout.check() == 1)
     {
         MeterInUse = false;  
-        if (MF_client != user_settings[user_Profile].default_MF_client)
+        //if (MF_client != user_settings[user_Profile].default_MF_client)
+        if (!MF_default_is_active)
         {
             Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
             Serial.println(MF_client);
-            unset_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MF_default_is_active = true;
         }
     }
 
@@ -581,7 +586,6 @@ void loop()
         }
         #endif
     }
-    
     #else
     // Use a mechanical encoder on the GPIO pisn, if any.
     if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
@@ -820,37 +824,37 @@ int32_t multiKnob(uint8_t clear)
 #endif  // I2C_ENCODERS
 
 // Deregister the MF_client
-COLD void unset_MF_Service(uint8_t client_name)
+COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner button status
 { 
-    if (client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
+    if (old_client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
     {
-        MF_client = user_settings[user_Profile].default_MF_client;    // assign new owner to default for now.
-        return;   
+        //MF_client = user_settings[user_Profile].default_MF_client;    // assign new owner to default for now.
+        //return;   
     }
+    
     // This must be from a timeout or a new button before timeout
     // Turn off button of the previous owner, if any, using the MF knob at change of owner or timeout
-    // Some button can be left on such as Atten or other non-button MF users.  Just leave them off this list.
-    switch (MF_client)
+    // Some buttons can be left on such as Atten or other non-button MF users.  Just leave them off this list.
+    switch (old_client_name)
     {
         case MFNONE: {
             // no current owner, return
         } break;
-        case RFGAIN_BTN: {           
-            setRFgain();   //since it was active toggle the output off
+        case RFGAIN_BTN: {         
+            setRFgain(-1);   //since it was active toggle the output off
         } break;
         case AFGAIN_BTN: {         
-            setAFgain();
+            setAFgain(-1);
         } break;
         case  REFLVL_BTN: {
-            setRefLevel();
-            Serial.println(F("unsetREF"));
+            setRefLevel(-1);
         } break;
+        case ATTEN_BTN:
         case NB_BTN:
         case MFTUNE:
-        case ATTEN_BTN:
         default     : {          
         // No button for VFO tune, atten button stays on
-            MF_client = user_settings[user_Profile].default_MF_client;
+            //MF_client = user_settings[user_Profile].default_MF_client;
         } break;         
     } 
 }
@@ -861,14 +865,18 @@ COLD void unset_MF_Service(uint8_t client_name)
 
 // Potential owners can query the MF_client variable to see who owns the MF knob.  
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
-COLD void set_MF_Service(uint8_t client_name)
+COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner after we clear the old one
 {
     
     #ifndef I2C_ENCODERS   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
-    multiKnob(1);       // for non-I2C encoder, clear the counts.
+        multiKnob(1);       // for non-I2C encoder, clear the counts.
     #endif //  I2C_ENCODERS
-    unset_MF_Service(user_settings[user_Profile].default_MF_client);
-    MF_client = client_name;    
+    unset_MF_Service(MF_client);    //  turn off current button if on
+    MF_client = new_client_name;        // Now assign new owner
+    //if (MF_client == user_settings[user_Profile].default_MF_client)
+    //    MF_default_is_active = true;
+    //else 
+    //    MF_default_is_active = false;
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
                          // When it expires it will be switched to default
     //Serial.print("New MF Knob Client ID is ");
@@ -886,8 +894,8 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         return;
     
     if (knob == MF_client)
-        MF_Timeout.reset();  // if it isthe MF_Client then reset (extend) timeout timer as long as there is activity.  
-                            // When it experies it will be switched to default
+        MF_Timeout.reset();  // if it is the MF_Client then reset (extend) timeout timer as long as there is activity.  
+                            // When it expires it will be switched to default
 
     //Serial.print("MF Knob Client ID is ");
     //Serial.println(MF_client);
@@ -905,7 +913,6 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         } break;
         case  REFLVL_BTN: {
             RefLevel(counts*-1);
-            Serial.println(F("setREF"));
         } break;
         case  ATTEN_BTN: {
             if (counts> 31)
@@ -915,9 +922,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
             int8_t att_tmp = bandmem[curr_band].attenuator_dB + counts;
             if (att_tmp <=0)
                 att_tmp = 0;
-            #ifdef DIG_STEP_ATT
-              setAtten_dB(att_tmp);  // set attenuator level to value in database for this band           
-            #endif
+              setAtten_dB(att_tmp);  // set attenuator level to value in database for this band
         } break;
         case  NB_BTN: {
             setNBLevel(counts);
