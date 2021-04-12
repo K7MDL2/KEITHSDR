@@ -154,8 +154,8 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     
     //Serial.print("Target Band is "); Serial.println(target_band);
 
-    if (target_band > BAND9)    // go to bottom band
-        target_band = BAND9;    // 0 is not used
+    if (target_band > BAND11)    // go to bottom band
+        target_band = BAND11;    // 0 is not used
     if (target_band < BAND0)    // go to top most band  -  
         target_band = BAND0;    // 0 is not used so do not have to adjsut with a -1 here
 
