@@ -26,7 +26,7 @@ void Notch();
 void Spot();
 void Enet();
 void NR();
-void NB();
+void NB(int8_t toggle);
 void Xmit();
 void Ant();
 void Fine();

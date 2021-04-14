@@ -63,7 +63,7 @@ void Notch();
 void Spot();
 void Enet();
 void NR();
-void NB();
+void NB(int8_t toggle);
 void Xmit();
 void Ant();
 void Fine();
@@ -711,8 +711,6 @@ bandmem[curr_band].attenuator_dB = i;
 // AF GAIN button activate control
 COLD void setAFgain(int8_t toggle)
 {
-    char string[80];   // print format stuff
-
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (user_settings[user_Profile].afGain_en)  // toggle the attenuator tracking state
@@ -727,10 +725,7 @@ COLD void setAFgain(int8_t toggle)
         if (MF_client != AFGAIN_BTN)
         {
             set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-            MF_default_is_active = false;
-            //sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
-            //MeterInUse = true;
-            //displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme        
+            MF_default_is_active = false;            
         }
     }
     
@@ -790,8 +785,6 @@ COLD void AFgain(int8_t delta)
 // RF GAIN button activate control
 COLD void setRFgain(int8_t toggle)
 {
-    char string[80];   // print format stuff
-
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (user_settings[user_Profile].rfGain_en)  // toggle the attenuator tracking state
@@ -807,9 +800,6 @@ COLD void setRFgain(int8_t toggle)
         { 
             set_MF_Service(RFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
             MF_default_is_active = false;
-            //sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
-            //MeterInUse = true;
-            //displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
         }
     }
     
@@ -875,29 +865,39 @@ COLD void Xmit()
 }
 
 // NB button
-COLD void NB()
+COLD void NB(int8_t toggle)
 {
-    char string[80];   // print format stuff
-
-    if (user_settings[user_Profile].nb_en == OFF)
+    //char string[80];   // print format stuff
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (user_settings[user_Profile].nb_en)  // toggle the attenuator tracking state
+            toggle = 0;
+        else 
+            toggle = 1;
+    }
+    if (toggle == 1)
     {   
         user_settings[user_Profile].nb_en = ON;
         if (MF_client != NB_BTN) 
         {
             set_MF_Service(NB_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
             MF_default_is_active = false;
-            sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
-		    MeterInUse = true;
-		    displayMeter(user_settings[user_Profile].nb_level, string, 5);   // val, string label, color scheme
+            //sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
+		    //MeterInUse = true;
+		    //displayMeter(user_settings[user_Profile].nb_level, string, 5);   // val, string label, color scheme
             setNBLevel(0);      // update to current setting
         }
     }
-    else 
+    
+    if (toggle == 0) 
     {
         user_settings[user_Profile].nb_en = OFF;
         MeterInUse = false; 
-        set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
-        MF_default_is_active = true;
+        if (toggle != -1)
+        {
+            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MF_default_is_active = true;
+        }
         setNBLevel(0);     // update to current setting but setNBLevel will see it is turned off and bypass the NB component
     }
     //Serial.print("Set NB to ");

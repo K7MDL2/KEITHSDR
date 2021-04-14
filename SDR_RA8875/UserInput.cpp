@@ -706,7 +706,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case ATU_BTN:       ATU();          break;
                     case FINE_BTN:      Fine();         break;
                     case XMIT_BTN:      Xmit();         break;
-                    case NB_BTN:        NB();           break;
+                    case NB_BTN:        NB(2);          break;
                     case NR_BTN:        NR();           break;
                     case ENET_BTN:      Enet();         break;
                     case AFGAIN_BTN:    setAFgain(2);   break;
@@ -731,9 +731,9 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 touchBeep(true);  // a timer will shut it off.
                 switch (i)
                 {
-                    case NB_BTN:        NB();           break; //Increment the mode from current value           
+                    case NB_BTN:        NB(1);           break; //Increment the mode from current value           
                     case AGC_BTN:       AGC();          break;   
-                    case ATTEN_BTN:     Atten(-1);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
+                    case ATTEN_BTN:     Atten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(2);   break;
                     default: Serial.print("Found a button with SHOW on WITH LONG PRESS but has no function to call.  Index = ");
                        Serial.println(i); break;
