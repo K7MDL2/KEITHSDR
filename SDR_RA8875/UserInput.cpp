@@ -39,6 +39,9 @@ extern struct Frequency_Display disp_Freq[];
 extern AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
 extern void touchBeep(bool enable);
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern bool MF_default_is_active;
+extern void MF_Service(int8_t counts, uint8_t knob);
+extern uint8_t MF_client;  // Flag for current owner of MF knob services
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y); 
@@ -441,28 +444,49 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
 
     // If a long event then must be a drag.  
     if (gesture == 1 && holdtime > 1)   // must be a 1 finger drag       
-    {     
+    {    
+        int x = T1_X;
         if (T1_X > 0 && abs(T1_X) > abs(T1_Y))  // x is smaller so must be dragb in the right direction
-        {
+        {               
             Serial.println("Drag RIGHT"); 
-            selectFrequency(T1_X/4);
+            switch (MF_client) {
+                case NB_BTN:        x /= 100; break;
+                case ATTEN_BTN:     x /= 30;  break;
+                case AFGAIN_BTN:
+                case RFGAIN_BTN:    x /= 10;  break;                         
+                case MFTUNE:        x /= 2;   break;
+                case REFLVL_BTN:    x /= 8;  break;
+                default: break; 
+            }
+            MF_Service(x, MF_client);
         }
         else if (T1_X < 0 && abs(T1_X) > abs(T1_Y))  // no, must be the wrong direction !
         {
             Serial.println("Drag LEFT"); 
-            selectFrequency(T1_X/4);
+            switch (MF_client) {
+                case NB_BTN:        x /= 100; break;
+                case ATTEN_BTN:     x /= 30;  break;
+                case AFGAIN_BTN:
+                case RFGAIN_BTN:    x /= 10;  break;                         
+                case MFTUNE:        x /= 2;   break;
+                case REFLVL_BTN:    x /= 8;  break;
+                default: break; 
+            }
+            MF_Service(x, MF_client);
         }  
         else if (T1_Y > 0)  // y is smaller so must be drag in UP direction
         {
-            Serial.println("Drag DOWN"); 
+            Serial.println("Drag DOWN");
+            MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
             //AFgain(T1_Y/10);
-            RefLevel(T1_Y/5);
+            //RefLevel(T1_Y/5);
         }
         else if (T1_Y < 0)  // no, maybe down !
         {
             Serial.println("Drag UP"); 
+            MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
             //AFgain(T1_Y/10);
-            RefLevel(T1_Y/5);            
+            //RefLevel(T1_Y/5);            
         }
 
         Serial.print("Start Drag X=");Serial.print(T1_X);Serial.print("  Drag Y=");Serial.println(T1_Y);

@@ -930,7 +930,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         case MFTUNE :
         default     : {   
             old_ts = bandmem[curr_band].tune_step;
-            bandmem[curr_band].tune_step =3;
+            bandmem[curr_band].tune_step =0;
             selectFrequency(counts);
             bandmem[curr_band].tune_step = old_ts;
         } break;        

@@ -35,6 +35,8 @@ extern struct AGC agc_set[];
 extern struct NB nb[];
 extern struct Modes_List modeList[];
 extern struct TuneSteps tstep[];
+extern bool   MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern uint8_t MF_client;  // Flag for current owner of MF knob services
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -220,9 +222,17 @@ COLD void displayANT(void)
 
 COLD void displayRFgain(void)
 {	
+	char string[80];   // print format stuff
 	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//drawLabel(RFGAIN_LBL, &user_settings[user_Profile].rfGain);
+    if (MF_client == RFGAIN_BTN) 
+	{ 
+		//MF_default_is_active = false;
+		sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
+		MeterInUse = true;
+		displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
+	}
 	Serial.print(F("RF Gain set to ")); Serial.println(std_btn[RFGAIN_BTN].label);
 	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain_en);
   #ifdef I2C_LCD
@@ -233,9 +243,16 @@ COLD void displayRFgain(void)
 
 COLD void displayAFgain(void)
 {	
+	char string[80];   // print format stuff
 	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//drawLabel(AFGAIN_LBL, &user_settings[user_Profile].afGain);
+	if (MF_client == AFGAIN_BTN) 
+	{ 
+		sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
+        MeterInUse = true;
+    	displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme        
+	}
 	Serial.print(F("AF Gain set to ")); Serial.println(std_btn[AFGAIN_BTN].label);
 	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain_en);
   #ifdef I2C_LCD  
@@ -246,8 +263,15 @@ COLD void displayAFgain(void)
 
 COLD void displayAttn()
 {
+	char string[80];   // print format stuff
 	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
 	Serial.print(F("Atten is ")); Serial.println(bandmem[curr_band].attenuator);
+	if (MF_client == ATTEN_BTN) 
+	{ 
+		sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
+        MeterInUse = true;
+    	displayMeter(bandmem[curr_band].attenuator_dB/3, string, 5);   // val, string label, color scheme        
+	}
 	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
@@ -289,12 +313,31 @@ COLD void displayFine()
 
 COLD void displayNB()
 {
+	char string[80];   // print format stuff
 	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
     sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
 	Serial.print(F("NB is ")); Serial.print(user_settings[user_Profile].nb_en);
 	Serial.print(F("   NB Level is ")); Serial.println(user_settings[user_Profile].nb_level);
+	if (MF_client == NB_BTN) 
+	{ 
+		sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
+        MeterInUse = true;
+    	displayMeter(user_settings[user_Profile].nb_level, labels[NB_LBL].label, 5);   // val, string label, color scheme        
+	}
 	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
+}
+
+COLD void displayRefLevel()
+{
+	char string[80];   // print format stuff
+	if (MF_client == REFLVL_BTN) 
+	{ 
+		sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
+		MeterInUse = true; 
+		displayMeter((abs(bandmem[curr_band].sp_ref_lvl)-110)/10, string, 5);   // val, string label, color scheme
+	}
+	draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].enabled); 
 }
 
 COLD void displayNR()
@@ -356,19 +399,18 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 }
 
 // These buttons have no associated labels so are simply button updates
-COLD void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				}
+COLD void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);			}
 COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
 COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	}
 COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			}
-COLD void displayBand() 		{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			}
-COLD void displaySpot() 		{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		}
+COLD void displayBand() 		{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);		}
+COLD void displaySpot() 		{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);	}
 COLD void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			}
 COLD void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						}
 COLD void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		}
 COLD void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		}
 COLD void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			}
-COLD void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
-COLD void displayRefLevel()  {draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].enabled); 		}
+COLD void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------

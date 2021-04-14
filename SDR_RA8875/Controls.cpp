@@ -728,9 +728,9 @@ COLD void setAFgain(int8_t toggle)
         {
             set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
             MF_default_is_active = false;
-            sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
-            MeterInUse = true;
-            displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme        
+            //sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
+            //MeterInUse = true;
+            //displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme        
         }
     }
     
@@ -807,9 +807,9 @@ COLD void setRFgain(int8_t toggle)
         { 
             set_MF_Service(RFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
             MF_default_is_active = false;
-            sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
-            MeterInUse = true;
-            displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
+            //sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
+            //MeterInUse = true;
+            //displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
         }
     }
     
@@ -1004,9 +1004,6 @@ COLD void setRefLevel(int8_t toggle)
         {
             set_MF_Service(REFLVL_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
             MF_default_is_active = false;
-            sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
-            MeterInUse = true; 
-            displayMeter((abs(bandmem[curr_band].sp_ref_lvl)-110)/10, string, 5);   // val, string label, color scheme
         }
         //Serial.print("Set REFLVL to ON ");
         //Serial.print(std_btn[REFLVL_BTN].enabled);
