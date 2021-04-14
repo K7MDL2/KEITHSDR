@@ -887,7 +887,7 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
 //
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //
-static uint16_t old_ts;
+//static uint16_t old_ts;
 COLD void MF_Service(int8_t counts, uint8_t knob)
 {  
     if (counts == 0)  // no knob movement, nothing to do.

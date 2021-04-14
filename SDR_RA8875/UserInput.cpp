@@ -5,7 +5,7 @@
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 
-#define BUTTON_TOUCH    40  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
+#define BUTTON_TOUCH    10  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
 //#define MAXTOUCHLIMIT    2  //1...5
 
 Metro gesture_timer=Metro(300);  // Change this to tune the button press timing. A drag will be > than this time.
@@ -122,8 +122,11 @@ COLD void Touch( void)
 //#define DBG_GESTURE
 
 #ifdef DBG_GESTURE
-    uint16_t  x, y, i, x1, y1;
+    int16_t x1, y1;
 #endif
+    int16_t  x, y, i;
+
+    struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
 
     if (Touched())
     {      
@@ -202,7 +205,7 @@ COLD void Touch( void)
             // check for 0,0 empty touch event and restart if so.
             if (touch_evt.start_coordinates[0][0] == 0 && touch_evt.start_coordinates[0][1] == 0)
                 return;
-            dragEvent = 1;   // Assume this is a drag until it is not.
+            dragEvent = 0;   // Assume this is a drag until it is not.
             gesture_timer.reset();   // reset timer
             return;
         }
@@ -249,29 +252,39 @@ COLD void Touch( void)
             
             /// If the coordinates have moved far enough, it is a gesture not a button press.  
             //  Store the disances for touch even 0 now.
-            touch_evt.distance[0][0] = (touch_evt.last_coordinates[0][0] - touch_evt.start_coordinates[0][0]);
-            #ifdef DBG_GESTURE         
-                Serial.print("Distance 1 x="); Serial.print(touch_evt.distance[0][0]); 
-            #endif
-            touch_evt.distance[0][1] = (touch_evt.last_coordinates[0][1] - touch_evt.start_coordinates[0][1]);
-            #ifdef DBG_GESTURE 
+            x = touch_evt.distance[0][0] = (touch_evt.last_coordinates[0][0] - touch_evt.start_coordinates[0][0]);            
+            y = touch_evt.distance[0][1] = (touch_evt.last_coordinates[0][1] - touch_evt.start_coordinates[0][1]);
+            //#ifdef DBG_GESTURE 
+                Serial.print("Drag Event ="); Serial.print(dragEvent);
+                Serial.print("  Distance 1 x="); Serial.print(touch_evt.distance[0][0]); 
                 Serial.print(", y="); Serial.println(touch_evt.distance[0][1]); 
-            #endif
-                                    
-            // Update elapsed time
+            //#endif
+        
             if (gesture_timer.check() == 1)
-            {                
+            {
                 Serial.print("Touch Timer expired");
                 holdtime += 1;  // count the number of timer periods the button was presses and held for drag and press and hold feature
                 Serial.print("  New holdtime is "); Serial.println(holdtime);
-                dragEvent = Gesture_Handler(previous_touch);
-                dragEvent = 1; 
-                //previous_touch = 0;// Our timer has expired
-                return;  // can calc the distance once we hav a valid event;
-            }                
-            dragEvent = 0;   
-            //holdtime = 0;    
-            return;    
+            }
+
+            if (!dragEvent && abs(x) < BUTTON_TOUCH && abs(y) < BUTTON_TOUCH) // filter out long press touch events
+            {
+                dragEvent = 0;
+            }
+            else if (holdtime)   //  This is now a drag event
+            {                               
+                //i = SPECTUNE_BTN;  // limit drag gestures to certain areas
+                //if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
+               // {
+                    //if ((ptr+i)->show)
+                   // { 
+                        dragEvent = Gesture_Handler(previous_touch);
+                        dragEvent = 1; 
+                   // }
+                //}
+            }
+            //previous_touch = 0;// Our timer has expired
+            return;  // can calc the distance once we hav a valid event;                                           
         }
 
         // STATE 4
@@ -363,32 +376,43 @@ COLD void Touch( void)
             else   // populate the distances for touch point 2
             {
                 touch_evt.distance[1][0] = (touch_evt.last_coordinates[1][0] - touch_evt.start_coordinates[1][0]);
-                #ifdef DBG_GESTURE 
-                    Serial.print("Distance 2 x="); Serial.print(touch_evt.distance[1][0]); 
-                #endif
                 touch_evt.distance[1][1] = (touch_evt.last_coordinates[1][1] - touch_evt.start_coordinates[1][1]);
-                #ifdef DBG_GESTURE 
-                    Serial.print(", y="); Serial.println(touch_evt.distance[1][1]); 
+                #ifdef DBG_GESTURE                      
+                    Serial.print("Distance 2 x="); Serial.print(touch_evt.distance[1][0]);
+                    Serial.print(", y="); Serial.println(touch_evt.distance[1][1]);
                 #endif
             }
 
             Serial.print(" dragEvent is "); Serial.println(dragEvent);
-            if (!dragEvent && !holdtime)
+            Serial.print(" holdtime is "); Serial.println(holdtime);
+            if (!dragEvent)
             {
                 // if only 1 touch and X or Y distance is OK for a button call the button event handler with coordinates
                 if (previous_touch == 1 && (abs(touch_evt.distance[0][0]) < BUTTON_TOUCH && abs(touch_evt.distance[0][1]) < BUTTON_TOUCH))
                 {
                     Button_Handler(touch_evt.start_coordinates[0][0], touch_evt.start_coordinates[0][1]);  // pass X and Y, and duration
                 }
-                else  // Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
-                {   
-                    Gesture_Handler(previous_touch);   // moved enough to be a gesture
+                else // Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
+                {
+                    //Serial.println("Non drag type gesture - check if allowed");
+                    x = touch_evt.start_coordinates[0][0];
+                    y = touch_evt.start_coordinates[0][1];
+                    i = SPECTUNE_BTN;  // limit gesture to certain areas
+                    //Serial.print("Before search x="); Serial.print(x); Serial.print(", y="); Serial.println(y);
+                    if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
+                    {    
+                        //Serial.print("After search x="); Serial.print(x); Serial.print(", y="); Serial.println(y);                    
+                        if ((ptr+i)->enabled)
+                        {  
+                            //Serial.println("Non drag type gesture allowed");
+                            Gesture_Handler(previous_touch);   // moved enough to be a gesture
+                        }
+                    }
                 }
             }
-            previous_touch = 0;   // Done, reset this for a new event
-            Serial.print(" holdtime is "); Serial.println(holdtime);
+            previous_touch = 0;   // Done, reset this for a new event            
             holdtime = 0;
-            dragEvent = 1; 
+            dragEvent = 0; 
             zero_coordinates();
         }   // End State 4
     }
@@ -443,7 +467,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
     t2_y_e = touch_evt.last_coordinates[1][1];
 
     // If a long event then must be a drag.  
-    if (gesture == 1 && holdtime > 1)   // must be a 1 finger drag       
+    if (gesture == 1 && dragEvent)   // must be a 1 finger drag       
     {    
         int x = T1_X;
         if (T1_X > 0 && abs(T1_X) > abs(T1_Y))  // x is smaller so must be dragb in the right direction
@@ -497,7 +521,12 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         return 1;
     }
     else if (holdtime)
+    {
+        dragEvent = 0;
         return 0;
+    }
+    if (dragEvent)
+        return 1;
     
     switch (gesture) 
     {
@@ -691,7 +720,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case DISPLAY_BTN:   Display();      break;
                     case FN_BTN:        setPanel();     break;
                     case UTCTIME_BTN:   break;        //nothing to do
-                    case SMETER_BTN:    setAFgain(1);    break; // TODO toggle through RF and AF
+                    case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
                     default: Serial.print("Found a button with SHOW on but has no function to call.  Index = ");
                         Serial.println(i); break;
                 }
@@ -705,6 +734,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case NB_BTN:        NB();           break; //Increment the mode from current value           
                     case AGC_BTN:       AGC();          break;   
                     case ATTEN_BTN:     Atten(-1);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
+                    case SMETER_BTN:    setRFgain(2);   break;
                     default: Serial.print("Found a button with SHOW on WITH LONG PRESS but has no function to call.  Index = ");
                        Serial.println(i); break;
                 }

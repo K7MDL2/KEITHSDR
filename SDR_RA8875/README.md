@@ -2,6 +2,12 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/14/2021
+
+    1. Swipes are now limited to the spectrum hotspot area to prevent unintended band changes while operating buttons or labels.
+    2. Long press is functional. Touch the MF meter and it will toggle the AFGain and drag will adjust the setting. Long press the MF meter and it will switch from AFGain to RF gain.  Further, these are both toggles so the first touch for each gives drag the focus, the second will release drag back to default, not waiting for the normal timeout. The meter will time out back to S-meter mode as normal.
+    3. Long press will enable On/Off buttons that have adjustments to use drag and nto change their On/Off state. ATT and NB are 2 good examples. You want to have these on or off but need to adjust the setting.
+
 ## 4/13/2021
 
     1. Added drag feature.  The Horizontal drag now follows the MF Knob (Encoder1) assignment in the database.  Vertical follows 2nd encoder assignment.
