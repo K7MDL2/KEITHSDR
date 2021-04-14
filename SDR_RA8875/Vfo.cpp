@@ -45,8 +45,8 @@ COLD void initVfo(void)
         // Initialize the Si5351 to use a 27 MHz clock on the XO input
         #ifndef K7MDL_OCXO
             //si5351.init(SI5351_CRYSTAL_LOAD_8PF, 27000000, 0);      //set up our PLL for internal crystal or TCXO
-            //si5351.init(SI5351_CRYSTAL_LOAD_0PF,  24999899, 0);
-            si5351.init(SI5351_CRYSTAL_LOAD_0PF,  10000000, 0);
+            si5351.init(SI5351_CRYSTAL_LOAD_0PF,  24999899, 0);
+            //si5351.init(SI5351_CRYSTAL_LOAD_0PF,  10000000, 0);
             si5351.set_clock_source(SI5351_CLK0, SI5351_CLK_SRC_XTAL);
             // --------------- End Internal Clock section -------------------------------------  
         #endif      
@@ -69,7 +69,7 @@ COLD void initVfo(void)
         #endif // K7MDL_OCXO
 
         // Below is common to both Ext Clk and Internal Xtal
-        si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_4MA);
+        si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA);
         si5351.output_enable(SI5351_CLK0, 1);   // ON by default but just in case.
         si5351.output_enable(SI5351_CLK1, 0);   // OFF by default but just in case.
         //si5351.output_enable(SI5351_CLK2, 0);   // OFF by default but just in case.  
@@ -94,7 +94,7 @@ COLD void initVfo(void)
 
         /// Si5351mcu library modified by K7MDL to accept load capacitor setting.  Comment this out for standard library        
         #ifdef si5351_TCXO
-        si5351.load_c(SI5351_CRYSTAL_LOAD_0PF);  // this is for replacing a crystal with a TCXO
+            si5351.load_c(SI5351_CRYSTAL_LOAD_0PF);  // this is for replacing a crystal with a TCXO
         #endif //si5351_TCXO
         
         // The lines below are stanard to any crystal

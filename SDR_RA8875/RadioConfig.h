@@ -108,26 +108,27 @@
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
 // K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-      //#undef USE_RA8875            // UN-comment this line to use RA8876      
+      #undef USE_RA8875            // UN-comment this line to use RA8876      
     #endif
     #ifndef USE_RA8875
+      #undef SCREEN_ROTATION
       #define SCREEN_ROTATION 2   // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
-    #define I2C_ENCODERS
+    //#define I2C_ENCODERS
     #define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
-    #define K7MDL_OCXO
+    //#define K7MDL_OCXO          // use teh si5351 C board with 10Mhz OCXO
     #define si5351_TCXO             // Set load cap to 0pF for TCXO
     #define si5351_XTAL_25MHZ       // Choose 25MHz tcxo or crystal, else 27Mhz
     #define USE_DHCP
     #define ENET
     #define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    //#define SV1AFN_BPF              // Use the BPF board
-    //#define DIG_STEP_ATT            // Use the step atten
+    #define SV1AFN_BPF              // Use the BPF board
+    #define DIG_STEP_ATT            // Use the step atten
     //#define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input

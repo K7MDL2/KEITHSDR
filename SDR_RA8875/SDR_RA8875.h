@@ -28,8 +28,8 @@
 #include <TimeLib.h>            // TODO  - list where to find this
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#include <glcdfont.c>
-#include <ILI9341_fonts.h>
+//#include <glcdfont.c>
+//#include <ILI9341_fonts.h>
 //#include <FiraCode_mono_14.c>   //minipixel
 //#include <fonts/FiraCode_mono_16.c>
 //#include <fonts/FiraCode_mono_18.c>

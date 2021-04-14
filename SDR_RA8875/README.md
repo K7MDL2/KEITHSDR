@@ -2,6 +2,10 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/14/2021
+
+    1. Added drag feature. Assigned vertical drag to change the spectrum reference level and horizontal drag to slide the VFO up and down using the current tune step rate. Previous gestures still work. Swipe up/down to change bands, touch a spot to change to that frequency, 3 finger swipe up and down to change audio level (this takes practice), swipe left/right to change VFO by 1 tune step. The later may be obsolete now since dragging to tune works well.  The swipe left/right may be changed to spectrum span later.
+
 ## 4/9-10/2021
 
     1. Reworked the way the buttons activate and display on the MF meter.  They are now more consistent.  All will timeout. A new button pressed will take over from the previous one immediately, shutting off the button color except for ATT and NB which will remain in their last On/Off state. All when active will have the MF knob and the MF meter focus.
