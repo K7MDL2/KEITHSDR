@@ -454,7 +454,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 case ATTEN_BTN:     x /= 30;  break;
                 case AFGAIN_BTN:
                 case RFGAIN_BTN:    x /= 10;  break;                         
-                case MFTUNE:        x /= 2;   break;
+                case MFTUNE:        x /= -5;   break;
                 case REFLVL_BTN:    x /= 8;  break;
                 default: break; 
             }
@@ -468,7 +468,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 case ATTEN_BTN:     x /= 30;  break;
                 case AFGAIN_BTN:
                 case RFGAIN_BTN:    x /= 10;  break;                         
-                case MFTUNE:        x /= 2;   break;
+                case MFTUNE:        x /= -5;   break;
                 case REFLVL_BTN:    x /= 8;  break;
                 default: break; 
             }

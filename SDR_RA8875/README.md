@@ -2,12 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
-## 4/14/2021
+## 4/13/2021
 
     1. Added drag feature.  The Horizontal drag now follows the MF Knob (Encoder1) assignment in the database.  Vertical follows 2nd encoder assignment.
     2. Assigned vertical drag to change the spectrum reference level
     3. Assigned horizontal drag to MFTUNE which will slide the VFO up and down using the current tune step rate. 
     4. Previous gestures still work. Swipe up/down to change bands, touch a spot to change to that frequency, 3 finger swipe up and down to change audio level (this takes practice), swipe left/right to change VFO by 1 tune step. The later may be obsolete now since dragging to tune works well.  The swipe left/right may be changed to spectrum span later.
+    5. Tapping the MF meter changes it to AFGain mode.  You can then drag left/right to change volume quickly, no need to find the panel with the button or look for a knob.
+    6. By adding these featues the goal is to prove that we can have a good and efficient touch control experience requiring no knobs or switches.  That means less expense, drilling, panel space, and noise from long wiring.
 
 ## 4/9-10/2021
 
