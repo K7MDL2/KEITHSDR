@@ -496,12 +496,9 @@ COLD void VFO_AB()
 //
 COLD void Atten(int8_t toggle)
 {
-    char string[80];   // print format stuff
     // Set the attenuation level from the value in the database
     #ifdef DIG_STEP_ATT 
       setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
-    #else
-      //toggle = 0;
     #endif   
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
@@ -728,7 +725,8 @@ COLD void setAFgain(int8_t toggle)
     if (toggle == 0 || toggle == -1)
     {
         user_settings[user_Profile].afGain_en = OFF;
-        clearMeter();
+        if (toggle != -1)
+            clearMeter();
     }
 
     //Serial.print(" AF Gain ON/OFF set to  "); 
@@ -797,11 +795,12 @@ COLD void setRFgain(int8_t toggle)
     if (toggle == 0 || toggle == -1)
     {
         user_settings[user_Profile].rfGain_en = OFF;
-        MeterInUse = false;
+        //MeterInUse = false;
         if (toggle != -1)
         {
-            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
-            MF_default_is_active = true;
+            clearMeter();
+            //set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            //MF_default_is_active = true;
         }
     }
 
