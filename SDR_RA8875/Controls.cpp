@@ -496,6 +496,7 @@ COLD void VFO_AB()
 //
 COLD void Atten(int8_t toggle)
 {
+    Serial.print("toggle = "); Serial.println(toggle);
     // Set the attenuation level from the value in the database
     #ifdef DIG_STEP_ATT 
       setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
@@ -722,11 +723,20 @@ COLD void setAFgain(int8_t toggle)
         }
     }
     
-    if (toggle == 0 || toggle == -1)
+    if (toggle == 0) // || toggle == -1)
     {
         user_settings[user_Profile].afGain_en = OFF;
-        if (toggle != -1)
+        MeterInUse = false;
+        //if (toggle != -1)
             clearMeter();
+    }
+    
+    if (toggle == -1)
+    {
+        Serial.print(F("AFGain MF_client is ")); Serial.println(MF_client);
+        MeterInUse = false;
+        //if (MF_client != AFGAIN_BTN)
+        //    clearMeter();
     }
 
     //Serial.print(" AF Gain ON/OFF set to  "); 
