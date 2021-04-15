@@ -731,7 +731,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 touchBeep(true);  // a timer will shut it off.
                 switch (i)
                 {
-                    case NB_BTN:        NB(1);           break; //Increment the mode from current value           
+                    case NB_BTN:        NB(1);          break; //Increment the mode from current value           
                     case AGC_BTN:       AGC();          break;   
                     case ATTEN_BTN:     Atten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(2);   break;

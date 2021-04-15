@@ -90,6 +90,8 @@ void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
+void clearMeter(void);
+void setMeter(uint8_t id);
 
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 COLD void Set_Spectrum_Scale(int8_t zoom_dir)
@@ -512,26 +514,19 @@ COLD void Atten(int8_t toggle)
     
     if (toggle == 1)    // toggle is 1, turn on Atten
     {
-        bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
-        if (MF_client != ATTEN_BTN) 
+        if (bandmem[curr_band].attenuator == ATTEN_ON && MeterInUse)  // if already on, assume this was called by a log press and we want to turn off the meter and but not the feature.
+            clearMeter();
+        else
         {
-            set_MF_Service(ATTEN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-            MF_default_is_active = false;
-            sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
-		    MeterInUse = true;
-		    displayMeter(bandmem[curr_band].attenuator_dB/3, string, 5);   // val, string label, color scheme    
+            bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
+            setMeter(ATTEN_BTN);
         }
     }
 
     if (toggle == 0) // || toggle == -1)
-    {    // toggle is 0, turn off Atten
+    {   
         bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
-        MeterInUse = false;
-        //if (toggle != -1)
-        //{
-            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
-            MF_default_is_active = true;
-        //}
+        clearMeter(); 
     }
     
     #ifdef SV1AFN_BPF
@@ -877,27 +872,20 @@ COLD void NB(int8_t toggle)
     }
     if (toggle == 1)
     {   
-        user_settings[user_Profile].nb_en = ON;
-        if (MF_client != NB_BTN) 
+        if (user_settings[user_Profile].nb_en == ON && MeterInUse)  // if already on, assume this was called by a log press and we want to turn off the meter and but not the feature.
+            clearMeter();
+        else
         {
-            set_MF_Service(NB_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-            MF_default_is_active = false;
-            //sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
-		    //MeterInUse = true;
-		    //displayMeter(user_settings[user_Profile].nb_level, string, 5);   // val, string label, color scheme
-            setNBLevel(0);      // update to current setting
+            user_settings[user_Profile].nb_en = ON;
+            setMeter(NB_BTN);
         }
     }
     
     if (toggle == 0) 
     {
         user_settings[user_Profile].nb_en = OFF;
-        MeterInUse = false; 
         if (toggle != -1)
-        {
-            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
-            MF_default_is_active = true;
-        }
+            clearMeter();
         setNBLevel(0);     // update to current setting but setNBLevel will see it is turned off and bypass the NB component
     }
     //Serial.print("Set NB to ");
@@ -987,8 +975,6 @@ COLD void Spot()
 // REF LEVEL button activate control
 COLD void setRefLevel(int8_t toggle)
 {
-    char string[80];   // print format stuff
-
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (std_btn[REFLVL_BTN].enabled)  // toggle the attenuator tracking state
@@ -1238,4 +1224,24 @@ COLD void selectAgc(uint8_t andx)
 		
   	bandmem[curr_band].agc_mode = andx;
  	//displayAgc();
+}
+
+// Turns meter off
+void clearMeter(void)
+{
+    Serial.println("Turn OFF meter");
+    MeterInUse = false;
+    set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+    MF_default_is_active = true;
+}
+
+// Turns meter on and assigns function to the new MF focus
+void setMeter(uint8_t id)
+{
+    if (MF_client != id) 
+    {
+        Serial.println("Turn ON meter");
+        set_MF_Service(id);  // reset encoder counter and set up for next read if any until another functionm takes ownership
+        MF_default_is_active = false;  
+    }
 }
