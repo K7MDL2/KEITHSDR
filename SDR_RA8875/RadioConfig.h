@@ -127,8 +127,8 @@
     #define ENET
     #define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    //#define SV1AFN_BPF              // Use the BPF board
-    //#define DIG_STEP_ATT            // Use the step atten
+    #define SV1AFN_BPF              // Use the BPF board
+    #define DIG_STEP_ATT            // Use the step atten
     //#define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
