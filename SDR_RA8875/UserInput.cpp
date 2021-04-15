@@ -390,7 +390,7 @@ COLD void Touch( void)
                 {
                     Button_Handler(touch_evt.start_coordinates[0][0], touch_evt.start_coordinates[0][1]);  // pass X and Y, and duration
                 }
-                else // Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
+                else if (abs(touch_evt.distance[0][0]) > BUTTON_TOUCH || abs(touch_evt.distance[0][1]) > BUTTON_TOUCH*2)// Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
                 {
                     //Serial.println("Non drag type gesture - check if allowed");
                     x = touch_evt.start_coordinates[0][0];
