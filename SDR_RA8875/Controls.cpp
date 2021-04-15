@@ -716,23 +716,19 @@ COLD void setAFgain(int8_t toggle)
 
     if (toggle == 1)      // Set button to on to track as active 
     {
-        user_settings[user_Profile].afGain_en = ON;
-        if (MF_client != AFGAIN_BTN)
+        if ( user_settings[user_Profile].afGain_en == ON && MeterInUse)  // if already on, assume this was called by a log press and we want to turn off the meter and but not the feature.
+            clearMeter();
+        else
         {
-            set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-            MF_default_is_active = false;            
+            user_settings[user_Profile].afGain_en = ON;  // le the attenuator tracking state to ON
+            setMeter(AFGAIN_BTN);
         }
     }
     
     if (toggle == 0 || toggle == -1)
     {
         user_settings[user_Profile].afGain_en = OFF;
-        MeterInUse = false;
-        if (toggle != -1)
-        {
-            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
-            MF_default_is_active = true;
-        }
+        clearMeter();
     }
 
     //Serial.print(" AF Gain ON/OFF set to  "); 
