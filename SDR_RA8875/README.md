@@ -8,7 +8,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
     2. When in PANADAPTER config, a radio's VFO is now polled via CAT and updated on the display so follows as you tune the radio. It is set for about 500ms updates.  This is working for a K3 with 8.215MHz IF.
     3. User Profile 2 is being used for PANADAPTER config. It sets BAND0 as eht curernt band. Can use all fields as normal.
     4. Swipes up/dn to change bands are disabled in PANADAPER config. Encoder 2 is set to RefLvl so a drag up/dn will change ref level value.  RefLvl is now limited to +/- 50 in step=1 unit.  0 to 10 is the normal value.
-    5. There is ongoing dev work to enable spectrum scale changes.  It is set in the database only now. The spectrum values are not yet linked to the waterfall settings.  Waterfall gains need to be changed.
+    5. Spectrum scale changes are made in the Spectrum table. 20-60 are probably good numbers to stick to. The spectrum values are not yet linked to the waterfall settings. I tweaked the waterfall gain and color for the 7" display.
 
 ## 4/14/2021
 
