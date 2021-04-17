@@ -8,19 +8,45 @@
 #include "RadioConfig.h"
 #include "SDR_CAT.h"
 
-#define CAT_Serial Serial6
+
 
 #ifdef FT817_CAT
+  FT817 ft817;  // assign our class id
+#endif
 
-FT817 ft817;  // assign our class id
+#ifdef ALL_CAT
+  #define CAT_Serial Serial6
+#endif
 
+void init_CAT_comms(void);
+void CAT_handler();
+void BandDecoderInput();
+void BandDecoderOutput();
+void LcdDisplay();
+void watchDog();
+void FrequencyRequest();
+void PttOff();
+void FreqToBandRules();
+void serialEcho();
+//void bandSET();
+extern struct   Band_Memory         bandmem[];
+extern          uint8_t             curr_band;   // global tracks our current band setting.  
+extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern          uint32_t            VFOB;
+
+
+#ifdef FT817_CAT
 
 // set this to the hardware serial port you wish to use
 COLD void init_CAT_comms(void)
 {
-    //Serial1.begin(38400);
-    //setSerial(6);
-    ft817.begin(19200);
+    #ifdef CAT_Serial 
+      Serial1.begin(38400);
+      //setSerial(6);
+    #endif
+    #ifdef FT817_CAT
+      ft817.begin(19200);
+    #endif
 }
 
 COLD void print_CAT_status(void)
@@ -31,18 +57,8 @@ COLD void print_CAT_status(void)
     CAT_Serial.print(F("FT-817 Frequency and Mode:")); CAT_Serial.println(ft817.getFreqMode()); // get frequency and mode
     CAT_Serial.print(F("FT-817 Mode:")); CAT_Serial.println(ft817.getMode());	
 }
-
 #endif  //  FT817_CAT
 
-void CAT_handler();
-void BandDecoderInput();
-void BandDecoderOutput();
-void LcdDisplay();
-void watchDog();
-void FrequencyRequest();
-void PttOff();
-void FreqToBandRules();
-//void bandSET();
 
 #ifdef ALL_CAT
 //#include <Arduino.h>
@@ -166,13 +182,13 @@ Outputs
 
 //=====[ Settings ]===========================================================================================
 
-#define SERBAUD        9600   // [baud] Serial port in/out baudrate
+#define SERBAUD     38400     // [baud] Serial port in/out baudrate
 #define WATCHDOG       20     // [sec] determines the time, after which the all relay OFF, if missed next input data - uncomment for the enabled
 #define REQUEST        500    // [ms] use TXD output for sending frequency request
 #define CIV_ADRESS    0x56    // CIV input HEX Icom adress (0x is prefix)
 #define CIV_ADR_OUT   0x56    // CIV output HEX Icom adress (0x is prefix)
 // #define DISABLE_DIVIDER    // for lowest voltage D-SUB pin 13 inputs up to 5V only - need open JP9
-// #define DEBUG              // enable some debugging
+//#define DEBUG              // enable some debugging
 //=====[ FREQUEN RULES ]===========================================================================================
 
 const uint32_t Freq2Band[16][2] = {/*
@@ -495,7 +511,10 @@ void CAT_setup() {
   #endif
 
   #if defined(KENWOOD_PC) || defined(YAESU_CAT)
-    // CATdata.reserve(200);          // reserve bytes for the CATdata
+    //CAT_Serial.reserve(200);          // reserve bytes for the CATdata
+    CAT_Serial.begin(38400);
+    //CAT_Serial.setTimeout(10);
+    CAT_Serial.print(F("AI2;"));
   #endif
 
   //pinMode(VoltagePin, INPUT);
@@ -611,7 +630,7 @@ void CAT_handler() {
   BandDecoderInput();
   //BandDecoderOutput();
   //LcdDisplay();
-  //watchDog();
+  watchDog();
   FrequencyRequest();
   //PttOff();
   #if defined(EthModule)
@@ -1021,7 +1040,7 @@ COLD void FrequencyRequest(){
     #endif
 
     #if defined(KENWOOD_PC) || defined(YAESU_CAT)
-          CAT_Serial.print(F("IF;"));
+          CAT_Serial.print("IF;");
           CAT_Serial.flush();       // Waits for the transmission of outgoing serial data to complete
     #endif
 
@@ -1323,7 +1342,7 @@ COLD void NetId(){
 //---------------------------------------------------------------------------------------------------------
 
 #if defined(EthModule)
-  byte GetBoardId(){
+COLD byte GetBoardId(){
     byte GetBcd = 0;
     if(analogRead(Id1Pin)<50){  // 17 1023
       GetBcd = GetBcd | (1<<0);    // Set the n-th bit
@@ -1515,16 +1534,19 @@ HOT void BandDecoderInput(){
 
   //----------------------------------- Kenwood
   #if defined(KENWOOD_PC)
-    // Data exapmple
+    // Data example
     // IF00007151074      000000000030000080;
     // IF00007032327      000000000030000080;
     while (CAT_Serial.available()) {
         rdKS="";
+        //#define DEBUG
         #if defined(DEBUG)
-          byte incomingByte = CAT_Serial.read();
-          CAT_Serial.write(incomingByte);
+			byte incomingByte = CAT_Serial.read();
+			Serial.print((char) incomingByte);
+			if (incomingByte == 59)
+				Serial.println("");
         #else
-          CAT_Serial.readBytesUntil(lf, rdK, 38);       // fill array from serial
+          	CAT_Serial.readBytesUntil(lf, rdK, 38);       // fill array from serial
             if (rdK[0] == 73 && rdK[1] == 70){     // filter
                 for (int i=2; i<=12; i++){          // 3-13 position to freq
                     rdKS = rdKS + String(rdK[i]);   // append variable to string
@@ -1534,6 +1556,7 @@ HOT void BandDecoderInput(){
                 //bandSET();                                              // set outputs relay
 
                 #if defined(SERIAL_echo)
+				Serial6.print("FA;");
                     serialEcho();
                 #endif
             }
@@ -2039,7 +2062,10 @@ COLD void FreqToBandRules(){
     else if (freq >=Freq2Band[9][0] && freq <=Freq2Band[9][1] ) {BAND=10;}  //   6m
     else if (freq >=Freq2Band[10][0] && freq <=Freq2Band[10][1] ) {BAND=11;}  // 2m
     else if (freq >=Freq2Band[11][0] && freq <=Freq2Band[11][1] ) {BAND=12;}  // 70cm
-    else {BAND=0;}                                                // out of range
+    else {BAND=0;}   // out of range
+    VFOA = bandmem[curr_band].vfo_A_last = freq;     
+	displayFreq();                                      
+    //Serial.println(VFOA);
 }
 
 

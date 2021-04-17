@@ -83,11 +83,17 @@ void touchBeep(bool enable);
 //
 //#define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables. 
 //
+
+#ifndef PANADAPTER
 #ifdef USE_ENET_PROFILE
     uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
-#else
+#else  // USE_ENET_PROFILE
     uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
-#endif
+#endif  // USE_ENET_PROFILE
+#else  // PANADAPTER
+    uint8_t     user_Profile = 2;   // Profile 2 is optimized for Panadapter usage
+#endif  // PANADAPTER
+
 //
 //----------------------------------------------------------------------------------------------------------------------------
 //
@@ -530,7 +536,8 @@ void loop()
 
     if (tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
     {
-        VFO.readAndReset();
+        //VFO.readAndReset();
+        VFO.read();
         newFreq = 0;
     }
 
@@ -540,7 +547,8 @@ void loop()
     {
         newFreq /= enc_ppr_response;    // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
-        VFO.readAndReset();             // zero out counter fo rnext read.
+        //VFO.readAndReset();
+        VFO.read();             // zero out counter for next read.
         newFreq = 0;
     }
 

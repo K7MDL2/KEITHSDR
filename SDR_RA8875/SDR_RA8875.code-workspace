@@ -23,7 +23,8 @@
 			"vector": "cpp",
 			"initializer_list": "cpp",
 			"streambuf": "cpp",
-			"glcdfont.c": "cpp"
+			"glcdfont.c": "cpp",
+			"*.tcc": "cpp"
 		}
 	}
 }

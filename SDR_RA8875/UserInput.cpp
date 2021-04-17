@@ -547,7 +547,9 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 {                    
                     Serial.println(F(" Swipe DOWN")); 
                     //Serial.println("Band -");
-                    changeBands(-1);                                     
+                    #ifndef PANADAPTER
+                    changeBands(-1);  
+                    #endif                                   
                 } 
                 ////------------------ SWIPE UP  -------------------------------------------
                 else
@@ -555,7 +557,9 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                     Serial.println(F(" Swipe UP"));
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
                     //Serial.println("Band +");
-                    changeBands(1);                                     
+                    #ifndef PANADAPTER
+                    changeBands(1);
+                    #endif                                     
                 }
             } 
             ////------------------ SWIPE LEFT & RIGHT -------------------------------------------////

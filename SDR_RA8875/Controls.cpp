@@ -122,12 +122,12 @@ COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
     
     if (zoom_dir == 1)
     {
-        Sp_Parms_Def[spectrum_preset].spect_floor -= 10;
+        Sp_Parms_Def[spectrum_preset].spect_floor -= 1;
         //Serial.print("RefLvl=UP");
     }        
     else
     {
-        Sp_Parms_Def[spectrum_preset].spect_floor += 10;
+        Sp_Parms_Def[spectrum_preset].spect_floor += 1;
         //Serial.print("RefLvl=DOWN");
     }
     if (Sp_Parms_Def[spectrum_preset].spect_floor < -400)
@@ -170,9 +170,10 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #ifndef PANADAPTER    
         curr_band = target_band;    // Set out new band
-        VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
-        VFOB = bandmem[curr_band].vfo_B_last;
     #endif
+    VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
+    VFOB = bandmem[curr_band].vfo_B_last;
+    
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
@@ -528,10 +529,10 @@ COLD void Atten(int8_t toggle)
     }
     
     #ifdef SV1AFN_BPF
-      if (bandmem[curr_band].attenuator == ATTEN_OFF)
-        Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
-      else 
-        Sp_Parms_Def[spectrum_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
+      //if (bandmem[curr_band].attenuator == ATTEN_OFF)
+        //Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
+      //else 
+        //Sp_Parms_Def[spectrum_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
@@ -569,10 +570,10 @@ COLD void Preamp(int8_t toggle)
     // any other value of toggle pass through with unchanged state, jsut set the relays to current state
     
     #ifdef SV1AFN_BPF
-      if (bandmem[curr_band].preamp == PREAMP_OFF)
-        Sp_Parms_Def[spectrum_preset].spect_floor -= 30;  // reset back to normal
-      else 
-        Sp_Parms_Def[spectrum_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
+      //if (bandmem[curr_band].preamp == PREAMP_OFF)
+      //  Sp_Parms_Def[spectrum_preset].spect_floor -= 30;  // reset back to normal
+      //else 
+      //  Sp_Parms_Def[spectrum_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
  
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setPreamp((bool) bandmem[curr_band].preamp);
@@ -1007,11 +1008,12 @@ COLD void setRefLevel(int8_t toggle)
 COLD void RefLevel(int8_t newval)
 {
     bandmem[curr_band].sp_ref_lvl += newval;
-    if (bandmem[curr_band].sp_ref_lvl > -110)
-        bandmem[curr_band].sp_ref_lvl = -110; 
-    if (bandmem[curr_band].sp_ref_lvl < -220)
-        bandmem[curr_band].sp_ref_lvl = -220; 
+    if (bandmem[curr_band].sp_ref_lvl > 50)
+        bandmem[curr_band].sp_ref_lvl = 50; 
+    if (bandmem[curr_band].sp_ref_lvl < -50)
+        bandmem[curr_band].sp_ref_lvl = -50; 
     Sp_Parms_Def[spectrum_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
+
     displayRefLevel();
     //Serial.print("Set Reference Level to ");
     //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);

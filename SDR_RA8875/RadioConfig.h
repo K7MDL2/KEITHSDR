@@ -129,7 +129,7 @@
     //#define REMOTE_OPS
     #define SV1AFN_BPF              // Use the BPF board
     #define DIG_STEP_ATT            // Use the step atten
-    //#define PANADAPTER                // Enable panadapter mode
+    #define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817

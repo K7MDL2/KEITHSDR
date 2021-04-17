@@ -129,7 +129,7 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40,-155, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30,-180, 70}, // hal
     #else
-    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,2,310,1.0,0.9,1,80,-180, 60},
+    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,2,310,1.0,0.9,1,40,  10, 60},
     { 508,1,1,  1, 509,254,14,8,214,236,236,528,520,113,171,349,349,  0,210, 510,319,40,20,2,310,1.0,0.9,0,40,-180,120},
     { 508,1,1,513,1021,766,14,8,214,236,236,528,520,113,171,349,349,512,210, 510,319,40,20,2,310,1.0,0.9,1,40,-180,120},
     {298,1,1,601,899,749,14,8,304,326,326,499,491,99,66,425,425,600,300,300,200,60,20,2,310,1.0,0.9,0,40,-160,100},
@@ -341,6 +341,12 @@ HOT void spectrum_update(int16_t s)
         
         tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);
 
+        int pix_min = pixelnew[2];
+        for (i = 2; i < (ptr->wf_sp_width-1); i++)
+            if (pixelnew[i] < pix_min)
+                pix_min = pixelnew[i];
+        Serial.print("pix min ="); Serial.println(pix_min);
+
         for (i = 2; i < (ptr->wf_sp_width-1); i++)   // Add SPAN control to spread things out here.  Currently 10KHz per side span with 96K sample rate  
         {       
             // average a few values to smooth the line a bit
@@ -359,7 +365,7 @@ HOT void spectrum_update(int16_t s)
             
             #ifdef DBG_SPECTRUM_PIXEL
             Serial.print(" raw =");
-            Serial.print(pixelnew[i],0);
+            Serial.print(pixelnew[i],DEC);
             #endif
             
             // limit the upper and lower dB level to between these ranges (set scale) (User Setting)  Can be limited further by window heights   
@@ -386,21 +392,28 @@ HOT void spectrum_update(int16_t s)
             
             // Invert the sign since the display is also inverted, Increasing value = weaker signal strength, they are now going the same direction.  
             // Small value = bigger signal, closer to 0 on the display coordinates
-            pixelnew[i] = (int16_t) abs(pixelnew[i]) * 2.0;
+            pixelnew[i] = (int16_t) abs(pixelnew[i]);   
+
             
-            // Wea are plotting our pixel in the window if it lands between the bottom line and top lines        
+            // We are plotting our pixel in the window if it lands between the bottom line and top lines        
             // set the grass floor to just above the bottom line.  These are the weakest signals. Typically -90 coming out of the FFT right now
             // Offset the pixel position relative to the bottom of the window
-            pixelnew[i] += ptr->sp_bottom_line-2 + ptr->spect_floor;            
+            pixelnew[i] +=  ptr->spect_floor;      
+
+            //#if defined (DBG_SPECTRUM_PIXEL) || defined (DBG_SPECTRUM_WINDOWLIMITS)
+            //Serial.print("  NF  pix ="); Serial.println(pixelnew[i],DEC);
+            //#endif
+
+            pixelnew[i] = map(pixelnew[i], abs(pix_min), abs(ptr->spect_sp_scale), ptr->sp_bottom_line, ptr->sp_top_line); 
             
-            #ifdef DBG_SPECTRUM_WINDOWLIMITS
+            #ifdef DBG_SPECTRUM_WINDOWLIMITS 
             //Serial.print("  win-ht:"); Serial.print(ptr->sp_height-4);
             Serial.print("  top line="); Serial.print(ptr->sp_top_line+2);
             #endif
             
-            #if defined (DBG_SPECTRUM_PIXEL) || defined (DBG_SPECTRUM_WINDOWLIMITS)
-            Serial.print("  pix ="); Serial.println(pixelnew[i],0);
-            #endif
+            //#if defined (DBG_SPECTRUM_PIXEL) || defined (DBG_SPECTRUM_WINDOWLIMITS)
+            //Serial.print("  MAP pix ="); Serial.println(pixelnew[i],DEC);
+            //#endif
 
             #ifdef DBG_SPECTRUM_WINDOWLIMITS 
             Serial.print("  bottom line="); Serial.print(ptr->sp_bottom_line-2);
@@ -583,7 +596,7 @@ HOT void spectrum_update(int16_t s)
         if (spect_ref_last != ptr->spect_floor)
         {
             //spect_ref_last = ptr->spect_floor;   // update memory
-            spect_ref_last = sp_floor_avg;   // update memory
+            //spect_ref_last = sp_floor_avg;   // update memory
         }    
             
         // Write the dB range of the window 
