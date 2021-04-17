@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
+## 4/16/2021
+
+    1. Changed Reference Level calculation to auto-set near bottom of window. Updated the default band memory database and spectrum databases to use values close to 0 vs. the previous -170ish values. Each update it looks at the 3rd FFT bin (an arbitrary choice) for a starting level and then scans all the bins for anything lower. As long as the data is consistent this should work. An average would be better to weed out bad readings. This is already done a bit later but in the wrong part of the loop to be helpful here.
+    2. When in PANADAPTER config, a radio's VFO is now polled via CAT and updated on the display so follows as you tune the radio.  It is set for about 500ms updates.  This is working for a K3 with 8.215MHz IF.
+    3. User Profile 2 is being used for PANADAPTER config. It sets BAND0 as eht curernt band. Can use all fields as normal.
+    4. Swipes up/dn to change bands are disabled in PANADAPER config. Encoder 2 is set to RefLvl so a drag up/dn will change ref level value.  RefLvl is now limited to +/- 50 in step=1 unit.  0 to 10 is the normal value.
+    5. There is ongoing dev work to enable spectrum scale changes.  It is set in the database only now. The spectrum values are not yet linked to the waterfall settings.  Waterfall gains need to be changed.
+
 ## 4/14/2021
 
     1. Swipes are now limited to the spectrum hotspot area to prevent unintended band changes while operating buttons or labels.
