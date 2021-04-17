@@ -129,7 +129,7 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40, 5, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
     #else
-    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,2,310,1.0,0.9,1,40,10, 80},
+    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,2,310,1.0,0.9,1,60,10, 80},
     { 508,1,1,  1, 509,254,14,8,214,236,236,528,520,113,171,349,349,  0,210, 510,319,40,20,2,310,1.0,0.9,0,40, 8,100},
     { 508,1,1,513,1021,766,14,8,214,236,236,528,520,113,171,349,349,512,210, 510,319,40,20,2,310,1.0,0.9,1,40, 8,100},
     { 298,1,1,601, 899,749,14,8,304,326,326,499,491, 99, 66,425,425,600,300, 300,200,60,20,2,310,1.0,0.9,0,40, 6,100},
@@ -349,8 +349,8 @@ HOT void spectrum_update(int16_t s)
         float avg_pix2 = (pixelnew[i]+pixelnew[i+1])/2;     // avg of 2 bins            
         float avg_pix5 = (pixelnew[i-2]+pixelnew[i-1]+pixelnew[i]+pixelnew[i+1]+pixelnew[i+2])/5; //avg of 5 bins
         
-        //if (abs(pixelnew[i]) > abs(avg_pix2) * 1.6f)    // compare to a small average to toss out wild spikes
-        //    pixelnew[i] = (int16_t) avg_pix5;                     // average it out over a wider segment to patch the hole   
+        if (abs(pixelnew[i]) > abs(avg_pix2) * 1.6f)    // compare to a small average to toss out wild spikes
+            pixelnew[i] = (int16_t) avg_pix5;                     // average it out over a wider segment to patch the hole   
 
         //Serial.print("pix min ="); Serial.println(pix_min);
 
