@@ -272,7 +272,7 @@ COLD void setMode(int8_t dir)
 	
 	mndx += dir; // Make the change
 
-  	if (mndx > DATA)		// Validate change and fix if needed
+  	if (mndx > DATA_REV)		// Validate change and fix if needed
    		mndx=0;
 	if (mndx < CW)
 		mndx = CW;

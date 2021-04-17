@@ -1,6 +1,15 @@
 # KEITHSDR
 
-Teensy4.X with PJRC audio card Arduino based SDR Radio project.
+Teensy4.X with PJRC audio card Arduino based SDR Radio project
+
+## 4/17/2021
+
+    1. Panadapter Mode additions for Kenwood/Elecraft CAT protocol
+        a. Udpate display to match VFO A mode, RIT, XIT, Split.
+        b. RIT and XIT are the same on a K3. RIT/XIT is set to match the radio, both + and -.  
+        c. ToDo: The VFO is not updated with RIT offset until you turn the VFO dial.
+        d. Parameters updated only if they change.
+        e. New Modes addded: AM, FM, CW-REV, DATA-REV.  They are the same as upper or lower CW or SSB and does not add demodulation AM or FM though that will occur later.  For now tune carefully in SSB mode.
 
 ## 4/16/2021
 

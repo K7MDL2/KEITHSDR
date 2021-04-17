@@ -148,12 +148,12 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 
 struct Label labels[LABEL_NUM] = {
   //  en  show   x   y    w    h   r   outline_color     on_txtclr      on_color    off_txtclr     off_color  padx pady  label 
-    {OFF, OFF,   0,   0,  40, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "B:\0"},   
-    {OFF,  ON,  20, 110,  60, 30, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 130, 110, 105, 30, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
-    {OFF,  ON, 280, 110,  96, 30, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
-    {OFF,  ON, 430, 110,  72, 30, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
-    {OFF,  ON, 560, 110,  60, 30, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
+    {OFF, OFF,   0,   0,  40, 29, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "B:\0"},   
+    {OFF,  ON,  20, 110,  90, 28, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON, 130, 110, 105, 28, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
+    {OFF,  ON, 280, 110,  96, 28, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
+    {OFF,  ON, 430, 110,  72, 28, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
+    {OFF,  ON, 560, 110,  60, 28, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
     {OFF,  ON,  10,  15,  48, 22, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "ATT\0"},
     {OFF,  ON,  70,  15,  48, 22, 3, RA8875_BLACK, RA8875_BLACK, RA8875_BLUE,     myDARKGREY,  RA8875_BLACK, 6, 4, "Pre\0"},
     {OFF,  ON, 130,  15,  48, 22, 3, RA8875_CYAN,  RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 6, 4, "ATU\0"},
@@ -230,19 +230,23 @@ PROGMEM struct Filter_Settings filter[FILTER] = {
 };
 
 PROGMEM struct TuneSteps  tstep[TS_STEPS] = {
-    {"1 ",   "Hz",     1,  CW},
-    {"10 ",  "Hz",    10, USB},
-    {"100 ", "Hz",   100, USB},
+    {"1",   "Hz",     1,  CW},
+    {"10",  "Hz",    10, USB},
+    {"100", "Hz",   100, USB},
     {"1.0", "KHz",  1000, USB},
     {"2.5", "KHz",  2500, USB},
     {"5.0", "KHz",  5000, USB}
 };
 
 PROGMEM struct Modes_List modeList[MODES_NUM] = {
-    {0, "CW"},
-    {1, "LSB"},
-    {2, "USB"},
-    {3, "DATA"}
+    {0, "CW    "},
+    {1, "LSB   "},
+    {2, "USB   "},
+    {3, "DATA  "},
+    {4, "FM    "},
+    {5, "AM    "},
+    {6, "CW-R  "},
+    {7, "DATA-R"}
  };
 
 #endif //  _SDR_DATA_RA8876_H_ 

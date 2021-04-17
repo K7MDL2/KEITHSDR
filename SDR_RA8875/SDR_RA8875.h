@@ -76,9 +76,13 @@
 //  Pretty much every global variable that controls a setting is here in a table of some sort. 
 //
 #define CW          0
+#define CW_REV      6
 #define LSB         1     
 #define USB         2
 #define DATA        3
+#define DATA_REV    7
+#define FM          4
+#define AM          5
 
 #define ON          1
 #define OFF         0
@@ -173,7 +177,7 @@
 #define PINK        0xF81F
 
 // This group defines thw number of records in each structure
-#define MODES_NUM   4
+#define MODES_NUM   8
 #define FREQ_DISP_NUM  4
 #define BANDS       12
 #define XVTRS       12
