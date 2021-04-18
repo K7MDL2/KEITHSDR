@@ -42,6 +42,7 @@ extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has 
 extern bool MF_default_is_active;
 extern void MF_Service(int8_t counts, uint8_t knob);
 extern uint8_t MF_client;  // Flag for current owner of MF knob services
+extern struct Spectrum_Parms Sp_Parms_Def[];
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y); 
@@ -547,7 +548,9 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 {                    
                     Serial.println(F(" Swipe DOWN")); 
                     //Serial.println("Band -");
-                    #ifndef PANADAPTER
+                    #ifdef PANADAPTER
+                    Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_sp_scale -= 3;
+                    #else
                     changeBands(-1);  
                     #endif                                   
                 } 
@@ -557,7 +560,9 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                     Serial.println(F(" Swipe UP"));
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
                     //Serial.println("Band +");
-                    #ifndef PANADAPTER
+                    #ifdef PANADAPTER
+                    Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_sp_scale += 3;
+                    #else
                     changeBands(1);
                     #endif                                     
                 }

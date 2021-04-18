@@ -84,7 +84,7 @@
                                 // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
                                 // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-#define PANADAPTER_MODE_OFFSET_DATA 1500    // This is the offset added by the radio in certain modes
+#define PANADAPTER_MODE_OFFSET_DATA 0    // This is the offset added by the radio in certain modes
                                             // It is usually the Center frequency of the filter
                                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 

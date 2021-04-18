@@ -2,14 +2,21 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
-## 4/17/2021
+## 4/17-18/2021
 
-    1. Panadapter Mode additions for Kenwood/Elecraft CAT protocol
-        a. Udpate display to match VFO A mode, RIT, XIT, Split.
+    1. Panadapter Mode additions, some for Kenwood/Elecraft CAT protocol as appropriate:
+        a. Update display to match VFO A mode, RIT, XIT, Split.
         b. RIT and XIT are the same on a K3. RIT/XIT is set to match the radio, both + and -.  
-        c. ToDo: The VFO is not updated with RIT offset until you turn the VFO dial.
-        d. Parameters updated only if they change.
-        e. New Modes addded: AM, FM, CW-REV, DATA-REV.  They are the same as upper or lower CW or SSB and does not add demodulation AM or FM though that will occur later.  For now tune carefully in SSB mode.
+        c. VFO A is updated with RIT offset if enabled.
+        d. Most parameters updated only if they change.
+        e. New Modes added: AM, FM, CW-REV, DATA-REV.  They are the same as upper or lower CW or SSB and does not add demodulation AM or FM though that will occur later. For now tune carefully in SSB mode.
+        f. Meter is S-meter in RX, Power or ALC depending on radio meter mode, in TX.
+        g. Swipe up or down changes spectrum scale by 3.  Limited to a range of 10 to 80.
+        h. AGC, Filter, Mode and ANT all update to match the radio.
+        i. The IF center frequency data is used set the PLL Fc offset value to move the display to account for radio mode/filter frequency shifts. The spectrum signals are always in the correct orientation with regard to the center line.
+        j. A serial message broker looks for any incoming message and calls the matching functions to decode it.
+        k. Presently setting the K3 in AutoInfo2 mode so it sends out a message for any front panel changes. We still poll for bar graph data and certain other settings like the IF center frequency shift and mode. Mode is present in the IF; message but that message is not normally sent out by the radio until a band change. Same for IF shift info.
+        l. There is a XXXX_Request() function for every XXX_Decode() function.  If not using AI1 or AI2 (AutoInfo) modes then you must poll for info periodically. Use these xxx_Request() functions.
 
 ## 4/16/2021
 

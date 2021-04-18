@@ -18,6 +18,7 @@ extern 			uint8_t 		user_Profile;
 extern struct 	User_Settings 	user_settings[];
 extern        	uint8_t       	MF_client; // Flag for current owner of MF knob services
 extern 			bool 			MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern 			int16_t 		barGraph;  // used for remote meter in Panadapter mode
 
 ////////////////////////// this is the S meter code/////totall uncalibrated use at your own risk
 COLD void Peak()
@@ -65,11 +66,19 @@ COLD void Peak()
 		tft.print(string);
 		*/
 
+		#ifdef PANADAPTER
+			if (user_settings[user_Profile].xmit)			
+				sprintf(string,"   P-%1.0d", barGraph);
+			else 
+				sprintf(string,"   S-%1.0d", barGraph);
+		#else
 		// rounded meter
 		if (dbuv == 0) 
 			sprintf(string,"   S-%1.0f",s);
 		else 
 			sprintf(string,"S-9+%02.0f",dbuv);
+		#endif
+
 		
 		if (!MeterInUse)  // don't write while the MF knob is busy with a temporary focus
 			displayMeter((int) s, string, 3);  // Call the button object display function. 

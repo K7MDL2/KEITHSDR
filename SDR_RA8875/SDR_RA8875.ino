@@ -245,7 +245,7 @@ int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which 
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
 int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
-extern Metro spectrum_waterfall_update;             // Timer used for controlling the Spectrum module update rate.
+extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
@@ -441,14 +441,6 @@ COLD void setup()
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
 
-    #ifdef FT817_CAT
-        Serial.println("Starting the CAT port and reading some radio information if available");
-        init_CAT_comms();  // initialize the CAT port
-        print_CAT_status();  // Test Line to read daa forfm FT817 if attached.
-    #endif
-    #ifdef ALL_CAT
-        CAT_setup();   // Setup teh Serial port for cnfigured Radio comm port
-    #endif
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
 
     #ifdef ENET
@@ -497,6 +489,15 @@ COLD void setup()
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     printHelp();
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
+    
+    #ifdef FT817_CAT
+        Serial.println("Starting the CAT port and reading some radio information if available");
+        init_CAT_comms();  // initialize the CAT port
+        print_CAT_status();  // Test Line to read daa forfm FT817 if attached.
+    #endif
+    #ifdef ALL_CAT
+        CAT_setup();   // Setup teh Serial port for cnfigured Radio comm port
+    #endif
 }
 
 static uint32_t delta = 0;
@@ -611,6 +612,16 @@ void loop()
         // Quad_Check();
     }
 
+    #ifdef PANADAPTER
+        #ifdef ALL_CAT
+            //if (CAT_update.check() == 1) // update our meters
+            //{
+                // update Panadapter CAT port data using same time  
+                CAT_handler();
+            //}
+        #endif  // ALL_CAT
+    #endif // PANADAPTER
+
     if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     {
         // Service popup window
@@ -621,10 +632,6 @@ void loop()
     {
         touchBeep(false);    
     }
-
-    #ifdef ALL_CAT
-        CAT_handler();
-    #endif
 
     //respond to Serial commands
     while (Serial.available())

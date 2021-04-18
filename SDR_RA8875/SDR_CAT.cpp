@@ -8,14 +8,16 @@
 #include "RadioConfig.h"
 #include "SDR_CAT.h"
 
-
-
 #ifdef FT817_CAT
   FT817 ft817;  // assign our class id
 #endif
 
 #ifdef ALL_CAT
   #define CAT_Serial Serial6
+#endif
+
+#ifdef PANADAPTER
+Metro meter_update    = Metro(550);   // used to update CAT port info
 #endif
 
 void init_CAT_comms(void);
@@ -28,12 +30,37 @@ void FrequencyRequest();
 void PttOff();
 void FreqToBandRules();
 void serialEcho();
+void Filter_Request(void);
+void Filter_Decode(void);
+void BarGraph_Request(void);
+void BarGraph_Decode(void);
+void VFOA_Request(void);
+void VFOA_Decode(void);
+void VFOB_Request(void);
+void VFOB_Decode(void);
+int16_t CAT_msgs(void);
+void AGC_Decode(void);
+void AGC_Request(void);
+void ANT_Request(void);
+void ANT_Decode(void);
+void IF_Center_Request(void);
+void IF_Center_Decode(void);
+void RadioMode_Request(void);
+void RadioMode_Decode(void);
+
 //void bandSET();
 extern struct   Band_Memory         bandmem[];
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
+extern struct 	User_Settings 		user_settings[];
+extern 			uint8_t 			user_Profile;
 extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern          uint32_t            VFOB;
-
+extern			int32_t     		Fc;  
+int16_t barGraph  	= 0;   // global for remtoe meter value for Rx and Tx from radio
+int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display label text in panadapter mode
+#define S_BUFF 500
+const char msg_type_array[8][3] = {"FA","FB","IF","BG","BW","PA","FR","FT"};
+static char msg[S_BUFF];
 
 #ifdef FT817_CAT
 
@@ -110,7 +137,7 @@ Outputs
   * YAESU CAT - TRX since 2008 ascii format
   * IP relay with automatic pair by rotary encoder ID
   * PTT by band - distributed PTT to output, dependency by frequency - TNX Tim W4YN
-  * Analog (PWM) output by preset table
+  * Analog (PWM) output by  preset table
 
   Major changes
   -------------
@@ -514,8 +541,19 @@ void CAT_setup() {
     //CAT_Serial.reserve(200);          // reserve bytes for the CATdata
     CAT_Serial.begin(38400);
     //CAT_Serial.setTimeout(1);
-    CAT_Serial.print(F("K31;"));
-  #endif
+	CAT_Serial.print(F("K31;"));		// extended K3 mode
+	CAT_Serial.print(F("AI2;"));		// Radio will send out events when they happen
+
+	VFOA_Request();			// init our main indicators
+	VFOB_Request();			// init our main indicators
+	Filter_Request();
+	AGC_Request();
+  IF_Center_Request();
+  ANT_Request();
+	FrequencyRequest();		// get VFO freq, mode, RIT/XIT and TX/Rx status
+	CAT_msgs();
+
+  #endif // KENWOOD_PC
 
   //pinMode(VoltagePin, INPUT);
 
@@ -626,12 +664,27 @@ void CAT_setup() {
 }
 //---------------------------------------------------------------------------------------------------------
 
-void CAT_handler() {
-  BandDecoderInput();
-  //BandDecoderOutput();
-  //LcdDisplay();
-  watchDog();
-  FrequencyRequest();
+void CAT_handler() 
+{
+  	//BandDecoderInput();
+  	//BandDecoderOutput();
+	//LcdDisplay();
+	//watchDog();
+	
+	// We have AI2 turned on so the radio will send IF; and individual events when they happen, no need to poll except to initialize.
+	//VFOA_Request();			// Get our VFO A
+	//VFOB_Request();			// Get our VFO B=
+	//Filter_Request();			// Get the filter width
+	//FrequencyRequest();		// get VFO freq, mode, RIT/XIT and TX/Rx status
+	
+	CAT_msgs();   // This scans the message received and calls the matching function
+
+	if (meter_update.check() == 1)
+	{	
+		BarGraph_Request();		//get our bar graph update
+		CAT_msgs();   // This scans the message received and calls the matching function
+	}
+
   //PttOff();
   #if defined(EthModule)
     // RX_UDP(RemoteDevice, ThisDevice);
@@ -1461,7 +1514,7 @@ HOT void BandDecoderInput(){
             prevAccVoltage=AccVoltage;
         }else {
             counter++;
-            prevAccVoltage=AccVoltage;
+            prevAccVoltage=AccVol tage;
         }
     }
     #if defined(SERIAL_echo)
@@ -1535,79 +1588,70 @@ HOT void BandDecoderInput(){
 	//----------------------------------- Kenwood
 	#if defined(KENWOOD_PC)
     // Data example
-    // IF00007151074      000000000030000080;
-    // IF00007032327      000000000030000080;
-    while (CAT_Serial.available()) {
-        rdKS="";
+    // IF00007069910     -031000 0006000001 ;  // note the space a the end
+    // IF00007069910     +074001 0006000001 ;
+    rdKS="";
 
-        //#define DEBUG
-        #if defined(DEBUG)
-          byte incomingByte = CAT_Serial.read();
-          Serial.print((char) incomingByte);
-          if (incomingByte == 59)
-				    Serial.println("");
-        #else          	
-			CAT_Serial.readBytesUntil(lf, rdK, 38);       // fill array from serial
-			Serial.println(rdK);
+    //#define DEBUG
+		#if defined(DEBUG)
+			byte incomingByte = CAT_Serial.read();
+			Serial.print((char) incomingByte);
+			if (incomingByte == 59)
+					Serial.println("");
+		#else          	
+			//CAT_Serial.readBytesUntil(lf, rdK, 38);       // fill array from serial
+			Serial.println(msg);
 
-            if (rdK[0] == 73 && rdK[1] == 70)
+			//if (rdK[0] == 73 && rdK[1] == 70)
+			if (msg[0] == 73 && msg[1] == 70 && strlen(msg) == 37)
 			{     
 				// filter for " IF stuff 1 " message/ The 1 and space at end are fixed.
 				// 36 is 1 
-				if (!(String(rdK[35]).equals("1") && String(rdK[36]).equals(" ")))
+				if (!(String(msg[35]).equals("1")) && String(msg[36]).equals(" "))
 				{
-						Serial.print("*** BADLY FORMATTED DATA - EXITING ***");    // K3 Extended RSP format (K31): DATA sub-mode, if applicable:	
+						Serial.println(F("*** BADLY FORMATTED DATA - EXITING ***"));    // K3 Extended RSP format (K31): DATA sub-mode, if applicable:	
 						return;
 				}
 				
-				Serial.println("\n*****  Start Radio Polling *****");
-
-				for (int i=2; i<=12; i++)
-				{          // 3-13 position to freq
-                    rdKS = rdKS + String(rdK[i]);   // append variable to string
-				}
-				
-				freq = rdKS.toInt();
-				FreqToBandRules();
-				if (freq != bandmem[curr_band].vfo_A_last)
-				{
-					Serial.println("Update VFO ");
-					VFOA = bandmem[curr_band].vfo_A_last = freq;
-				}
+				//Serial.println(F("\n*****  IF message *****"));
 					
+				// Frequency is 3-13 - done after RIT	
 				// 14-18 are blanks - skip them
 
 				// RIT/XIT
 				int RIT_sign;
 				// 19 is + or - for RIT direction
-				if (String(rdK[18]).equals('-'))
+				if (String(msg[18]).equals('-'))
 					RIT_sign = -1;   // 2 is neg, 0 is positive
 				else
 					RIT_sign = 1;
-				//Serial.print("RIT Sign "); Serial.println(RIT_sign);					
+				//Serial.print("RIT Sign "); Serial.println(RIT_sign);	
+
 				rdKS="";
 				// 20-23 position to RIT
 				// Get and update RIT/XIT frequency offset (-9999Hz to +9999Hz)
 				for (int i=19; i<=22; i++){          
-					rdKS = rdKS + String(rdK[i]);   // append variable to string
+					rdKS = rdKS + String(msg[i]);   // append variable to string
 				}
 				int32_t rit_temp;
 				rit_temp = rdKS.toInt() * RIT_sign;
 				if (rit_temp != bandmem[curr_band].RIT)  // do not update unless it changes
 				{
 					bandmem[curr_band].XIT = bandmem[curr_band].RIT = rit_temp;  // set both XIT and RIT to the same for the K3
-					Serial.print("X/RIT Value "); Serial.println(bandmem[curr_band].RIT);							
+					Serial.print(F("X/RIT Value ")); Serial.println(bandmem[curr_band].RIT);							
 				}
+
 				// 24 is RIT enabled status	
-				rit_temp = String(rdK[23]).toInt(); 	// RIT enabled if == 1							
+				rit_temp = String(msg[23]).toInt(); 	// RIT enabled if == 1							
 				if (rit_temp != bandmem[curr_band].RIT_en)
 				{
 					bandmem[curr_band].RIT_en = rit_temp;
-					//Serial.print("RIT enabled "); Serial.println(bandmem[curr_band].RIT_en);
+					Serial.print("RIT enabled "); Serial.println(bandmem[curr_band].RIT_en);
 					displayRIT();
 				}
+
 				// 25 is XIT enabled status
-				rit_temp = String(rdK[24]).toInt();
+				rit_temp = String(msg[24]).toInt();
 				if (rit_temp != bandmem[curr_band].XIT_en)
 				{
 					bandmem[curr_band].XIT_en = rit_temp; 	// XIT enabled if == 1
@@ -1615,17 +1659,37 @@ HOT void BandDecoderInput(){
 					displayXIT();
 				}
 
+				rdKS="";
+				// This is out of byte order since we want the latest RIT status first
+				for (int i=2; i<=12; i++)
+				{          // 3-13 position to freq
+					rdKS = rdKS + String(msg[i]);   // append variable to string
+				}				
+				freq = rdKS.toInt();				
+				//Serial.print("freq is "); Serial.println(freq);
+
+				if (bandmem[curr_band].RIT_en)
+					freq += bandmem[curr_band].RIT;
+
+				FreqToBandRules();
+				
+				if (freq != bandmem[curr_band].vfo_A_last)
+				{
+					//Serial.println(F("Update VFO "));
+					VFOA = bandmem[curr_band].vfo_A_last = freq;
+				}
+
 				// 26 is Tx Rx mode
 				extern struct User_Settings user_settings[];
 				extern uint8_t user_Profile;
 				struct User_Settings *pTX = &user_settings[user_Profile];
-				pTX->xmit = String(rdK[28]).toInt();    // 1 is Tx, 0 is Rx				
+				pTX->xmit = String(msg[28]).toInt();    // 1 is Tx, 0 is Rx				
 				//Serial.print("Transmit is "); Serial.println(pTX->xmit);
 				displayFreq();  // update VFO and TX/RX
 
 				// 30 is mode
 				// 1 (LSB), 2 (USB), 3 (CW), 4 (FM), 5 (AM), 6 (DATA), 7 (CW-REV), or 9 (DATA-REV).
-				int E_mode = String(rdK[29]).toInt();    // mode
+				int E_mode = String(msg[29]).toInt();    // mode
 				//Serial.print("Radio Mode is "); Serial.println(E_mode);
 				int new_mode;
 				switch (E_mode)
@@ -1640,27 +1704,29 @@ HOT void BandDecoderInput(){
 					case 9: new_mode = DATA_REV; break;
 					default: new_mode = USB; break;
 				}
-				if (new_mode != bandmem[curr_band].mode_A)
-				{
+				//if (new_mode != bandmem[curr_band].mode_A)
+				//{
+					//Serial.print("New Mode is "); Serial.println(new_mode);
 					bandmem[curr_band].mode_A = new_mode;
 					selectMode(new_mode);   // Select the mode for the Active VFO 
 					displayMode();
-				}
+					IF_Center_Request();
+				//}
 
 				// 31 is VFO in Rx mode - 0 is VFO A, 1 is VFO B         
-				if (String(rdK[30]).toInt())
+				if (String(msg[30]).toInt())
 					bandmem[curr_band].VFO_AB_Active = VFO_B;	//  which VFO is Active
 				else
 					bandmem[curr_band].VFO_AB_Active = VFO_A;
-				Serial.print("VFO_AB_Active is "); Serial.println(bandmem[curr_band].VFO_AB_Active);
+				//Serial.print(F("VFO_AB_Active is ")); Serial.println(bandmem[curr_band].VFO_AB_Active);
 				displayVFO_AB();
 				
 				// 32 is scan in progress
-				int E_scan = String(rdK[31]).toInt();    // scan
-				Serial.print("Scan in Progress is "); Serial.println(E_scan);
+				//int E_scan = String(rdK[31]).toInt();    // scan
+				//Serial.print(F("Scan in Progress is ")); Serial.println(E_scan);
 
 				// 33 is split mode (1 is yes, 0 is no)
-				int split_temp = String(rdK[32]).toInt();
+				int split_temp = String(msg[32]).toInt();
 				if (split_temp != bandmem[curr_band].split)     // split
 				{
 					bandmem[curr_band].split = split_temp;
@@ -1669,26 +1735,27 @@ HOT void BandDecoderInput(){
 				}
 
 				// 34 is 0, or if K22 extended mosde is 1 if change is due to a band change
-				int E_bchg = String(rdK[33]).toInt();    // mode
-				Serial.print("Band Change? is "); Serial.println(E_bchg);				
+				//int E_bchg = String(rdK[33]).toInt();    // mode
+				//Serial.print(F("Band Change? is ")); Serial.println(E_bchg);				
 				
 				// 35 is DATA_submode
-				int DATA_submode = String(rdK[34]).toInt();    // K3 Extended RSP format (K31): DATA sub-mode, if applicable:
-				Serial.print("DATA subMode is "); Serial.println(DATA_submode); //  (0=DATA A, 1=AFSK A, 2= FSK D, 3=PSK D)
+				//int DATA_submode = String(rdK[34]).toInt();    // K3 Extended RSP format (K31): DATA sub-mode, if applicable:
+				//Serial.print(F("DATA subMode is ")); Serial.println(DATA_submode); //  (0=DATA A, 1=AFSK A, 2= FSK D, 3=PSK D)
 
-				Serial.println("*****  End Radio Polling *****");
+				//Serial.println(F("*****  End Radio Polling *****"));
 				
 
-                //bandSET();  // set outputs relay
+				//bandSET();  // set outputs relay
 
-                #if defined(SERIAL_echo)
+				#if defined(SERIAL_echo)
 				Serial6.print("FA;");
-                    serialEcho();
-                #endif
-            }
-            memset(rdK, 0, sizeof(rdK));   // Clear contents of Buffer
-          #endif
-    }
+					serialEcho();
+				#endif
+			}
+			memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+			return;
+		#endif
+    
   	#endif
 
 	//----------------------------------- FLEX-6700
@@ -2191,7 +2258,316 @@ COLD void FreqToBandRules(){
     else {BAND=0;}   // out of range
 }
 
+void AGC_Decode(void)
+{
+    rdKS="";
+	if (msg[0] == 71 && msg[1] == 84)  // Look for GTxxx i.e. GT002 = AGC Fast, GT004 = AGC Slow
+	{     				
+		//Serial.println(F("\n*****  AGC Update *****"));
 
+		for (int i=2; i<=4; i++)
+		{          // 3-5 position
+			rdKS = rdKS + String(msg[i]);   // append variable to string
+		}				
+		int RadioAGC = rdKS.toInt();	
+		Serial.print("Radio AGC is "); Serial.println(RadioAGC);
+		if (RadioAGC == 2)
+			bandmem[curr_band].agc_mode = AGC_FAST;
+		if (RadioAGC == 4)
+			bandmem[curr_band].agc_mode = AGC_SLOW;
+		if (RadioAGC == 0)
+			bandmem[curr_band].agc_mode = AGC_OFF;
+		displayAgc();
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;					
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
 
+void Filter_Decode(void)
+{
+    rdKS="";
+	if ((msg[0] == 66 && msg[1] == 87) || (msg[0] == 70 && msg[1] == 87))  // Look for BWxxxx i.e. BW0280 = 2800Hz band filter width messages
+	{     				
+		//Serial.println(F("\n*****  Filter Width Update *****"));
 
-#endif
+		for (int i=2; i<=5; i++)
+		{          // 3-6 position
+			rdKS = rdKS + String(msg[i]);   // append variable to string
+		}				
+		filterWidth = rdKS.toInt() * 10;	
+		Serial.print("Filterwidth is "); Serial.println(filterWidth);
+		displayFilter();
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;					
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+void BarGraph_Decode(void)
+{
+	rdKS="";
+	if (msg[0] == 66 && msg[1] == 71)  // Look for BGxxY i.e. BG04R bar graph messages
+	{     				
+		//Serial.println(F("\n*****  Bar Graph Update *****"));
+
+		for (int i=2; i<=3; i++)
+		{          // 3-4 position to freq
+			rdKS = rdKS + String(msg[i]);   // append variable to string
+		}				
+		barGraph = rdKS.toInt();
+		
+		int xmit;
+
+		if (msg[4] == 'T')  // cheap way to determine if radio is in transmit without a dedicated query
+			xmit = ON;
+		else 
+			xmit = OFF;
+
+		if (xmit != user_settings[user_Profile].xmit)	
+		{		
+			user_settings[user_Profile].xmit = xmit;
+			displayFreq();
+		}		
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;					
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+void RadioMode_Decode(void)
+{
+    rdKS="";
+			
+	if (msg[0] == 77 && msg[1] == 68)  // Look for MDx i.e. MD1 or MD7
+	{     		
+		int new_mode = 0;
+
+		//Serial.println(F("\n*****  Radio Mode Selection Update *****"));
+		switch (msg[2])
+		{
+			case 1: new_mode = LSB; break;
+			case 2: new_mode = USB; break;
+			case 3: new_mode = CW; break;
+			case 4: new_mode = FM; break;
+			case 5: new_mode = AM; break;
+			case 6: new_mode = DATA; break;
+			case 7: new_mode = CW_REV; break;
+			case 9: new_mode = DATA_REV; break;
+			default: new_mode = USB; break;
+		}
+		Serial.print("New Mode is "); Serial.println(new_mode);
+		bandmem[curr_band].mode_A = new_mode;
+		selectMode(new_mode);   // Select the mode for the Active VFO 
+		IF_Center_Request();
+		displayMode();
+		 
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;			
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+void ANT_Decode(void)
+{
+    rdKS="";
+			
+	if (msg[0] == 65 && msg[1] == 78)  // Look for ANxxx i.e. AN1 or AN2
+	{     				
+		//Serial.println(F("\n*****  Antenna Selection Update *****"));
+		
+		bandmem[curr_band].ant_sw = atoi(&msg[2]);
+		displayANT();
+		 
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;			
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+// RSP format: FInnnn; where nnnn represents the last 4 digits of the K3’s present I.F. center frequency in Hz
+void IF_Center_Decode(void)
+{
+    rdKS="";
+			
+	if (msg[0] == 70 && msg[1] == 73)  // Look for FIxxxx i.e. FI8215
+	{     				
+		//Serial.println(F("\n*****  IF Center Frequency Update *****"));
+
+		for (int i=2; i<=5; i++)
+		{          // 3-6 position to freq
+			rdKS = rdKS + String(msg[i]);   // append variable to string
+		}				
+		Fc= rdKS.toInt() - 5000;   // 8.215.000 is normal cntger IF.  5000 is last 4 digits
+		
+		Serial.print(F("Update Fc ")); Serial.println(Fc);
+		selectFrequency(0);
+		displayFreq();
+		 
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;			
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+void VFOB_Decode(void)
+{
+    rdKS="";
+			
+	if (msg[0] == 70 && msg[1] == 66)  // Look for FBxxx i.e. FB00014065940 - look for FB VFO B mnessages
+	{     				
+		//Serial.println(F("\n*****  VFO B Update *****"));
+
+		for (int i=2; i<=12; i++)
+		{          // 3-13 position to freq
+			rdKS = rdKS + String(msg[i]);   // append variable to string
+		}				
+		freq = rdKS.toInt();
+		FreqToBandRules();   // not using fore the panadpater but is used for othe parts of the decoder feature set if used.
+		if (freq != bandmem[curr_band].vfo_B_last)
+		{
+			Serial.println(F("Update VFO B"));
+			VFOB = bandmem[curr_band].vfo_B_last = freq;
+			displayFreq();
+		} 
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;			
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+void VFOA_Decode(void)
+{
+	rdKS="";
+
+	if (msg[0] == 70 && msg[1] == 65)  // Look for FAxxx i.e. FA00014065940 - look for FA VFO B mnessages
+	{     				
+		//Serial.println(F("\n*****  VFO A Update *****"));
+
+		for (int i=2; i<=12; i++)
+		{          // 3-13 position to freq
+			rdKS = rdKS + String(msg[i]);   // append variable to string
+		}				
+		freq = rdKS.toInt();
+		FreqToBandRules();   // not using fore the panadpater but is used for othe parts of the decoder feature set if used.
+		if (freq != bandmem[curr_band].vfo_A_last)
+		{
+			Serial.println(F("Update VFO A"));
+			VFOA = bandmem[curr_band].vfo_A_last = freq;
+			displayFreq();
+		}
+		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+		return;			
+	}
+	memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
+}
+
+void AGC_Request(void)	  	// Get the filter width
+{
+	CAT_Serial.print(F("GT;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+void Filter_Request(void)	  	// Get the filter width
+{
+	CAT_Serial.print(F("BW;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+void VFOA_Request(void)			// Get VFO A
+{
+	CAT_Serial.print(F("FA;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+void VFOB_Request(void)			// Get VFO B
+{
+	CAT_Serial.print(F("FB;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+void BarGraph_Request(void)		// Get the bar graph value
+{
+	//Serial.println(F("Requesting Bar Graph Update"));
+	CAT_Serial.print(F("BG;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+// IF Center Frewquency: 
+// RSP format: FInnnn; where nnnn represents the last 4 digits of the K3’s present I.F. center frequency in Hz
+void IF_Center_Request(void)		// Get the IF Center Freq value
+{
+	//Serial.println(F("Requesting IF Center Freq Update"));
+	CAT_Serial.print(F("FI;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+void RadioMode_Request(void)		// Get the Mode Selection value
+{
+	//Serial.println(F("Requesting Mode Selection Update"));
+	CAT_Serial.print(F("MD;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+void ANT_Request(void)		// Get the Antenna Selection value
+{
+	//Serial.println(F("Requesting Antenna Selection Update"));
+	CAT_Serial.print(F("AN;"));
+	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+}
+
+int16_t CAT_msgs(void)
+{	
+	char c = 0;
+	static int8_t i = 0;
+	int count;
+	
+	while ((count = CAT_Serial.available()) && ((c = CAT_Serial.read()) != 59))
+	{	
+		//Serial.print(c);
+
+		if (count > S_BUFF || c < 30)		// bail if we blow out a string, miss a terminator
+		{	// clean up for next message
+			Serial.print(F("Reached string buffer limit or invalid char - count = "));	Serial.println(count);
+			i = 0;
+			CAT_Serial.clear();
+			return 0;
+		}
+
+		msg[i] = c;		// accumulate chars until terminator	
+		msg[i+1] = '\0';
+		i++;
+	}
+	
+	if (c == 59)				// If terninator, stop, send string off to the right function
+	{
+		// clean up for next message
+		//Serial.println("");
+		Serial.print("msg=");Serial.println(msg);
+		//Serial.print("i="); Serial.println(i);
+		
+		if (!strncmp(msg, "FA", 2))
+			VFOA_Decode();
+		else if (!strncmp(msg, "FB", 2))
+			VFOB_Decode();
+		else if (!strncmp(msg, "BW", 2) || !strncmp(msg, "FW", 2))
+			Filter_Decode();
+		else if (!strncmp(msg, "BG", 2))	
+			BarGraph_Decode();
+		else if (!strncmp(msg, "IF", 2))	
+			BandDecoderInput();
+		else if (!strncmp(msg, "GT", 2))	
+			AGC_Decode();	
+		else if (!strncmp(msg, "AN", 2))	
+			ANT_Decode();
+		else if (!strncmp(msg, "FI", 2))	
+			IF_Center_Decode();
+    else if (!strncmp(msg, "MD", 2))	
+			RadioMode_Decode();
+		i = 0;
+		msg[0] = 0;
+		return 1;
+	}
+	return 0;
+}
+#endif  // ALL_CAT

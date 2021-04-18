@@ -185,8 +185,13 @@ COLD void displayFilter(void)
 {
 	char str[15];
 
-	sprintf(str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
-	Serial.print(F("Filter is ")); Serial.println(str);	
+	#ifdef PANADAPTER
+		extern int16_t filterWidth;
+		sprintf(str, "F: %dHz", filterWidth);	
+	#else
+		sprintf(str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
+	#endif
+	Serial.print(F("Filter is ")); Serial.println(str);
 	sprintf(labels[FILTER_LBL].label, "%s", str);
 	drawLabel(FILTER_LBL, &bandmem[curr_band].filter);
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);

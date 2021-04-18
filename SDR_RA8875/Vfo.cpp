@@ -112,7 +112,7 @@ COLD void initVfo(void)
 COLD void SetFreq(uint32_t Freq)
 { 
     #ifdef OCXO_10MHZ
-        si5351.set_freq((Freq) *400ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
+        si5351.set_freq((Freq+Fc) *400ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
     #else
         si5351.setFreq(0, (Freq+Fc)*4); // use 4x for QRP-Labs RX vboard and some others. Use 1x if using 2 outputs shifted by 90 degrees 
     #endif
