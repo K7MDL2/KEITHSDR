@@ -543,7 +543,7 @@ void CAT_setup() {
 		CAT_Serial.begin(38400);
 		//CAT_Serial.setTimeout(1);
 		
-		// use a larger buffer, needed to prevent buffer overwrite during startup when many messages are arriving
+		// use a larger RX buffer, needed to prevent buffer overwrite during startup when many messages are arriving
 		CAT_Serial.addMemoryForRead(Ser_Buff, S_BUFF);   
 		//CAT_Serial.addMemoryForWrite(buffer, size);
 
