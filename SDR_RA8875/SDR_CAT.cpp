@@ -2359,7 +2359,7 @@ void RadioMode_Decode(void)
 		Serial.print("New Mode is "); Serial.println(new_mode);
 		bandmem[curr_band].mode_A = new_mode;
 		selectMode(new_mode);   // Select the mode for the Active VFO 
-		IF_Center_Request();
+		IF_Center_Request();    // get the IF shift that occurs on mode changes for panadapters
 		displayMode();
 		 
 		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
@@ -2543,7 +2543,7 @@ int16_t CAT_msgs(void)
 	{
 		// clean up for next message
 		//Serial.println("");
-		Serial.print("msg=");Serial.println(msg);
+		//Serial.print("msg=");Serial.println(msg);
 		//Serial.print("i="); Serial.println(i);
 		
 		if (!strncmp(msg, "FA", 2))

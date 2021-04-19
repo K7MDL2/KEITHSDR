@@ -16,6 +16,7 @@
 #include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
 //#include "avr/pgmspace.h"
 #include <SPI.h>                // included with Arduino
+#include <SD.h>                 // included with Arduino
 #include <Wire.h>               // included with Arduino
 #include <WireIMXRT.h>          // gets installed with wire.h
 #include <WireKinetis.h>        // included with Arduino
