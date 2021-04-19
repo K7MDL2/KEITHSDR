@@ -104,11 +104,12 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
 void respondToByte(char c);
 void touchBeep(bool enable);
 void printDirectory(File dir, int numTabs);
-void Open_SD_cfgfile(void);
+bool Open_SD_cfgfile(void);
 void SD_CardInfo(void);
 void write_db_tables(void);
 void write_cfg(void);
 void read_db_tables(void);
+bool write_radiocfg_h(void);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -374,12 +375,14 @@ COLD void setup()
     //SPI.setSCK(14);  // Audio shield has SCK on pin 14
     // see if the card is present and can be initialized:
     SD_CardInfo();
-    // open or crate our config file.  Filenames follow DOS 8.3 format rules
+    // open or create our config file.  Filenames follow DOS 8.3 format rules
     Open_SD_cfgfile();
     // test our file
     // make a string for assembling the data to log:
     write_db_tables();
     read_db_tables();
+    write_radiocfg_h();        // write out the #define to a file on the SD card.  
+                        // This can be used o te PC during complie to override the RadioCFg.h
 
     //--------------------------   Setup our Audio System -------------------------------------
 
@@ -1088,15 +1091,17 @@ void printDirectory(File dir, int numTabs) {
    }
 }
 
-void Open_SD_cfgfile(void)
+bool Open_SD_cfgfile(void)
 {
+    uint8_t success;
+
     Serial.print("\nInitializing SD Card...");
   
     // see if the card is present and can be initialized:
     if (!SD.begin(chipSelect)) {
         Serial.println("SD Card failed, or not present");
         // don't do anything more:
-        return;
+        return false;
     }
     Serial.println("SD Card initialized.");
     
@@ -1105,6 +1110,7 @@ void Open_SD_cfgfile(void)
     if (SD.exists("radiocfg.cfg")) 
     {
         Serial.println("radiocfg.cfg exists.");
+        success = true;
     }
     else 
     {    
@@ -1118,16 +1124,20 @@ void Open_SD_cfgfile(void)
         if (SD.exists("radiocfg.cfg")) 
         {
             Serial.println("radiocfg.cfg exists.");
+            success = true;
         }
         else 
         {
             Serial.println("radiocfg.cfg doesn't exist.");  
+            success = false;
         }
     }
     Serial.println("\nSD Card Directory...");
     SDR_sd_file = SD.open("/");
     printDirectory(SDR_sd_file, 0);
     Serial.println("");
+    SDR_sd_file.close();
+    return success;
 }
 
 void SD_CardInfo(void)
@@ -1298,51 +1308,161 @@ void read_db_tables(void)
     }
 }
 
-void write_cfg(void)
+bool write_radiocfg_h(void)
 {
-#ifdef USE_RA8875
-#endif
-#ifdef OCXO_10MHZ
-#endif
-#ifdef si5351_TCXO
-#endif
-#ifdef si5351_XTAL_25MHZ
-#endif
-if (si5351_CORRECTION == 0);
-#ifdef DIG_STEP_ATT
-#endif
-#ifdef SV1AFN_BPF
-#endif
-#ifdef ENET
-#endif
-#ifdef USE_DHCP
-#endif
-#ifdef I2C_LCD
-#endif
-#ifdef I2C_ENCODERS
-#endif
-#ifdef USE_ENET_PROFILE
-#endif
-#ifdef REMOTE_OPS
-#endif
-#ifdef TEST_SINEWAVE_SIG
-#endif
-if (SPECTRUM_PRESET == 0);
-#ifdef PANADAPTER
-#endif
-if (PANADAPTER_LO ==  8215000);
-if (PANADAPTER_MODE_OFFSET_DATA == 0 );
-#ifdef PANADAPTER_INVERT
-#endif
-#ifdef ALL_CAT
-#endif
-if (SCREEN_ROTATION  ==  0);
-#ifdef TOUCH_ROTATION
-#endif
-if (VFO_ENC_PIN_A == 4);
-if (VFO_ENC_PIN_B == 5);
+    char buf[80];
+    uint8_t success;
 
-if (VFO_PPR == 6);
+    Serial.print("\nWriting RadioCfg.h to SD Card...");
+  
+    // see if the card is present and can be initialized:
+    if (!SD.begin(chipSelect)) {
+        Serial.println("SD Card failed, or not present");
+        // don't do anything more:
+        return false;
+    }
+    Serial.println("SD Card initialized.");
+    
+    Serial.println("\nOpen or Create our RadioCfg.h data file.");
+    //SD.remove("radiocfg.cfg");
+    if (SD.exists("radiocfg.h")) 
+    {
+        Serial.println("radiocfg.h exists.");
+        success = true;
+    }
+    else 
+    {    
+        Serial.println("radiocfg.h doesn't exist.");
+        // open a new file and immediately close it:
+        Serial.println("Creating RadioCfg.h file..");
+        SDR_sd_file = SD.open("radiocfg.h", FILE_WRITE);
+        SDR_sd_file.close();
+    }
+
+    SDR_sd_file = SD.open("radiocfg.h", FILE_WRITE);    
+
+    if (!SD.exists("radiocfg.h")) 
+    {
+        Serial.println("radiocfg.h does not exists.");
+        return false;
+    }
+    // Write out our individual config parameters,  mostly #defines from RadioCfg.h
+    // Since these are pre-compile and not run time variables, this is intended to be read as a .h at compile time.
+    // Need to set each up as a #ifdef XXX #undef #define construct to machine generate the .h file used for compile. 
+    // The current Radioconfig.h text is the source for this to write out the machine generated version.
+    // The include should be this file, not RadioCfg.h. 
+    // This way, unless you call this write function, each compile will use the last used .h file regardless of what 
+    // new changes are brought down from source control.
+    // This need to be done on the PC doing the compiling but will start here. Can transfer the file manually to the PC.
+    #ifdef USE_RA8875
+        strcpy(buf,"#define USE_RA8875");        
+    #else
+        strcpy(buf,"#ifdef USE_RA8875\n#undef USE_RA8875\n#endif");        
+    #endif
+    SDR_sd_file.println(buf);
+    #ifdef OCXO_10MHZ
+        strcpy(buf,"#define OCXO_10MHZ");        
+    #else
+        strcpy(buf,"#ifdef OCXO_10MHZ\n#undef OCXO_10MHZ\n#endif");        
+    #endif
+    #ifdef si5351_TCXO
+        strcpy(buf,"#define si5351_TCXO");        
+    #else
+        strcpy(buf,"#ifdef si5351_TCXO\n#undef si5351_TCXO\n#endif");        
+    #endif
+    #ifdef si5351_XTAL_25MHZ
+        strcpy(buf,"#define si5351_XTAL_25MHZ");        
+    #else
+        strcpy(buf,"#ifdef si5351_XTAL_25MHZ\n#undef si5351_XTAL_25MHZ\n#endif");        
+    #endif
+    #ifdef DIG_STEP_ATT
+        strcpy(buf,"#define DIG_STEP_ATT");        
+    #else
+        strcpy(buf,"#ifdef DIG_STEP_ATT\n#undef DIG_STEP_ATT\n#endif");        
+    #endif
+    #ifdef SV1AFN_BPF
+        strcpy(buf,"#define SV1AFN_BPF");        
+    #else
+        strcpy(buf,"#ifdef SV1AFN_BPF\n#undef SV1AFN_BPF\n#endif");        
+    #endif
+    #ifdef ENET
+        strcpy(buf,"#define ENET");        
+    #else
+        strcpy(buf,"#ifdef ENET\n#undef ENET\n#endif");        
+    #endif
+    #ifdef USE_DHCP
+        strcpy(buf,"#define ENET");        
+    #else
+        strcpy(buf,"#ifdef ENET\n#undef ENET\n#endif");        
+    #endif
+    #ifdef I2C_LCD
+        strcpy(buf,"#define I2C_LCD");        
+    #else
+        strcpy(buf,"#ifdef I2C_LCD\n#undef I2C_LCD\n#endif");        
+    #endif
+    #ifdef I2C_ENCODERS
+        strcpy(buf,"#define I2C_ENCODERS");        
+    #else
+        strcpy(buf,"#ifdef I2C_ENCODERS\n#undef I2C_ENCODERS\n#endif");        
+    #endif
+    #ifdef USE_ENET_PROFILE
+        strcpy(buf,"#define USE_ENET_PROFILE");        
+    #else
+        strcpy(buf,"#ifdef USE_ENET_PROFILE\n#undef USE_ENET_PROFILE\n#endif");        
+    #endif
+    #ifdef REMOTE_OPS
+        strcpy(buf,"#define REMOTE_OPS");        
+    #else
+        strcpy(buf,"#ifdef REMOTE_OPS\n#undef REMOTE_OPS\n#endif");        
+    #endif
+    #ifdef TEST_SINEWAVE_SIG
+        strcpy(buf,"#define TEST_SINEWAVE_SIG");        
+    #else
+        strcpy(buf,"#ifdef TEST_SINEWAVE_SIG\n#undef TEST_SINEWAVE_SIG\n#endif");        
+    #endif
+    #ifdef PANADAPTER
+        strcpy(buf,"#define PANADAPTER");        
+    #else
+        strcpy(buf,"#ifdef PANADAPTER\n#undef PANADAPTER\n#endif");        
+    #endif
+    #ifdef PANADAPTER_INVERT
+        strcpy(buf,"#define PANADAPTER_INVERT");        
+    #else
+        strcpy(buf,"#ifdef PANADAPTER_INVERT\n#undef PANADAPTER_INVERT\n#endif");        
+    #endif
+    #ifdef ALL_CAT
+        strcpy(buf,"#define ALL_CAT");        
+    #else
+        strcpy(buf,"#ifdef ALL_CAT\n#undef ALL_CAT\n#endif");        
+    #endif
+    #ifdef TOUCH_ROTATION
+        strcpy(buf,"#define TOUCH_ROTATION");        
+    #else
+        strcpy(buf,"#ifdef TOUCH_ROTATION\n#undef TOUCH_ROTATION\n#endif");        
+    #endif
+
+    Serial.println("\nClose File");
+    SDR_sd_file.close();
+    
+    Serial.println("Print Directory");
+    SDR_sd_file = SD.open("/");
+    printDirectory(SDR_sd_file, 0);
+    
+    Serial.println("Close Directory\n");
+    SDR_sd_file.close();  // Close out the file whcih also flushes unwritten bytes.
+    return success;
+}
+/*
+    if (si5351_CORRECTION == 0);
+    if (SPECTRUM_PRESET == 0);
+    if (PANADAPTER_LO ==  8215000);
+    if (PANADAPTER_MODE_OFFSET_DATA == 0 );
+    if (SCREEN_ROTATION  ==  0);
+    if (VFO_ENC_PIN_A == 4);
+    if (VFO_ENC_PIN_B == 5);
+    if (VFO_PPR == 6);
+*/
+
 /*
 #ifdef I2C_ENCODERS
   #define I2C_INT_PIN   29
@@ -1424,7 +1544,5 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
     
     #define MY_LOCAL_PORTNUM 7943;     // local port the SDR will LISTEN on for any remote display/Desktop app
 */
-}
-
 
 #endif  // _SDR_RA8875_
