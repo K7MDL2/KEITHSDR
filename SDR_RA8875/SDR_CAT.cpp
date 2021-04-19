@@ -59,6 +59,7 @@ extern			int32_t     		Fc;
 int16_t barGraph  	= 0;   // global for remtoe meter value for Rx and Tx from radio
 int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display label text in panadapter mode
 #define S_BUFF 500
+byte Ser_Buff[S_BUFF];
 const char msg_type_array[8][3] = {"FA","FB","IF","BG","BW","PA","FR","FT"};
 static char msg[S_BUFF];
 
@@ -529,31 +530,39 @@ int timeout2;
 //---------------------------------------------------------------------------------------------------------
 
 void CAT_setup() {
-  #if defined(YAESU_CAT_OLD) || defined(YAESU_CAT_FT100)
-    CAT_Serial.begin(SERBAUD, SERIAL_8N2);
-    CAT_Serial.setTimeout(10);
-  #else
-    CAT_Serial.begin(SERBAUD);
-    //CAT_Serial.setTimeout(10);
-  #endif
+  	#if defined(YAESU_CAT_OLD) || defined(YAESU_CAT_FT100)
+		CAT_Serial.begin(SERBAUD, SERIAL_8N2);
+		CAT_Serial.setTimeout(10);
+  	#else
+		CAT_Serial.begin(SERBAUD);
+		//CAT_Serial.setTimeout(10);
+  	#endif
 
-  #if defined(KENWOOD_PC) || defined(YAESU_CAT)
-    //CAT_Serial.reserve(200);          // reserve bytes for the CATdata
-    CAT_Serial.begin(38400);
-    //CAT_Serial.setTimeout(1);
-	CAT_Serial.print(F("K31;"));		// extended K3 mode
-	CAT_Serial.print(F("AI2;"));		// Radio will send out events when they happen
+  	#if defined(KENWOOD_PC) || defined(YAESU_CAT)
+		//CAT_Serial.reserve(200);          // reserve bytes for the CATdata
+		CAT_Serial.begin(38400);
+		//CAT_Serial.setTimeout(1);
+		
+		// use a larger buffer, needed to prevent buffer overwrite during startup when many messages are arriving
+		CAT_Serial.addMemoryForRead(Ser_Buff, S_BUFF);   
+		//CAT_Serial.addMemoryForWrite(buffer, size);
 
-	VFOA_Request();			// init our main indicators
-	VFOB_Request();			// init our main indicators
-	Filter_Request();
-	AGC_Request();
-  IF_Center_Request();
-  ANT_Request();
-	FrequencyRequest();		// get VFO freq, mode, RIT/XIT and TX/Rx status
-	CAT_msgs();
+		CAT_Serial.flush();
+		CAT_Serial.clear();
 
-  #endif // KENWOOD_PC
+		CAT_Serial.print(F("K31;"));		// extended K3 mode
+		CAT_Serial.print(F("AI2;"));		// Radio will send out events when they happen
+
+		VFOA_Request();			// init our main indicators
+		VFOB_Request();			// init our main indicators
+		Filter_Request();
+		AGC_Request();
+		IF_Center_Request();
+		ANT_Request();
+		FrequencyRequest();		// get VFO freq, mode, RIT/XIT and TX/Rx status
+		CAT_msgs();
+
+  	#endif // KENWOOD_PC
 
   //pinMode(VoltagePin, INPUT);
 
