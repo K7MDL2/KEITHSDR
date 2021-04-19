@@ -2,7 +2,15 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
-## 4/17-18/2021
+## 4/19/2021
+
+    1. Set larger CAT_Serial RX buffer to avoid buffer overwrites when message stack up, mostly at startup.
+    2. Added SD card support functions incouding directory and card info.
+    3. Writing table data to SD Card file RadioCfg.db for BandMem, user_setttings, and Sp_Parms_Def.
+    4. Writing #define data to RadioCfg.h.  This is only useful when transferred to the compiling PC and used in place of Radioconfig.h.  This is work in progress.  It should be done as a PC utility but it is convenient to do it here on the SD card while I sort things out.  In theory you can take this file, when done, read in the full original RadioConfig.h as normal, then read this .h file which will override #defines by testing for each variable it knows about and then does a #undef to unset appropriate #defines.
+    5. RadioCfg.cfg is intended for misc individual variables.  These ideally would go into EEPROM.  Nothing is written to this file yet, it is only created as an empty file at this point.
+
+## 4/17-18/2021+
 
     1. Panadapter Mode additions, some for Kenwood/Elecraft CAT protocol as appropriate:
         a. Update display to match VFO A mode, RIT, XIT, Split.
