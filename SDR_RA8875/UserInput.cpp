@@ -542,7 +542,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             ////------------------ SWIPE ----------------------------------------------------////
             if ( abs(T1_Y) > abs(T1_X)) // Y moved, not X, vertical swipe    
             {               
-                Serial.println(F("\nSwipe Vertical"));
+                //Serial.println(F("\nSwipe Vertical"));
                 ////------------------ SWIPE DOWN  -------------------------------------------
                 if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
                 {                    
@@ -571,7 +571,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             else  // X moved, not Y, horizontal swipe
             {
                 ////------------------ SWIPE LEFT  -------------------------------------------
-                Serial.println(F("\nSwipe Horizontal"));
+                //Serial.println(F("\nSwipe Horizontal"));
                 if (T1_X < 0)  // x is smaller so must be swipe left direction
                 {     
                     selectFrequency(-1);           
