@@ -123,10 +123,17 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	{
 		VFO_AB();
 		Serial.println(F("Long MF Knob Push- Swap VFOs "));
-		obj->writeRGBCode(0x00FFFF);
+		obj->writeRGBCode(0x00FF00);
+	}
+	else if (obj->id == user_settings[user_Profile].encoder1_client)
+	{
+		Rate(0);
+		Serial.println(F("MF Knob Push to change Tune Rate "));
+		obj->writeRGBCode(0xFF0000);
 	}
 	else
 	{
+
 		Serial.println(F("Push: "));
 		obj->writeRGBCode(0x0000FF);
 	}
