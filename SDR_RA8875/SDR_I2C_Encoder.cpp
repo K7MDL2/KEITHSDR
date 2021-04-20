@@ -119,8 +119,6 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 //Callback when the encoder is pushed
 COLD void encoder_click(i2cEncoderLibV2* obj) 
 {
-	uint8_t knob_assigned;
-
 	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
 	{
 		VFO_AB();
