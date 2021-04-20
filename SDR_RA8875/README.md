@@ -5,8 +5,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 ## 4/20/2021
 
     1. Added Waterfall style 6 and made it default.  Style 6 is a new rainbow, aka "Digipan" style using a full RGB color range.  The other styles are closer to 1 to 3 color styles.
-    2. The new waterfall auto-adjusts with the same noise floor average used by the spectrum drawing.  This means the reference level stays constant depsite preamp and attenuator changes.
-    3. The new waterfall is also adjusted by teh sepctrum scale factor and the spectrum refefdrece level manual settings. Raising the Refernece level will increase the noise floor, lowering reduces it (darker background). The scale is set in the spectrum table and by vertical swipes when in panadapter mode by default. The reffrence level is by vertical drag by default.
+    2. The new waterfall auto-adjusts with the same noise floor average used by the spectrum drawing.  This means the reference level stays constant despite preamp and attenuator changes.
+    3. The new waterfall is also adjusted by the spectrum scale factor and the spectrum reference level manual settings. Raising the Reference level will increase the noise floor causing a lighter background (increased gain), lowering it reduces the noise floor (lower gain, darker background). The scale is set in the spectrum table and by vertical swipes when in panadapter mode by default. The reference level is by vertical drag by default.
     4. Started disabling debug messages for stable sections.
 
 ## 4/19/2021
