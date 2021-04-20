@@ -512,7 +512,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             //RefLevel(T1_Y/5);            
         }
 
-        Serial.print(F("Start Drag X="));Serial.print(T1_X);Serial.print(F("  Drag Y="));Serial.println(T1_Y);
+        //Serial.print(F("Start Drag X="));Serial.print(T1_X);Serial.print(F("  Drag Y="));Serial.println(T1_Y);
         
         touch_evt.start_coordinates[0][0] = touch_evt.last_coordinates[0][0];
         touch_evt.start_coordinates[0][1] = touch_evt.last_coordinates[0][1];
