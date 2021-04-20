@@ -71,8 +71,9 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	{
 		switch(knob_assigned)
 		{
-			case VFO_AB_BTN: 	VFO_AB();  break;
-			default: obj->writeRGBCode(tval); break;
+			//case VFO_AB_BTN: 	VFO_AB();  break;
+			default: 			VFO_AB(); 
+								obj->writeRGBCode(tval); break;
 		}
 	}
 	else
