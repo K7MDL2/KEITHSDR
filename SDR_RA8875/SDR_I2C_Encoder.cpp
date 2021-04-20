@@ -67,13 +67,12 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	uint32_t tval = 0x00FF00;  // Set the default color to green
 	Serial.print(F("Knob Assigned to "));
     Serial.println(knob_assigned);
-	if (press_timer.check() == 1)
+	if (0) //press_timer.check() == 1)
 	{
 		switch(knob_assigned)
 		{
-			//case VFO_AB_BTN: 	VFO_AB();  break;
-			default: 			VFO_AB(); 
-								obj->writeRGBCode(tval); break;
+			case MFTUNE: 	break;
+			default: 		obj->writeRGBCode(tval); break;
 		}
 	}
 	else
@@ -118,8 +117,19 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 }
 
 //Callback when the encoder is pushed
-COLD void encoder_click(i2cEncoderLibV2* obj) {
-	Serial.println(F("Push: "));
+COLD void encoder_click(i2cEncoderLibV2* obj) 
+{
+	uint8_t knob_assigned;
+
+	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
+	{
+		VFO_AB();
+		Serial.println(F("Long MF Knob Push- Swap VFOs "));
+	}
+	else
+	{
+		Serial.println(F("Push: "));
+	}
 	obj->writeRGBCode(0x0000FF);
 }
 
