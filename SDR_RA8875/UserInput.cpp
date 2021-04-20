@@ -471,7 +471,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         int x = T1_X;
         if (T1_X > 0 && abs(T1_X) > abs(T1_Y))  // x is smaller so must be dragb in the right direction
         {               
-            Serial.println(F("Drag RIGHT")); 
+            //Serial.println(F("Drag RIGHT")); 
             switch (MF_client) {
                 case NB_BTN:        x /= 100; break;
                 case ATTEN_BTN:     x /= 30;  break;
@@ -485,7 +485,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         }
         else if (T1_X < 0 && abs(T1_X) > abs(T1_Y))  // no, must be the wrong direction !
         {
-            Serial.println(F("Drag LEFT")); 
+            //Serial.println(F("Drag LEFT")); 
             switch (MF_client) {
                 case NB_BTN:        x /= 100; break;
                 case ATTEN_BTN:     x /= 30;  break;
@@ -499,14 +499,14 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         }  
         else if (T1_Y > 0)  // y is smaller so must be drag in UP direction
         {
-            Serial.println(F("Drag DOWN"));
+            //Serial.println(F("Drag DOWN"));
             MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
             //AFgain(T1_Y/10);
             //RefLevel(T1_Y/5);
         }
         else if (T1_Y < 0)  // no, maybe down !
         {
-            Serial.println(F("Drag UP")); 
+            //Serial.println(F("Drag UP")); 
             MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
             //AFgain(T1_Y/10);
             //RefLevel(T1_Y/5);            
@@ -546,7 +546,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 ////------------------ SWIPE DOWN  -------------------------------------------
                 if (T1_Y > 0)  // y is negative so must be vertical swipe down direction                    
                 {                    
-                    Serial.println(F(" Swipe DOWN")); 
+                    //Serial.println(F(" Swipe DOWN")); 
                     //Serial.println("Band -");
                     #ifdef PANADAPTER
                     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_sp_scale -= 3;
@@ -557,7 +557,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 ////------------------ SWIPE UP  -------------------------------------------
                 else
                 {
-                    Serial.println(F(" Swipe UP"));
+                    //Serial.println(F(" Swipe UP"));
                     //Set_Spectrum_RefLvl(1);   // Swipe up    
                     //Serial.println("Band +");
                     #ifdef PANADAPTER
@@ -576,14 +576,14 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
                 {     
                     selectFrequency(-1);           
                     //Rate(-1);
-                    Serial.println(F("Swiped Left"));                    
+                    //Serial.println(F("Swiped Left"));                    
                 }
                 ////------------------ SWIPE RIGHT  -------------------------------------------
                 else  // or larger so a Swipe Right
                 {
                     selectFrequency(1);
                     //Rate(1);
-                    Serial.println(F("Swiped Right"));
+                    //Serial.println(F("Swiped Right"));
                 }
             }                                 
             break;
