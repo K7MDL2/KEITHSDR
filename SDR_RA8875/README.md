@@ -9,6 +9,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     3. Writing table data to SD Card file RadioCfg.db for BandMem, user_setttings, and Sp_Parms_Def.
     4. Writing #define data to RadioCfg.h.  This is only useful when transferred to the compiling PC and used in place of Radioconfig.h.  This is work in progress.  It should be done as a PC utility but it is convenient to do it here on the SD card while I sort things out.  In theory you can take this file, when done, read in the full original RadioConfig.h as normal, then read this .h file which will override #defines by testing for each variable it knows about and then does a #undef to unset appropriate #defines.
     5. RadioCfg.cfg is intended for misc individual variables.  These ideally would go into EEPROM.  Nothing is written to this file yet, it is only created as an empty file at this point.
+    6. MF knob encoder switch press cycles through tune rates. Added 1KHz back into cycle of rates so now have 10, 100, 1000Hz active. Fine mode enables 1Hz/10hz toggle as before.
+    7. MF knob encoder switch long press swaps VFOs. The longer term goal is to enable VFO B tune, useful for split mode without needing to swapping VFOs. This requires adding a new MF_client function "VFO_B_Tune()".
 
 ## 4/17-18/2021+
 
