@@ -12,7 +12,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     6. MF knob encoder switch press cycles through tune rates. Added 1KHz back into cycle of rates so now have 10, 100, 1000Hz active. Fine mode enables 1Hz/10hz toggle as before.
     7. MF knob encoder switch long press swaps VFOs. The longer term goal is to enable VFO B tune, useful for split mode without needing to swapping VFOs. This requires adding a new MF_client function "VFO_B_Tune()".
 
-## 4/17-18/2021+
+## 4/17-18/2021
 
     1. Panadapter Mode additions, some for Kenwood/Elecraft CAT protocol as appropriate:
         a. Update display to match VFO A mode, RIT, XIT, Split.
