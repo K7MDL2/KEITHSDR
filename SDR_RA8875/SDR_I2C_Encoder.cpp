@@ -123,12 +123,14 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	{
 		VFO_AB();
 		Serial.println(F("Long MF Knob Push- Swap VFOs "));
+		obj->writeRGBCode(0x00FFFF);
 	}
 	else
 	{
 		Serial.println(F("Push: "));
+		obj->writeRGBCode(0x0000FF);
 	}
-	obj->writeRGBCode(0x0000FF);
+	
 }
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short
