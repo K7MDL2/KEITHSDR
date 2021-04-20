@@ -12,12 +12,12 @@ extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
 //extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
 //extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
-extern float                    fft_bin_size;       
+extern float                    fft_bin_size;     //   Hz per bin
 extern uint32_t                 VFOA;
 extern uint32_t                 VFOB;
-extern struct Band_Memory bandmem[];
-extern uint8_t curr_band;   // global tracks our current band setting.
-extern volatile int32_t  Freq_Peak;
+extern struct Band_Memory       bandmem[];
+extern uint8_t                  curr_band;   // global tracks our current band setting.
+extern volatile int32_t         Freq_Peak;
 #ifdef USE_RA8875
 	extern RA8875 tft;
 #else 
@@ -41,6 +41,7 @@ inline uint16_t Color565(uint8_t r,uint8_t g,uint8_t b);
 void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
 void setActiveWindow(void);
 void _updateActiveWindow(bool full);
+int16_t waterfall_color_update(float sample, int16_t waterfall_low);
 
 int16_t wf_time_line = 15000;
 int16_t fftFreq_refresh = 1000;
@@ -48,10 +49,10 @@ Metro waterfall_timestamp=Metro(wf_time_line);  // Used to draw a time stamp lin
 Metro fftFreq_timestamp = Metro(fftFreq_refresh);
 Metro spectrum_clear = Metro(1000);
 
-int16_t spectrum_scale_maxdB    = 80;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
-int16_t spectrum_scale_mindB    = 10;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
-int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
-int16_t fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
+static int16_t spectrum_scale_maxdB    = 1;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
+static int16_t spectrum_scale_mindB    = 80;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
+static int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
+static int16_t fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
 /*
 On ordering of the frequencies, this ends up being dependent on the mixer wring. If you switch the ends on a transformer and you switch + and - frequencies.  So, I decided to make the order from the FFT programmable.  There is a new function setXAxis(uint8_t xAxis);  It follows these rules:
    If xAxis=0  f=fs/2 in middle, f=0 on right edge
@@ -71,14 +72,6 @@ uint8_t fft_axis                = FFT_AXIS;
 //	inline uint16_t htmlTo565(int32_t color_) { return (uint16_t)(((color_ & 0xF80000) >> 8) | ((color_ & 0x00FC00) >> 5) | ((color_ & 0x0000F8) >> 3));}
 //	inline void 	Color565ToRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b){r = (((color & 0xF800) >> 11) * 527 + 23) >> 6; g = (((color & 0x07E0) >> 5) * 259 + 33) >> 6; b = ((color & 0x001F) * 527 + 23) >> 6;}
 
-//function declarations
-void Spectrum_Parm_Generator(int16_t parm_set);
-void spectrum_update(int16_t s);
-void drawSpectrumFrame(uint8_t s);
-void initSpectrum_RA8875(void);
-int16_t colorMap(int16_t val, int16_t color_temp);
-int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
-char* formatFreq(uint32_t Freq);
 
 // Spectrum Globals.  Generally these are only used to set up a new configuration set, or if a setting UI is built and the user is permitted to move and resize things.  
 // These globals are othewise ignored
@@ -124,12 +117,12 @@ Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
     //W        LE  RE  CG                                            x   y   w  h  c sp st clr sc mode scal reflvl wfrate
     #ifdef USE_RA8875
-    {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,2,240,1.0,0.9,1,20, 8, 90},
+    {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40, 5, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
     #else
-    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,5,890,1.5,0.9,1,20,10, 80},
+    {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,6,890,1.5,0.9,1,20,10, 80},
     { 508,1,1,  1, 509,254,14,8,214,236,236,528,520,113,171,349,349,  0,210, 510,319,40,20,2,310,1.0,0.9,0,40, 8,100},
     { 508,1,1,513,1021,766,14,8,214,236,236,528,520,113,171,349,349,512,210, 510,319,40,20,2,310,1.0,0.9,1,40, 8,100},
     { 298,1,1,601, 899,749,14,8,304,326,326,499,491, 99, 66,425,425,600,300, 300,200,60,20,2,310,1.0,0.9,0,40, 6,100},
@@ -165,8 +158,8 @@ HOT void spectrum_update(int16_t s)
     static int16_t spect_scale_last   = 0;
     static int16_t spect_ref_last     = 0;
     int16_t fft_pk_bin                = 0;
-    static int16_t fftPower_pk_last  = ptr->spect_floor;
-    static int16_t sp_floor_avg      = ptr->spect_floor;   // start out here.
+    static int16_t fftPower_pk_last   = ptr->spect_floor;
+    static int16_t pix_min            = ptr->spect_floor;
         
     if (s >= PRESETS) 
         s=PRESETS-1;   // Cycle back to 0
@@ -251,7 +244,7 @@ HOT void spectrum_update(int16_t s)
             }
             // Now capture Spectrum value for use later
             pixelnew[i] = (int16_t) *(pout+i);
-            
+
             // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
             switch (ptr->spect_wf_style)
             { 
@@ -276,12 +269,14 @@ HOT void spectrum_update(int16_t s)
                       break;
               case 4: avg = line_buffer[i] = colorMap(16000 - abs(*(pout+i)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale;
                       break;
+              case 6: avg = line_buffer[i] = waterfall_color_update(*(pout+i), pix_min);//  * ptr->spect_sp_scale;  // test new waterfall colorization method
+                      break;
               case 5:
              default: avg = line_buffer[i] = colorMap(abs(*(pout+i)), ptr->spect_wf_colortemp);                          
                       break; 
             };
 
-// /Serial.println(tft.grandient( (uint16_t) pix_n16));
+// Serial.println(tft.grandient( (uint16_t) pix_n16));
 
             // Fc Blanking
             if (i >= (ptr->wf_sp_width/2)-blanking  && i <= (ptr->wf_sp_width/2)+blanking+1)
@@ -292,6 +287,18 @@ HOT void spectrum_update(int16_t s)
             }
         }   // Done with copying the FFT output array
 
+        for (i = 2; i < (ptr->wf_sp_width-1); i++)
+        {
+            if (i == 2)
+            {
+                pix_min = pixelnew[2];  // start off each set with a sample value to compare others with
+            }
+            else
+            {
+                if (pixelnew[i] < pix_min)
+                    pix_min = pixelnew[i];
+            }
+        }
         // Takes a snapshot of the current window without the bottom row. Stores it in Layer 2 then brings it back beginning at the 2nd row. 
         //    Then write new row data into the missing top row to get a scroll effect using display hardware, not the CPU.
         //    Documentation for BTE: BTE_move(int16_t SourceX, int16_t SourceY, int16_t Width, int16_t Height, int16_t DestX, int16_t DestY, uint8_t SourceLayer=0, uint8_t DestLayer=0, bool Transparent = false, uint8_t ROP=RA8875_BTEROP_SOURCE, bool Monochrome=false, bool ReverseDir = false);                  
@@ -341,11 +348,11 @@ HOT void spectrum_update(int16_t s)
         
         tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);
 
-        int pix_min = pixelnew[2];
-        for (i = 2; i < (ptr->wf_sp_width-1); i++)
-            if (pixelnew[i] < pix_min)
-                pix_min = pixelnew[i];
-                            // average a few values to smooth the line a bit
+        //int pix_min = pixelnew[2];
+        //for (i = 2; i < (ptr->wf_sp_width-1); i++)
+        //    if (pixelnew[i] < pix_min)
+        //        pix_min = pixelnew[i];
+        // average a few values to smooth the line a bit
         float avg_pix2 = (pixelnew[i]+pixelnew[i+1])/2;     // avg of 2 bins            
         float avg_pix5 = (pixelnew[i-2]+pixelnew[i-1]+pixelnew[i]+pixelnew[i+1]+pixelnew[i+2])/5; //avg of 5 bins
         
@@ -370,9 +377,9 @@ HOT void spectrum_update(int16_t s)
             #endif
             
             // limit the upper and lower dB level to between these ranges (set scale) (User Setting)  Can be limited further by window heights   
-            spectrum_scale_maxdB = 10;     //scale most zoomed in.  This is +10dB above the spectrum floor value.   That value is adjustables and is our refence point set to the bottom line.  
+            //spectrum_scale_maxdB = 10;     //scale most zoomed in.  This is +10dB above the spectrum floor value.   That value is adjustables and is our refence point set to the bottom line.  
                                                 //Forms the top range of values that line up with the top of our "window" on the FFT data set value range, typiclly -150 to -0dBm possible.
-            spectrum_scale_mindB = 80;   // scale most zoomed out.  This is +80 dB relative to the spectrum_floor so teh top end of our window.  Typically -150 to -0dBm possible range of signal.             
+            //spectrum_scale_mindB = 80;   // scale most zoomed out.  This is +80 dB relative to the spectrum_floor so teh top end of our window.  Typically -150 to -0dBm possible range of signal.             
                     // range limit our settings.    This number is added to teh spectrum floor.  The pixel value will be plotted where ever it lands as along as it is in the window.
 
             #ifdef DBG_SPECTRUM_SCALE
@@ -457,13 +464,6 @@ HOT void spectrum_update(int16_t s)
             {
                 if ((i < ptr->wf_sp_width-2) && (pix_n16 > ptr->sp_top_line+2) && (pix_n16 < ptr->sp_bottom_line-2)  ) // will blank out the center spike
                 {   
-                    if (pixelnew[i] <  ptr->sp_bottom_line + 40) // arbitrary cutoff to look for low level avg to act as AGC for noise floor adjustment.
-                    {
-                        sp_floor_avg += pixelnew[i];             // accumulate the next low sig level value
-                        sp_floor_avg /= (ptr->wf_sp_width-2);     // first run through wil be off but rest will be OK after
-                        sp_floor_avg -= (ptr-> sp_bottom_line-2 - sp_floor_avg)/2;                                                
-                        //Serial.println(sp_floor_avg);
-                    }
                     if (ptr->spect_dot_bar_mode == 0)   // BAR Mode 
                     {
                         if (pix_o16 != pix_n16) 
@@ -590,15 +590,13 @@ HOT void spectrum_update(int16_t s)
         tft.print("R:   ");  // actual value is updated elsewhere            
         //tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, RA8875_BLACK);
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
-        //tft.print(sp_floor_avg,0);
         tft.print(ptr-> spect_floor);
         //Serial.print("R lvl="); Serial.println(ptr-> spect_floor);
 
-        if (spect_ref_last != ptr->spect_floor)
-        {
+        //if (spect_ref_last != ptr->spect_floor)
+        //{
             //spect_ref_last = ptr->spect_floor;   // update memory
-            //spect_ref_last = sp_floor_avg;   // update memory
-        }    
+        //}    
             
         // Write the dB range of the window 
         tft.setTextColor(myLT_GREY,BLACK);
@@ -1096,3 +1094,130 @@ COLD void _updateActiveWindow(bool full)
 	}
 }
 #endif
+
+/* Copyright (C)
+* 2015 - John Melton, G0ORX/N6LYT
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*
+*-------------------------------------------------------------------------
+* April 2021 - extracted the waterfall gradient part of waterfall.c and adapted it to provide 
+* another method of waterfall coloring so the below is only a part of the original file
+* for a different project PiHDSDR on GitHub.
+* https://github.com/g0orx/pihpsdr/blob/master/waterfall.c
+*
+* --------------------------------------------------------------------------
+* 
+*/
+
+// sample is the provide the FFT bin value.  waterfall low is the min threshold
+int16_t waterfall_color_update(float sample, int16_t waterfall_low) 
+{
+    //int i;
+    struct Spectrum_Parms *Gptr = Sp_Parms_Def;
+    //int average=0;
+    unsigned char rgb[3];
+    unsigned char *p;
+
+    static int colorLowR=0; // black
+    static int colorLowG=0;
+    static int colorLowB=0;
+
+    //static int colorMidR=255; // red
+    //static int colorMidG=0;
+    //static int colorMidB=0;
+
+    static int colorHighR=255; // yellow
+    static int colorHighG=255;
+    static int colorHighB=0;
+    //int pan = 0;
+
+    // introduce scale factor here possibly - might do something with average later also
+    // but the pix_min seems to work well enough
+    //if(have_rx_gain) {
+    //  sample=samples[i+pan]+(float)(rx_gain_calibration-adc_attenuation[rx->adc]);
+    //} else {
+    //  sample=samples[i+pan]+(float)adc_attenuation[rx->adc];
+    //}
+
+    waterfall_low += 8;  // slight adjustment to lower the color temp a bit.
+    int16_t waterfall_high = -40 * Gptr->spect_sp_scale/30 ;
+
+    //Serial.print("FFT = " );Serial.println(sample);
+    //Serial.print("WtrF Low = " );Serial.println(waterfall_low);
+
+    //average+=sample;        
+    //Serial.println(average);
+    
+    p = rgb;
+    if(sample<(float)waterfall_low) {
+        *p++=colorLowR;
+        *p++=colorLowG;
+        *p++=colorLowB;
+    } else if(sample>(float)waterfall_high) {
+        *p++=colorHighR;
+        *p++=colorHighG;
+        *p++=colorHighB;
+    } else {
+        float range=(float)waterfall_high-(float)waterfall_low;
+        float offset=sample-(float)waterfall_low;
+        float percent=offset/range;
+        if(percent<(2.0f/9.0f)) {
+            float local_percent = percent / (2.0f/9.0f);
+            *p++ = (int)((1.0f-local_percent)*colorLowR);
+            *p++ = (int)((1.0f-local_percent)*colorLowG);
+            *p++ = (int)(colorLowB + local_percent*(255-colorLowB));
+        } else if(percent<(3.0f/9.0f)) {
+            float local_percent = (percent - 2.0f/9.0f) / (1.0f/9.0f);
+            *p++ = 0;
+            *p++ = (int)(local_percent*255);
+            *p++ = 255;
+        } else if(percent<(4.0f/9.0f)) {
+                float local_percent = (percent - 3.0f/9.0f) / (1.0f/9.0f);
+                *p++ = 0;
+                *p++ = 255;
+                *p++ = (int)((1.0f-local_percent)*255);
+        } else if(percent<(5.0f/9.0f)) {
+                float local_percent = (percent - 4.0f/9.0f) / (1.0f/9.0f);
+                *p++ = (int)(local_percent*255);
+                *p++ = 255;
+                *p++ = 0;
+        } else if(percent<(7.0f/9.0f)) {
+                float local_percent = (percent - 5.0f/9.0f) / (2.0f/9.0f);
+                *p++ = 255;
+                *p++ = (int)((1.0f-local_percent)*255);
+                *p++ = 0;
+        } else if(percent<(8.0f/9.0f)) {
+                float local_percent = (percent - 7.0f/9.0f) / (1.0f/9.0f);
+                *p++ = 255;
+                *p++ = 0;
+                *p++ = (int)(local_percent*255);
+        } else {
+                float local_percent = (percent - 8.0f/9.0f) / (1.0f/9.0f);
+                *p++ = (int)((0.75f + 0.25f*(1.0f-local_percent))*255.0f);
+                *p++ = (int)(local_percent*255.0f*0.5f);
+                *p++ = 255;
+        }
+    }
+
+    //if(rx->waterfall_automatic) {
+    //  waterfall_low=average/display_width;
+    //  waterfall_high=waterfall_low+50;
+    //}
+    
+    int16_t pval = Color565(rgb[0], rgb[1], rgb[2]);
+    //Serial.print("Final color = "); Serial.println(pval,HEX);
+    return pval;
+}
