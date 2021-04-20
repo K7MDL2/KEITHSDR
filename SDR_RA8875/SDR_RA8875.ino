@@ -585,8 +585,8 @@ void loop()
 
     if (tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
     {
-        //VFO.readAndReset();
-        VFO.read();
+        VFO.readAndReset();
+        //VFO.read();
         newFreq = 0;
     }
 
@@ -596,8 +596,8 @@ void loop()
     {
         newFreq /= enc_ppr_response;    // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
-        //VFO.readAndReset();
-        VFO.read();             // zero out counter for next read.
+        VFO.readAndReset();
+        //VFO.read();             // zero out counter for next read.
         newFreq = 0;
     }
 
@@ -1308,7 +1308,7 @@ void read_db_tables(void)
     }
 }
 
-bool write_radiocfg_h(void)
+bool write_radiocfg_h(void) // Standalone function wil create a file if needed and 
 {
     char buf[80];
     uint8_t success;
@@ -1323,20 +1323,23 @@ bool write_radiocfg_h(void)
     }
     Serial.println("SD Card initialized.");
     
-    Serial.println("\nOpen or Create our RadioCfg.h data file.");
-    //SD.remove("radiocfg.cfg");
+    Serial.println("Open or Create our RadioCfg.h data file.");
+    
     if (SD.exists("radiocfg.h")) 
     {
-        Serial.println("radiocfg.h exists.");
+        Serial.println("RadioCfg.h exists, removing the file.");
+        SD.remove("radiocfg.h");  // remove to rewrite fresh each time
         success = true;
     }
-    else 
+
+    if (!SD.exists("radiocfg.h")) 
     {    
-        Serial.println("radiocfg.h doesn't exist.");
+        Serial.println("RadioCfg.h doesn't exist.");
         // open a new file and immediately close it:
         Serial.println("Creating RadioCfg.h file..");
         SDR_sd_file = SD.open("radiocfg.h", FILE_WRITE);
         SDR_sd_file.close();
+        success = true;
     }
 
     SDR_sd_file = SD.open("radiocfg.h", FILE_WRITE);    
@@ -1441,10 +1444,10 @@ bool write_radiocfg_h(void)
         strcpy(buf,"#ifdef TOUCH_ROTATION\n#undef TOUCH_ROTATION\n#endif");        
     #endif
 
-    Serial.println("\nClose File");
+    Serial.println("File Write Completed, Closing the File");
     SDR_sd_file.close();
     
-    Serial.println("Print Directory");
+    Serial.println("\nPrint Directory");
     SDR_sd_file = SD.open("/");
     printDirectory(SDR_sd_file, 0);
     
