@@ -51,7 +51,7 @@ Metro spectrum_clear = Metro(1000);
 
 static int16_t spectrum_scale_maxdB    = 1;       // max value in dB above the spectrum floor we will plot signal values (dB scale max)
 static int16_t spectrum_scale_mindB    = 80;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
-static int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
+//static int16_t fftFrequency            = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 static int16_t fftMaxPower             = 0;        // Used to hold the FFT peak power for the strongest signal
 /*
 On ordering of the frequencies, this ends up being dependent on the mixer wring. If you switch the ends on a transformer and you switch + and - frequencies.  So, I decided to make the order from the FFT programmable.  There is a new function setXAxis(uint8_t xAxis);  It follows these rules:
@@ -156,7 +156,7 @@ HOT void spectrum_update(int16_t s)
     int16_t pix_o16;
     int16_t pix_n16;
     static int16_t spect_scale_last   = 0;
-    static int16_t spect_ref_last     = 0;
+    //static int16_t spect_ref_last     = 0;
     int16_t fft_pk_bin                = 0;
     static int16_t fftPower_pk_last   = ptr->spect_floor;
     static int16_t pix_min            = ptr->spect_floor;
@@ -547,11 +547,11 @@ HOT void spectrum_update(int16_t s)
         if (fftMaxPower > fftPower_pk_last)
         { 
             fftPower_pk_last = fftMaxPower;            
-            tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
-            tft.setCursor(ptr->l_graph_edge+30,        ptr->sp_txt_row+30); // Write the legend
-            tft.print("P: "); 
-            tft.setCursor(ptr->l_graph_edge+46,        ptr->sp_txt_row+30);  // write the value
-            tft.print(fftMaxPower);
+            //tft.fillRect(ptr->l_graph_edge+30,         ptr->sp_txt_row+30, 70, 13, RA8875_BLACK);  // clear the text space
+            //tft.setCursor(ptr->l_graph_edge+30,        ptr->sp_txt_row+30); // Write the legend
+            //tft.print("P: "); 
+            //tft.setCursor(ptr->l_graph_edge+46,        ptr->sp_txt_row+30);  // write the value
+            //tft.print(fftMaxPower-20);  // fudge factor added
             //Serial.print("Ppk="); Serial.println(fftMaxPower);
             //fftFreq_timestamp.reset();  // reset the timer since we have new good data
         }
@@ -1152,8 +1152,9 @@ int16_t waterfall_color_update(float sample, int16_t waterfall_low)
     //  sample=samples[i+pan]+(float)adc_attenuation[rx->adc];
     //}
 
-    waterfall_low += 8;  // slight adjustment to lower the color temp a bit.
-    int16_t waterfall_high = -40 * Gptr->spect_sp_scale/30 ;
+    //waterfall_low += (Gptr->spect_sp_scale/-30);  // slight adjustment to lower the color temp a bit.
+    waterfall_low += (Gptr->spect_floor/2) + (Gptr->spect_sp_scale/-30) + 10;  // slight adjustment to lower the color temp a bit.
+    int16_t waterfall_high = -40;
 
     //Serial.print("FFT = " );Serial.println(sample);
     //Serial.print("WtrF Low = " );Serial.println(waterfall_low);
