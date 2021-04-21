@@ -676,15 +676,6 @@ void loop()
     while (Serial.available())
     {
         respondToByte((char)Serial.read());
-    
-        // Check for time update sent from PC side program via USB serial
-        time_t t = processSyncMessage();
-        if (t != 0) 
-        {
-            Teensy3Clock.set(t); // set the RTC
-            setTime(t);
-            digitalClockDisplay();
-        }
     }
 
     //check to see whether to print the CPU and Memory Usage
@@ -837,6 +828,17 @@ COLD void respondToByte(char c)
         Serial.println(F("\nMemory Usage (FlexInfo)"));
         flexRamInfo();
         Serial.println(F("*** End of Report ***"));
+        break;
+    case 'T':
+    case 't': // Check for time update sent from PC side program via USB serial
+        time_t t = processSyncMessage();
+        if (t != 0) 
+        {
+            Serial.println(F("Time Update"));
+            Teensy3Clock.set(t); // set the RTC
+            setTime(t);
+            digitalClockDisplay();
+        }
         break;
     default:
         Serial.print(F("You typed "));
