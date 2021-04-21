@@ -77,7 +77,11 @@ void printHelp(void);
 void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
 void respondToByte(char c);
 void touchBeep(bool enable);
-void getTime(void);
+void digitalClockDisplay(void); 
+unsigned long processSyncMessage();
+time_t getTeensy3Time();
+void printDigits(int digits);
+
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -672,6 +676,15 @@ void loop()
     while (Serial.available())
     {
         respondToByte((char)Serial.read());
+    
+        // Check for time update sent from PC side program via USB serial
+        time_t t = processSyncMessage();
+        if (t != 0) 
+        {
+            Teensy3Clock.set(t); // set the RTC
+            setTime(t);
+            digitalClockDisplay();
+        }
     }
 
     //check to see whether to print the CPU and Memory Usage
@@ -1052,7 +1065,8 @@ COLD void touchBeep(bool enable)
     }
 }
 
-void printDigits(int digits){
+void printDigits(int digits)
+{
   // utility function for digital clock display: prints preceding colon and leading 0
   Serial.print(":");
   if(digits < 10)

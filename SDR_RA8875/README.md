@@ -4,7 +4,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## 4/21/2021
 
-    1.  Onboard RTC clock now used.  At startup if there is a USB connection, the PC Time is *supposed to be* read and is used to update the RTC time and date. That part is not working.  Then the clock is read and displayed, updated every 1 second. If Ethernet NTP time is available and valid, it will update the clock periodically.  Eventually other means to set the clock will be coded.  It is easy to add a GPS if time is important without a netowrk connection.
+    1.  Onboard RTC clock now used.  If there is a USB connection and a PC side program sends time down teh USB serial port, PC Time is read and is used to update the RTC time and date.  The clock is then read and displayed, updated every 1 second. If Ethernet NTP time is available and valid, it will update the clock periodically.  Eventually other means to set the clock will be coded.  It is easy to add a GPS if time is important without a network connection.
 
 ## 4/20/2021
 
