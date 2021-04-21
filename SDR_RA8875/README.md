@@ -5,11 +5,11 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 ## 4/21/2021
 
     1.  Onboard RTC clock now used.  If there is a USB connection and a PC side program sends time down teh USB serial port, PC Time is read and is used to update the RTC time and date.  The clock is then read and displayed, updated every 1 second. If Ethernet NTP time is available and valid, it will update the clock periodically.  Eventually other means to set the clock will be coded.  It is easy to add a GPS if time is important without a network connection.
-    2. Added 'T' and 't' to the Serial terminal menu to accept a time update message in the form of 'T'+10 digits which are the seconds since Jan 1, 1970. An example: type two T's (one for the menu, the other for the command and 1619000000, hit enter. 
+    2. Added 'T' and 't' to the Serial terminal menu to accept a time update message in the form of 'T'+10 digits which are the seconds since Jan 1, 1970. An example: type two T's (one for the menu, the other for the command and 1619000000, hit enter.
     Example ->  Type in:
         TT1619000000<enter>
     and it will respond with:
-        1619000000Time Update
+        Time Update
         10:13:20 21 4 2021
 
 ## 4/20/2021

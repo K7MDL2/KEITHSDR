@@ -1093,7 +1093,7 @@ unsigned long processSyncMessage()
     {
         pctime = Serial.parseInt();
         //return pctime;
-        Serial.print(pctime);
+        //Serial.print(pctime);
         if( pctime < DEFAULT_TIME) { // check the value is a valid time (greater than Jan 1 2013)
             pctime = 0L; // return 0 to indicate that the time is not valid
         }
