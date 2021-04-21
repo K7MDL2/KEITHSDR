@@ -2,6 +2,10 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## 4/21/2021
+
+    1.  Onboard RTC clock now used.  At startup if there is a USB connection, the PC Time is *supposed to be* read and is used to update the RTC time and date. That part is not working.  Then the clock is read and displayed, updated every 1 second. If Ethernet NTP time is available and valid, it will update the clock periodically.  Eventually other means to set the clock will be coded.  It is easy to add a GPS if time is important without a netowrk connection.
+
 ## 4/20/2021
 
     1. Added Waterfall style 6 and made it default.  Style 6 is a new rainbow, aka "Digipan" style using a full RGB color range.  The other styles are closer to 1 to 3 color styles.

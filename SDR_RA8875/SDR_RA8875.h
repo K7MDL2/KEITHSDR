@@ -29,6 +29,7 @@
 #include <TimeLib.h>            // TODO  - list where to find this
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+#include <TimeLib.h>
 //#include <glcdfont.c>
 //#include <ILI9341_fonts.h>
 //#include <FiraCode_mono_14.c>   //minipixel
@@ -53,6 +54,7 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
+#include "SD_Card.h"
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 #define BAND0       0       // Band slot ID

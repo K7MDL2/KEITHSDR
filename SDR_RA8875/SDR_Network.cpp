@@ -18,6 +18,8 @@
 #include <NativeEthernetUdp.h>
 #include <TimeLib.h>
 
+extern tmElements_t tm;
+
 #define BUFFER_SIZE         4100    
 #define RX_BUFFER_SIZE		255
 // Choose or create your desired time zone offset or use 0 for UTC.
@@ -53,7 +55,7 @@ unsigned int remoteport = MY_REMOTE_PORTNUM;    // The destination port to SENDT
 // This is for the NTP service to update the clock when connected to the internet
 unsigned int localPort_NTP = 8888;       // Local port to listen for UDP packets
 const char timeServer[] = "time.nist.gov"; // time.nist.gov NTP server
-time_t prevDisplay = 0; // When the digital clock was displayed
+extern time_t prevDisplay; // When the digital clock was displayed
 
 // function declarations
 void toggle_enet_data_out(uint8_t mode);
@@ -293,8 +295,11 @@ COLD time_t getNtpTime()
 		secsSince1900 |= (unsigned long)packetBuffer_NTP[42] << 8;
 		secsSince1900 |= (unsigned long)packetBuffer_NTP[43];
 		//Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
-		setTime(secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR);
-		return secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
+		time_t t;
+		t = secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
+		Teensy3Clock.set(t); // set the RTC
+		setTime(t);			 // set the time structure
+		return t;
     }
   	Serial.println(F("No NTP Response :-("));
   	return 0; // return 0 if unable to get the time

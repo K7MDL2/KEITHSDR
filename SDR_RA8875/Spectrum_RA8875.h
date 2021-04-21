@@ -84,8 +84,8 @@ void initSpectrum(void);
 int16_t colorMap(int16_t val, int16_t color_temp);
 int16_t find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
 char* formatFreq(uint32_t Freq);
-void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
-void setActiveWindow();
+//void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
+//void setActiveWindow();
 
 struct Spectrum_Parms {
     int16_t wf_sp_width;        // User specified active graphing area width with no padding. Max is fft_bins, can be smaller.
