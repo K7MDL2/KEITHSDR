@@ -1153,7 +1153,7 @@ int16_t waterfall_color_update(float sample, int16_t waterfall_low)
     //}
 
     //waterfall_low += (Gptr->spect_sp_scale/-30);  // slight adjustment to lower the color temp a bit.
-    waterfall_low += (Gptr->spect_floor/2) + (Gptr->spect_sp_scale/-30) + 10;  // slight adjustment to lower the color temp a bit.
+    waterfall_low += (Gptr->spect_floor/2) + (Gptr->spect_sp_scale/-30) + 8;  // slight adjustment to lower the color temp a bit.
     int16_t waterfall_high = -40;
 
     //Serial.print("FFT = " );Serial.println(sample);
