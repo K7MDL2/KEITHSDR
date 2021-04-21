@@ -675,7 +675,20 @@ void loop()
     //respond to Serial commands
     while (Serial.available())
     {
-        respondToByte((char)Serial.read());
+        if (Serial.peek() == 'T')
+        {
+            time_t t = processSyncMessage();
+            if (t != 0) 
+            {
+                Serial.println(F("Time Update"));
+                Teensy3Clock.set(t); // set the RTC
+                setTime(t);
+                digitalClockDisplay();
+            }
+        }
+        else
+            respondToByte((char)Serial.read());
+        
     }
 
     //check to see whether to print the CPU and Memory Usage
@@ -829,17 +842,6 @@ COLD void respondToByte(char c)
         flexRamInfo();
         Serial.println(F("*** End of Report ***"));
         break;
-    case 'T':
-    case 't': // Check for time update sent from PC side program via USB serial
-        time_t t = processSyncMessage();
-        if (t != 0) 
-        {
-            Serial.println(F("Time Update"));
-            Teensy3Clock.set(t); // set the RTC
-            setTime(t);
-            digitalClockDisplay();
-        }
-        break;
     default:
         Serial.print(F("You typed "));
         Serial.print(s);
@@ -856,6 +858,7 @@ COLD void printHelp(void)
     Serial.println(F("   h: Print this help"));
     Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
     Serial.println(F("   M: Print Detailed Memory Region Usage Report"));
+    Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
 }
 #ifndef I2C_ENCODERS
 //
@@ -1067,7 +1070,7 @@ COLD void touchBeep(bool enable)
     }
 }
 
-void printDigits(int digits)
+COLD void printDigits(int digits)
 {
   // utility function for digital clock display: prints preceding colon and leading 0
   Serial.print(":");
@@ -1076,7 +1079,7 @@ void printDigits(int digits)
   Serial.print(digits);
 }
 
-time_t getTeensy3Time()
+COLD time_t getTeensy3Time()
 {
   return Teensy3Clock.get();
 }
@@ -1084,7 +1087,7 @@ time_t getTeensy3Time()
 /*  code to process time sync messages from the serial port   */
 #define TIME_HEADER  "T"   // Header tag for serial time sync message
 
-unsigned long processSyncMessage() 
+COLD unsigned long processSyncMessage() 
 {
     unsigned long pctime = 0L;
     const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013 
@@ -1093,7 +1096,7 @@ unsigned long processSyncMessage()
     {
         pctime = Serial.parseInt();
         //return pctime;
-        //Serial.print(pctime);
+        //Serial.println(pctime);
         if( pctime < DEFAULT_TIME) { // check the value is a valid time (greater than Jan 1 2013)
             pctime = 0L; // return 0 to indicate that the time is not valid
         }
@@ -1101,7 +1104,7 @@ unsigned long processSyncMessage()
     return pctime;
 }
 
-void digitalClockDisplay() {
+COLD void digitalClockDisplay() {
   // digital clock display of the time
   Serial.print(hour());
   printDigits(minute());
