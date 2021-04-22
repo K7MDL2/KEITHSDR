@@ -18,7 +18,7 @@ extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
-Metro press_timer = Metro(900);
+Metro press_timer = Metro(600);
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -160,12 +160,19 @@ COLD void encoder_thresholds(i2cEncoderLibV2* obj)
 //Callback when the fading process finish and set the RGB led off
 COLD void encoder_fade(i2cEncoderLibV2* obj) 
 {
-	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
-	{
+	uint8_t mfg; 
+	MF_ENC.updateStatus();
+	mfg = MF_ENC.readStatus();
+	//Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
+	#ifdef MF_ENC_ADDR
+	// Check the status of the encoder (if enabled) and call the callback
+	if(mfg == 0 && press_timer.check() == 1 && obj->id == user_settings[user_Profile].encoder1_client)
+	{     
 		VFO_AB();
 		Serial.println(F("Long MF Knob Push- Swap VFOs "));
 		//obj->writeRGBCode(0x00FF00);
 	}
+	#endif
   	obj->writeRGBCode(0x000000);
 }
 
@@ -279,7 +286,7 @@ COLD void blink_MF_RGB(void)
     delay(250);
     MF_ENC.writeRGBCode(0x000000);
 	Serial.println(F("Blink MF RGB"));
-    MF_ENC.writeFadeRGB(3); //Fade enabled with 3ms step
+    MF_ENC.writeFadeRGB(2); //Fade enabled with 3ms step
 }
 #endif
 
