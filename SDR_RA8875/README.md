@@ -2,6 +2,20 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## 4/22/2021
+
+    1.  Enhanced the I2C scanner to list likely address matches with known boards. I added the DupPPa I2C encoders that some of us are using to the range of 0x61 to 0x68.
+
+        **** Running I2C Scanner ****
+        Scanning...
+        I2C device found at address 0x0A  (SGTL5000)
+        I2C device found at address 0x20  (MCP23017,MCP23008,PCF8574,FXAS21002,SoilMoisture)
+        I2C device found at address 0x38  (RA8875,FT6206)
+        I2C device found at address 0x60  (MPL3115,MCP4725,MCP4728,TEA5767,Si5351)
+        I2C device found at address 0x61  (MCP4725,AtlasEzoDO,DuPPaEncoder)
+        I2C device found at address 0x62  (LidarLite,MCP4725,AtlasEzoORP,DuPPaEncoder)
+        done
+
 ## 4/21/2021
 
     1.  Onboard RTC clock now used.  If there is a USB connection and a PC side program or terminal session sends time down the USB serial port, the time message is read and is used to update the RTC time and date. The RTC clock is then read and displayed, updated every 1 second. If Ethernet NTP time is available and valid, it will update the clock periodically.
