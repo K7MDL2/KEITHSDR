@@ -18,7 +18,7 @@ extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
-Metro press_timer = Metro(600);
+Metro press_timer = Metro(900);
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -121,9 +121,9 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 {
 	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
 	{
-		VFO_AB();
-		Serial.println(F("Long MF Knob Push- Swap VFOs "));
-		obj->writeRGBCode(0x00FF00);
+		//VFO_AB();
+		//Serial.println(F("Long MF Knob Push- Swap VFOs "));
+		//obj->writeRGBCode(0x00FF00);
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
 	{
@@ -160,6 +160,12 @@ COLD void encoder_thresholds(i2cEncoderLibV2* obj)
 //Callback when the fading process finish and set the RGB led off
 COLD void encoder_fade(i2cEncoderLibV2* obj) 
 {
+	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
+	{
+		VFO_AB();
+		Serial.println(F("Long MF Knob Push- Swap VFOs "));
+		//obj->writeRGBCode(0x00FF00);
+	}
   	obj->writeRGBCode(0x000000);
 }
 
