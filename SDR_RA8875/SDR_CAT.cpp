@@ -61,10 +61,10 @@ int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display
 #define S_BUFF 500
 byte Ser_Buff[S_BUFF];
 const char msg_type_array[8][3] = {"FA","FB","IF","BG","BW","PA","FR","FT"};
-static char msg[S_BUFF];
 
 #ifdef FT817_CAT
 
+static char msg[S_BUFF];
 // set this to the hardware serial port you wish to use
 COLD void init_CAT_comms(void)
 {

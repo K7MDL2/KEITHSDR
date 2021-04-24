@@ -58,7 +58,7 @@ struct Touch_Control{
     uint16_t    start_coordinates[MAXTOUCHLIMIT][2]; // start of event location
     uint16_t    temp_coordinates[MAXTOUCHLIMIT][2]; // start of event location
     uint16_t    last_coordinates[MAXTOUCHLIMIT][2];   // updated to curent or end of event location
-int16_t         distance[MAXTOUCHLIMIT][2];  // signed value used for direction.  5 touch points with X and Y values each.
+    int16_t     distance[MAXTOUCHLIMIT][2];  // signed value used for direction.  5 touch points with X and Y values each.
 } static touch_evt;   // create a static instance of the structure to remember between events
 
 // computation variables
@@ -117,7 +117,7 @@ COLD uint8_t get_Touches()
 // 
 COLD void Touch( void)
 {
-    uint8_t current_touches = 0;
+    static uint8_t current_touches = 0;
     static uint8_t previous_touch = 0;
 
 //#define DBG_GESTURE
@@ -154,7 +154,7 @@ COLD void Touch( void)
         //   4b. If only 1 touch, coordinates have moved far enough, must be a swipe.
         //   4c. If 2 touches, coordinates have not moved far enough, then set previous_touches to 0 and return, false alarm.
         //   4d. If 2 touches, coordinates have moved far enough, now direction can be determined. It must be a pinch gesture.
-        
+        // Serial.println(current_touches);
         // STATE 1
         if (!current_touches && !previous_touch)
             return;  // nothing to do, nothing pending, invalid touch event. Try pressing longer and/or harder.
@@ -167,6 +167,7 @@ COLD void Touch( void)
             //   2b. Set previous_touch = 1.                        
             previous_touch = current_touches;  // will be 1 for buttons, 2 for gestures
             touch_update();    // get current facts  
+
             #ifdef USE_RA8875     
                 tft.getTScoordinates(touch_evt.start_coordinates);  // Store the starting coordinates into the structure
                 tft.getTScoordinates(touch_evt.last_coordinates);  // Easy way to effectively zero out the last coordinates

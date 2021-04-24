@@ -121,9 +121,9 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 {
 	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
 	{
-		//VFO_AB();
-		//Serial.println(F("Long MF Knob Push- Swap VFOs "));
-		//obj->writeRGBCode(0x00FF00);
+		VFO_AB();
+		Serial.println(F("Long MF Knob Push- Swap VFOs "));
+		obj->writeRGBCode(0x00FF00);
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
 	{
@@ -163,16 +163,16 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 	uint8_t mfg; 
 	MF_ENC.updateStatus();
 	mfg = MF_ENC.readStatus();
-	//Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
-	#ifdef MF_ENC_ADDR
+	Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
+	//#ifdef MF_ENC_ADDR
 	// Check the status of the encoder (if enabled) and call the callback
-	if(mfg == 0 && press_timer.check() == 1 && obj->id == user_settings[user_Profile].encoder1_client)
-	{     
-		VFO_AB();
-		Serial.println(F("Long MF Knob Push- Swap VFOs "));
+	//if(mfg == 0 && press_timer.check() == 1 && obj->id == user_settings[user_Profile].encoder1_client && user_settings[user_Profile].encoder1_client == MFTUNE)
+	//{     
+		//VFO_AB();
+		//Serial.println(F("Long MF Knob Push- Swap VFOs "));
 		//obj->writeRGBCode(0x00FF00);
-	}
-	#endif
+	//}
+	//#endif
   	obj->writeRGBCode(0x000000);
 }
 

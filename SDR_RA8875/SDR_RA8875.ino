@@ -313,6 +313,17 @@ COLD void setup()
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
     #endif
+      
+    #if defined(USE_FT5206_TOUCH)
+        tft.useCapINT(RA8875_INT);
+        tft.setTouchLimit(MAXTOUCHLIMIT);
+        tft.enableCapISR(true);
+        tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+    #else
+        #ifdef USE_RA8875
+            //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
+        #endif  // USE_RA8875
+    #endif // USE_FT5206_TOUCH
     
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
@@ -330,19 +341,8 @@ COLD void setup()
             setTime(t);
         }
     }
-    digitalClockDisplay(); 
-    
-    #if defined(USE_FT5206_TOUCH)
-        tft.useCapINT(RA8875_INT);
-        tft.setTouchLimit(MAXTOUCHLIMIT);
-        tft.enableCapISR(true);
-        tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
-    #else
-        #ifdef USE_RA8875
-            //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
-        #endif  // USE_RA8875
-    #endif // USE_FT5206_TOUCH
-    
+    digitalClockDisplay(); // print time to terminal
+  
     initSpectrum();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 
     #ifdef DIG_STEP_ATT
@@ -688,7 +688,6 @@ void loop()
         }
         else
             respondToByte((char)Serial.read());
-        
     }
 
     //check to see whether to print the CPU and Memory Usage
@@ -1189,16 +1188,16 @@ COLD unsigned long processSyncMessage()
     unsigned long pctime = 0L;
     const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013 
 
-    if (Serial.find(TIME_HEADER)) 
+    if (Serial.find(TIME_HEADER)) // Search for the 'T' char in incoming serial stream of chars
     {
-        pctime = Serial.parseInt();
+        pctime = Serial.parseInt();  // following the 'T' get the digits and convert to an int
         //return pctime;
         //Serial.println(pctime);
         if( pctime < DEFAULT_TIME) { // check the value is a valid time (greater than Jan 1 2013)
             pctime = 0L; // return 0 to indicate that the time is not valid
         }
     }
-    return pctime;
+    return pctime;  // return will be seconds since jan 1 1970.
 }
 
 COLD void digitalClockDisplay() {

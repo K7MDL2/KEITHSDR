@@ -110,7 +110,7 @@ COLD void initVfo(void)
 }
 
 COLD void SetFreq(uint32_t Freq)
-{ 
+{
     #ifdef OCXO_10MHZ
         si5351.set_freq((Freq+Fc) *400ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
     #else
