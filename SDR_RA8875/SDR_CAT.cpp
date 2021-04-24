@@ -61,10 +61,10 @@ int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display
 #define S_BUFF 500
 byte Ser_Buff[S_BUFF];
 const char msg_type_array[8][3] = {"FA","FB","IF","BG","BW","PA","FR","FT"};
+static char msg[S_BUFF];
 
 #ifdef FT817_CAT
 
-static char msg[S_BUFF];
 // set this to the hardware serial port you wish to use
 COLD void init_CAT_comms(void)
 {
@@ -2438,6 +2438,7 @@ void VFOB_Decode(void)
 			Serial.println(F("Update VFO B"));
 			VFOB = bandmem[curr_band].vfo_B_last = freq;
 			displayFreq();
+      VFOB_Request();
 		} 
 		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
 		return;			
@@ -2464,6 +2465,7 @@ void VFOA_Decode(void)
 			Serial.println(F("Update VFO A"));
 			VFOA = bandmem[curr_band].vfo_A_last = freq;
 			displayFreq();
+      VFOA_Request();
 		}
 		memset(msg, 0, sizeof(msg));   // Clear contents of Buffer
 		return;			
