@@ -466,11 +466,16 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
     t2_x_e = touch_evt.last_coordinates[1][0];
     t2_y_e = touch_evt.last_coordinates[1][1];
 
+    #ifdef TOUCH_ROTATION
+        T1_X *= -1;
+        T1_Y *= -1;
+    #endif
+
     // If a long event then must be a drag.  
     if (gesture == 1 && dragEvent)   // must be a 1 finger drag       
     {    
         int x = T1_X;
-        if (T1_X > 0 && abs(T1_X) > abs(T1_Y))  // x is smaller so must be dragb in the right direction
+        if (T1_X > 0 && abs(T1_X) > abs(T1_Y))  // x is smaller so must be drag in the right direction
         {               
             //Serial.println(F("Drag RIGHT")); 
             switch (MF_client) {
@@ -528,6 +533,12 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
     if (dragEvent)
         return 1;
     
+    // undo the inversion for swipe
+    #ifdef TOUCH_ROTATION
+        T1_X *= -1;
+        T1_Y *= -1;
+    #endif
+
     switch (gesture) 
     {
         ////------------------ SWIPE -------------------------------------------

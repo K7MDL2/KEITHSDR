@@ -90,11 +90,11 @@ void printDigits(int digits);
 //
 
 #ifndef PANADAPTER
-#ifdef USE_ENET_PROFILE
+ #ifdef USE_ENET_PROFILE
     uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
-#else  // USE_ENET_PROFILE
+ #else  // USE_ENET_PROFILE
     uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
-#endif  // USE_ENET_PROFILE
+ #endif  // USE_ENET_PROFILE
 #else  // PANADAPTER
     uint8_t     user_Profile = 2;   // Profile 2 is optimized for Panadapter usage
 #endif  // PANADAPTER
@@ -109,14 +109,14 @@ uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 
 //control display and serial interaction
-bool                enable_printCPUandMemory = false;   // CPU , memory and temperature
-void                togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
-uint8_t             popup = 0;                          // experimental flag for pop up windows
-int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
-volatile int32_t    Freq_Peak = 0;
-uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
-bool                touchBeep_flag = false;
-bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
+bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
+void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
+uint8_t     popup = 0;                          // experimental flag for pop up windows
+int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
+int32_t     Freq_Peak = 0;
+uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
+bool        touchBeep_flag = false;
+bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
