@@ -17,7 +17,7 @@
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern int32_t Fc;
 
-#define VFO_MULT    4   // 4x for QRP-Labs RX, 2x for NT7V board
+#define VFO_MULT    4   // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
 //////////////////////////Initialize VFO/DDS//////////////////////////////////////////////////////
 COLD void initVfo(void)
@@ -100,7 +100,9 @@ COLD void initVfo(void)
         #endif //si5351_TCXO
         
         // The lines below are stanard to any crystal
-        si5351.correction(si5351_CORRECTION);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
+        #ifdef si5351_CORRECTION
+            si5351.correction(si5351_CORRECTION);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
+        #endif
         si5351.setPower(0, SIOUT_4mA);   // 0 is Clock 0
         si5351.setFreq(0, (VFOA+Fc) * VFO_MULT);  // Multiply x4 for RX board
         si5351.enable(0);   // these enable/disables are optional
