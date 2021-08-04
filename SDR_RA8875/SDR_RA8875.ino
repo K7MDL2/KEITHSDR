@@ -186,7 +186,7 @@ AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
 AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
 #endif
 
-// Copnnections for FFT Only - chooses either the input or the output to display in the spectrum plot
+// Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
 AudioConnection_F32     patchCord7a(Input,0,         FFT_Switch1,0);
 AudioConnection_F32     patchCord7b(Input,1,         FFT_Switch2,0);
 AudioConnection_F32     patchCord6a(Input,0,        FFT_Switch1,1);
@@ -250,7 +250,7 @@ float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of 
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
 int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
 extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-extern struct Spectrum_Parms Sp_Parms_Def[];
+extern struct   Spectrum_Parms Sp_Parms_Def[];
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
@@ -436,7 +436,7 @@ COLD void setup()
     sinewave2.amplitude(sinewave_vol);
     sinewave2.frequency(5000.000); //
     sinewave3.amplitude(sinewave_vol);
-    sinewave3.frequency(1000.000); //
+    sinewave3.frequency(2000.000); //
 #endif
 
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
