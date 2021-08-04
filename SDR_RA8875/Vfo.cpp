@@ -17,7 +17,7 @@
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern int32_t Fc;
 
-#define VFO_MULT    4   // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+//#define VFO_MULT    2   // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board, defined in RadioCfg.h
 
 //////////////////////////Initialize VFO/DDS//////////////////////////////////////////////////////
 COLD void initVfo(void)
@@ -71,7 +71,7 @@ COLD void initVfo(void)
         #endif // K7MDL_OCXO
 
         // Below is common to both Ext Clk and Internal Xtal
-        si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_4MA);
+        si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA);
         si5351.output_enable(SI5351_CLK0, 1);   // ON by default but just in case.
         si5351.output_enable(SI5351_CLK1, 0);   // OFF by default but just in case.
         //si5351.output_enable(SI5351_CLK2, 0);   // OFF by default but just in case.  
@@ -89,7 +89,7 @@ COLD void initVfo(void)
         //si5351.init();  // Set this to 25MHz or 27MHz depending on what your PLL uses.
         #ifdef si5351_XTAL_25MHZ
           //si5351.init(25000000);
-          si5351.init(24999899);          
+          si5351.init(24999899);       // value for TCXO board   
         #else
           si5351.init(27000000);
         #endif // si5351_XTAL_IS_25MHZ
@@ -103,7 +103,7 @@ COLD void initVfo(void)
         #ifdef si5351_CORRECTION
             si5351.correction(si5351_CORRECTION);   // Set this for your own PLL's crystal error. 100 seems like about 25Hz
         #endif
-        si5351.setPower(0, SIOUT_4mA);   // 0 is Clock 0
+        si5351.setPower(0, SIOUT_8mA);   // 0 is Clock 0
         si5351.setFreq(0, (VFOA+Fc) * VFO_MULT);  // Multiply x4 for RX board
         si5351.enable(0);   // these enable/disables are optional
         si5351.disable(1);
