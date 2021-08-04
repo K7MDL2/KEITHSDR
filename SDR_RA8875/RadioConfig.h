@@ -105,33 +105,35 @@
                             // When the 7" is vertically mounted the ribbon should be down with Touch Rotation "undefined".
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
+//#define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
 // K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
 #define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-      #undef USE_RA8875            // UN-comment this line to use RA8876      
+      //#undef USE_RA8875            // UN-comment this line to use RA8876      
     #endif
     #ifndef USE_RA8875
       #define TOUCH_ROTATION    // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
     #define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
-    //#define K7MDL_OCXO          // use the si5351 C board with 10Mhz OCXO
+    //#define K7MDL_OCXO            // use the si5351 C board with 10Mhz OCXO
     //#define si5351_TCXO             // Set load cap to 0pF for TCXO
     #ifdef si5351_TCXO
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
     #else      
-      //#define si5351_CORRECTION 1720  // for standard crystal PLL
+      #define si5351_CORRECTION 1720  // for standard crystal PLL
     #endif
     #define si5351_XTAL_25MHZ       // Choose 25MHz tcxo or crystal, else 27Mhz
+    #define VFO_MULT            2
     #define USE_DHCP
     //#define ENET
     //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    #define SV1AFN_BPF              // Use the BPF board
-    #define DIG_STEP_ATT            // Use the step atten
+    //#define SV1AFN_BPF              // Use the BPF board
+    //#define DIG_STEP_ATT            // Use the step atten
     //#define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
@@ -235,7 +237,7 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
     #include <NativeEthernetUdp.h>
     
     // Choose or create your desired time zone offset or use 0 for UTC.
-    #define MYTZ 0
+    #define MYTZ -8
     // here are some example values
     //  1 Central European Time
     //  0 UTC
