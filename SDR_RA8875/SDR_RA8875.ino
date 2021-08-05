@@ -173,6 +173,7 @@ AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
 AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
 AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
 
+//#define TEST_SINEWAVE_SIG
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
 //AudioSynthSineCosine_F32   sinewave2;
@@ -184,6 +185,8 @@ AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
 AudioConnection_F32     patchCord4x(sinewave3,0,  FFT_Switch1,3);
 AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
 AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
+AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
+AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
 #endif
 
 // Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
@@ -434,9 +437,9 @@ COLD void setup()
     // # sources to test edges and middle of BW
     float sinewave_vol = 0.005;
     sinewave2.amplitude(sinewave_vol);
-    sinewave2.frequency(5000.000); //
+    sinewave2.frequency(100.000); //
     sinewave3.amplitude(sinewave_vol);
-    sinewave3.frequency(2000.000); //
+    sinewave3.frequency(400.000); //
 #endif
 
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
