@@ -25,7 +25,8 @@
 			"streambuf": "cpp",
 			"glcdfont.c": "cpp",
 			"*.tcc": "cpp",
-			"sdr_ra8875.h": "c"
+			"sdr_ra8875.h": "c",
+			"spi.h": "c"
 		}
 	}
 }

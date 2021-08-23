@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "**/.git":true,
+    "**/.lib": true,
+    "**/.vsteensy/**": true,
+    ".pio": true,
+    ".vscode/.browse.c_cpp.db*": true,
+    ".vscode/c_cpp_properties.json": true,
+    ".vscode/launch.json": true,
+    ".vscode/ipch": true,
+    ".lib": true,
+    ".*.zip": true
+  },
+  "C_Cpp.exclusionPolicy": "checkFilesAndFolders"
+}
