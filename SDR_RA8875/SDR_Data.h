@@ -25,7 +25,7 @@ struct Band_Memory bandmem[BANDS] = {
     { "17M",18068000,18168000,18135000,18100000,VFO_B,DATA, USB, BW3_2, BAND7, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 6,  ATTEN_ON,  7,  PREAMP_ON,  0,  6,  8},
     { "15M",21100000,21450000,21074000,21350000,VFO_A,DATA, USB, BW4_0, BAND8, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 7,  ATTEN_ON, 10,  PREAMP_ON,  0,  7,  8},
     { "12M",24890000,24990000,24915000,24904000,VFO_B, USB, USB, BW3_2, BAND9, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 8,  ATTEN_ON,  4,  PREAMP_ON,  0,  8,  8},
-    { "10M",28000000,29600000,28074000,28074000,VFO_A,DATA, USB, BW3_2,BAND10, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9,  ATTEN_ON,  2,  PREAMP_ON,  0,  9,  8},
+    { "10M",28000000,29600000,28200000,28390000,VFO_A,DATA, USB, BW3_2,BAND10, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 9,  ATTEN_ON,  2,  PREAMP_ON,  0,  9,  8},
     {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND11, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10, ATTEN_ON,  4,  PREAMP_ON,  0, 10,  8}
 };
 
@@ -175,10 +175,10 @@ struct Label labels[LABEL_NUM] = {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfgen rfGain SpkEn  afgen afGain LoEn LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1          enc2          enc3    
-    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      REFLVL_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      RFGAIN_BTN,  AFGAIN_BTN},
-    {"PanAdapter #1",  10, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 1.0,  15,   OFF,   100,   ON,   OFF,    80,  ON,  22,   ON,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN}
+    //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoLvl LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1          enc2          enc3    
+    {"User Config #1", 10, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  100,  ON,  31,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      REFLVL_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2", 10, 0, OFF,  0,  0,  0, BAND10, OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  100,  ON,  31,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      RFGAIN_BTN,  AFGAIN_BTN},
+    {"PanAdapter #1",  10, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  100,  ON,  31,   ON,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
