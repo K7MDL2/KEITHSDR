@@ -221,6 +221,8 @@ AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
 AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
 AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
 AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+//AudioConnection_F32     patchCord4c(Input,0,     Output,0);
+//AudioConnection_F32     patchCord4d(Input,1,     Output,1);
 
 AudioControlSGTL5000    codec1;
 
