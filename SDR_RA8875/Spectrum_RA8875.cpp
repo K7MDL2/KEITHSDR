@@ -689,9 +689,10 @@ COLD void drawSpectrumFrame(uint8_t s)
     #ifdef PANADAPTER_INVERT
         fft_axis = 3;
     #else
-        fft_axis = FFT_AXIS;
+        fft_axis = FFT_AXIS;   // normally =2
     #endif
-    
+
+    Serial.print("fft_axis=");Serial.println(fft_axis);
     myFFT.setXAxis(fft_axis);    // Set the FFT bin order to our needs
     
     tft.fillRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLACK);  // x start, y start, width, height, array of colors w x h
