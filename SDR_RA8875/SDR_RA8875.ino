@@ -378,7 +378,7 @@ COLD void setup()
     write_db_tables();
     read_db_tables();
     write_radiocfg_h();        // write out the #define to a file on the SD card.  
-                        // This can be used o te PC during complie to override the RadioCFg.h
+                        // This could be used by the PC during compile to override the RadioCFg.h
 
     //--------------------------   Setup our Audio System -------------------------------------
 
