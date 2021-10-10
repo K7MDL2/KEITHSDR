@@ -707,7 +707,7 @@ COLD void setAFgain(int8_t toggle)
 {
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        if (user_settings[user_Profile].afGain_en)  // toggle the attenuator tracking state
+        if (user_settings[user_Profile].afGain_en)  // toggle the tracking state
             toggle = 0;
         else 
             toggle = 1;
@@ -715,11 +715,11 @@ COLD void setAFgain(int8_t toggle)
 
     if (toggle == 1)      // Set button to on to track as active 
     {
-        if ( user_settings[user_Profile].afGain_en == ON && MeterInUse)  // if already on, assume this was called by a log press and we want to turn off the meter and but not the feature.
+        if ( user_settings[user_Profile].afGain_en == ON && MeterInUse)  // if already on, assume this was called by a long press and we want to turn off the meter and but not the feature.
             clearMeter();
         else
         {
-            user_settings[user_Profile].afGain_en = ON;  // le the attenuator tracking state to ON
+            user_settings[user_Profile].afGain_en = ON;  // le the af tracking state to ON
             setMeter(AFGAIN_BTN);
         }
     }

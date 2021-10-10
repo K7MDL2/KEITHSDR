@@ -107,7 +107,7 @@ float   spectrum_LPFcoeff       = 0.9;      // 1.0f to 0.0f. Data smoothing
 int16_t spectrum_dot_bar_mode   = 1;        // 0=bar, 1=Line. Spectrum box
 int16_t spectrum_sp_scale       = 40;       // 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
 int16_t spectrum_floor          = -175;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
-int16_t spectrum_wf_rate        = 90;          // window update rate in ms.  25 is fast enough to see dit and dahs well
+int16_t spectrum_wf_rate        = 70;          // window update rate in ms.  25 is fast enough to see dit and dahs well
 
 Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 
@@ -117,7 +117,7 @@ Metro spectrum_waterfall_update = Metro(spectrum_wf_rate);
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
     //W        LE  RE  CG                                            x   y   w  h  c sp st clr sc mode scal reflvl wfrate
     #ifdef USE_RA8875
-    {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 90},
+    {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 70},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
     {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40, 5, 90},
     {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal

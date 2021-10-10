@@ -1,0 +1,13 @@
+{
+  "files.exclude": {
+    ".pio": "explorerExcludedFiles",
+    ".vscode/.browse.c_cpp.db*": "explorerExcludedFiles",
+    ".vscode/c_cpp_properties.json": "explorerExcludedFiles",
+    ".vscode/launch.json": "explorerExcludedFiles",
+    ".vscode/ipch": "explorerExcludedFiles",
+    ".vsteensy": "explorerExcludedFiles",
+    ".lib": "explorerExcludedFiles",
+    ".*.zip": "explorerExcludedFiles",
+    "**/lib/**": "explorerExcludedFiles"
+  }
+}

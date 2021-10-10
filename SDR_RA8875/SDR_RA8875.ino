@@ -90,11 +90,11 @@ void printDigits(int digits);
 //
 
 #ifndef PANADAPTER
-#ifdef USE_ENET_PROFILE
+ #ifdef USE_ENET_PROFILE
     uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
-#else  // USE_ENET_PROFILE
+ #else  // USE_ENET_PROFILE
     uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
-#endif  // USE_ENET_PROFILE
+ #endif  // USE_ENET_PROFILE
 #else  // PANADAPTER
     uint8_t     user_Profile = 2;   // Profile 2 is optimized for Panadapter usage
 #endif  // PANADAPTER
@@ -109,14 +109,14 @@ uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 
 //control display and serial interaction
-bool                enable_printCPUandMemory = false;   // CPU , memory and temperature
-void                togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
-uint8_t             popup = 0;                          // experimental flag for pop up windows
-int32_t             multiKnob(uint8_t clear);           // consumer features use this for control input
-volatile int32_t    Freq_Peak = 0;
-uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
-bool                touchBeep_flag = false;
-bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
+bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
+void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
+uint8_t     popup = 0;                          // experimental flag for pop up windows
+int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
+int32_t     Freq_Peak = 0;
+uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
+bool        touchBeep_flag = false;
+bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -173,6 +173,7 @@ AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
 AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
 AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
 
+//#define TEST_SINEWAVE_SIG
 #ifdef TEST_SINEWAVE_SIG
 //AudioSynthSineCosine_F32   sinewave1;
 //AudioSynthSineCosine_F32   sinewave2;
@@ -184,9 +185,11 @@ AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
 AudioConnection_F32     patchCord4x(sinewave3,0,  FFT_Switch1,3);
 AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
 AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
+AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
+AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
 #endif
 
-// Copnnections for FFT Only - chooses either the input or the output to display in the spectrum plot
+// Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
 AudioConnection_F32     patchCord7a(Input,0,         FFT_Switch1,0);
 AudioConnection_F32     patchCord7b(Input,1,         FFT_Switch2,0);
 AudioConnection_F32     patchCord6a(Input,0,        FFT_Switch1,1);
@@ -218,6 +221,8 @@ AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
 AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
 AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
 AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+//AudioConnection_F32     patchCord4c(Input,0,     Output,0);
+//AudioConnection_F32     patchCord4d(Input,1,     Output,1);
 
 AudioControlSGTL5000    codec1;
 
@@ -250,7 +255,7 @@ float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of 
 extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
 int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
 extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-extern struct Spectrum_Parms Sp_Parms_Def[];
+extern struct   Spectrum_Parms Sp_Parms_Def[];
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 //
@@ -434,9 +439,9 @@ COLD void setup()
     // # sources to test edges and middle of BW
     float sinewave_vol = 0.005;
     sinewave2.amplitude(sinewave_vol);
-    sinewave2.frequency(5000.000); //
+    sinewave2.frequency(100.000); //
     sinewave3.amplitude(sinewave_vol);
-    sinewave3.frequency(1000.000); //
+    sinewave3.frequency(400.000); //
 #endif
 
     // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.

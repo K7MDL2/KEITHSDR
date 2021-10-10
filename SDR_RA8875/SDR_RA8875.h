@@ -146,29 +146,29 @@
 // Some defines for ease of use 
 #define myDARKGREY  31727u
 // From RA8876_t3/RA8876Registers.h
-#define BLACK		    0x0000
-#define WHITE		    0xffff
+#define BLACK		  0x0000
+#define WHITE		  0xffff
 #define RED		  	  0xf800
 #define LIGHTRED	  0xfc10
 #define CRIMSON		  0x8000
-#define GREEN		    0x07e0
+#define GREEN		  0x07e0
 #define PALEGREEN	  0x87f0
 #define DARKGREEN	  0x0400
-#define BLUE		    0x001f
+#define BLUE		  0x001f
 #define LIGHTBLUE	  0x051f
 #define SKYBLUE		  0x841f
 #define DARKBLUE	  0x0010
 #define YELLOW		  0xffe0
-#define LIGHTYELLOW	0xfff0
-#define DARKYELLOW	0x8400 // mustard
-#define CYAN		    0x07ff
+#define LIGHTYELLOW	  0xfff0
+#define DARKYELLOW	  0x8400 // mustard
+#define CYAN		  0x07ff
 #define LIGHTCYAN	  0x87ff
 #define DARKCYAN	  0x0410
 #define MAGENTA		  0xf81f
 #define VIOLET		  0xfc1f
-#define BLUEVIOLET	0x8010
+#define BLUEVIOLET	  0x8010
 #define ORCHID		  0xA145 
-// Otehr sources of RGB coplpr definitions
+// Other sources of RGB color definitions
 #define NAVY        0x000F
 #define MAROON      0x7800
 #define PURPLE      0x780F
@@ -179,7 +179,7 @@
 #define GREENYELLOW 0xAFE5
 #define PINK        0xF81F
 
-// This group defines thw number of records in each structure
+// This group defines the number of records in each structure
 #define MODES_NUM   8
 #define FREQ_DISP_NUM  4
 #define BANDS       12
@@ -338,12 +338,12 @@ struct User_Settings {
     uint8_t     mic_input_en;       // mic on or off
     float       mic_Gain_last;      // last used mic gain on this band
     uint8_t     lineIn_level;       // codec line in max level. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Set this to max allowed.
-    uint8_t     rfGain_en;          // 0-100 (% of lineIn level). Last used line-in setting on this band.
+    uint8_t     rfGain_en;          // Shows when RF gain setting value is displayed or not on meter face
     uint8_t     rfGain;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
     uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
-    uint8_t     afGain_en;          // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
+    uint8_t     afGain_en;          // Shows when AF gain setting value is displayed or not on meter face
     uint8_t     afGain;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
-    uint8_t     lineOut_level;      // line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    uint8_t     lineOut_level;      // (NOT In USE) line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     uint8_t     lineOut_Vol_last;   // last line out setting used on this band. Intended for data mode line level separate from speaker volume
     uint8_t     enet_enabled;       // Allow initialization and operation of ethernet hardware
     uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)

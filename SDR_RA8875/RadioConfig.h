@@ -33,7 +33,7 @@
                             // This is ignored if OCXO_10MHz is defined.
                             // DEPENDS on your crystal being 25Mhz
 
-#define si5351_CORRECTION  0  // frequency correction for the si5351A PLL board crystal or TXCO.
+//#define si5351_CORRECTION  0  // frequency correction for the si5351A PLL board crystal or TXCO.
                             // The 5351mcu library uses Hz offset, etherkit and others use ppb.
 
 //#define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
@@ -88,7 +88,7 @@
                                             // It is usually the Center frequency of the filter
                                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-//#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
+#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
                             // Most radio IFs are inverted, though it can change depending on frequency
                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
@@ -100,36 +100,41 @@
 
 #define SCREEN_ROTATION   0 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
                             // 2 is 180 flip.  This will affect the touch orientation so that must be set to match your display
-                            // The 7" RA8876 display has a better off center viewing angle when the "bottom" of hte display is mounted up.
-                            // "bottom" is defined here as the bottom of the text on the back of the display.
-                            // When the 7" is mounted bottom up, the touch panel flex connector will now face down.
-                            // This orients the touch coordiniates to be "normal" and corrections need to be turned off.
-//#define TOUCH_ROTATION    // if not defined (commented out) there is no correction, the bottom of the display is mounted up.                         
+                            // The 7" RA8876 display has a better off-center viewing angle when horizantal when the touch panel ribbon is at the top.  This requires the touch to be rotated.
+                            // The rotation will be 0, touch rotation will be "defined"
+                            // When the 7" is vertically mounted the ribbon should be down with Touch Rotation "undefined".
+//#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
+//#define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-// K7MDL specific Build Configuration rolled up into one #define
-//#define K7MDL_BUILD
+// K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
+#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-      #undef USE_RA8875            // UN-comment this line to use RA8876      
+      //#undef USE_RA8875            // UN-comment this line to use RA8876      
     #endif
     #ifndef USE_RA8875
-      #undef SCREEN_ROTATION
-      #define SCREEN_ROTATION 2   // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
+      #define TOUCH_ROTATION    // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
     #define I2C_ENCODERS
-    #define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
-    //#define K7MDL_OCXO          // use teh si5351 C board with 10Mhz OCXO
-    #define si5351_TCXO             // Set load cap to 0pF for TCXO
+    //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
+    //#define K7MDL_OCXO            // use the si5351 C board with 10Mhz OCXO
+    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
+    #ifdef si5351_TCXO
+      #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
+    #else      
+      #define si5351_CORRECTION 1720  // for standard crystal PLL
+    #endif
     #define si5351_XTAL_25MHZ       // Choose 25MHz tcxo or crystal, else 27Mhz
+    #define VFO_MULT            2
     #define USE_DHCP
-    #define ENET
-    #define USE_ENET_PROFILE
+    //#define ENET
+    //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    #define SV1AFN_BPF              // Use the BPF board
-    #define DIG_STEP_ATT            // Use the step atten
-    #define PANADAPTER                // Enable panadapter mode
+    //#define SV1AFN_BPF              // Use the BPF board
+    //#define DIG_STEP_ATT            // Use the step atten
+    //#define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
@@ -232,7 +237,7 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
     #include <NativeEthernetUdp.h>
     
     // Choose or create your desired time zone offset or use 0 for UTC.
-    #define MYTZ 0
+    #define MYTZ -8
     // here are some example values
     //  1 Central European Time
     //  0 UTC
