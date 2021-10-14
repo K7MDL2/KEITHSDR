@@ -3,7 +3,7 @@
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## Summer 2021
-    1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode and experimenting with issuing MIDO over USB commands.
+    1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
     
     2. Added long push for Encoder #2
     
@@ -17,6 +17,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     6. As a panadapter the Teensy SDR works OK, but I do not like how the simple QSD boards radiate/conduct the carrier out the antenna connector. This puts a very strong signal on the zero beat of the connected radio.  
     Adding attenuators and/or a LNA between the SDR and radio do not help much.   
     A DDC (direct downconverter) or IF stage is needed to bypass that problem.  Connected to an antenna you are radiating a low level signal on the carrier you are listening to, not great either. 
+
+    7. Experimenting with MIDI commands over USB commands leveraging my Teensy SDR's i2c encoders and their push switches. It working with Quisk, mostly works with Thetis for Hermes Lite 2.  Idea is to copy this code to a separate Teensy MIDI SDR control pod program with dedicated knobs and dials for a PC/Laptop or even a PiHPSDR.
     
 ## 4/22/2021
 
