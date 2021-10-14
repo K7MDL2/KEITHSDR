@@ -5,6 +5,45 @@
 #include "RadioConfig.h"
 #include "SDR_I2C_Encoder.h"
 
+#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
+#ifdef USE_MIDI
+	#include "MIDIUSB.h"
+
+	#define AUX_PIN     6
+	#define KEY_PIN     7
+	#define MUTE        57
+  #define VFOA     50
+  #define VFOB     51
+	#define VELOCITY    127
+	#define CHANNEL     0
+  #define CHANNEL4     4
+	
+	// First parameter is the event type (0x09 = note on, 0x08 = note off).
+	// Second parameter is note-on/note-off, combined with the channel.
+	// Channel can be anything between 0-15. Typically reported to the user as 1-16.
+	// Third parameter is the note number.
+	// Fourth parameter is the velocity (64 = normal, 127 = fastest).
+
+	void noteOn(uint8_t channel, byte pitch, byte velocity) {
+	midiEventPacket_t noteOn = {0x09, uint8_t (0x90 | channel), pitch, velocity};
+	MidiUSB.sendMIDI(noteOn);
+	MidiUSB.flush();
+	}
+
+	void noteOff(uint8_t channel, byte pitch, byte velocity) {
+	midiEventPacket_t noteOff = {0x0B, uint8_t (0xB0 | channel), pitch, velocity};
+	MidiUSB.sendMIDI(noteOff);
+	MidiUSB.flush();
+	}
+
+  void note(uint8_t channel, byte cmd_byte, byte cmd_val) {
+  midiEventPacket_t note = {0x0B, uint8_t (0xB0 | channel), cmd_byte, cmd_val};
+  MidiUSB.sendMIDI(note);
+  MidiUSB.flush();
+	}
+
+#endif
+
 #ifdef I2C_ENCODERS
 
 #include <i2cEncoderLibV2.h>
@@ -19,6 +58,7 @@ extern struct Band_Memory bandmem[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
 Metro press_timer = Metro(600);
+Metro press_timer2 = Metro(600);
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -57,7 +97,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 
 	if (obj->readStatus(i2cEncoderLibV2::RINC))
 		Serial.print(F("Increment: "));
-	else
+  else
 		Serial.print(F("Decrement: "));
 	int16_t count = obj->readCounterInt();
 	Serial.println(count);
@@ -67,16 +107,18 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	uint32_t tval = 0x00FF00;  // Set the default color to green
 	Serial.print(F("Knob Assigned to "));
     Serial.println(knob_assigned);
-	if (0) //press_timer.check() == 1)
-	{
-		switch(knob_assigned)
-		{
-			case MFTUNE: 	break;
-			default: 		obj->writeRGBCode(tval); break;
-		}
-	}
-	else
-	{
+	
+	//if (0) //press_timer.check() == 1)
+	//{
+	//	switch(knob_assigned)
+	//	{
+	//		case MFTUNE: 	noteOn(CHANNEL, 50, 64+count);
+	//		              break;
+	//		default: 		obj->writeRGBCode(tval); break;
+	//	}
+	//}
+	//else
+	//{
 		switch(knob_assigned)
 		{
 			char string[80];   // print format stuff
@@ -91,6 +133,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 								displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
 								if (user_settings[user_Profile].afGain >= 97 || user_settings[user_Profile].afGain <=3)
 									tval = 0xFF0000;  // Change to red
+                  note(CHANNEL, 52, (user_settings[user_Profile].afGain * 1.27));  // scale 100% to 127 for MIDI max of 127.
 									break;
 			case ATTEN_BTN:     sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
 								MeterInUse = true;
@@ -110,9 +153,11 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 								if (user_settings[user_Profile].nb_level >= 5 || user_settings[user_Profile].nb_level <=1)
 									tval = 0xFF0000;  // Change to red
 									break;
-			default: obj->writeRGBCode(tval); break;
+			default:  note(CHANNEL, 50, 64+count);   // MIDI jog wheel uses 64 as center
+			          obj->writeRGBCode(tval); 
+			          break;
 		}
-	}
+	//}
 	obj->writeRGBCode(tval);  // set color
 }
 
@@ -124,30 +169,45 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 		VFO_AB();
 		Serial.println(F("Long MF Knob Push- Swap VFOs "));
 		obj->writeRGBCode(0x00FF00);
+		noteOn(CHANNEL, 62, 127);
+    noteOff(CHANNEL, 62, 0);
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
 	{
 		Rate(0);
 		Serial.println(F("MF Knob Push to change Tune Rate "));
 		obj->writeRGBCode(0xFF0000);
+		noteOn(CHANNEL, 63, 127);
+    noteOff(CHANNEL, 63, 0);
 	}
+  else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
+  {
+    Rate(0);
+    Serial.println(F("Knob #2 Long Push "));
+    obj->writeRGBCode(0x00FF00);
+    noteOn(CHANNEL, 64, 127);
+    noteOff(CHANNEL, 64, 0);
+  }
 	else
 	{
-
 		Serial.println(F("Push: "));
 		obj->writeRGBCode(0x0000FF);
+		noteOn(CHANNEL, 65, 127);
+    noteOff(CHANNEL, 65, 0);
 	}
-	
 }
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short
 COLD void encoder_timer_start(i2cEncoderLibV2* obj) {
 	Serial.println(F("Push Timer Start: "));
 	obj->writeRGBCode(0x0000FF);
-	press_timer.reset();
+	if (obj->id == user_settings[user_Profile].encoder1_client)
+	  press_timer.reset();
+  if (obj->id == user_settings[user_Profile].encoder2_client) 
+    press_timer2.reset();
 }
 
-//Callback when the encoder reach the max or min
+//Callback when the encoder reaches the max or min
 COLD void encoder_thresholds(i2cEncoderLibV2* obj) 
 {
 	if (obj->readStatus(i2cEncoderLibV2::RMAX))
@@ -157,7 +217,7 @@ COLD void encoder_thresholds(i2cEncoderLibV2* obj)
 	obj->writeRGBCode(0xFF0000);
 }
 
-//Callback when the fading process finish and set the RGB led off
+//Callback when the fading process finishes and set the RGB led off
 COLD void encoder_fade(i2cEncoderLibV2* obj) 
 {
 	uint8_t mfg; 
@@ -238,6 +298,7 @@ COLD void set_I2CEncoders()
 		ENC2.onButtonRelease = encoder_click;
 		ENC2.onMinMax = encoder_thresholds;
 		ENC2.onFadeProcess = encoder_fade;
+    ENC2.onButtonPush = encoder_timer_start;
 		ENC2.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 		ENC2.autoconfigInterrupt();
 		blink_ENC2_RGB();
