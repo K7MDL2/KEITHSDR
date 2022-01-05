@@ -2,6 +2,24 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Summer 2021
+    1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
+    
+    2. Added long push for Encoder #2
+    
+    3. Flipped AF and RF gain defaults on user profile #2 Encoders 2 and 3.
+
+    4. FFT_AXIS value should swap direction of spectrum for the upside down tuning from the P3 panadapter IF output at 8.215MHz, but it is not for some reason.
+    
+    5. I have added a NT7V QSD/QSE (RX/TX) board to my 4.3" SDR to begin to activate TX related function this winter.   I also expect a major overhaul in the filter/demodulation chain from others in the group to arrive which I will integrate. 
+    Over summer I have built 2 PiHPSDR controllers as front ends to a Hermes Lite V2 SDR transceiver, fixing some bugs in that code and looking at borrowing some concepts.
+    
+    6. As a panadapter the Teensy SDR works OK, but I do not like how the simple QSD boards radiate/conduct the carrier out the antenna connector. This puts a very strong signal on the zero beat of the connected radio.  
+    Adding attenuators and/or a LNA between the SDR and radio do not help much.   
+    A DDC (direct downconverter) or IF stage is needed to bypass that problem.  Connected to an antenna you are radiating a low level signal on the carrier you are listening to, not great either. 
+
+    7. Experimenting with MIDI commands over USB commands leveraging my Teensy SDR's i2c encoders and their push switches. It working with Quisk, mostly works with Thetis for Hermes Lite 2.  Idea is to copy this code to a separate Teensy MIDI SDR control pod program with dedicated knobs and dials for a PC/Laptop or even a PiHPSDR.
+    
 ## 4/22/2021
 
     1.  Enhanced the I2C scanner to list likely address matches with known boards. I added the DupPPa I2C encoders that some of us are using to the range of 0x61 to 0x68.

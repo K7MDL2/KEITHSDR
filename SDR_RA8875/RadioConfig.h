@@ -88,7 +88,7 @@
                                             // It is usually the Center frequency of the filter
                                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
+//#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
                             // Most radio IFs are inverted, though it can change depending on frequency
                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
@@ -105,10 +105,10 @@
                             // When the 7" is vertically mounted the ribbon should be down with Touch Rotation "undefined".
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
-//#define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+#define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
 // K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 //
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
@@ -126,19 +126,22 @@
     #else      
       #define si5351_CORRECTION 1720  // for standard crystal PLL
     #endif
-    #define si5351_XTAL_25MHZ       // Choose 25MHz tcxo or crystal, else 27Mhz
-    #define VFO_MULT            2
+    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz
+    #ifdef VFO_MULT 
+      #undef VFO_MULT                 // undefine so we can redefine it
+      #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
+    #endif
     #define USE_DHCP
     //#define ENET
     //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
     //#define SV1AFN_BPF              // Use the BPF board
     //#define DIG_STEP_ATT            // Use the step atten
-    //#define PANADAPTER                // Enable panadapter mode
+    #define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
-      #define PANADAPTER_INVERT       // Invert spectrum for inverted IF tuning direction
+      //#define PANADAPTER_INVERT       // Invert spectrum for inverted IF tuning direction
     #endif
 #endif  // K7MDL_BUILD
 //

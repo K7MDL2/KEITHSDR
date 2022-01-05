@@ -2435,7 +2435,7 @@ void VFOB_Decode(void)
 		FreqToBandRules();   // not using fore the panadpater but is used for othe parts of the decoder feature set if used.
 		if (freq != bandmem[curr_band].vfo_B_last)
 		{
-			Serial.println(F("Update VFO B"));
+			//Serial.println(F("Update VFO B"));
 			VFOB = bandmem[curr_band].vfo_B_last = freq;
 			displayFreq();
       VFOB_Request();
@@ -2462,7 +2462,7 @@ void VFOA_Decode(void)
 		FreqToBandRules();   // not using fore the panadpater but is used for othe parts of the decoder feature set if used.
 		if (freq != bandmem[curr_band].vfo_A_last)
 		{
-			Serial.println(F("Update VFO A"));
+			//Serial.println(F("Update VFO A"));
 			VFOA = bandmem[curr_band].vfo_A_last = freq;
 			displayFreq();
       VFOA_Request();
