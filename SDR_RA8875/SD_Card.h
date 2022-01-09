@@ -13,6 +13,7 @@ bool Open_SD_cfgfile(void);
 void SD_CardInfo(void);
 void write_db_tables(void);
 void write_cfg(void);
+
 void read_db_tables(void);
 bool write_radiocfg_h(void);
 
