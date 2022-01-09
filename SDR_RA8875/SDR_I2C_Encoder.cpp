@@ -5,7 +5,7 @@
 #include "RadioConfig.h"
 #include "SDR_I2C_Encoder.h"
 
-#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
+//#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 #ifdef USE_MIDI
 	#include "MIDIUSB.h"
 
@@ -48,8 +48,7 @@
 
 #include <i2cEncoderLibV2.h>
 // These are the per-encoder function declarations
-void set_I2CEncoders(void);
-
+void set_I2CEncoders(void); 
 extern uint8_t MF_client;     // Flag for current owner of MF knob services
 extern uint8_t curr_band;     // global tracks our current band setting. 
 extern uint8_t user_Profile;  // global tracks our current user profile

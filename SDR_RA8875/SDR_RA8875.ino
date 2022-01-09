@@ -48,8 +48,8 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
   extern i2cEncoderLibV2 ENC3; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.// 
 #else 
   Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
-  //Encoder AF(29,28);   // AF gain control - not used yet
-  //Encoder RF(33,34);   // RF gain control - not used yet 
+  Encoder AF(29,28);   // AF gain control - not used yet
+  Encoder RF(33,34);   // RF gain control - not used yet 
 #endif // I2C_ENCODER
 
 #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
@@ -60,10 +60,10 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
  Si5351mcu si5351;
 #endif // OCXO_10MHZ
 
-//#ifdef USE_RA8875
-  //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-//#endif // USE_RA8875
+#ifdef USE_RA8875
+  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+#endif // USE_RA8875
 
 #ifdef I2C_LCD
   #include <LiquidCrystal_I2C.h>
@@ -81,7 +81,6 @@ void digitalClockDisplay(void);
 unsigned long processSyncMessage();
 time_t getTeensy3Time();
 void printDigits(int digits);
-
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -275,14 +274,14 @@ COLD void setup()
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
     MF_default_is_active = true;
-    MeterInUse = false;
-    
-    #ifdef  I2C_ENCODERS  
+    MeterInUse = false;    
+     
+#ifdef  I2C_ENCODERS  
         set_I2CEncoders();
     #endif // I2C_ENCODERS
 
     #ifdef SV1AFN_BPF
-        bpf.begin((int) 0, (TwoWire*) &Wire);
+        bpf.begin((int) 32, (TwoWire*) &Wire);
         bpf.setBand(HFNone);
         bpf.setPreamp(false);
         bpf.setAttenuator(false);
@@ -318,7 +317,7 @@ COLD void setup()
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
     #endif
-      
+    
     #if defined(USE_FT5206_TOUCH)
         tft.useCapINT(RA8875_INT);
         tft.setTouchLimit(MAXTOUCHLIMIT);
@@ -342,7 +341,7 @@ COLD void setup()
         time_t t = processSyncMessage();
         if (t != 0) 
         {
-            Teensy3Clock.set(t); // set the RTC
+            //Teensy3Clock.set(t); // set the RTC
             setTime(t);
         }
     }
@@ -365,7 +364,7 @@ COLD void setup()
         lcd.backlight();
         lcd.print(F("Keith's SDR"));
     #endif
-
+/*
     //UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
     //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
     //SPI.setSCK(14);  // Audio shield has SCK on pin 14
@@ -379,7 +378,7 @@ COLD void setup()
     read_db_tables();
     write_radiocfg_h();        // write out the #define to a file on the SD card.  
                         // This could be used by the PC during compile to override the RadioCFg.h
-
+*/
     //--------------------------   Setup our Audio System -------------------------------------
 
     AudioMemory_F32(100, audio_settings);
@@ -552,9 +551,8 @@ void loop()
 {
     static int32_t newFreq = 0;
     static uint32_t time_old = 0;
-
+ 
     // Update spectrum and waterfall based on timer
-
     if (spectrum_waterfall_update.check() == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
     {
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
@@ -613,7 +611,7 @@ void loop()
     #ifdef I2C_ENCODERS
     uint8_t mfg;
 
-    /* Watch for the INT pin to go low */
+    // Watch for the INT pin to go low 
     if (digitalRead(I2C_INT_PIN) == LOW) 
     {
         #ifdef MF_ENC_ADDR
@@ -843,7 +841,7 @@ COLD void respondToByte(char c)
     case 'M':
     case 'm':
         Serial.println(F("\nMemory Usage (FlexInfo)"));
-        flexRamInfo();
+        //flexRamInfo();
         Serial.println(F("*** End of Report ***"));
         break;
     default:

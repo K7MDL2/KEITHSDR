@@ -108,25 +108,25 @@
 #define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
 // K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
-//#define K7MDL_BUILD
-//
+#define K7MDL_BUILD
+
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-      //#undef USE_RA8875            // UN-comment this line to use RA8876      
+      #undef USE_RA8875            // UN-comment this line to use RA8876      
     #endif
     #ifndef USE_RA8875
       #define TOUCH_ROTATION    // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
-    #define I2C_ENCODERS
+    //#define I2C_ENCODERS
     //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
     //#define K7MDL_OCXO            // use the si5351 C board with 10Mhz OCXO
-    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
-    #ifdef si5351_TCXO
+    #define si5351_TCXO             // Set load cap to 0pF for TCXO
+    #ifdef si5351_TCXO              // etherkits TCXO Si5351A board (25MHz)
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
     #else      
       #define si5351_CORRECTION 1720  // for standard crystal PLL
     #endif
-    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz
+    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default
     #ifdef VFO_MULT 
       #undef VFO_MULT                 // undefine so we can redefine it
       #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
@@ -135,9 +135,9 @@
     //#define ENET
     //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    //#define SV1AFN_BPF              // Use the BPF board
-    //#define DIG_STEP_ATT            // Use the step atten
-    #define PANADAPTER                // Enable panadapter mode
+    #define SV1AFN_BPF              // Use the BPF board
+    #define DIG_STEP_ATT            // Use the step atten  usually the PE43
+    //#define PANADAPTER                // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
@@ -279,6 +279,8 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
   #define LCD_LINES   2
 #endif //I2C_LCD
 
+// -----------------------------   PANADAPTER CAT INTERFACES  -------------------------------------------
+//
 #ifdef  FT817_CAT
   #define HWSERIAL Serial1 // Teensy hardware Serial or USB Serial port. Set this to the hardware serial port you wish to use
   #include <ft817.h>

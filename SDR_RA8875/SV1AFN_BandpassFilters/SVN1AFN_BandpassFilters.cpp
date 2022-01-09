@@ -8,7 +8,7 @@ SVN1AFN_BandpassFilters::SVN1AFN_BandpassFilters()
 
 void SVN1AFN_BandpassFilters::begin(uint8_t address, TwoWire *theWire)
 {
-  _mcp->begin(address, theWire);
+  _mcp->begin_I2C(address, theWire);
   _mcp->pinMode(J9_1M8,  OUTPUT);
   _mcp->pinMode(J9_3M5,  OUTPUT);
   _mcp->pinMode(J9_5M,   OUTPUT);

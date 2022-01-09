@@ -13,8 +13,8 @@
 //
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-#include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
-//#include "avr/pgmspace.h"
+//#include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
+// T4_Powerbutton is not compatible with newer versions of Arduino, worked for 1.8.13, does not for 1.8.19.
 #include <SPI.h>                // included with Arduino
 #include <SD.h>                 // included with Arduino
 #include <Wire.h>               // included with Arduino
@@ -29,8 +29,8 @@
 #include <TimeLib.h>            // TODO  - list where to find this
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#include <TimeLib.h>
-//#include <glcdfont.c>
+
+#include <glcdfont.c>
 //#include <ILI9341_fonts.h>
 //#include <FiraCode_mono_14.c>   //minipixel
 //#include <fonts/FiraCode_mono_16.c>
@@ -40,6 +40,7 @@
 //#include <fonts/FiraCode_mono_28.c>
 //#include <fonts/FiraCode_mono_32.c>
 //#include <fonts/FiraCode_mono_40.c>
+
 // Below are local project files
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 #include "Spectrum_RA8875.h"    // spectrum
@@ -54,7 +55,7 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
-#include "SD_Card.h"
+//#include "SD_Card.h"
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 #define BAND0       0       // Band slot ID
@@ -394,7 +395,7 @@ struct AGC {
 // Noise Blanker Settings
 struct NB {
     char            nb_name[10];        // A friendly name for display
-    float32_t      nb_threshold;       // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
+    float32_t       nb_threshold;       // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
     uint16_t        nb_nAnticipation;   // nAnticipation is 1 to 125
     uint16_t        nb_decay;           // Decay is 1 to 10.
 };
