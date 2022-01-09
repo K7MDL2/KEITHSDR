@@ -13,8 +13,8 @@
 //
 #include <Arduino.h>
 #include <avr/pgmspace.h>
-//#include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
-// T4_Powerbutton is not compatible with newer versions of Arduino, worked for 1.8.13, does not for 1.8.19.
+// #include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
+//  T4_Powerbutton is not compatible with newer versions of Arduino, worked for 1.8.13, does not for 1.8.19.
 #include <SPI.h>                // included with Arduino
 #include <SD.h>                 // included with Arduino
 #include <Wire.h>               // included with Arduino

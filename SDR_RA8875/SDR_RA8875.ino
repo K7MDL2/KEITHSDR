@@ -281,6 +281,8 @@ COLD void setup()
     #endif // I2C_ENCODERS
 
     #ifdef SV1AFN_BPF
+        // set address to 0x20 (32 decimal) for V2.X adafruit MCP23017 library. 
+        // A value of 0 now kills the I2C bus.
         bpf.begin((int) 32, (TwoWire*) &Wire);
         bpf.setBand(HFNone);
         bpf.setPreamp(false);
