@@ -4,6 +4,7 @@
 //  SD Card realted support
 //
 //
+
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 #include "SD_Card.h"
@@ -174,10 +175,10 @@ void SD_CardInfo(void)
 
 
     Serial.println("\nFiles found on the card (name, date and size in bytes): ");
-    root.openRoot(volume);
+    //root.openRoot(volume);
 
     // list all files in the card with date and size
-    root.ls(LS_R | LS_DATE | LS_SIZE);
+    //root.ls(LS_R | LS_DATE | LS_SIZE);
 }
 
 void write_db_tables(void)
@@ -430,6 +431,7 @@ bool write_radiocfg_h(void) // Standalone function wil create a file if needed a
     SDR_sd_file.close();  // Close out the file whcih also flushes unwritten bytes.
     return success;
 }
+
 /*
     if (si5351_CORRECTION == 0);
     if (SPECTRUM_PRESET == 0);
