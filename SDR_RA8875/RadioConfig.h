@@ -108,7 +108,7 @@
 #define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
 // K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
