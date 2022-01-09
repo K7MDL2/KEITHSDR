@@ -8,6 +8,7 @@ SVN1AFN_BandpassFilters::SVN1AFN_BandpassFilters()
 
 void SVN1AFN_BandpassFilters::begin(uint8_t address, TwoWire *theWire)
 {
+  // call versoin of begin for I2C bus (new since V2 adafruit mcp23017 library)
   _mcp->begin_I2C(address, theWire);
   _mcp->pinMode(J9_1M8,  OUTPUT);
   _mcp->pinMode(J9_3M5,  OUTPUT);
