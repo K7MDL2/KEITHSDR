@@ -16,7 +16,7 @@
 // #include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
 //  T4_Powerbutton is not compatible with newer versions of Arduino, worked for 1.8.13, does not for 1.8.19.
 #include <SPI.h>                // included with Arduino
-#include <SD.h>                 // included with Arduino
+//#include <SD.h>                 // included with Arduino
 #include <Wire.h>               // included with Arduino
 #include <WireIMXRT.h>          // gets installed with wire.h
 #include <WireKinetis.h>        // included with Arduino
@@ -42,8 +42,8 @@
 //#include <fonts/FiraCode_mono_40.c>
 
 // Below are local project files
+#include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
-#include "Spectrum_RA8875.h"    // spectrum
 //////#include "Hilbert.h"      // filter coefficients -DO NOT include this file here, included by bandwidth.cpp directly
 #include "Vfo.h"
 #include "Display.h"

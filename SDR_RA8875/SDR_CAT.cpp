@@ -61,7 +61,7 @@ int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display
 #define S_BUFF 500
 byte Ser_Buff[S_BUFF];
 const char msg_type_array[8][3] = {"FA","FB","IF","BG","BW","PA","FR","FT"};
-static char msg[S_BUFF];
+//static char msg[S_BUFF];
 
 #ifdef FT817_CAT
 

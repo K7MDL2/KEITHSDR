@@ -129,7 +129,7 @@
     #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default
     #ifdef VFO_MULT 
       #undef VFO_MULT                 // undefine so we can redefine it
-      #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
+      #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
     #endif
     #define USE_DHCP
     //#define ENET
@@ -213,7 +213,7 @@
 #define  RA8876_CS         10   //any digital pin
 #define  RA8876_RESET      9    //any pin or nothing!
 #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-
+/*
 // From RA8875/_settings/RA8875ColorPresets.h
 // Colors preset (RGB565)
 const uint16_t	RA8875_BLACK            = 0x0000;
@@ -230,6 +230,7 @@ const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
 const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
 const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
 const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*30
+*/
 #endif // USE_RA8876_t3
 //
 //

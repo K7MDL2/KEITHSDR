@@ -18,6 +18,8 @@
 	extern RA8876_t3 tft;
 #endif
 
+extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
+
 extern          uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
 extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
@@ -43,7 +45,7 @@ extern          void                set_MF_Service(uint8_t client_name);
 extern          void                unset_MF_Service(uint8_t client_name);
 extern          uint8_t             MF_client; // Flag for current owner of MF knob services
 extern          float               fft_bin_size;       // = sample_rate_Hz/(FFT_SIZE*2) -  Size of FFT bin in Hz
-extern          int16_t             spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
+extern          int16_t             spectrum_preset;    // Specify the default layout option for spectrum window placement and size.
 extern          void                touchBeep(bool enable);
 extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern          Metro               MF_Timeout;
@@ -187,7 +189,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RFgain(0);
     AFgain(0);
     setNBLevel(0);
-    drawSpectrumFrame(spectrum_preset);
+    spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future
@@ -245,7 +247,7 @@ COLD void pop_win(uint8_t init)
 
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
-        drawSpectrumFrame(user_settings[user_Profile].sp_preset);
+        spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
         displayRefresh();
     }
 }
@@ -1074,7 +1076,7 @@ COLD void Display()
         display_state = 1;
         Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 1;
     }
-    drawSpectrumFrame(spectrum_preset);
+    spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
     //popup = 1;
     //pop_win(1);
     displayDisplay();

@@ -1,0 +1,9 @@
+Spectrum_RA887x		KEYWORD1
+spectrum_update		KEYWORD2
+Spectrum_Parm_Generator	KEYWORD2
+drawSpectrumFrame	KEYWORD2
+initSpectrum		KEYWORD2
+setActiveWindow		KEYWORD2
+updateActiveWindow	KEYWORD2
+spectrum_preset		KEYWORD3
+Sp_Parms_Def		KEYWORD3
