@@ -16,7 +16,7 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
-#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+//#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
 
@@ -108,7 +108,7 @@
 #define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
 // K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
-//#define K7MDL_BUILD
+#define K7MDL_BUILD
 
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
