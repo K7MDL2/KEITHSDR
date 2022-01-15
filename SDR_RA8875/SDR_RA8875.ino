@@ -266,6 +266,7 @@ COLD void setup()
 {
     Serial.begin(115200);
     delay(500);
+    Serial.println(F("Initializing SDR_RA8875 Program"));
     Serial.println(F("**** Running I2C Scanner ****"));
 
     // ---------------- Setup our basic display and comms ---------------------------
@@ -290,9 +291,11 @@ COLD void setup()
     #endif
 
     #ifdef USE_RA8875
+        Serial.println(F("Initializing RA8875 Display"));
         tft.begin(RA8875_800x480);
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees
-    #else    
+    #else 
+        Serial.println(F("Initializing RA8876 Display"));   
         tft.begin(30000000UL);
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
@@ -459,7 +462,7 @@ COLD void setup()
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
     curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
-    user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
+    //user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
     spectrum_preset = user_settings[user_Profile].sp_preset;
     //==================================== Frequency Set ==========================================
     #ifdef PANADAPTER
