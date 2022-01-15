@@ -2,6 +2,13 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Jan 2022
+    1. Updated code to compile and run with Win11+IDE 1.8.19 + Teensyduino 1.56.
+    2. Updated to latest RA8876Lite library (V1.0.0) and Adafruit MCP23107 V2.02 library with some minor code changes required.
+    3. Removed T4_Powerbutton memory report as it now locks up the CPU with the above dev env.
+    4. Tested only on RA8876 7" display and Teensy 4.1 so far.  RA8875 4.3" should work OK.
+    5. Planning to resume major change work this spring including adding TX and MIDI for remote control pod and keyers.
+
 ## Summer 2021
     1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
     
