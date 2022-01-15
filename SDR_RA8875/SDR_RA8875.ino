@@ -117,12 +117,12 @@ uint8_t     display_state;   // something to hold the button state for the displ
 bool        touchBeep_flag = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
+ Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 #else
   RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
   FT5206 cts = FT5206(CTP_INT); 
-  extern void setActiveWindow();
 #endif
 
 #ifdef ENET
@@ -225,7 +225,7 @@ AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
 
 AudioControlSGTL5000    codec1;
 
-#include <Metro.h>
+//#include <Metro.h>
 // Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
 Metro touch         = Metro(50);    // used to check for touch events
 Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
@@ -251,7 +251,7 @@ bool MF_default_is_active = true;
 //#define FFT_SIZE                  4096            // Need a constant for array size declarion so manually set this value here.  Could try a macro later
 int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
-extern int16_t  spectrum_preset;                    // Specify the default layout option for spectrum window placement and size.
+int16_t         spectrum_preset     = 0;                    // Specify the default layout option for spectrum window placement and size.
 int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
 extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
 extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -266,7 +266,7 @@ COLD void setup()
 {
     Serial.begin(115200);
     delay(500);
-    Serial.println(F("Initializing SDR_RA8875 Program"));
+    Serial.println(F("Initializing SDR_RA887x Program"));
     Serial.println(F("**** Running I2C Scanner ****"));
 
     // ---------------- Setup our basic display and comms ---------------------------
@@ -310,7 +310,7 @@ COLD void setup()
         tft.canvasImageWidth(SCREEN_WIDTH);
         //tft.activeWindowXY(0,0);
         //tft.activeWindowWH(SCREEN_WIDTH,SCREEN_HEIGHT);
-        setActiveWindow();
+        spectrum_RA887x.setActiveWindow_default();
         tft.graphicMode(true);
         tft.clearActiveScreen();
         tft.selectScreen(0);  // Select screen page 0
@@ -352,7 +352,7 @@ COLD void setup()
     }
     digitalClockDisplay(); // print time to terminal
   
-    initSpectrum();                                   // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    spectrum_RA887x.initSpectrum(spectrum_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 
     #ifdef DIG_STEP_ATT
         // Initialize the I/O for digital step attenuator if used.
@@ -367,7 +367,7 @@ COLD void setup()
     #ifdef I2C_LCD    // initialize the I2C LCD
         lcd.init(); 
         lcd.backlight();
-        lcd.print(F("Keith's SDR"));
+        lcd.print(F("MyCall SDR"));  // Edit this to what you like to see on your display
     #endif
 /*
     //UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
@@ -476,15 +476,16 @@ COLD void setup()
     initVfo(); // initialize the si5351 vfo
     //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
     displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
-    Spectrum_Parm_Generator(spectrum_preset);                 // use this to generate new set of params for the current window size values.
+    spectrum_RA887x.Spectrum_Parm_Generator(spectrum_preset, spectrum_preset); // use this to generate new set of params for the current window size values. 
+                                                              // 1st arg is target, 2nd arg is current value
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
                                                               // Generator only reads the global values, it does not change them or the database, just prints the new params
-    drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
+    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
                                                               // DrawSpectrum does not read the globals but does update them to match the current preset.
                                                               // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
                                                               // Generator never modifies the globals so never affects the layout itself.
                                                               // Print out our starting frequency for testing
-    //drawSpectrumFrame(6);   // for 2nd window
+    //sp.drawSpectrumFrame(6);   // for 2nd window
     Serial.print(F("\nInitial Dial Frequency is "));
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
@@ -563,7 +564,7 @@ void loop()
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
             if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
-                spectrum_update(spectrum_preset); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+                spectrum_RA887x.spectrum_update(spectrum_preset, (bandmem[curr_band].VFO_AB_Active == VFO_A), VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
                 // spectrum_update(6);  // for 2nd window
     }
     
