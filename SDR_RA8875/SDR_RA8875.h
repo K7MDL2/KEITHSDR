@@ -27,10 +27,10 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>// V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 #include <TimeLib.h>            // TODO  - list where to find this
-#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 
-#include <glcdfont.c>
+//#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+//#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+//#include <glcdfont.c>
 //#include <ILI9341_fonts.h>
 //#include <FiraCode_mono_14.c>   //minipixel
 //#include <fonts/FiraCode_mono_16.c>
@@ -42,6 +42,7 @@
 //#include <fonts/FiraCode_mono_40.c>
 
 // Below are local project files
+//#include "RadioConfig.h"        // Our main configuration file
 #include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 //////#include "Hilbert.h"      // filter coefficients -DO NOT include this file here, included by bandwidth.cpp directly

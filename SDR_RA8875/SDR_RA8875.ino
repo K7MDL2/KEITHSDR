@@ -117,7 +117,7 @@ uint8_t     display_state;   // something to hold the button state for the displ
 bool        touchBeep_flag = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
 
- Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
+Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 #else

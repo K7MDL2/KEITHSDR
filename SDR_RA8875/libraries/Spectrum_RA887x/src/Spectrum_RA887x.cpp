@@ -339,7 +339,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA,
         
         // draw a periodic time stamp line
         if (waterfall_timestamp.check() == 1)
-            tft.drawRect(ptr->l_graph_edge+1, ptr->wf_top_line+2, 20, 1, RA8875_LIGHT_GREY);  // x start, y start, width, height, colors w x h           
+            tft.drawRect(ptr->l_graph_edge+1, ptr->wf_top_line+2, 20, 1, myLT_GREY);  // x start, y start, width, height, colors w x h           
             //tft.drawFastHLine(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, myLT_GREY);  // x start, y start, width, height, colors w x h           
         else  // Draw the new line at the top
             tft.writeRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, (uint16_t*) &line_buffer);  // x start, y start, width, height, array of colors w x h
@@ -517,7 +517,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA,
 
                         // This will be drawn on Canvas 2 if this is a RA8876, layer 2 if a RA8875                               
                         //if (pixelnew[i] < ptr->sp_bottom_line && i > 3 )
-                        tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  YELLOW);
+                        tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  myYELLOW);
 
                         pixelold[i] = pixelnew[i]; 
                     }
@@ -528,7 +528,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA,
             if (i == (ptr->wf_sp_width/2))
             {
             // draw a grid line for XX dB level             
-                tft.setTextColor(myLT_GREY,BLACK);
+                tft.setTextColor(myLT_GREY, myBLACK);
                 tft.setFont(Arial_10);
                 
                 int grid_step = ptr->spect_sp_scale;
@@ -549,7 +549,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA,
         } // end of spectrum pixel plotting
 
         // Update graph scale, ref level, power and freq
-        tft.setTextColor(myLT_GREY, BLACK);
+        tft.setTextColor(myLT_GREY, myBLACK);
         tft.setFont(Arial_12);
 
         fft_pk_bin = _find_FFT_Max(L_EDGE+2, L_EDGE+ptr->wf_sp_width-2);   // get new frequency and power values for strongest signal 
@@ -618,7 +618,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA,
         //}    
             
         // Write the dB range of the window 
-        tft.setTextColor(myLT_GREY,BLACK);
+        tft.setTextColor(myLT_GREY, myBLACK);
         tft.setFont(Arial_10);
         tft.setCursor(ptr->r_graph_edge-50, ptr->sp_top_line+8);
         tft.print("H:   ");  // actual value is updated elsewhere
@@ -649,7 +649,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA,
         #endif
 
         // Update the span labels with current VFO frequencies    
-        tft.setTextColor(myLT_GREY, BLACK);
+        tft.setTextColor(myLT_GREY, myBLACK);
         tft.setFont(Arial_12);
 
         static uint32_t old_VFO_ = 0;
