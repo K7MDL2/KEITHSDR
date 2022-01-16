@@ -16,9 +16,10 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
-//#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
+                            // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
 
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
@@ -84,11 +85,11 @@
                                 // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
                                 // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-#define PANADAPTER_MODE_OFFSET_DATA 0    // This is the offset added by the radio in certain modes
-                                            // It is usually the Center frequency of the filter
-                                            // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+#define PANADAPTER_MODE_OFFSET_DATA 0   // This is the offset added by the radio in certain modes
+                                        // It is usually the Center frequency of the filter
+                                        // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-//#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
+//#define PANADAPTER_INVERT // When uncommented, this inverts the tuning direction seen on screen.
                             // Most radio IFs are inverted, though it can change depending on frequency
                             // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
@@ -107,21 +108,21 @@
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 #define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-// K7MDL specific Build Configuration rolled up into one #define for easier tesyting in multiple configurations
-#define K7MDL_BUILD
+// K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
+//#define K7MDL_BUILD
 
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
-      #undef USE_RA8875            // UN-comment this line to use RA8876      
+      #undef USE_RA8875            // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
     #endif
     #ifndef USE_RA8875
-      #define TOUCH_ROTATION    // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
+      #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
     //#define I2C_ENCODERS
-    //#define OCXO_10MHZ            // Switch to etherkits library and set to use ext ref input at 10MHz
-    //#define K7MDL_OCXO            // use the si5351 C board with 10Mhz OCXO
-    #define si5351_TCXO             // Set load cap to 0pF for TCXO
-    #ifdef si5351_TCXO              // etherkits TCXO Si5351A board (25MHz)
+    //#define OCXO_10MHZ              // Switch to etherkits library and set to use ext ref input at 10MHz
+    //#define K7MDL_OCXO              // use the si5351 C board with 10Mhz OCXO
+    #define si5351_TCXO               // Set load cap to 0pF for TCXO
+    #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
     #else      
       #define si5351_CORRECTION 1720  // for standard crystal PLL
@@ -135,13 +136,13 @@
     //#define ENET
     //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
-    #define SV1AFN_BPF              // Use the BPF board
-    #define DIG_STEP_ATT            // Use the step atten  usually the PE43
-    //#define PANADAPTER                // Enable panadapter mode
+    #define SV1AFN_BPF                // Use the BPF board
+    #define DIG_STEP_ATT              // Use the step atten usually the PE4302 board
+    //#define PANADAPTER              // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
-      //#define PANADAPTER_INVERT       // Invert spectrum for inverted IF tuning direction
+      //#define PANADAPTER_INVERT     // Invert spectrum for inverted IF tuning direction
     #endif
 #endif  // K7MDL_BUILD
 //
@@ -191,45 +192,45 @@
   #define  RA8875_CS         10   //any digital pin
   #define  RA8875_RESET      9    //any pin or nothing!
   #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-  #include <SPI.h>                // included with Arduino
-  //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
   #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+  #include <SPI.h>                // included with Arduino
+  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #else // If RA8876 is not used then assume the RA8876_t3 1024x600 is.
-//
-//
-//
-//--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
-//
-#define USE_RA8876_t3
-//
-#define  SCREEN_WIDTH      1024 
-#define  SCREEN_HEIGHT     600
-//#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-//#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#include <RA8876_t3.h>           // Github
-#include <FT5206.h>
-#define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
-#define  RA8876_CS         10   //any digital pin
-#define  RA8876_RESET      9    //any pin or nothing!
-#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+  //
+  //
+  //
+  //--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
+  //
+  #define USE_RA8876_t3
+  //
+  #define  SCREEN_WIDTH      1024 
+  #define  SCREEN_HEIGHT     600
+  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <RA8876_t3.h>           // Github
+  #include <FT5206.h>
+  #define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
+  #define  RA8876_CS         10   //any digital pin
+  #define  RA8876_RESET      9    //any pin or nothing!
+  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
 /*
-// From RA8875/_settings/RA8875ColorPresets.h
-// Colors preset (RGB565)
-const uint16_t	RA8875_BLACK            = 0x0000;
-const uint16_t 	RA8875_WHITE            = 0xFFFF;
-const uint16_t	RA8875_RED              = 0xF800;
-const uint16_t	RA8875_GREEN            = 0x07E0;
-const uint16_t	RA8875_BLUE             = 0x001F;
-const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE;//0x07FF;
-const uint16_t 	RA8875_MAGENTA          = 0xF81F;
-const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN;//0xFFE0;  
-const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
-const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
-const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
-const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
-const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
-const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*30
+  // From RA8875/_settings/RA8875ColorPresets.h
+  // Colors preset (RGB565)
+  const uint16_t	RA8875_BLACK            = 0x0000;
+  const uint16_t 	RA8875_WHITE            = 0xFFFF;
+  const uint16_t	RA8875_RED              = 0xF800;
+  const uint16_t	RA8875_GREEN            = 0x07E0;
+  const uint16_t	RA8875_BLUE             = 0x001F;
+  const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
+  const uint16_t 	RA8875_MAGENTA          = 0xF81F;
+  const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
+  const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
+  const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
+  const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
+  const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
+  const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
+  const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
 */
 #endif // USE_RA8876_t3
 //
