@@ -8,7 +8,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     3. Removed T4_Powerbutton memory report as it now locks up the CPU with the above dev env.
     4. Tested only on RA8876 7" display and Teensy 4.1 so far.  RA8875 4.3" should work OK.
     5. Moved Spectrum_RA8875.h and .cpp to a new Arduino library called Spectrum_RA887x which is included in this repository. Import the library using ARduino IDE Import library .ZIP.
-    5. Planning to resume major change work this spring including adding TX and MIDI for remote control pod and keyers.
+    6. Added a Spectrum_Waterfall example file for the new Spectrum_RA887x library (in examples library folder).
+    7. Planning to resume major change work this spring including adding TX and MIDI for remote control pod and keyers.
 
 ## Summer 2021
     1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
