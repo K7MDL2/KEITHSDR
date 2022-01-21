@@ -32,15 +32,6 @@ extern volatile int32_t         Freq_Peak;
     int16_t _activeWindowYB = SCREEN_HEIGHT;
 #endif
 
-//function declarations
-//void Spectrum_Parm_Generator(int16_t parm_set);
-//void Spectrum(int16_t s);
-//void drawSpectrumFrame(uint8_t s);
-//void initSpectrum(void);
-//int16_t _colorMap(int16_t val, int16_t color_temp);
-//int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max);
-//char* _formatFreq(uint32_t Freq);
-
 int16_t wf_time_line = 15000;
 int16_t fftFreq_refresh = 1000;
 Metro waterfall_timestamp=Metro(wf_time_line);  // Used to draw a time stamp line across the waterfall window.  Cha
@@ -159,7 +150,7 @@ void Spectrum_RA887x::updateActiveWindow(bool full)
 }
 #endif
 
-void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA, int16_t VfoB)
+void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.

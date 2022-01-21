@@ -184,7 +184,7 @@ class Spectrum_RA887x
     public:
         Spectrum_RA887x(void);
 
-        void spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA, int16_t VfoB);
+        void spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB);
         void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset);
         void drawSpectrumFrame(uint8_t s);
         void initSpectrum(int16_t preset);
