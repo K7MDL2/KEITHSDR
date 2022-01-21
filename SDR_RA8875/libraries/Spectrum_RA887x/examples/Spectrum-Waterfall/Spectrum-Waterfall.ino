@@ -1,7 +1,17 @@
-#include <Spectrum-Waterfall.h>
+// 
+//      SPECTRUM-WATERFALL.cpp
+//
+//  This is an example file how to use the Spectrum_RA887x library to display a custom
+//  sized window containing a sepctrum display and a waterfall display.
+//  It takes advantage of the RA887x controller's ability to move blocks of display memory
+//  with very few CPU commands enabling rather high resolution scrolling spectrum and waterfall
+//  displays possible without undue burden on the host CPU.   
+//  This allows CPU cycles to handle other tasks like audio processing and encoders.
+//
 
-void I2C_Scanner(void);
+#include "Spectrum-Waterfall.h"
 
+// Display type set in .h file
 Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
 #ifdef USE_RA8875
   RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -9,11 +19,19 @@ Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
   RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
   FT5206 cts = FT5206(CTP_INT); 
 #endif
-
 //
 //============================================ End of Spectrum Setup Section =====================================================
 //
-// Audio Library setup stuff
+
+void I2C_Scanner(void);
+void printHelp(void);
+void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
+void respondToByte(char c);
+const char* formatVFO(uint32_t vfo);
+
+// -------------------------------------------------------------------------------------------
+// Audio Library setup stuff to provide FFT data with optional Test tone
+// -------------------------------------------------------------------------------------------
 //const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
@@ -26,114 +44,61 @@ const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048,
 const int audio_block_samples = 128;          // do not change this!
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
-const int myInput = AUDIO_INPUT_LINEIN;
-//const int myInput = AUDIO_INPUT_MIC;
-                            
-AudioInputI2S_F32       Input(audio_settings);
-AudioMixer4_F32         FFT_Switch1(audio_settings);
-AudioMixer4_F32         FFT_Switch2(audio_settings);
-AudioFilterFIR_F32      Hilbert1(audio_settings);
-AudioFilterFIR_F32      Hilbert2(audio_settings);
-AudioFilterBiquad_F32   CW_Filter(audio_settings);
-AudioMixer4_F32         RX_Summer(audio_settings);
-AudioAnalyzePeak_F32    S_Peak(audio_settings); 
-AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
-AudioAnalyzePeak_F32    I_Peak(audio_settings);
-AudioAnalyzePeak_F32    CW_Peak(audio_settings);
-AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
-AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
-//AudioAnalyzeFFT2048_IQ_F32  myFFT;
-//AudioAnalyzeFFT1024_IQ_F32  myFFT;
-//AudioAnalyzeFFT256_IQ_F32   myFFT;
-AudioOutputI2S_F32      Output(audio_settings);
-radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
-AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
-AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
-AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
-
-//#define TEST_SINEWAVE_SIG
-#ifdef TEST_SINEWAVE_SIG
-//AudioSynthSineCosine_F32   sinewave1;
-//AudioSynthSineCosine_F32   sinewave2;
-//AudioSynthSineCosine_F32   sinewave3;
-
-AudioSynthWaveformSine_F32 sinewave2;
-AudioSynthWaveformSine_F32 sinewave3;
-AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
-AudioConnection_F32     patchCord4x(sinewave3,0,  FFT_Switch1,3);
-AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
-AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
-AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
-AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
-#endif
-
-// Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
-AudioConnection_F32     patchCord7a(Input,0,         FFT_Switch1,0);
-AudioConnection_F32     patchCord7b(Input,1,         FFT_Switch2,0);
-AudioConnection_F32     patchCord6a(Input,0,        FFT_Switch1,1);
-AudioConnection_F32     patchCord6b(Input,1,        FFT_Switch2,1);
-AudioConnection_F32     patchCord5a(FFT_Switch1,0,   myFFT,0);
-AudioConnection_F32     patchCord5b(FFT_Switch2,0,   myFFT,1);
-
-// TEST trying out new NB and AGC features  - use selected lines below as make sense
-AudioConnection_F32     patchCord10a(Input,0,         NoiseBlanker,0);
-AudioConnection_F32     patchCord10b(Input,1,         NoiseBlanker,1);
-//AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
-//AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
-//AudioConnection_F32     patchCord9a(compressor1,0,   Hilbert1,0);
-//AudioConnection_F32     patchCord9b(compressor2,0,   Hilbert2,0);
-AudioConnection_F32     patchCord11a(NoiseBlanker,0,  Hilbert1,0);
-AudioConnection_F32     patchCord11b(NoiseBlanker,1,  Hilbert2,0);
-
-// Normal Audio Chain
-//AudioConnection_F32     patchCord1a(Input,0,  Hilbert1,0);
-//AudioConnection_F32     patchCord1b(Input,1,  Hilbert2,0);
-AudioConnection_F32     patchCord2a(Hilbert1,0,      Q_Peak,0);
-AudioConnection_F32     patchCord2b(Hilbert2,0,      I_Peak,0);
-AudioConnection_F32     patchCord2c(Hilbert1, 0,     RX_Summer,0);
-AudioConnection_F32     patchCord2d(Hilbert2, 0,     RX_Summer,1);
-AudioConnection_F32     patchCord2e(sinewave1,0,     RX_Summer,2);
-AudioConnection_F32     patchCord3a(RX_Summer,0,     S_Peak,0);
-AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
-AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
-AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
-AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
-AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
-//AudioConnection_F32     patchCord4c(Input,0,     Output,0);
-//AudioConnection_F32     patchCord4d(Input,1,     Output,1);
-
-AudioControlSGTL5000    codec1;
-
-#include <Metro.h>
-// Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
-Metro touch         = Metro(50);    // used to check for touch events
-Metro meter         = Metro(400);   // used to update the meters
-Metro popup_timer   = Metro(500);   // used to check for popup screen request
-Metro touchBeep_timer = Metro(80); // Feedback beep for button touches
-
 // used for spectrum object
 //#define FFT_SIZE                  4096            // Need a constant for array size declarion so manually set this value here.  Could try a macro later
 int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 int16_t         spectrum_preset     = 0;                    // Specify the default layout option for spectrum window placement and size.
-int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
 extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
 extern struct   Spectrum_Parms Sp_Parms_Def[];
 
-COLD void setup()
+const int myInput = AUDIO_INPUT_LINEIN;
+//const int myInput = AUDIO_INPUT_MIC;
+                            
+AudioInputI2S_F32           Input(audio_settings);
+AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
+AudioMixer4_F32             FFT_Switch1(audio_settings);
+AudioMixer4_F32             FFT_Switch2(audio_settings);
+AudioOutputI2S_F32          Output(audio_settings);
+
+#ifdef TEST_SINE
+// Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
+  AudioSynthWaveformSine_F32  sinewave1; // for audible alerts like touch beep confirmations
+  AudioSynthWaveformSine_F32  sinewave2; // for audible alerts like touch beep confirmations
+  AudioConnection_F32     patchCord4w(sinewave1,0,  FFT_Switch1,2);
+  AudioConnection_F32     patchCord4x(sinewave2,0,  FFT_Switch1,3);
+  AudioConnection_F32     patchCord4y(sinewave1,0,  FFT_Switch2,2);
+  AudioConnection_F32     patchCord4z(sinewave2,0,  FFT_Switch2,3);
+  // patch through the sinewave to the headphones/lineout
+  AudioConnection_F32     patchCord4u(sinewave1,0,     Output,0);
+  AudioConnection_F32     patchCord4v(sinewave2,0,     Output,1);
+#else
+  // patch through the audio input to the headphones/lineout
+  AudioConnection_F32     patchCord4c(Input,0,     Output,0);
+  AudioConnection_F32     patchCord4d(Input,1,     Output,1);
+#endif
+// patch through the input to a audio switch to select combinations of audio in and test tone
+AudioConnection_F32         patchCord7a(Input,0,         FFT_Switch1,0);
+AudioConnection_F32         patchCord7b(Input,1,         FFT_Switch2,0);
+AudioConnection_F32         patchCord6a(Input,0,         FFT_Switch1,1);
+AudioConnection_F32         patchCord6b(Input,1,         FFT_Switch2,1);
+// Pass audio to the FFT to create data for our spectrum
+AudioConnection_F32         patchCord5a(FFT_Switch1,0,   myFFT,0);
+AudioConnection_F32         patchCord5b(FFT_Switch2,0,   myFFT,1);
+
+AudioControlSGTL5000    codec1;
+
+void setup()
 {
     Serial.begin(115200);
     delay(500);
-    Serial.println(F("Initializing SDR_RA887x Program"));
+    Serial.println(F("Initializing SDR_RA887x Program\n"));
     Serial.println(F("**** Running I2C Scanner ****"));
 
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
-    //MF_client = user_settings[user_Profile].default_MF_client;
-    //MF_default_is_active = true;
-    //MeterInUse = false;    
 
     #ifdef USE_RA8875
         Serial.println(F("Initializing RA8875 Display"));
@@ -175,7 +140,7 @@ COLD void setup()
         tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
     #else
         #ifdef USE_RA8875
-            //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
+            tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
         #endif  // USE_RA8875
     #endif // USE_FT5206_TOUCH
     
@@ -188,8 +153,7 @@ COLD void setup()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
     codec1.inputSelect(myInput);
-    //RFgain(0);
-    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    codec1.lineOutLevel(13); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
     //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
     //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
@@ -199,55 +163,34 @@ COLD void setup()
     codec1.adcHighPassFilterDisable();
     codec1.dacVolume(0); // set the "dac" volume (extra control)
 
+    #ifdef TEST_SINE
+    // Insert a test tone to see something on the display.
+    float sinewave_vol = 0.001;
+    sinewave1.amplitude(sinewave_vol);  // tone volume (0 to 1.0)
+    sinewave1.frequency(1000.000); // Tone Frequency in Hz
+    sinewave2.amplitude(sinewave_vol);  // tone volume (0 to 1.0)
+    sinewave2.frequency(4000.000); // Tone Frequency in Hz
+    #endif
+    
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
     AudioNoInterrupts();
-    FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-    FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-    FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    #ifdef TEST_SINEWAVE_SIG
-    FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    FFT_Switch1.gain(0, 1.0f); //  1.0f is Input source before filtering, 0.0f is off,
+    FFT_Switch1.gain(1, 0.0f); //  1.0f is CW Filtered (output), 0.0f is off
+    FFT_Switch2.gain(0, 1.0f); //  1.0f is Input source before filtering, 0.0f is off,
+    FFT_Switch2.gain(1, 0.0f); //  1.0f is CW Filtered (output), 0.0f is off
+    #ifdef TEST_SINE
+      FFT_Switch1.gain(2, 1.0f); //  1.0f  Sinewave1 to FFT for test cal, 0.0f is off
+      FFT_Switch1.gain(3, 1.0f); //  1.0f  Sinewave2 to FFT for test cal, 0.0f is off
+      FFT_Switch2.gain(2, 1.0f); //  1.0f  Sinewave1 to FFT for test cal, 0.0f is off
+      FFT_Switch2.gain(3, 1.0f); //  1.0f  Sinewave2 to FFT for test cal, 0.0f is off
     #else
-    FFT_Switch1.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch1.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+      FFT_Switch1.gain(2, 0.0f); //  1.0f  Sinewave1 to FFT for test cal, 0.0f is off
+      FFT_Switch1.gain(3, 0.0f); //  1.0f  Sinewave2 to FFT for test cal, 0.0f is off
+      FFT_Switch2.gain(2, 0.0f); //  1.0f  Sinewave1 to FFT for test cal, 0.0f is off
+      FFT_Switch2.gain(3, 0.0f); //  1.0f  Sinewave2 to FFT for test cal, 0.0f is off
     #endif
     AudioInterrupts();
-
-    /*
-    //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
-    // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
-    if(mndx = 1 || mndx==2)
-    { 
-      FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
-      FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
-    )  
-    else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
-    { 
-      FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
-      FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
-    }
-    */
-    // Set up an alert tone for feedback   Can also blink KED knobs if used.
-
-#ifdef TEST_SINEWAVE_SIG
-    // Create a synthetic sine wave, for testing
-    // To use this, edit the connections above
-    // # sources to test edges and middle of BW
-    float sinewave_vol = 0.005;
-    sinewave2.amplitude(sinewave_vol);
-    sinewave2.frequency(100.000); //
-    sinewave3.amplitude(sinewave_vol);
-    sinewave3.frequency(400.000); //
-#endif
-
-    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
-    RX_Summer.gain(0, -3.0); // Leave at 1.0
-    RX_Summer.gain(1, 3.0);  // -1 for LSB out
+    
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
     // Uncomment one these to try other window functions
@@ -258,32 +201,18 @@ COLD void setup()
     myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
-    //curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
-    //user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
-    //spectrum_preset = user_settings[user_Profile].sp_preset;
-    spectrum_preset = 0;
-    //==================================== Frequency Set ==========================================
-    #ifdef PANADAPTER
-    VFOA = PANADAPTER_LO;
-    VFOB = PANADAPTER_LO;
-    #else
-    VFOA = 7074000;
-    VFOB = 14074000;
-    #endif
-    // Assignments for our encoder knobs, if any
-    //initVfo(); // initialize the si5351 vfo
-    //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
-    //displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
+    spectrum_preset = 0;    
     spectrum_RA887x.Spectrum_Parm_Generator(spectrum_preset, spectrum_preset); // use this to generate new set of params for the current window size values. 
                                                               // 1st arg is target, 2nd arg is current value
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
                                                               // Generator only reads the global values, it does not change them or the database, just prints the new params
-    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
+    spectrum_RA887x.drawSpectrumFrame(spectrum_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
                                                               // DrawSpectrum does not read the globals but does update them to match the current preset.
                                                               // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
                                                               // Generator never modifies the globals so never affects the layout itself.
                                                               // Print out our starting frequency for testing
     //sp.drawSpectrumFrame(6);   // for 2nd window
+    
     Serial.print(F("\nInitial Dial Frequency is "));
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
@@ -295,16 +224,10 @@ COLD void setup()
         // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
         codec1.unmuteHeadphone();
         codec1.unmuteLineout(); //unmute the audio output
-        //user_settings[user_Profile].mute = OFF;
-        //displayMute();
-        //AFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
-        //RampVolume(user_settings[user_Profile].spkr_Vol_last/100, 1); //0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     }
     else
     {
         codec1.muteHeadphone();
-        //user_settings[user_Profile].mute = ON;
-        //displayMute();
     }
 
     //changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
@@ -316,20 +239,19 @@ COLD void setup()
 }
 
 static uint32_t delta = 0;
+
 //
 // __________________________________________ Main Program Loop  _____________________________________
 //
 void loop()
 {
-    static int32_t newFreq = 0;
     static uint32_t time_old = 0;
- 
+    
     // Update spectrum and waterfall based on timer
     if (spectrum_waterfall_update.check() == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
     {
-        if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
-            spectrum_RA887x.spectrum_update(spectrum_preset, 1, VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
-            // spectrum_RA887x.spectrum_update(6, 1, VFOA, VFOB);  // for 2nd window
+      spectrum_RA887x.spectrum_update(spectrum_preset, 1, VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+      // spectrum_RA887x.spectrum_update(6, 1, VFOA, VFOB);  // for 2nd window
     }
     
     // Time stamp our program loop time for performance measurement
@@ -342,18 +264,17 @@ void loop()
         Serial.println(delta);
     }
     time_old = millis();
-
-    // Check for touch actions
-    if (touch.check() == 1)
-    {
-        Touch(); // touch points and gestures
-    }
     
-    // The timer and flag are set by the rogerBeep() function
-    if (touchBeep_flag && touchBeep_timer.check() == 1)   
+    //respond to Serial commands
+    while (Serial.available())
     {
-        touchBeep(false);    
+        if (Serial.peek())
+            respondToByte((char)Serial.read());
     }
+
+    //check to see whether to print the CPU and Memory Usage
+    if (enable_printCPUandMemory)
+        printCPUandMemory(millis(), 3000); //print every 3000 msec
 
     //check to see whether to print the CPU and Memory Usage
     if (enable_printCPUandMemory)
@@ -361,9 +282,15 @@ void loop()
 }
 
 //
+// ----------------------- SUPPORT FUNCTIONS -------------------------------------------------------
+//
+//  Added in some useful tools for measuring main program loop time, memory usage, and an I2C scanner.
+//  These are also used in my SDR program.
+//
+// -------------------------------------------------------------------------------------------------
 //  Scans for any I2C connected devices and reports them to the serial terminal.  Usually done early in startup.
 //
-COLD void I2C_Scanner(void)
+void I2C_Scanner(void)
 {
   byte error, address; //variable for error and I2C address
   int nDevices;
@@ -501,24 +428,100 @@ void printKnownChips(byte address)
   }
 }
 
-// Turns on or off a tone injected in the RX_summer block.  
-// Function that calls for a rogerBeep sets a global flag.
-// The main loop starts a timer for a short beep an calls this to turn the tone on or off.
-COLD void touchBeep(bool enable)
+const char* formatVFO(uint32_t vfo)
 {
-    if (enable)
-    {
-        touchBeep_flag = true;
-        touchBeep_timer.reset();
-        sinewave1.amplitude(user_settings[user_Profile].rogerBeep_Vol);
-        sinewave1.frequency((float) user_settings[user_Profile].pitch); //    Alert tones
+  static char vfo_str[25];
+  
+  uint16_t MHz = (vfo/1000000 % 1000000);
+  uint16_t Hz  = (vfo % 1000);
+  uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
+  sprintf(vfo_str, "%6d.%03d.%03d", MHz, KHz, Hz);
+  //sprintf(vfo_str, "%13s", "45.123.123");
+  //Serial.print("New VFO: ");Serial.println(vfo_str);
+  return vfo_str;
+}
+
+//
+// _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
+//
+//This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
+void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
+{
+    //static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
+    static unsigned long lastUpdate_millis = 0;
+
+    //has enough time passed to update everything?
+    if (curTime_millis < lastUpdate_millis)
+        lastUpdate_millis = 0; //handle wrap-around of the clock
+    if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis)
+    { //is it time to update the user interface?
+        Serial.print(F("\nCPU Cur/Peak: "));
+        Serial.print(audio_settings.processorUsage());
+        Serial.print(F("%/"));
+        Serial.print(audio_settings.processorUsageMax());
+        Serial.println(F("%"));
+        Serial.print(F("CPU Temperature:"));
+        Serial.print(InternalTemperature.readTemperatureF(), 1);
+        Serial.print(F("F "));
+        Serial.print(InternalTemperature.readTemperatureC(), 1);
+        Serial.println(F("C"));
+        Serial.print(F(" Audio MEM Float32 Cur/Peak: "));
+        Serial.print(AudioMemoryUsage_F32());
+        Serial.print(F("/"));
+        Serial.println(AudioMemoryUsageMax_F32());
+        Serial.println(F("*** End of Report ***"));
+
+        lastUpdate_millis = curTime_millis; //we will use this value the next time around.
+        delta = 0;
+        #ifdef I2C_ENCODERS
+          //blink_MF_RGB();
+          //blink_AF_RGB();
+        #endif // I2C_ENCODERS
     }
-    else 
+}
+//
+// _______________________________________ Console Parser ____________________________________
+//
+//switch yard to determine the desired action
+void respondToByte(char c)
+{
+    char s[2];
+    s[0] = c;
+    s[1] = 0;
+    if (!isalpha((int)c) && c != '?')
+        return;
+    switch (c)
     {
-        //if (rogerBeep_timer.check() == 1)   // make sure another event does not cut it off early
-        //{ 
-            touchBeep_flag = false;
-            sinewave1.amplitude(0.0);
-        //}
+    case 'h':
+    case '?':
+        printHelp();
+        break;
+    case 'C':
+    case 'c':
+        Serial.println(F("Toggle printing of memory and CPU usage."));
+        togglePrintMemoryAndCPU();
+        break;
+    case 'M':
+    case 'm':
+        Serial.println(F("\nMemory Usage (FlexInfo)"));
+        //flexRamInfo();
+        Serial.println(F("*** End of Report ***"));
+        break;
+    default:
+        Serial.print(F("You typed "));
+        Serial.print(s);
+        Serial.println(F(".  What command?"));
     }
+}
+//
+// _______________________________________ Print Help Menu ____________________________________
+//
+void printHelp(void)
+{
+    Serial.println();
+    Serial.println(F("Help: Available Commands:"));
+    Serial.println(F("   h: Print this help"));
+    Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
+    Serial.println(F("   M: Print Detailed Memory Region Usage Report"));
+    Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
 }
