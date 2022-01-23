@@ -155,7 +155,8 @@ AudioMixer4_F32         FFT_Switch1(audio_settings);
 AudioMixer4_F32         FFT_Switch2(audio_settings);
 AudioFilterFIR_F32      Hilbert1(audio_settings);
 AudioFilterFIR_F32      Hilbert2(audio_settings);
-AudioFilterBiquad_F32   CW_Filter(audio_settings);
+//AudioFilterBiquad_F32   CW_Filter(audio_settings);
+AudioFilterConvolution_F32 FilterConv(audio_settings);
 AudioMixer4_F32         RX_Summer(audio_settings);
 AudioAnalyzePeak_F32    S_Peak(audio_settings); 
 AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
@@ -215,13 +216,17 @@ AudioConnection_F32     patchCord2c(Hilbert1, 0,     RX_Summer,0);
 AudioConnection_F32     patchCord2d(Hilbert2, 0,     RX_Summer,1);
 AudioConnection_F32     patchCord2e(sinewave1,0,     RX_Summer,2);
 AudioConnection_F32     patchCord3a(RX_Summer,0,     S_Peak,0);
-AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
-AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
-AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
-AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
-AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
-//AudioConnection_F32     patchCord4c(Input,0,     Output,0);
-//AudioConnection_F32     patchCord4d(Input,1,     Output,1);
+
+AudioConnection_F32     patchCord3L(RX_Summer,0,     FilterConv,0);
+//AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
+//AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
+//AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
+//AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
+//AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+///AudioConnection_F32     patchCord4c(Input,0,     Output,0);
+///AudioConnection_F32     patchCord4d(Input,1,     Output,1);
+AudioConnection_F32     patchCord4L(FilterConv,0,Output,0);
+AudioConnection_F32     patchCord4R(FilterConv,0,Output,1);
 
 AudioControlSGTL5000    codec1;
 
@@ -369,7 +374,8 @@ COLD void setup()
         lcd.backlight();
         lcd.print(F("MyCall SDR"));  // Edit this to what you like to see on your display
     #endif
-/*
+    
+/*   To use the audio card SD card Reader instead f hte Teensy 4.1 onboard Card Reader
     //UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
     //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
     //SPI.setSCK(14);  // Audio shield has SCK on pin 14

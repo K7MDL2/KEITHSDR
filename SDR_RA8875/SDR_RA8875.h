@@ -56,6 +56,8 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
+#include "AudioFilterConvolution_F32.h"
+//#include "AudioStream_F32.h"
 //#include "SD_Card.h"
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
