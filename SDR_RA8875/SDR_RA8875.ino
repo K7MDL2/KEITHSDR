@@ -81,6 +81,7 @@ void digitalClockDisplay(void);
 unsigned long processSyncMessage();
 time_t getTeensy3Time();
 void printDigits(int digits);
+void Check_PTT(void);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -116,7 +117,10 @@ int32_t     Freq_Peak = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
 bool        touchBeep_flag = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
-static int  last_PTT_Input = 1;   // track input pin state prior to any debounce
+static int  last_PTT_Input = 1;   // track input pin state changes after any debounce timers
+static int  PTT_pin_state = 1;    // current input pin state
+static unsigned long PTT_Input_time = 0;  // Debounce timer
+static int  PTT_Input_debounce = 0;   // Debounce state tracking
 
 Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
 #ifdef USE_RA8875
@@ -663,20 +667,8 @@ void loop()
     }
     #endif // I2C_ENCODERS
 
-    // Check on GPIO pins  - PTT, others
-    if (digitalRead(PTT_INPUT) == OFF && last_PTT_Input == ON)   // user_settings[user_Profile].xmit == OFF)
-    {
-        Serial.println("PTT TX Detected");
-        Xmit();  // toggle transmit state
-        last_PTT_Input = OFF;
-    }
-    else if (digitalRead(PTT_INPUT) == ON && last_PTT_Input == OFF)   // user_settings[user_Profile].xmit == ON)
-    {
-        Serial.println("PTT TX Released");
-        Xmit();  // toggle transmit state
-        last_PTT_Input = ON;
-    }
-    
+    Check_PTT();
+
     if (meter.check() == 1) // update our meters
     {
         Peak();
@@ -766,7 +758,48 @@ void loop()
         }
     }
 }
-
+//
+//-------------------------------------  Check_PTT() ------------------------------------------------------
+// Check on GPIO pins  - PTT, others
+//
+void Check_PTT(void)
+{
+    PTT_pin_state = digitalRead(PTT_INPUT);
+    // Start debpunce timer if a new pin change of state detected
+    if (PTT_pin_state != last_PTT_Input)   // user_settings[user_Profile].xmit == OFF)
+    {   
+        if (!PTT_Input_debounce)
+        {
+            //Serial.println("Start PTT Settle Timer");
+            PTT_Input_debounce = 1;     // Start debounce timer
+            PTT_Input_time = millis();  // Start of transition
+            last_PTT_Input = PTT_pin_state;
+        }
+    }
+    // Debounce timer in progress?  If so exit.
+    if (PTT_Input_debounce && ((PTT_Input_time - millis()) < 20)) 
+    {
+        //Serial.println("Waiting for PTT Settle Time");
+        return;
+    }
+    // If the timer is satisfied, change the TX/RX state
+    if (PTT_Input_debounce)
+    {
+        PTT_Input_debounce= 0;     // Reset timer for next change
+        if (!last_PTT_Input)  // if TX
+        {
+            //Serial.println("PTT TX Detected");
+            Xmit();  // toggle transmit state
+            last_PTT_Input = 0;
+        }
+        else // if RX
+        {
+            //Serial.println("PTT TX Released");
+            Xmit();  // toggle transmit state
+            last_PTT_Input = 1;
+        }
+    }
+}
 //
 // _______________________________________ Volume Ramp __________________
 //
