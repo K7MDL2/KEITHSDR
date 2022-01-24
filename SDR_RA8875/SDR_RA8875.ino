@@ -116,6 +116,7 @@ int32_t     Freq_Peak = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
 bool        touchBeep_flag = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
+static int  last_PTT_Input = 1;   // track input pin state prior to any debounce
 
 Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
 #ifdef USE_RA8875
@@ -269,6 +270,9 @@ time_t prevDisplay = 0; // When the digital clock was displayed
 
 COLD void setup()
 {
+    pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
+    pinMode(PTT_OUT1, OUTPUT);
+    digitalWrite(PTT_OUT1, HIGH);
     Serial.begin(115200);
     delay(500);
     Serial.println(F("Initializing SDR_RA887x Program"));
@@ -374,7 +378,7 @@ COLD void setup()
         lcd.backlight();
         lcd.print(F("MyCall SDR"));  // Edit this to what you like to see on your display
     #endif
-    
+
 /*   To use the audio card SD card Reader instead f hte Teensy 4.1 onboard Card Reader
     //UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
     //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
@@ -565,7 +569,7 @@ void loop()
     static uint32_t time_old = 0;
  
     // Update spectrum and waterfall based on timer
-    if (spectrum_waterfall_update.check() == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
+    if (spectrum_waterfall_update.check() == 1 && last_PTT_Input == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
     {
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
@@ -623,7 +627,7 @@ void loop()
     #ifdef I2C_ENCODERS
     uint8_t mfg;
 
-    // Watch for the INT pin to go low 
+    // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
     if (digitalRead(I2C_INT_PIN) == LOW) 
     {
         #ifdef MF_ENC_ADDR
@@ -659,6 +663,20 @@ void loop()
     }
     #endif // I2C_ENCODERS
 
+    // Check on GPIO pins  - PTT, others
+    if (digitalRead(PTT_INPUT) == OFF && last_PTT_Input == ON)   // user_settings[user_Profile].xmit == OFF)
+    {
+        Serial.println("PTT TX Detected");
+        Xmit();  // toggle transmit state
+        last_PTT_Input = OFF;
+    }
+    else if (digitalRead(PTT_INPUT) == ON && last_PTT_Input == OFF)   // user_settings[user_Profile].xmit == ON)
+    {
+        Serial.println("PTT TX Released");
+        Xmit();  // toggle transmit state
+        last_PTT_Input = ON;
+    }
+    
     if (meter.check() == 1) // update our meters
     {
         Peak();

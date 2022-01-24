@@ -842,13 +842,20 @@ COLD void RFgain(int8_t delta)
 COLD void Xmit()
 {
     if (user_settings[user_Profile].xmit == ON)
+    {
         user_settings[user_Profile].xmit = OFF;
+        digitalWrite(PTT_OUT1, HIGH);
+    }
     else if (user_settings[user_Profile].xmit == OFF)
+    {
         user_settings[user_Profile].xmit = ON;
+        digitalWrite(PTT_OUT1, LOW);
+    }
+    
     displayXMIT();
     displayFreq();
-    //Serial.print("Set XMIT to ");
-    //Serial.println(user_settings[user_Profile].xmit);
+    Serial.print("Set XMIT to ");
+    Serial.println(user_settings[user_Profile].xmit);
 }
 
 // NB button

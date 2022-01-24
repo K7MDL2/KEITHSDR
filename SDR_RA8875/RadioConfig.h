@@ -106,7 +106,12 @@
                             // When the 7" is vertically mounted the ribbon should be down with Touch Rotation "undefined".
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
-#define VFO_MULT    4       // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+
+#define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+
+#define PTT_INPUT    33     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+
+#define PTT_OUT1     34     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 //#define K7MDL_BUILD
