@@ -11,7 +11,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     6. Added a Spectrum_Waterfall example file for the new Spectrum_RA887x library (in examples library folder).
     7. Updated the DSP chain and Bandwidth2.cpp to use the convoluntional filtering Keith released in his Jan 13 build.
     8. Added PTT_IN and PTT_OUT1 pins and PTT detection logic.  Calls existing Xmit() button function to toggle state and display update.  RadioConfig.h defines the IO pins.
-    8. Planning to resume major change work this spring including adding TX Audio path and MIDI for remote control pod and keyers.
+    9. Planning to resume major change work this spring including adding TX Audio path and MIDI for remote control pod and keyers.
 
 ## Summer 2021
     1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
