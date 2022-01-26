@@ -206,14 +206,11 @@ int filterBandwidth;
     AudioMixer4_F32         FFT_Switch2(audio_settings);
     AudioFilterFIR_F32      RX_Hilbert_Plus_45(audio_settings);
     AudioFilterFIR_F32      RX_Hilbert_Minus_45(audio_settings);
-    //AudioFilterBiquad_F32   CW_Filter(audio_settings);
     AudioFilterConvolution_F32 FilterConv(audio_settings);
     AudioMixer4_F32         RX_Summer(audio_settings);
     AudioAnalyzePeak_F32    S_Peak(audio_settings); 
     AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
     AudioAnalyzePeak_F32    I_Peak(audio_settings);
-    AudioAnalyzePeak_F32    CW_Peak(audio_settings);
-    AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
     #if FFT_SIZE == 4096
         AudioAnalyzeFFT4096_IQ_F32  myFFT;  // FFT_Size is set in the Spectrum_RA887x.H file.
     #endif
@@ -225,24 +222,16 @@ int filterBandwidth;
     #endif
     AudioOutputI2S_F32      Output(audio_settings);
     radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
-    //AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
-    //AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
     AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
 
     //#define TEST_SINEWAVE_SIG
     #ifdef TEST_SINEWAVE_SIG
-        //AudioSynthSineCosine_F32   sinewave1;
-        //AudioSynthSineCosine_F32   sinewave2;
-        //AudioSynthSineCosine_F32   sinewave3;
         AudioSynthWaveformSine_F32   sinewave2;
         AudioSynthWaveformSine_F32   sinewave3;
-
         AudioConnection_F32     patchCord4w(sinewave2,0,    FFT_Switch1,2);
         AudioConnection_F32     patchCord4x(sinewave3,0,    FFT_Switch1,3);
         AudioConnection_F32     patchCord4y(sinewave2,0,    FFT_Switch2,2);
         AudioConnection_F32     patchCord4z(sinewave3,0,    FFT_Switch2,3);
-        //AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
-        //AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
     #endif
 
     // Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
@@ -253,13 +242,9 @@ int filterBandwidth;
     AudioConnection_F32     patchCord5a(FFT_Switch1,0,  myFFT,0);
     AudioConnection_F32     patchCord5b(FFT_Switch2,0,  myFFT,1);
 
-    // TEST trying out new NB and AGC features  - use selected lines below as make sense
+    // Noise Blanker
     AudioConnection_F32     patchCord10a(Input,0,       NoiseBlanker,0);
     AudioConnection_F32     patchCord10b(Input,1,       NoiseBlanker,1);
-    //AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
-    //AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
-    //AudioConnection_F32     patchCord9a(compressor1,0,   RX_Hilbert_Plus_45,0);
-    //AudioConnection_F32     patchCord9b(compressor2,0,   RX_Hilbert_Minus_45,0);
     AudioConnection_F32     patchCord11a(NoiseBlanker,0,RX_Hilbert_Plus_45,0);
     AudioConnection_F32     patchCord11b(NoiseBlanker,1,RX_Hilbert_Minus_45,0);
 
@@ -272,20 +257,10 @@ int filterBandwidth;
     AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,     RX_Summer,1);
     AudioConnection_F32     patchCord2e(sinewave1,0,               RX_Summer,2);
     AudioConnection_F32     patchCord3a(RX_Summer,0,                  S_Peak,0);
-
     AudioConnection_F32     patchCord3L(RX_Summer,0,              FilterConv,0);
-    //AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
-    //AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
-    //AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
-    //AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
-    //AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
-    ///AudioConnection_F32     patchCord4c(Input,0,     Output,0);  // for testing
-    ///AudioConnection_F32     patchCord4d(Input,1,     Output,1);
     AudioConnection_F32     patchCord4L(FilterConv,0,                 Output,0);
     AudioConnection_F32     patchCord4R(FilterConv,0,                 Output,1);
-    //AudioConnection_F32     patchCord4c(RX_Summer,0,     Output,0);  // for testing
-    //AudioConnection_F32     patchCord4d(RX_Summer,0,     Output,1);
-
+    
 #else  // Process this section for debugging audio issues
 
     const int audio_block_samples = 128;          // do not change this!
@@ -299,7 +274,7 @@ int filterBandwidth;
     AudioFilterFIR_F32      RX_Hilbert_Plus_45(audio_settings);
     AudioFilterFIR_F32      RX_Hilbert_Minus_45(audio_settings);
     //AudioFilterBiquad_F32   CW_Filter(audio_settings);
-    //AudioFilterConvolution_F32 FilterConv(audio_settings);
+    AudioFilterConvolution_F32 FilterConv(audio_settings);
     AudioMixer4_F32         RX_Summer(audio_settings);
     AudioAnalyzePeak_F32    S_Peak(audio_settings); 
     AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
@@ -342,7 +317,7 @@ int filterBandwidth;
     AudioConnection_F32     patchCord5b(Input,1,        myFFT,1);
 
     // TEST trying out new NB and AGC features  - use selected lines below as make sense
-    //AudioConnection_F32     patchCord10a;lp(Input,0,       NoiseBlanker,0);
+    //AudioConnection_F32     patchCord10a(Input,0,       NoiseBlanker,0);
     //AudioConnection_F32     patchCord10b(Input,1,       NoiseBlanker,1);
     //AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
     //AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
@@ -358,21 +333,20 @@ int filterBandwidth;
     AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,        I_Peak,0);
     AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,      RX_Summer,0);
     AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,     RX_Summer,1);
-    //AudioConnection_F32     patchCord2e(sinewave1,0,               RX_Summer,2);
+    AudioConnection_F32     patchCord2e(sinewave1,0,               RX_Summer,2);
     AudioConnection_F32     patchCord3a(RX_Summer,0,                  S_Peak,0);
-
-    //AudioConnection_F32     patchCord3L(RX_Summer,0,              FilterConv,0);
-    //AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
-    //AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
-    //AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
-    //AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
-    //AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+    //AudioConnection_F32     patchCord2h(RX_Summer,0,  CW_Filter,0);
+    //AudioConnection_F32     patchCord2i(CW_Filter,0,  CW_Peak,0);
+    //AudioConnection_F32     patchCord2i1(CW_Filter,0, CW_RMS,0);
+    AudioConnection_F32     patchCord3L(RX_Summer,0,              FilterConv,0);
     ///AudioConnection_F32     patchCord4c(Input,0,     Output,0);  // for testing
     ///AudioConnection_F32     patchCord4d(Input,1,     Output,1);
-    //AudioConnection_F32     patchCord4L(FilterConv,0,                 Output,0);
-    //AudioConnection_F32     patchCord4R(FilterConv,0,                 Output,1);
-    AudioConnection_F32     patchCord4c(RX_Summer,0,     Output,0);  // for testing
-    AudioConnection_F32     patchCord4d(RX_Summer,0,     Output,1);
+    //AudioConnection_F32      patchCord2j(CW_Filter,0,  Output,0);
+    //AudioConnection_F32      patchCord2k(CW_Filter,0,  Output,1);
+    AudioConnection_F32     patchCord4L(FilterConv,0,                 Output,0);
+    AudioConnection_F32     patchCord4R(FilterConv,0,                 Output,1);
+    //AudioConnection_F32     patchCord4c(RX_Summer,0,     Output,0);  // for testing
+    //AudioConnection_F32     patchCord4d(RX_Summer,0,     Output,1);
 
 #endif
 
