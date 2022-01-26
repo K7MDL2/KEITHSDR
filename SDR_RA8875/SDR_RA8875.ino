@@ -1,5 +1,3 @@
-#ifndef _SDR_RA8875_
-#define _SDR_RA8875_
 //  SDR_RA8875.INO
 //
 //  Main Program File
@@ -17,6 +15,8 @@
 #include "SDR_Data.h"
 // Now pickup build time options from RadioConfig.h
 #include "RadioConfig.h"        // Majority of declarations here to drive the #ifdefs that follow
+#include "Hilbert.h"            // filter coefficients
+#include "AudioFilterConvolution_F32.h"
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
@@ -82,6 +82,8 @@ unsigned long processSyncMessage();
 time_t getTeensy3Time();
 void printDigits(int digits);
 void Check_PTT(void);
+void initDSP(void);
+void SetFilter(void);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -103,7 +105,7 @@ void Check_PTT(void);
 //----------------------------------------------------------------------------------------------------------------------------
 //
 // These should be saved in EEPROM periodically along with several other parameters
-uint8_t     curr_band   = BAND4;    // global tracks our current band setting.  
+uint8_t     curr_band   = BAND2;    // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
@@ -122,12 +124,15 @@ static int  PTT_pin_state = 1;    // current input pin state
 static unsigned long PTT_Input_time = 0;  // Debounce timer
 static int  PTT_Input_debounce = 0;   // Debounce state tracking
 
-Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
+#ifndef DBGSPECT
+  Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
+#endif
+
 #ifdef USE_RA8875
-  RA8875 tft = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+    RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 #else
-  RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
-  FT5206 cts = FT5206(CTP_INT); 
+    RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
+    FT5206 cts    = FT5206(CTP_INT); 
 #endif
 
 #ifdef ENET
@@ -136,115 +141,16 @@ Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
     extern uint8_t rx_count;
 #endif
 
-//
-//============================================ End of Spectrum Setup Section =====================================================
-//
-// Audio Library setup stuff
-//const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
-//const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-//const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
-//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-//const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
-//const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
-
-const int audio_block_samples = 128;          // do not change this!
-AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
-
-const int myInput = AUDIO_INPUT_LINEIN;
-//const int myInput = AUDIO_INPUT_MIC;
-                            
-AudioInputI2S_F32       Input(audio_settings);
-AudioMixer4_F32         FFT_Switch1(audio_settings);
-AudioMixer4_F32         FFT_Switch2(audio_settings);
-AudioFilterFIR_F32      Hilbert1(audio_settings);
-AudioFilterFIR_F32      Hilbert2(audio_settings);
-//AudioFilterBiquad_F32   CW_Filter(audio_settings);
-AudioFilterConvolution_F32 FilterConv(audio_settings);
-AudioMixer4_F32         RX_Summer(audio_settings);
-AudioAnalyzePeak_F32    S_Peak(audio_settings); 
-AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
-AudioAnalyzePeak_F32    I_Peak(audio_settings);
-AudioAnalyzePeak_F32    CW_Peak(audio_settings);
-AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
-AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
-//AudioAnalyzeFFT2048_IQ_F32  myFFT;
-//AudioAnalyzeFFT1024_IQ_F32  myFFT;
-//AudioAnalyzeFFT256_IQ_F32   myFFT;
-AudioOutputI2S_F32      Output(audio_settings);
-radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
-AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
-AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
-AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
-
-//#define TEST_SINEWAVE_SIG
-#ifdef TEST_SINEWAVE_SIG
-//AudioSynthSineCosine_F32   sinewave1;
-//AudioSynthSineCosine_F32   sinewave2;
-//AudioSynthSineCosine_F32   sinewave3;
-
-AudioSynthWaveformSine_F32 sinewave2;
-AudioSynthWaveformSine_F32 sinewave3;
-AudioConnection_F32     patchCord4w(sinewave2,0,  FFT_Switch1,2);
-AudioConnection_F32     patchCord4x(sinewave3,0,  FFT_Switch1,3);
-AudioConnection_F32     patchCord4y(sinewave2,0,  FFT_Switch2,2);
-AudioConnection_F32     patchCord4z(sinewave3,0,  FFT_Switch2,3);
-AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
-AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
-#endif
-
-// Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
-AudioConnection_F32     patchCord7a(Input,0,         FFT_Switch1,0);
-AudioConnection_F32     patchCord7b(Input,1,         FFT_Switch2,0);
-AudioConnection_F32     patchCord6a(Input,0,        FFT_Switch1,1);
-AudioConnection_F32     patchCord6b(Input,1,        FFT_Switch2,1);
-AudioConnection_F32     patchCord5a(FFT_Switch1,0,   myFFT,0);
-AudioConnection_F32     patchCord5b(FFT_Switch2,0,   myFFT,1);
-
-// TEST trying out new NB and AGC features  - use selected lines below as make sense
-AudioConnection_F32     patchCord10a(Input,0,         NoiseBlanker,0);
-AudioConnection_F32     patchCord10b(Input,1,         NoiseBlanker,1);
-//AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
-//AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
-//AudioConnection_F32     patchCord9a(compressor1,0,   Hilbert1,0);
-//AudioConnection_F32     patchCord9b(compressor2,0,   Hilbert2,0);
-AudioConnection_F32     patchCord11a(NoiseBlanker,0,  Hilbert1,0);
-AudioConnection_F32     patchCord11b(NoiseBlanker,1,  Hilbert2,0);
-
-// Normal Audio Chain
-//AudioConnection_F32     patchCord1a(Input,0,  Hilbert1,0);
-//AudioConnection_F32     patchCord1b(Input,1,  Hilbert2,0);
-AudioConnection_F32     patchCord2a(Hilbert1,0,      Q_Peak,0);
-AudioConnection_F32     patchCord2b(Hilbert2,0,      I_Peak,0);
-AudioConnection_F32     patchCord2c(Hilbert1, 0,     RX_Summer,0);
-AudioConnection_F32     patchCord2d(Hilbert2, 0,     RX_Summer,1);
-AudioConnection_F32     patchCord2e(sinewave1,0,     RX_Summer,2);
-AudioConnection_F32     patchCord3a(RX_Summer,0,     S_Peak,0);
-
-AudioConnection_F32     patchCord3L(RX_Summer,0,     FilterConv,0);
-//AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
-//AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
-//AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
-//AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
-//AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
-///AudioConnection_F32     patchCord4c(Input,0,     Output,0);
-///AudioConnection_F32     patchCord4d(Input,1,     Output,1);
-AudioConnection_F32     patchCord4L(FilterConv,0,Output,0);
-AudioConnection_F32     patchCord4R(FilterConv,0,Output,1);
-
-AudioControlSGTL5000    codec1;
-
 //#include <Metro.h>
 // Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
-Metro touch         = Metro(50);    // used to check for touch events
-Metro tuner         = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
-Metro meter         = Metro(400);   // used to update the meters
-Metro popup_timer   = Metro(500);   // used to check for popup screen request
-Metro NTP_updateTx  = Metro(10000); // NTP Request Time interval
-Metro NTP_updateRx  = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
-Metro MF_Timeout    = Metro(4000);  // MultiFunction Knob and Switch 
-Metro touchBeep_timer = Metro(80); // Feedback beep for button touches
+Metro touch             = Metro(50);    // used to check for touch events
+Metro tuner             = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro meter             = Metro(400);   // used to update the meters
+Metro popup_timer       = Metro(500);   // used to check for popup screen request
+Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
+Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
+Metro MF_Timeout        = Metro(4000);  // MultiFunction Knob and Switch 
+Metro touchBeep_timer   = Metro(80); // Feedback beep for button touches
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -252,23 +158,228 @@ uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales
 // Set this to be the default MF knob function when it does not have settings focus from a button touch.
 // Choose any from the MF Knob aware list below.
 uint8_t MF_client;  // Flag for current owner of MF knob services
-bool MF_default_is_active = true;
+bool    MF_default_is_active = true;
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
 
-// used for spectrum object
-//#define FFT_SIZE                  4096            // Need a constant for array size declarion so manually set this value here.  Could try a macro later
-int16_t         fft_bins            = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
-float           fft_bin_size        = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
-int16_t         spectrum_preset     = 0;                    // Specify the default layout option for spectrum window placement and size.
-int16_t         FFT_Source          = 0;            // Used to switch the FFT input source around
-extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-extern struct   Spectrum_Parms Sp_Parms_Def[];
+#ifndef DBGSPECT
+    extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
+    extern struct   Spectrum_Parms Sp_Parms_Def[];
+#endif
+
+// Audio Library setup stuff
+//const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
+//const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
+//const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+//const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+const float sample_rate_Hz = 96000.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
+//const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
+//
+// ---------------------------- Set FFT Size parameters ------------------------------------
+// #define FFT_SIZE  2048    
+// Used for spectrum object - defined in Spectrum_RA887x.h library file
+// Choose 1024, 2048 or 4096.  The system will adjust accordingly
+// ----------------------------------------------------------------------------------------------
+int16_t     fft_bins         = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
+float       fft_bin_size     = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
+int16_t     spectrum_preset  = 0;            // Specify the default layout option for spectrum window placement and size.
+int16_t     FFT_Source       = 0;            // Used to switch the FFT input source around
+
+int pitch = 600;
+int filterCenter;
+int filterBandwidth;
+
+#define DBGAUDIO   // Temp test
+
+#ifndef DBGAUDIO   // Process this section for normal program
+    const int audio_block_samples = 128;          // do not change this!
+    const int myInput = AUDIO_INPUT_LINEIN;
+    //const int myInput = AUDIO_INPUT_MIC;
+
+    AudioSettings_F32       audio_settings(sample_rate_Hz, audio_block_samples);                           
+    AudioInputI2S_F32       Input(audio_settings);
+    AudioMixer4_F32         FFT_Switch1(audio_settings);
+    AudioMixer4_F32         FFT_Switch2(audio_settings);
+    AudioFilterFIR_F32      RX_Hilbert_Plus_45(audio_settings);
+    AudioFilterFIR_F32      RX_Hilbert_Minus_45(audio_settings);
+    //AudioFilterBiquad_F32   CW_Filter(audio_settings);
+    AudioFilterConvolution_F32 FilterConv(audio_settings);
+    AudioMixer4_F32         RX_Summer(audio_settings);
+    AudioAnalyzePeak_F32    S_Peak(audio_settings); 
+    AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
+    AudioAnalyzePeak_F32    I_Peak(audio_settings);
+    AudioAnalyzePeak_F32    CW_Peak(audio_settings);
+    AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
+    #if FFT_SIZE == 4096
+        AudioAnalyzeFFT4096_IQ_F32  myFFT;  // FFT_Size is set in the Spectrum_RA887x.H file.
+    #endif
+    #if FFT_SIZE == 2048    
+        AudioAnalyzeFFT2048_IQ_F32  myFFT;
+    #endif
+    #if FFT_SIZE == 1024
+        AudioAnalyzeFFT1024_IQ_F32  myFFT;
+    #endif
+    AudioOutputI2S_F32      Output(audio_settings);
+    radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
+    //AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
+    //AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
+    AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
+
+    //#define TEST_SINEWAVE_SIG
+    #ifdef TEST_SINEWAVE_SIG
+        //AudioSynthSineCosine_F32   sinewave1;
+        //AudioSynthSineCosine_F32   sinewave2;
+        //AudioSynthSineCosine_F32   sinewave3;
+        AudioSynthWaveformSine_F32   sinewave2;
+        AudioSynthWaveformSine_F32   sinewave3;
+
+        AudioConnection_F32     patchCord4w(sinewave2,0,    FFT_Switch1,2);
+        AudioConnection_F32     patchCord4x(sinewave3,0,    FFT_Switch1,3);
+        AudioConnection_F32     patchCord4y(sinewave2,0,    FFT_Switch2,2);
+        AudioConnection_F32     patchCord4z(sinewave3,0,    FFT_Switch2,3);
+        //AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
+        //AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
+    #endif
+
+    // Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
+    AudioConnection_F32     patchCord7a(Input,0,        FFT_Switch1,0);
+    AudioConnection_F32     patchCord7b(Input,1,        FFT_Switch2,0);
+    AudioConnection_F32     patchCord6a(Output,0,       FFT_Switch1,1);
+    AudioConnection_F32     patchCord6b(Output,1,       FFT_Switch2,1);
+    AudioConnection_F32     patchCord5a(FFT_Switch1,0,  myFFT,0);
+    AudioConnection_F32     patchCord5b(FFT_Switch2,0,  myFFT,1);
+
+    // TEST trying out new NB and AGC features  - use selected lines below as make sense
+    AudioConnection_F32     patchCord10a(Input,0,       NoiseBlanker,0);
+    AudioConnection_F32     patchCord10b(Input,1,       NoiseBlanker,1);
+    //AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
+    //AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
+    //AudioConnection_F32     patchCord9a(compressor1,0,   RX_Hilbert_Plus_45,0);
+    //AudioConnection_F32     patchCord9b(compressor2,0,   RX_Hilbert_Minus_45,0);
+    AudioConnection_F32     patchCord11a(NoiseBlanker,0,RX_Hilbert_Plus_45,0);
+    AudioConnection_F32     patchCord11b(NoiseBlanker,1,RX_Hilbert_Minus_45,0);
+
+    // Normal Audio Chain
+    //AudioConnection_F32     patchCord1a(Input,0,  RX_Hilbert_Plus_45,0);
+    //AudioConnection_F32     patchCord1b(Input,1,  RX_Hilbert_Plus_45,1);
+    AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,         Q_Peak,0);
+    AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,        I_Peak,0);
+    AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,      RX_Summer,0);
+    AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,     RX_Summer,1);
+    AudioConnection_F32     patchCord2e(sinewave1,0,               RX_Summer,2);
+    AudioConnection_F32     patchCord3a(RX_Summer,0,                  S_Peak,0);
+
+    AudioConnection_F32     patchCord3L(RX_Summer,0,              FilterConv,0);
+    //AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
+    //AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
+    //AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
+    //AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
+    //AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+    ///AudioConnection_F32     patchCord4c(Input,0,     Output,0);  // for testing
+    ///AudioConnection_F32     patchCord4d(Input,1,     Output,1);
+    AudioConnection_F32     patchCord4L(FilterConv,0,                 Output,0);
+    AudioConnection_F32     patchCord4R(FilterConv,0,                 Output,1);
+    //AudioConnection_F32     patchCord4c(RX_Summer,0,     Output,0);  // for testing
+    //AudioConnection_F32     patchCord4d(RX_Summer,0,     Output,1);
+
+#else  // Process this section for debugging audio issues
+
+    const int audio_block_samples = 128;          // do not change this!
+    const int myInput = AUDIO_INPUT_LINEIN;
+    //const int myInput = AUDIO_INPUT_MIC;
+
+    AudioSettings_F32       audio_settings(sample_rate_Hz, audio_block_samples);                           
+    AudioInputI2S_F32       Input(audio_settings);
+    AudioMixer4_F32         FFT_Switch1(audio_settings);
+    AudioMixer4_F32         FFT_Switch2(audio_settings);
+    AudioFilterFIR_F32      RX_Hilbert_Plus_45(audio_settings);
+    AudioFilterFIR_F32      RX_Hilbert_Minus_45(audio_settings);
+    //AudioFilterBiquad_F32   CW_Filter(audio_settings);
+    //AudioFilterConvolution_F32 FilterConv(audio_settings);
+    AudioMixer4_F32         RX_Summer(audio_settings);
+    AudioAnalyzePeak_F32    S_Peak(audio_settings); 
+    AudioAnalyzePeak_F32    Q_Peak(audio_settings); 
+    AudioAnalyzePeak_F32    I_Peak(audio_settings);
+    AudioAnalyzePeak_F32    CW_Peak(audio_settings);
+    AudioAnalyzeRMS_F32     CW_RMS(audio_settings);  
+    #if FFT_SIZE == 4096
+        AudioAnalyzeFFT4096_IQ_F32  myFFT;  // FFT_Size is set in the Spectrum_RA887x.H file.
+    #endif
+    #if FFT_SIZE == 2048    
+        AudioAnalyzeFFT2048_IQ_F32  myFFT;
+    #endif
+    #if FFT_SIZE == 1024
+        AudioAnalyzeFFT1024_IQ_F32  myFFT;
+    #endif
+    AudioOutputI2S_F32      Output(audio_settings);
+    radioNoiseBlanker_F32   NoiseBlanker(audio_settings);
+    //AudioEffectCompressor2_F32  compressor1(audio_settings); // Audio Compressor
+    //AudioEffectCompressor2_F32  compressor2(audio_settings); // Audio Compressor
+    AudioSynthWaveformSine_F32 sinewave1; // for audible alerts like touch beep confirmations
+
+    //#define TEST_SINEWAVE_SIG
+    #ifdef TEST_SINEWAVE_SIG
+        //AudioSynthSineCosine_F32   sinewave1;
+        //AudioSynthSineCosine_F32   sinewave2;
+        //AudioSynthSineCosine_F32   sinewave3;
+        AudioSynthWaveformSine_F32   sinewave2;
+        AudioSynthWaveformSine_F32   sinewave3;
+
+        AudioConnection_F32     patchCord4w(sinewave2,0,    FFT_Switch1,2);
+        AudioConnection_F32     patchCord4x(sinewave3,0,    FFT_Switch1,3);
+        AudioConnection_F32     patchCord4y(sinewave2,0,    FFT_Switch2,2);
+        AudioConnection_F32     patchCord4z(sinewave3,0,    FFT_Switch2,3);
+        //AudioConnection_F32     patchCord4u(sinewave2,0,     Output,0);
+        //AudioConnection_F32     patchCord4v(sinewave3,0,     Output,1);
+    #endif
+
+    // Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
+    AudioConnection_F32     patchCord7a(Input,0,        myFFT,0);
+    AudioConnection_F32     patchCord5b(Input,1,        myFFT,1);
+
+    // TEST trying out new NB and AGC features  - use selected lines below as make sense
+    //AudioConnection_F32     patchCord10a;lp(Input,0,       NoiseBlanker,0);
+    //AudioConnection_F32     patchCord10b(Input,1,       NoiseBlanker,1);
+    //AudioConnection_F32     patchCord8a(NoiseBlanker1,0, compressor1, 0);
+    //AudioConnection_F32     patchCord8b(NoiseBlanker2,0, compressor2, 0);
+    //AudioConnection_F32     patchCord9a(compressor1,0,   RX_Hilbert_Plus_45,0);
+    //AudioConnection_F32     patchCord9b(compressor2,0,   RX_Hilbert_Minus_45,0);
+    //AudioConnection_F32     patchCord11a(NoiseBlanker,0,RX_Hilbert_Plus_45,0);
+    //AudioConnection_F32     patchCord11b(NoiseBlanker,1,RX_Hilbert_Minus_45,0);
+
+    // Normal Audio Chain
+    AudioConnection_F32     patchCord1a(Input,0,  RX_Hilbert_Plus_45,0);
+    AudioConnection_F32     patchCord1b(Input,1,  RX_Hilbert_Minus_45,1);
+    AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,         Q_Peak,0);
+    AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,        I_Peak,0);
+    AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,      RX_Summer,0);
+    AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,     RX_Summer,1);
+    //AudioConnection_F32     patchCord2e(sinewave1,0,               RX_Summer,2);
+    AudioConnection_F32     patchCord3a(RX_Summer,0,                  S_Peak,0);
+
+    //AudioConnection_F32     patchCord3L(RX_Summer,0,              FilterConv,0);
+    //AudioConnection_F32     patchCord3b(RX_Summer,0,     CW_Filter,0);
+    //AudioConnection_F32     patchCord4a(CW_Filter,0,     CW_Peak,0);
+    //AudioConnection_F32     patchCord4b(CW_Filter,0,     CW_RMS,0);
+    //AudioConnection_F32     patchCord4c(CW_Filter,0,     Output,0);
+    //AudioConnection_F32     patchCord4d(CW_Filter,0,     Output,1);
+    ///AudioConnection_F32     patchCord4c(Input,0,     Output,0);  // for testing
+    ///AudioConnection_F32     patchCord4d(Input,1,     Output,1);
+    //AudioConnection_F32     patchCord4L(FilterConv,0,                 Output,0);
+    //AudioConnection_F32     patchCord4R(FilterConv,0,                 Output,1);
+    AudioConnection_F32     patchCord4c(RX_Summer,0,     Output,0);  // for testing
+    AudioConnection_F32     patchCord4d(RX_Summer,0,     Output,1);
+
+#endif
+
+AudioControlSGTL5000    codec1;
 
 // -------------------------------------Setup() -------------------------------------------------------------------
-//
-
+// 
 tmElements_t tm;
 time_t prevDisplay = 0; // When the digital clock was displayed
 
@@ -280,6 +391,8 @@ COLD void setup()
     Serial.begin(115200);
     delay(500);
     Serial.println(F("Initializing SDR_RA887x Program"));
+    Serial.print(F("FFT Size is "));
+    Serial.println(FFT_SIZE);
     Serial.println(F("**** Running I2C Scanner ****"));
 
     // ---------------- Setup our basic display and comms ---------------------------
@@ -290,7 +403,7 @@ COLD void setup()
     MF_default_is_active = true;
     MeterInUse = false;    
      
-#ifdef  I2C_ENCODERS  
+    #ifdef  I2C_ENCODERS  
         set_I2CEncoders();
     #endif // I2C_ENCODERS
 
@@ -323,7 +436,10 @@ COLD void setup()
         tft.canvasImageWidth(SCREEN_WIDTH);
         //tft.activeWindowXY(0,0);
         //tft.activeWindowWH(SCREEN_WIDTH,SCREEN_HEIGHT);
+
+#ifndef DBGSPECT        
         spectrum_RA887x.setActiveWindow_default();
+#endif        
         tft.graphicMode(true);
         tft.clearActiveScreen();
         tft.selectScreen(0);  // Select screen page 0
@@ -364,8 +480,15 @@ COLD void setup()
         }
     }
     digitalClockDisplay(); // print time to terminal
-  
+
+    //--------------------------   Setup our Audio System -------------------------------------
+    initDSP();
+    RFgain(0);
+    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+
+#ifndef DBGSPECT
     spectrum_RA887x.initSpectrum(spectrum_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+#endif
 
     #ifdef DIG_STEP_ATT
         // Initialize the I/O for digital step attenuator if used.
@@ -398,81 +521,6 @@ COLD void setup()
     write_radiocfg_h();        // write out the #define to a file on the SD card.  
                         // This could be used by the PC during compile to override the RadioCFg.h
 */
-    //--------------------------   Setup our Audio System -------------------------------------
-
-    AudioMemory_F32(100, audio_settings);
-    codec1.enable(); // MUST be before inputSelect()
-    delay(5);
-    codec1.dacVolumeRampDisable(); // Turn off the sound for now
-    codec1.inputSelect(myInput);
-    RFgain(0);
-    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
-    //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
-    //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
-    codec1.autoVolumeEnable(); // let the volume control itself..... poor mans agc
-    //codec1.autoVolumeDisable();// Or don't let the volume control itself
-    codec1.muteLineout(); //mute the audio output until we finish thumping relays 
-    codec1.adcHighPassFilterDisable();
-    codec1.dacVolume(0); // set the "dac" volume (extra control)
-
-    // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
-    AudioNoInterrupts();
-    FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-    FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-    FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    #ifdef TEST_SINEWAVE_SIG
-    FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    #else
-    FFT_Switch1.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch1.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-    FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    #endif
-    AudioInterrupts();
-
-    /*
-    //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
-    // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
-    if(mndx = 1 || mndx==2)
-    { 
-      FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
-      FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
-    )  
-    else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
-    { 
-      FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
-      FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
-    }
-    */
-    // Set up an alert tone for feedback   Can also blink KED knobs if used.
-
-#ifdef TEST_SINEWAVE_SIG
-    // Create a synthetic sine wave, for testing
-    // To use this, edit the connections above
-    // # sources to test edges and middle of BW
-    float sinewave_vol = 0.005;
-    sinewave2.amplitude(sinewave_vol);
-    sinewave2.frequency(100.000); //
-    sinewave3.amplitude(sinewave_vol);
-    sinewave3.frequency(400.000); //
-#endif
-
-    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
-    RX_Summer.gain(0, -3.0); // Leave at 1.0
-    RX_Summer.gain(1, 3.0);  // -1 for LSB out
-    // Choose our output type.  Can do dB, RMS or power
-    myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
-    // Uncomment one these to try other window functions
-    //  myFFT.windowFunction(NULL);
-    //  myFFT.windowFunction(AudioWindowBartlett1024);
-    //  myFFT.windowFunction(AudioWindowFlattop1024);
-    myFFT.windowFunction(AudioWindowHanning1024);
-    myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
     curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
@@ -486,10 +534,12 @@ COLD void setup()
     VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
     VFOB = bandmem[curr_band].vfo_B_last;
     #endif
+
     // Assignments for our encoder knobs, if any
     initVfo(); // initialize the si5351 vfo
     //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
     displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
+#ifndef DBGSPECT    
     spectrum_RA887x.Spectrum_Parm_Generator(spectrum_preset, spectrum_preset); // use this to generate new set of params for the current window size values. 
                                                               // 1st arg is target, 2nd arg is current value
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
@@ -500,6 +550,7 @@ COLD void setup()
                                                               // Generator never modifies the globals so never affects the layout itself.
                                                               // Print out our starting frequency for testing
     //sp.drawSpectrumFrame(6);   // for 2nd window
+#endif    
     Serial.print(F("\nInitial Dial Frequency is "));
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
@@ -571,7 +622,7 @@ void loop()
 {
     static int32_t newFreq = 0;
     static uint32_t time_old = 0;
- 
+#ifndef DBGSPECT
     // Update spectrum and waterfall based on timer
     if (spectrum_waterfall_update.check() == 1 && last_PTT_Input == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
     {
@@ -581,7 +632,7 @@ void loop()
                 spectrum_RA887x.spectrum_update(spectrum_preset, (bandmem[curr_band].VFO_AB_Active == VFO_A), VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
                 // spectrum_update(6);  // for 2nd window
     }
-    
+#endif
     uint32_t time_n = millis() - time_old;
 
     if (time_n > delta)
@@ -1280,4 +1331,88 @@ COLD void digitalClockDisplay() {
   Serial.println(); 
 }
 
-#endif  // _SDR_RA8875_
+COLD void SetFilter(void)
+{
+    //FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
+}
+
+void initDSP(void)
+{
+    if (fft_bins <= 2048)
+        AudioMemory_F32(50, audio_settings);   // 50 is good for 2048IQ FFT.
+    else
+        AudioMemory_F32(80, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_3200H,151);   // Left channel 
+    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_3200H,151); // Right channel
+    codec1.enable(); // MUST be before inputSelect()
+    delay(5);
+    codec1.dacVolumeRampDisable(); // Turn off the sound for now
+    codec1.inputSelect(myInput);
+    codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
+    //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
+    //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
+    codec1.autoVolumeEnable(); // let the volume control itself..... poor mans agc
+    //codec1.autoVolumeDisable();// Or don't let the volume control itself
+    codec1.muteLineout(); //mute the audio output until we finish thumping relays 
+    codec1.adcHighPassFilterDisable();
+    codec1.dacVolume(0); // set the "dac" volume (extra control)
+
+    // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+    AudioNoInterrupts();
+    FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
+    FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
+    FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
+    FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
+
+    #ifdef TEST_SINEWAVE_SIG
+        FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+        FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+        FFT_Switch2.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+        FFT_Switch2.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    #else
+        FFT_Switch1.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+        FFT_Switch1.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+        FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
+        FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
+    #endif
+    AudioInterrupts();
+
+    /*
+    //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
+    // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
+    if(mndx = 1 || mndx==2)
+    { 
+      FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
+      FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
+    )  
+    else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
+    { 
+      FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
+      FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
+    }
+    */
+    // Set up an alert tone for feedback   Can also blink KED knobs if used.
+
+    #ifdef TEST_SINEWAVE_SIG
+        // Create a synthetic sine wave, for testing
+        // To use this, edit the connections above
+        // # sources to test edges and middle of BW
+        float sinewave_vol = 0.005;
+        sinewave2.amplitude(sinewave_vol);
+        sinewave2.frequency(100.000); //
+        sinewave3.amplitude(sinewave_vol);
+        sinewave3.frequency(400.000); //
+    #endif
+
+    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
+    //RX_Summer.gain(0, 3.0); // Leave at 1.0
+    //RX_Summer.gain(1, -3.0);  // 0 for LSB out
+    // Choose our output type.  Can do dB, RMS or power
+    myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
+    // Uncomment one these to try other window functions
+    //  myFFT.windowFunction(NULL);
+    //  myFFT.windowFunction(AudioWindowBartlett1024);
+    //  myFFT.windowFunction(AudioWindowFlattop1024);
+    myFFT.windowFunction(AudioWindowHanning1024);
+    myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
+}

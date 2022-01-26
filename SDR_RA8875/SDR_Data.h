@@ -13,7 +13,7 @@ struct Band_Memory bandmem[BANDS] = {
     // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#  SpRef
     {  "IF", 8200000, 8300000, 8215000, 8215000,VFO_A, USB, LSB, BW2_8, BAND0, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 20, PREAMP_OFF,  0,  0,  8},
     {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A, LSB, LSB, BW2_8, BAND1, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0, ATTEN_OFF, 20, PREAMP_OFF,  0,  0,  8},
-    { "80M", 3500000, 4000000, 3573000, 3830000,VFO_A,DATA, LSB, BW3_2, BAND2, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1, ATTEN_OFF, 10, PREAMP_OFF,  0,  1,  5},
+    { "80M", 3500000, 4000000, 3573000, 3868000,VFO_A,DATA, LSB, BW3_2, BAND2, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1,  ATTEN_ON, 10, PREAMP_OFF,  0,  1,  5},
     { "60M", 4990000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND3, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,  6, PREAMP_OFF,  0,  2,  8},
     #ifdef PANADAPTER
     { "40M", 8000000, 8500000, 8215000, 8215000,VFO_A, USB, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 3,  ATTEN_ON,  5,  PREAMP_ON,  0,  3,  8},
@@ -177,7 +177,7 @@ struct Label labels[LABEL_NUM] = {
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
     //Profile name  spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoLvl LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1          enc2          enc3    
     {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND3,  OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  100,  ON,  31,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      REFLVL_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND10, OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  100,  ON,  31,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN},
+    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2, OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  91,  ON,  31,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN},
     {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 1.0,   8,   OFF,   100,   ON,   OFF,  100,  ON,  31,   ON,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN}
 };
 
@@ -226,7 +226,7 @@ PROGMEM struct Filter_Settings filter[FILTER] = {
     {"2.30",  2300, "KHz",  USB},
     {"2.80",  2800, "KHz",  USB},
     {"3.20",  3200, "KHz",  USB},
-    {"4.00",  4200, "KHz", DATA}
+    {"4.00",  4000, "KHz", DATA}
 };
 
 PROGMEM struct TuneSteps  tstep[TS_STEPS] = {

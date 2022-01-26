@@ -12,9 +12,15 @@
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 
 // From main file where sampling rate and other audio library features are set
-extern AudioAnalyzeFFT4096_IQ_F32  myFFT;
-//extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
-//extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
+#if FFT_SIZE == 4096
+    extern AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
+#endif
+#if FFT_SIZE == 2048    
+    extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
+#endif
+#if FFT_SIZE == 1024
+    extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
+#endif
 extern int16_t                  fft_bins;    //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                    fft_bin_size;     //   Hz per bin
 //extern uint32_t                 VFOA;

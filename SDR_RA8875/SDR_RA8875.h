@@ -28,10 +28,14 @@
 #include <InternalTemperature.h>// V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 #include <TimeLib.h>            // TODO  - list where to find this
 
+//#define DBGSPECT   // debugging temp 
+
 //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 //#include <glcdfont.c>
-//#include <ILI9341_fonts.h>
+#ifdef DBGSPECT
+    #include <ILI9341_fonts.h>
+#endif
 //#include <FiraCode_mono_14.c>   //minipixel
 //#include <fonts/FiraCode_mono_16.c>
 //#include <fonts/FiraCode_mono_18.c>
@@ -43,7 +47,9 @@
 
 // Below are local project files
 //#include "RadioConfig.h"        // Our main configuration file
-#include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
+#ifndef DBGSPECT
+  #include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
+#endif
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 //////#include "Hilbert.h"      // filter coefficients -DO NOT include this file here, included by bandwidth.cpp directly
 #include "Vfo.h"
@@ -56,8 +62,9 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
-#include "AudioFilterConvolution_F32.h"
+//#include "AudioFilterConvolution_F32.h"
 //#include "AudioStream_F32.h"
+
 //#include "SD_Card.h"
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
@@ -457,5 +464,67 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 // Simple ways to designate functions to run out of fast or slower memory to help save RAM
 #define HOT FASTRUN    __attribute__((hot))
 #define COLD FLASHMEM  __attribute__((cold))
+
+#ifdef DBGSPECT
+    //
+    #define USE_RA8876_t3
+    //
+    #define  SCREEN_WIDTH      1024 
+    #define  SCREEN_HEIGHT     600
+    #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+    #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+    #include <RA8876_t3.h>           // Github
+    #include <FT5206.h>
+    //#define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
+    //#define  RA8876_CS         10   //any digital pin
+    //#define  RA8876_RESET      9    //any pin or nothing!
+    //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+    
+    // From RA8875/_settings/RA8875ColorPresets.h
+    // Colors preset (RGB565)
+    const uint16_t	RA8875_BLACK            = 0x0000;
+    const uint16_t 	RA8875_WHITE            = 0xFFFF;
+    const uint16_t	RA8875_RED              = 0xF800;
+    const uint16_t	RA8875_GREEN            = 0x07E0;
+    const uint16_t	RA8875_BLUE             = 0x001F;
+    const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
+    const uint16_t 	RA8875_MAGENTA          = 0xF81F;
+    const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
+    const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
+    const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
+    const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
+    const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
+    const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
+    const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
+    //#endif // USE_RA8876_t3
+
+    #define myLT_GREY               RA8875_LIGHT_GREY 
+    #define myBLUE                  RA8875_BLUE
+    #define myBLACK                 RA8875_BLACK
+    #define myWHITE                 RA8875_WHITE
+    #define myYELLOW                RA8875_YELLOW
+    #define myGREEN                 RA8875_GREEN
+
+    #ifdef USE_RA8875
+	//extern RA8875 tft;
+    #else 
+	//extern RA8876_t3 tft;
+    //int16_t	_activeWindowXL = 0;
+    //int16_t _activeWindowXR = SCREEN_WIDTH;
+    //int16_t	_activeWindowYT = 0;
+    //int16_t _activeWindowYB = SCREEN_HEIGHT;
+    #endif
+
+    #define FFT_SIZE                4096 //2048//1024        // need a constant for array size declarion so manually set this value here   Could try a macro later
+
+    // use the generator function to create 1 set of data to define preset values for window size and placement.  
+    // Just copy and paste from the serial terminal into each record row.
+    #define PRESETS 12  // number of parameter records with our preset spectrum window values
+    ///******************************************************************************************************************************
+    //   *************  Set Preset to select your configuration record to use.  The rest are ignored for operation ******************
+    ///
+#define SPECTRUM_PRESET 0
+
+#endif
 
 #endif //_SDR_RA8875_H_

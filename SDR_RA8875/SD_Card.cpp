@@ -9,6 +9,7 @@
 #include "RadioConfig.h"
 #include "SD_Card.h"
 
+#ifndef DBGSPECT
 extern struct   Spectrum_Parms      Sp_Parms_Def[];
 extern struct   Band_Memory         bandmem[];
 extern struct   User_Settings       user_settings[];
@@ -524,3 +525,4 @@ const uint16_t 	RA8875_GRAYSCALE 		    = 2113;//grayscale30 = RA8875_GRAYSCALE*3
     
     #define MY_LOCAL_PORTNUM 7943;     // local port the SDR will LISTEN on for any remote display/Desktop app
 */
+#endif // debug

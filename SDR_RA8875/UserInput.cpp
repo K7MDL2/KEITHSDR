@@ -611,10 +611,12 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             Serial.print(F("Dist End   =")); Serial.println(dist_end);
             #endif
             // Calculate the distance between T1 and T2 at the end   
+#ifndef DBGSPECT            
             if (dist_start - dist_end > 200 )                        
                 Set_Spectrum_Scale(-1); // Was a pinch in.  Just pass on direction, the end function can look for distance if needed
             if (dist_end - dist_start > 200)                        
                 Set_Spectrum_Scale(1); // was a pinch out   
+#endif                
             if (dist_end - dist_start <= 200  && abs(t1_x_s - t1_x_e) < 200  && abs(t1_y_s - t1_y_e) > 200)
             {
                 Serial.println(F("Volume UP"));

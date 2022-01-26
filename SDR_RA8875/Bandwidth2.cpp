@@ -5,37 +5,34 @@
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 //#include "Bandwidth2.h"
-#include "Hilbert.h"            // filter coefficients
+//#include "Hilbert.h"            // filter coefficients
 
-extern AudioFilterFIR_F32               Hilbert1;
-extern AudioFilterFIR_F32               Hilbert2;
-extern AudioFilterConvolution_F32       FilterConv;
+//extern AudioFilterFIR_F32               RX_Hilbert_Plus_45;
+//extern AudioFilterFIR_F32               RX_Hilbert_Minus_45;
 //extern AudioFilterBiquad_F32    CW_Filter;
-extern struct Band_Memory           bandmem[];
+extern struct Band_Memory               bandmem[];
 extern uint8_t curr_band;   // global tracks our current band setting. 
 extern const struct Filter_Settings     filter[];
-
-int pitch = 600;
-int filterCenter;
-int filterBandwidth;
-
-COLD void SetFilter()
-{
-    FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
-}
+extern void SetFilter(void);
+extern int pitch;
+extern int filterCenter;
+extern int filterBandwidth;
 
 ////////////////////////////////////////////////////////////////////////////////////
 COLD void selectBandwidth(uint8_t bndx)
 {
     // For convolutional filter method, just set a single fixed Hibert filter width. Rest is taken care of after the summer
-    Hilbert1.begin(Hilbert_Plus45_40K,151);
-    Hilbert2.begin(Hilbert_Minus45_40K,151);
+    //RX_Hilbert_Plus_45.end();
+    //RX_Hilbert_Minus_45.end();
+
+    //RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);
+    //RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151);
     
     if(bndx==0)
     {
         //bandwidth="Bw 250 Hz";
-    //    Hilbert1.begin(Hilbert_Plus45_500,151);
-    //    Hilbert2.begin(Hilbert_Minus45_500,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_500,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_500,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,250.0f,9.0f);   
         //CW_Filter.begin();   
@@ -47,8 +44,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==1)
     {
         //bandwidth="Bw 500 Hz";
-    //    Hilbert1.begin(Hilbert_Plus45_500,151);
-    //    Hilbert2.begin(Hilbert_Minus45_500,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_500,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_500,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,500.0f,9.0f);
         //CW_Filter.begin();
@@ -60,8 +57,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==2)
     {
         //bandwidth="Bw 700 Hz";
-    //    Hilbert1.begin(Hilbert_Plus45_700,151);
-    //    Hilbert2.begin(Hilbert_Minus45_700,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_700,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_700,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,700.0f,9.0f);
         //CW_Filter.begin();
@@ -73,8 +70,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==3)
     {
         //bandwidth="Bw 1.0 kHz";
-    //    Hilbert1.begin(Hilbert_Plus45_1K,151);
-    //    Hilbert2.begin(Hilbert_Minus45_1K,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_1K,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_1K,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,1000.0f,9.0f);
         //CW_Filter.begin();
@@ -86,8 +83,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==4)
     {
         //bandwidth="Bw 1.8 kHz";  
-    //    Hilbert1.begin(Hilbert_Plus45_18K,151);
-    //    Hilbert2.begin(Hilbert_Minus45_18K,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_18K,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_18K,151);
         filterCenter=1850/2;
         filterBandwidth=1800;
         SetFilter();
@@ -96,8 +93,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==5)
     {
         //bandwidth="Bw 2.3kHz";
-    //    Hilbert1.begin(Hilbert_Plus45_23K,151);
-    //    Hilbert2.begin(Hilbert_Minus45_23K,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_23K,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_23K,151);
         filterCenter=2350/2;
         filterBandwidth=2300;
         SetFilter();
@@ -106,8 +103,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==6)
     {
         //bandwidth="Bw 2.8 kHz";
-    //    Hilbert1.begin(Hilbert_Plus45_28K,151);
-    //    Hilbert2.begin(Hilbert_Minus45_28K,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151);
         filterCenter=2850/2;
         filterBandwidth=2800;
         SetFilter();
@@ -116,8 +113,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==7)
     {
         //bandwidth="Bw 3.2 kHz";
-    //    Hilbert1.begin(Hilbert_Plus45_32K,151);
-    //    Hilbert2.begin(Hilbert_Minus45_32K,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_32K,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_32K,151);
         filterCenter=3250/2;
         filterBandwidth=3200;
         SetFilter();           
@@ -126,8 +123,8 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==8) 
     {
         //bandwidth="4.0 kHz";
-    //    Hilbert1.begin(Hilbert_Plus45_40K,151);
-    //    Hilbert2.begin(Hilbert_Minus45_40K,151);
+    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);
+    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151);
         filterCenter=4050/2;
         filterBandwidth=4000;
         SetFilter();

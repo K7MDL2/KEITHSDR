@@ -17,9 +17,9 @@
 #else 
 	extern RA8876_t3 tft;
 #endif
-
+#ifndef DBGSPECT
 extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
-
+#endif
 extern          uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
 extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
@@ -95,6 +95,7 @@ void selectAgc(uint8_t andx);
 void clearMeter(void);
 void setMeter(uint8_t id);
 
+#ifndef DBGSPECT
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 COLD void Set_Spectrum_Scale(int8_t zoom_dir)
 {
@@ -137,6 +138,7 @@ COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
     if (Sp_Parms_Def[spectrum_preset].spect_floor > 400)
         Sp_Parms_Def[spectrum_preset].spect_floor = 400;
 }
+#endif
 //
 //----------------------------------- Skip to Ham Bands only ---------------------------------
 //
@@ -189,7 +191,9 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RFgain(0);
     AFgain(0);
     setNBLevel(0);
+#ifndef DBGSPECT
     spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
+#endif
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
     //ATU() when there is hardware to setup in the future
@@ -247,7 +251,9 @@ COLD void pop_win(uint8_t init)
 
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
+#ifndef DBGSPECT        
         spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
+#endif        
         displayRefresh();
     }
 }
@@ -456,9 +462,11 @@ COLD void Menu()
 {   
     //popup = 1;
     //pop_win(1);
+#ifndef DBGSPECT
     Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
     if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
         Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
+#endif
     //Serial.print("spectrum_wf_colortemp = ");
     //Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
     displayMenu();
@@ -1021,8 +1029,9 @@ COLD void RefLevel(int8_t newval)
         bandmem[curr_band].sp_ref_lvl = 50; 
     if (bandmem[curr_band].sp_ref_lvl < -50)
         bandmem[curr_band].sp_ref_lvl = -50; 
+#ifndef DBGSPECT        
     Sp_Parms_Def[spectrum_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
-
+#endif
     displayRefLevel();
     //Serial.print("Set Reference Level to ");
     //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
@@ -1073,6 +1082,7 @@ COLD void Band()
 // DISPLAY button
 COLD void Display()
 {   
+#ifndef DBGSPECT
     if (Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode)
     {
         display_state = 0;
@@ -1084,6 +1094,7 @@ COLD void Display()
         Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 1;
     }
     spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
+#endif
     //popup = 1;
     //pop_win(1);
     displayDisplay();
@@ -1093,6 +1104,7 @@ COLD void Display()
 
 COLD void TouchTune(int16_t touch_Freq)
 {
+#ifndef DBGSPECT
     touch_Freq -= Sp_Parms_Def[spectrum_preset].spect_width/2;     // adjust coordinate relative to center 
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
     
@@ -1122,6 +1134,7 @@ COLD void TouchTune(int16_t touch_Freq)
         }
         //Serial.println(formatVFO(VFOB));
     }
+#endif    
     selectFrequency(0);
     displayFreq();
 }
