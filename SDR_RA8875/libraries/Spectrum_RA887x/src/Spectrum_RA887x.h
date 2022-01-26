@@ -59,7 +59,7 @@
   //#define  RA8875_RESET      9    //any pin or nothing!
   //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   #include <SPI.h>                // included with Arduino
-  #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+  //#include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
   #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
   #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #else 
