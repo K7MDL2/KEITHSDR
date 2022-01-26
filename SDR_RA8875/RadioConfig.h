@@ -114,7 +114,7 @@
 #define PTT_OUT1     34     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
