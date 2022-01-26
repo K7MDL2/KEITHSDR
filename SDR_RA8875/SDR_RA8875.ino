@@ -193,7 +193,7 @@ int pitch = 600;
 int filterCenter;
 int filterBandwidth;
 
-#define DBGAUDIO   // Temp test
+//#define DBGAUDIO   // Temp test
 
 #ifndef DBGAUDIO   // Process this section for normal program
     const int audio_block_samples = 128;          // do not change this!
@@ -1333,7 +1333,7 @@ COLD void digitalClockDisplay() {
 
 COLD void SetFilter(void)
 {
-    //FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
+    FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
 }
 
 void initDSP(void)
