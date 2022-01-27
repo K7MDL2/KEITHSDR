@@ -30,8 +30,8 @@
 
 //#define DBGSPECT   // debugging temp 
 
-//#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-//#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 //#include <glcdfont.c>
 #ifdef DBGSPECT
     #include <ILI9341_fonts.h>
@@ -51,21 +51,15 @@
   #include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
 #endif
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
-//////#include "Hilbert.h"      // filter coefficients -DO NOT include this file here, included by bandwidth.cpp directly
 #include "Vfo.h"
 #include "Display.h"
 #include "Tuner.h"
 #include "Mode.h"
 #include "Smeter.h"
-#include "CW_Tune.h"
 #include "Quadrature.h"
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
-//#include "AudioFilterConvolution_F32.h"
-//#include "AudioStream_F32.h"
-
-//#include "SD_Card.h"
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 #define BAND0       0       // Band slot ID
