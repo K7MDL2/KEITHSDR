@@ -59,9 +59,7 @@
   //#define  RA8875_RESET      9    //any pin or nothing!
   //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   #include <SPI.h>                // included with Arduino
-  //#include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
+  #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
 #else 
   //
   //--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
@@ -70,8 +68,6 @@
   //
   #define  SCREEN_WIDTH      1024 
   #define  SCREEN_HEIGHT     600
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
   #include <RA8876_t3.h>           // Github
   //#include <FT5206.h>
   //#define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
@@ -96,6 +92,9 @@
   const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
   const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
 #endif // USE_RA8876_t3
+
+#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 
 #define myLT_GREY               RA8875_LIGHT_GREY 
 #define myBLUE                  RA8875_BLUE
