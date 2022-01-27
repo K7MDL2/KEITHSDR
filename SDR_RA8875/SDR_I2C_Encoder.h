@@ -10,7 +10,7 @@
 //
 #include <Arduino.h>
 #include <i2cEncoderLibV2.h>
-#include "RadioConfig.h"
+//#include "RadioConfig.h"
 
 #ifdef I2C_ENCODERS
 // These are the per-encoder function declarations
