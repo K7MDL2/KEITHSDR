@@ -109,9 +109,11 @@
 
 #define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-#define PTT_INPUT    33     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_INPUT    35     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
-#define PTT_OUT1     34     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_OUT1     36     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+
+//#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 //#define K7MDL_BUILD
@@ -199,8 +201,6 @@
   #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
   #include <SPI.h>                // included with Arduino
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 #else // If RA8876 is not used then assume the RA8876_t3 1024x600 is.
   //
   //
@@ -211,8 +211,6 @@
   //
   #define  SCREEN_WIDTH      1024 
   #define  SCREEN_HEIGHT     600
-  #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
   #include <RA8876_t3.h>           // Github
   #include <FT5206.h>
   #define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
