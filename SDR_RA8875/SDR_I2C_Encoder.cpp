@@ -3,7 +3,7 @@
 //
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-#include "SDR_I2C_Encoder.h"
+//#include "SDR_I2C_Encoder.h"
 
 //  In RadioCOnfig.h use   #define USE_MIDI to enable MIDI 	-  
 //  Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
