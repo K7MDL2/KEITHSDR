@@ -502,7 +502,7 @@ COLD void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
 //
 COLD const char* formatVFO(uint32_t vfo)
 {
-	static char vfo_str[25];
+	static char vfo_str[25] = {""};
 	
 	uint16_t MHz = (vfo/1000000 % 1000000);
 	uint16_t Hz  = (vfo % 1000);

@@ -58,9 +58,12 @@
                             // the size of the display.
                             // DEPENDS on LCD I2C hardware connected or it will hang on I2C comms timeouts
 
-//#define I2C_ENCODERS     // I2C connected encoders. Here we are using the RGB LED version from
+//#define I2C_ENCODERS      // I2C connected encoders. Here we are using the RGB LED version from
                             // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
                             // Hardware verson 2.1, Arduino library version 1.40.
+
+//#define MECH_ENCODERS     // Use regular mechanical (non-I2C) connected encoders.  If this is defined and there are no encoders connected,
+                            // *** AND *** ENET is defined, you will get reboot right after enet initialization comletes.
 
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE     // Depends on ENET
@@ -125,7 +128,9 @@
     #ifndef USE_RA8875
       #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
     #endif
-    //#define I2C_ENCODERS
+    //#define I2C_ENCODERS            // Use I2C connected encoders.
+    //#define MECH_ENCODERS            // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
+                                      // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
     //#define OCXO_10MHZ              // Switch to etherkits library and set to use ext ref input at 10MHz
     //#define K7MDL_OCXO              // use the si5351 C board with 10Mhz OCXO
     #define si5351_TCXO               // Set load cap to 0pF for TCXO
@@ -139,10 +144,10 @@
       #undef VFO_MULT                 // undefine so we can redefine it
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
     #endif
-    #define USE_DHCP
-    //#define ENET
-    //#define USE_ENET_PROFILE
-    //#define REMOTE_OPS
+    //#define USE_DHCP
+    #define ENET
+    #define USE_ENET_PROFILE
+    //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
     #define SV1AFN_BPF                // Use the BPF board
     #define DIG_STEP_ATT              // Use the step atten usually the PE4302 board
     //#define PANADAPTER              // Enable panadapter mode
@@ -168,13 +173,13 @@
 // I2C connected encoders use this this pin to signal interrupts
 // Knob assignments are the user_settings database                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
 #ifdef I2C_ENCODERS
-  #define I2C_INT_PIN   29
-  #define MF_ENC_ADDR  (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
-  #define ENC2_ADDR    (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
-  //#define ENC3_ADDR    (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/     
+  #define I2C_INT_PIN     29
+  #define MF_ENC_ADDR     (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+  #define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+  //#define ENC3_ADDR     (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/     
 #else
-  #define MF_ENC_PIN_A 40   // list pins for any non I2C aux encoders.
-  #define MF_ENC_PIN_B 39
+  #define MF_ENC_PIN_A    40   // list pins for any non I2C aux encoders.
+  #define MF_ENC_PIN_B    39
 #endif // I2C_ENCODERS
 
 // -------------------------  PE4302 6 bit Digital Step Attenuator -----------------------------

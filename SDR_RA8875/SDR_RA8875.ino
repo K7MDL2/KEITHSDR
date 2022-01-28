@@ -28,28 +28,30 @@
 Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
 
 #ifdef I2C_ENCODERS              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
-// This is a basic example for using the I2C Encoder V2
-//  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
-//  It's also printet when the push button is released.
-//  When the encoder is turned the led turn green
-//  When the encoder reach the max or min the led turn red
-//  When the encoder is pushed, the led turn blue
+    // This is a basic example for using the I2C Encoder V2
+    //  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
+    //  It's also printet when the push button is released.
+    //  When the encoder is turned the led turn green
+    //  When the encoder reach the max or min the led turn red
+    //  When the encoder is pushed, the led turn blue
 
-//  Connections with Teensy 4.1:
-//  - -> GND
-//  + -> 3.3V
-//  SDA -> 18
-//  SCL -> 19
-//  INT -> 29
-  #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.
-  //Class initialization with the I2C addresses
-  extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
-  extern i2cEncoderLibV2 ENC2; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
-  extern i2cEncoderLibV2 ENC3; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.// 
+    //  Connections with Teensy 4.1:
+    //  - -> GND
+    //  + -> 3.3V
+    //  SDA -> 18
+    //  SCL -> 19
+    //  INT -> 29
+    #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.                                 // Hardware verson 2.1, Arduino library version 1.40.
+    //Class initialization with the I2C addresses
+    extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
+    extern i2cEncoderLibV2 ENC2; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+    extern i2cEncoderLibV2 ENC3; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.// 
 #else 
-  Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
-  Encoder AF(29,28);   // AF gain control - not used yet
-  Encoder RF(33,34);   // RF gain control - not used yet 
+    #ifdef MECH_ENCODERS
+        Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
+        Encoder AF(29,28);   // AF gain control - not used yet
+        Encoder RF(33,34);   // RF gain control - not used yet 
+    #endif
 #endif // I2C_ENCODER
 
 #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
@@ -592,13 +594,15 @@ void loop()
         #endif
     }
     #else
-    // Use a mechanical encoder on the GPIO pisn, if any.
-    if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
-    {
-        static int8_t counts = 0;   
-        counts = (int8_t) round(multiKnob(0)/4);
-        MF_Service(counts, MF_client);
-    }
+        #ifdef MECH_ENCODERS
+            // Use a mechanical encoder on the GPIO pisn, if any.
+            if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
+            {
+                static int8_t counts = 0;   
+                counts = (int8_t) round(multiKnob(0)/4);
+                MF_Service(counts, MF_client);
+            }
+        #endif
     #endif // I2C_ENCODERS
 
     Check_PTT();
@@ -860,34 +864,36 @@ COLD void printHelp(void)
     Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
 }
 #ifndef I2C_ENCODERS
-//
-// ---------------------------------  multiKnob() -----------------------------------------------
-//
-//  Handles a detented incremental encoder for any calling function returning the count, if any,
-//          positive or negative until a reset is requested to 0.
-//
-//  Input:  uint8_t clear.  If clear == 1 then reset the encoder to ready it for a next read.
-//
-//  Usage:  A consumer function will call this with clear flag set at the start of use.
-//          It will poll this function for counts acting on any in any way it needs to.
-//          It will clear the count to look for next action.
-//          If a clear is not performed then the consumer function must deal with figuring out how
-//          the value has changed and what to do with it.
-//          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
-//
-int32_t multiKnob(uint8_t clear)
-{
-    static int32_t mf_count = 0;
-
-    if (clear)
+    //#ifdef MECH_ENCODERS
+    //
+    // ---------------------------------  multiKnob() -----------------------------------------------
+    //
+    //  Handles a detented incremental encoder for any calling function returning the count, if any,
+    //          positive or negative until a reset is requested to 0.
+    //
+    //  Input:  uint8_t clear.  If clear == 1 then reset the encoder to ready it for a next read.
+    //
+    //  Usage:  A consumer function will call this with clear flag set at the start of use.
+    //          It will poll this function for counts acting on any in any way it needs to.
+    //          It will clear the count to look for next action.
+    //          If a clear is not performed then the consumer function must deal with figuring out how
+    //          the value has changed and what to do with it.
+    //          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
+    //
+    int32_t multiKnob(uint8_t clear)
     {
-        //Multi.readAndReset(); // toss results, zero the encoder
-        mf_count = 0;
+        static int32_t mf_count = 0;
+
+        if (clear)
+        {
+            //Multi.readAndReset(); // toss results, zero the encoder
+            mf_count = 0;
+        }
+        else
+        {}    //mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
+        return mf_count;
     }
-    else
-    {}    //mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
-    return mf_count;
-}
+    //#endif  //MECH_ENCODERS
 #endif  // I2C_ENCODERS
 
 // Deregister the MF_client
