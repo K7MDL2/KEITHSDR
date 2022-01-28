@@ -240,14 +240,14 @@ AudioConnection_F32     patchCord5a(FFT_Switch1,0,  myFFT,0);        // Rouyte s
 AudioConnection_F32     patchCord5b(FFT_Switch2,0,  myFFT,1);
 
 // Noise Blanker
-//AudioConnection_F32     patchCord10a(Input,0,       NoiseBlanker,0);
-//AudioConnection_F32     patchCord10b(Input,1,       NoiseBlanker,1);
-//AudioConnection_F32     patchCord11a(NoiseBlanker,0,RX_Hilbert_Plus_45,0);
-//AudioConnection_F32     patchCord11b(NoiseBlanker,1,RX_Hilbert_Minus_45,0);
+AudioConnection_F32     patchCord10a(Input,0,       NoiseBlanker,0);
+AudioConnection_F32     patchCord10b(Input,1,       NoiseBlanker,1);
+AudioConnection_F32     patchCord11a(NoiseBlanker,0,RX_Hilbert_Plus_45,0);
+AudioConnection_F32     patchCord11b(NoiseBlanker,1,RX_Hilbert_Minus_45,0);
 
 // Normal Audio Chain
-AudioConnection_F32     patchCord1a(Input,0,          RX_Hilbert_Plus_45,0);
-AudioConnection_F32     patchCord1b(Input,1,         RX_Hilbert_Minus_45,0);
+//AudioConnection_F32     patchCord1a(Input,0,          RX_Hilbert_Plus_45,0);
+//AudioConnection_F32     patchCord1b(Input,1,         RX_Hilbert_Minus_45,0);
 AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,         Q_Peak,0);
 AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,        I_Peak,0);
 AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,      RX_Summer,0);
@@ -1259,7 +1259,8 @@ void initDSP(void)
         FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
     #endif
     AudioInterrupts();
-
+    NoiseBlanker.useTwoChannel(true);
+    //NoiseBlanker.enable(false);
     /*
     //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
