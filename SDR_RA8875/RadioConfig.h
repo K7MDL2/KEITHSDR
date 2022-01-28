@@ -116,7 +116,7 @@
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
-#define K7MDL_BUILD
+//#define K7MDL_BUILD
 
 #ifdef K7MDL_BUILD 
     #ifdef USE_RA8875 
@@ -140,8 +140,8 @@
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
     #endif
     #define USE_DHCP
-    #define ENET
-    #define USE_ENET_PROFILE
+    //#define ENET
+    //#define USE_ENET_PROFILE
     //#define REMOTE_OPS
     #define SV1AFN_BPF                // Use the BPF board
     #define DIG_STEP_ATT              // Use the step atten usually the PE4302 board
