@@ -44,7 +44,6 @@ Metro waterfall_timestamp=Metro(wf_time_line);  // Used to draw a time stamp lin
 Metro fftFreq_timestamp = Metro(fftFreq_refresh);
 Metro spectrum_clear = Metro(1000);
 Metro spectrum_waterfall_update = Metro(80); // using default of 80.
-//void spectrum_update(int16_t s, int16_t VFOA_YES, int16_t VfoA, int16_t VfoB);
 void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
 void setActiveWindow_default(void);
 int16_t _colorMap(int16_t val, int16_t color_temp);
@@ -291,7 +290,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
                       break; 
             };
 
-// Serial.println(tft.gradient( (uint16_t) pix_n16));
+            // Serial.println(tft.gradient( (uint16_t) pix_n16));
 
             // Fc Blanking
             if (i >= (ptr->wf_sp_width/2)-blanking  && i <= (ptr->wf_sp_width/2)+blanking+1)
@@ -460,7 +459,6 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
                 #endif
                 pixelnew[i] = ptr->sp_bottom_line-1;
             }          
-            //#endif
             
             pix_n16 = pixelnew[i];  // convert float to uint16_t to match the draw functions type
             pix_o16 = pixelold[i];
@@ -469,12 +467,6 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
             //
             //------------------------ Code below is writing only in the active spectrum window ----------------------
             //
-            if (i == 2)
-            {
-                //tft.clearActiveScreen();
-                //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+20, ptr->wf_sp_width-2, ptr->sp_height-22, myBLACK);
-                //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
-            }
             if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
             {
                 if ((i < ptr->wf_sp_width-2) && (pix_n16 > ptr->sp_top_line+2) && (pix_n16 < ptr->sp_bottom_line-2)  ) // will blank out the center spike
@@ -486,36 +478,15 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
                             if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
                             {
                                 //common way: draw bars                                                                        
-                                #ifdef USE_RA8875
-                                    //tft.drawFastVLine(ptr->l_graph_edge+i, pix_o16, ptr->sp_bottom_line-pix_o16,    myBLACK); // GREEN);
-                                    tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);
-                                #else
-                                    tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);
-                                #endif
-                                
+                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);                             
                                 pixelold[i] = pixelnew[i];
                             }
                         }
                     }
                     else  // was DOT mode, now LINE mode
                     {   
-                        // DOT Mode
-                        //if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
-                            // DOT Mode
-                            // --->> This is a good working line but wastes time erasing mostly black space from the top down.
-                            //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, pixelnew[i-1], myBLACK);   // works with some artifacts
-                            //tft.drawFastVLine(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, ptr->sp_height-2, myBLACK);// works with some artifacts  
-
-                            // LINE Mode                     
-                            #ifdef USE_RA8875
-                            // For the RA8875 erase the column we are about to draw in.  The RA8876 blanks the whole box and used BTE
-                                //tft.drawRect(ptr->l_graph_edge+1+i, ptr->sp_top_line+1, 2, ptr->sp_height-2, myBLACK);  // works pretty good
-                            #endif
-
                         // This will be drawn on Canvas 2 if this is a RA8876, layer 2 if a RA8875                               
-                        //if (pixelnew[i] < ptr->sp_bottom_line && i > 3 )
                         tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  myYELLOW);
-
                         pixelold[i] = pixelnew[i]; 
                     }
                 }

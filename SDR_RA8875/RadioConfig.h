@@ -141,10 +141,10 @@
     #endif
     #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default
     #ifdef VFO_MULT 
-      #undef VFO_MULT                 // undefine so we can redefine it
+      #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
     #endif
-    //#define USE_DHCP
+    #define USE_DHCP
     #define ENET
     #define USE_ENET_PROFILE
     //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
