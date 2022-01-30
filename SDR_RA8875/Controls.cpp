@@ -50,6 +50,7 @@ extern          void                touchBeep(bool enable);
 extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
+extern          void                TXAudio(int TX);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -171,7 +172,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //Serial.print("Corrected Target Band is "); Serial.println(target_band);    
   
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
-    RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    ///RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #ifndef PANADAPTER    
         curr_band = target_band;    // Set out new band
     #endif
@@ -189,7 +190,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     setMode(0);     // 0 is set value in database for both VFOs
     RefLevel(0);    // 0 just updates things to be current value
     RFgain(0);
-    AFgain(0);
+    ///AFgain(0);
     setNBLevel(0);
 #ifndef DBGSPECT
     spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
@@ -202,8 +203,9 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh();
-    RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
+    ///RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
     Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
+    //AFgain(0);  // Set RX audio level back to last position on RX
 }
 
 COLD void pop_win(uint8_t init)
@@ -853,17 +855,19 @@ COLD void Xmit()
     {
         user_settings[user_Profile].xmit = OFF;
         digitalWrite(PTT_OUT1, HIGH);
+        TXAudio(0);  // enable line input to pass to headphone jack on audio card, set audio levels
     }
     else if (user_settings[user_Profile].xmit == OFF)
     {
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
+        TXAudio(1);  // enable mic input to pass to line out on audio card, set audio levels
     }
     
     displayXMIT();
     displayFreq();
-    Serial.print("Set XMIT to ");
-    Serial.println(user_settings[user_Profile].xmit);
+    //Serial.print("Set XMIT to ");
+    //Serial.println(user_settings[user_Profile].xmit);
 }
 
 // NB button
