@@ -1,4 +1,4 @@
-# KEITHSDR
+# KEITHSDR - K7MDL SDR_887x Display Version Notes
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
