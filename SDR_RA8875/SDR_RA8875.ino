@@ -177,8 +177,8 @@ bool    MF_default_is_active = true;
 //const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-//const float sample_rate_Hz = 96000.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-const float sample_rate_Hz = 102400.0f;   // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 //
@@ -200,20 +200,6 @@ const int audio_block_samples = 128;          // do not change this!
 const int RxAudioIn = AUDIO_INPUT_LINEIN;
 const int MicAudioIn = AUDIO_INPUT_MIC;
 
-AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);                           
-AudioInputI2S_F32           Input(audio_settings);
-AudioMixer4_F32             FFT_Switch1(audio_settings);
-AudioMixer4_F32             FFT_Switch2(audio_settings);
-AudioSwitch4_OA_F32         RxTx_InputSwitch_L(audio_settings);
-AudioSwitch4_OA_F32         RxTx_InputSwitch_R(audio_settings);
-AudioMixer4_F32             OutputSwitch(audio_settings);
-AudioFilterFIR_F32          RX_Hilbert_Plus_45(audio_settings);
-AudioFilterFIR_F32          RX_Hilbert_Minus_45(audio_settings);
-AudioFilterConvolution_F32  FilterConv(audio_settings);
-AudioMixer4_F32             RX_Summer(audio_settings);
-AudioAnalyzePeak_F32        S_Peak(audio_settings); 
-AudioAnalyzePeak_F32        Q_Peak(audio_settings); 
-AudioAnalyzePeak_F32        I_Peak(audio_settings);
 #if FFT_SIZE == 4096
     AudioAnalyzeFFT4096_IQ_F32  myFFT;  // FFT_Size is set in the Spectrum_RA887x.H file.
 #endif
@@ -223,25 +209,45 @@ AudioAnalyzePeak_F32        I_Peak(audio_settings);
 #if FFT_SIZE == 1024
     AudioAnalyzeFFT1024_IQ_F32  myFFT;
 #endif
-
+AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);                           
+AudioInputI2S_F32           Input(audio_settings);
+AudioMixer4_F32             FFT_Switch_L(audio_settings);
+AudioMixer4_F32             FFT_Switch_R(audio_settings);
+AudioSwitch4_OA_F32         RxTx_InputSwitch_L(audio_settings);
+AudioSwitch4_OA_F32         RxTx_InputSwitch_R(audio_settings);
+AudioMixer4_F32             OutputSwitch_L(audio_settings);
+AudioMixer4_F32             OutputSwitch_R(audio_settings);
+AudioFilterFIR_F32          RX_Hilbert_Plus_45(audio_settings);
+AudioFilterFIR_F32          RX_Hilbert_Minus_45(audio_settings);
+AudioFilterFIR_F32          RX_Hilbert_Plus_45_TX(audio_settings);
+AudioFilterFIR_F32          RX_Hilbert_Minus_45_TX(audio_settings);
+AudioFilterConvolution_F32  FilterConv(audio_settings);
+AudioMixer4_F32             RX_Summer(audio_settings);
+AudioAnalyzePeak_F32        S_Peak(audio_settings); 
+AudioAnalyzePeak_F32        Q_Peak(audio_settings); 
+AudioAnalyzePeak_F32        I_Peak(audio_settings);
 AudioOutputI2S_F32          Output(audio_settings);
 radioNoiseBlanker_F32       NoiseBlanker(audio_settings);
-AudioSynthWaveformSine_F32  sinewave1; // for audible alerts like touch beep confirmations
-AudioSynthWaveformSine_F32  sinewave_TxTestTone;  // For TX path test tone
+AudioSynthWaveformSine_F32  Beep_Tone; // for audible alerts like touch beep confirmations
+AudioSynthSineCosine_F32    TxTestTone_A;  // For TX path test tone
+AudioSynthWaveformSine_F32  TxTestTone_B;  // For TX path test tone
 
-//#define TEST_SINEWAVE_SIG for RX side test tones in FFT or RX audio out
-#ifdef TEST_SINEWAVE_SIG
-    AudioSynthWaveformSine_F32   sinewave2;
-    AudioSynthWaveformSine_F32   sinewave3;
-    AudioConnection_F32     patchCord4w(sinewave2,0,    FFT_Switch1,2);
-    AudioConnection_F32     patchCord4x(sinewave3,0,    FFT_Switch1,3);
-    AudioConnection_F32     patchCord4y(sinewave2,0,    FFT_Switch2,2);
-    AudioConnection_F32     patchCord4z(sinewave3,0,    FFT_Switch2,3);
-#endif
+// Connections for FINput and FFT - chooses either the input or the output to display in the spectrum plot
+AudioConnection_F32     patchCord_FFT_In_L(Input,0,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_FFT_In_R(Input,1,                         FFT_Switch_R,0);
+AudioConnection_F32     patchCord_FFT_Tone_L(OutputSwitch_L,0,              FFT_Switch_L,1);  // route final audio out to the FFT display
+AudioConnection_F32     patchCord_FFT_Tone_R(OutputSwitch_R,0,              FFT_Switch_R,1);
+AudioConnection_F32     patchCord_Tx_Tone_L(TxTestTone_A,0,        FFT_Switch_L,2);  // Test Tones
+AudioConnection_F32     patchCord_Tx_Tone_R(TxTestTone_B,0,        FFT_Switch_R,2);
 
-// Input (Mic or Line) go to switch
-AudioConnection_F32     patchCord_Input_L(Input,0,              RxTx_InputSwitch_L,0);
-AudioConnection_F32     patchCord_Input_R(Input,1,              RxTx_InputSwitch_R,0);
+AudioConnection_F32     patchCord_FFT_L(FFT_Switch_L,0,                      myFFT,0);        // Rouyte selected audio source to the FFT
+AudioConnection_F32     patchCord_FFT_R(FFT_Switch_R,0,                      myFFT,1);
+
+// Input (Mic or Line) go to switch.   Use source selected for FFT.
+//AudioConnection_F32     patchCord_Input_L(Input,0,              RxTx_InputSwitch_L,0);
+//AudioConnection_F32     patchCord_Input_R(Input,1,              RxTx_InputSwitch_R,0);
+AudioConnection_F32     patchCord_Input_L(FFT_Switch_L,0,              RxTx_InputSwitch_L,0);  // 0 is RX. Output 1 is Tx chain
+AudioConnection_F32     patchCord_Input_R(FFT_Switch_R,0,              RxTx_InputSwitch_R,0);
 
 // Noise Blanker
 AudioConnection_F32     patchCord10a(RxTx_InputSwitch_L,0,      NoiseBlanker,0);
@@ -250,38 +256,25 @@ AudioConnection_F32     patchCord11a(NoiseBlanker,0,            RX_Hilbert_Plus_
 AudioConnection_F32     patchCord11b(NoiseBlanker,1,            RX_Hilbert_Minus_45,0);
 
 // Normal Audio Chain - RX audio on Line In to headphone jack
-//AudioConnection_F32     patchCord1a(Input,0,          RX_Hilbert_Plus_45,0);
-//AudioConnection_F32     patchCord1b(Input,1,         RX_Hilbert_Minus_45,0);
-AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,       Q_Peak,0);
-AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,      I_Peak,0);
+AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,       I_Peak,0);
+AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,      Q_Peak,0);
 AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,       RX_Summer,0);  // phase shift +45 deg
 AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,      RX_Summer,1);  // phase shift -45 deg
-AudioConnection_F32     patchCord2e(sinewave1,0,                RX_Summer,2);  // For button beep if enabled
+AudioConnection_F32     patchCord2e(Beep_Tone,0,                RX_Summer,2);  // For button beep if enabled
 AudioConnection_F32     patchCord3a(RX_Summer,0,                S_Peak,0);  // S meter source
 AudioConnection_F32     patchCord3L(RX_Summer,0,                FilterConv,0);  // variable Bandwidth filtering
-
-// RX to output switch
-AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,         OutputSwitch,0);  // route raw input audio to output for TX
-AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,         OutputSwitch,1);  // route raw input audio to output for TX
+AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,         OutputSwitch_L,0);  // route raw input audio to output for TX
+AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,         OutputSwitch_R,0);  // route raw input audio to output for TX
 
 // In TX mic is selected as input and is switched to the TX audio path (straight to output for now)
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         RX_Hilbert_Plus_45_TX,0);
+AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         RX_Hilbert_Minus_45_TX,0);
+AudioConnection_F32     patchCord_Tx_Filt_L(RX_Hilbert_Plus_45_TX,0,           OutputSwitch_L,1);  // phase shift +45 deg
+AudioConnection_F32     patchCord_Tx_Filt_R(RX_Hilbert_Minus_45_TX,0,          OutputSwitch_R,1);  // phase shift -45 deg
 
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch,0);
-AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         OutputSwitch,1);
-AudioConnection_F32     patchCord_Tx_Test_Tone(sinewave_TxTestTone,0,       OutputSwitch,2);     // Test sinewave for Tx
-
-// Selected source go to outpout (selected as headphone or lineout in the code)
-AudioConnection_F32     patchCord4L(OutputSwitch,0,         Output,0);  // output to headphone jack Left
-AudioConnection_F32     patchCord4R(OutputSwitch,0,         Output,1);  // output to headphone jack Right
-
-// Connections for FFT Only - chooses either the input or the output to display in the spectrum plot
-AudioConnection_F32     patchCord7a(Input,0,                    FFT_Switch1,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord7b(Input,1,                    FFT_Switch2,0);
-AudioConnection_F32     patchCord6a(sinewave_TxTestTone,0,      FFT_Switch1,1);  // route final audio out to the FFT display
-AudioConnection_F32     patchCord6b(sinewave_TxTestTone,0,      FFT_Switch2,1);
-
-AudioConnection_F32     patchCord_FFT_L(FFT_Switch1,0,  myFFT,0);        // Rouyte selected audio source to the FFT
-AudioConnection_F32     patchCord_FFT_R(FFT_Switch2,0,  myFFT,1);
+// Selected source go to output (selected as headphone or lineout in the code)
+AudioConnection_F32     patchCord4L(OutputSwitch_L,0,                       Output,0);  // output to headphone jack Left
+AudioConnection_F32     patchCord4R(OutputSwitch_R,0,                       Output,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
 
@@ -1182,15 +1175,15 @@ COLD void touchBeep(bool enable)
     {
         touchBeep_flag = true;
         touchBeep_timer.reset();
-        sinewave1.amplitude(user_settings[user_Profile].rogerBeep_Vol);
-        sinewave1.frequency((float) user_settings[user_Profile].pitch); //    Alert tones
+        Beep_Tone.amplitude(user_settings[user_Profile].rogerBeep_Vol);
+        Beep_Tone.frequency((float) user_settings[user_Profile].pitch); //    Alert tones
     }
     else 
     {
         //if (rogerBeep_timer.check() == 1)   // make sure another event does not cut it off early
         //{ 
             touchBeep_flag = false;
-            sinewave1.amplitude(0.0);
+            Beep_Tone.amplitude(0.0);
         //}
     }
 }
@@ -1253,9 +1246,11 @@ void initDSP(void)
     if (fft_bins <= 2048)
         AudioMemory_F32(50, audio_settings);   // 50 is good for 2048IQ FFT.
     else
-        AudioMemory_F32(80, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
-    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel 
-    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel
+        AudioMemory_F32(100, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
+    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
+    RX_Hilbert_Plus_45_TX.begin(Hilbert_Plus45_28K,151);   // Left channel TX
+    RX_Hilbert_Minus_45_TX.begin(Hilbert_Minus45_28K,151); // Right channel TX
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
@@ -1271,23 +1266,23 @@ void initDSP(void)
     codec1.dacVolume(0); // set the "dac" volume (extra control)
 
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
-    AudioNoInterrupts();
-    FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-    FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-    FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-    FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
+    AudioNoInterrupts();    
+    RxTx_InputSwitch_L.setChannel(0); // Select RX path
+    RxTx_InputSwitch_R.setChannel(0); // Select RX path
 
-    #ifdef TEST_SINEWAVE_SIG
-        FFT_Switch1.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-        FFT_Switch1.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-        FFT_Switch2.gain(2, 1.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-        FFT_Switch2.gain(3, 1.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    #else
-        FFT_Switch1.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-        FFT_Switch1.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-        FFT_Switch2.gain(2, 0.0f); //  1  Sinewave2 to FFT for test cal, 0 is off
-        FFT_Switch2.gain(3, 0.0f); //  1  Sinewave3 to FFT for test cal, 0 is off
-    #endif
+    // Typically Choose one pair - RX input, DSP chain output (RX or TX), or Test Tone (input before processing)
+    FFT_Switch_L.gain(0, 1.0f); //  1 is RX, 0 is TX
+    FFT_Switch_R.gain(0, 1.0f); //  1 is RX, 0 is TX
+    FFT_Switch_L.gain(1, 0.0f); //  1 is TX, 0 is RX
+    FFT_Switch_R.gain(1, 0.0f); //  1 is TX, 0 is RX
+    FFT_Switch_L.gain(2, 0.0f); //  1 is TestTone A on, 0 OFF
+    FFT_Switch_R.gain(2, 0.0f); //  1 is TestTone B on, 0 OFF
+
+    OutputSwitch_L.gain(0, 1.0f); // Ch 0 is Left 
+    OutputSwitch_R.gain(0, 1.0f); // Ch 1 is Right    
+    OutputSwitch_L.gain(1, 0.0f); // Turn TX off
+    OutputSwitch_R.gain(1, 0.0f); // Turn TX off          
+
     AudioInterrupts();
     NoiseBlanker.useTwoChannel(true);
     AFgain(0);  // Set RX audio level back to last position on RX
@@ -1306,22 +1301,7 @@ void initDSP(void)
       FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
     }
     */
-    // Set up an alert tone for feedback   Can also blink KED knobs if used.
-
-    #ifdef TEST_SINEWAVE_SIG
-        // Create a synthetic sine wave, for testing
-        // To use this, edit the connections above
-        // # sources to test edges and middle of BW
-        float sinewave_vol = 0.005;
-        sinewave2.amplitude(sinewave_vol);
-        sinewave2.frequency(100.000); //
-        sinewave3.amplitude(sinewave_vol);
-        sinewave3.frequency(400.000); //
-    #endif
-
-    // TODO: Move this to set mode and/or bandwidth section when ready.  messes up initial USB/or LSB/CW alignments until one hits the mode button.
-    //RX_Summer.gain(0, 3.0); // Leave at 1.0
-    //RX_Summer.gain(1, -3.0);  // 0 for LSB out
+  
     // Choose our output type.  Can do dB, RMS or power
     myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
     // Uncomment one these to try other window functions
@@ -1335,29 +1315,37 @@ void initDSP(void)
 void TXAudio(int TX)
 {
 
-    float sinewave_vol = 0.005;
+    float TxTestTone_Vol = 0.04f;
 
     // initDSP() and startup in RX mode already enables most of our resources.  
-    // This function switches input sources between line in and mic in, then set levels and retores them on RX.
-    // Previously Lineout was the same as the headphne and used for RX audio to speaker.
-    // To add TX support, we will send RX audio to the headphone only, and TX audio will go to Line out.
-    
-    sinewave_TxTestTone.amplitude(sinewave_vol);
-    sinewave_TxTestTone.frequency(1000.0); 
+    // This function switches input sources between line in and mic in and Test Tones (A and B),
+    //   then set levels and retores them on RX.
+    // Previously Lineout was the same as the headphone and used for RX audio to speaker.
+    // To add TX support, we will send RX audio to the headphone only, and TX audio will go to Line out. 
     
     if (TX)  // Switch to Mic input on TX
     {
+        TxTestTone_Vol = 0.04f;
+        TxTestTone_A.amplitude(TxTestTone_Vol);
+        TxTestTone_A.frequency(1000.0f); 
+        TxTestTone_B.amplitude(TxTestTone_Vol);
+        TxTestTone_B.frequency(2000.0f); 
+
         RxTx_InputSwitch_L.setChannel(1); // Route input to TX path
         RxTx_InputSwitch_R.setChannel(1); // Route input to TX path
 
-        OutputSwitch.gain(0,0.0f); // Ch 0 is Left 
-        OutputSwitch.gain(1,0.0f); // Ch 1 is Right      
-        OutputSwitch.gain(2,1.0f); // Ch 2 is test tone   
+        // Typically choose one pair, Ch 0, 1 or 2.
+        FFT_Switch_L.gain(0, 0.0f);     //  Turn Rx Off
+        FFT_Switch_R.gain(0, 0.0f);     //  Turn Rx Off
+        FFT_Switch_L.gain(1, 0.0f);     //  Select mic/tone source for TX
+        FFT_Switch_R.gain(1, 0.0f);     //  Select mic/tone source for TX
+        FFT_Switch_L.gain(2, 1.0f);     //  Ch 2 is test tone A
+        FFT_Switch_R.gain(2, 0.0f);     //  Ch 2 is test tone B
 
-        FFT_Switch1.gain(0, 0.0f); //  Turn Off
-        FFT_Switch1.gain(1, 1.0f); //  Select tone or output source
-        FFT_Switch2.gain(0, 0.0f); //  Turn Off
-        FFT_Switch2.gain(1, 1.0f); //  Select tone or output source
+        OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF 
+        OutputSwitch_R.gain(0, 0.0f);   // Turn RX OFF  
+        OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON
+        OutputSwitch_R.gain(1, 1.0f);   // Turn TX ON          
         
         codec1.micGain(30);  // 0 to 63dB
 
@@ -1368,18 +1356,26 @@ void TXAudio(int TX)
     }
     else // back to RX
     {
-        OutputSwitch.gain(0,1.0f); // Ch 0 is Left 
-        OutputSwitch.gain(1,1.0f); // Ch 1 is Right      
-        OutputSwitch.gain(2,0.0f); // Ch 2 is test tone
+        TxTestTone_Vol = 0.0f;
+        TxTestTone_A.amplitude(TxTestTone_Vol);
+        TxTestTone_B.amplitude(TxTestTone_Vol);        
 
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
 
-        FFT_Switch1.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-        FFT_Switch1.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-        FFT_Switch2.gain(0, 1.0f); //  1 is Input source before filtering, 0 is off,
-        FFT_Switch2.gain(1, 0.0f); //  1  is CW Filtered (output), 0 is off
-
+        // Typically choose one pair, Ch 0, 1 or 2.
+        FFT_Switch_L.gain(0, 1.0f); //  1 is RX, 0 is TX
+        FFT_Switch_R.gain(0, 1.0f); //  1 is RX, 0 is TX
+        FFT_Switch_L.gain(1, 0.0f); //  1 is TX, 0 is RX
+        FFT_Switch_R.gain(1, 0.0f); //  1 is TX, 0 is RX
+        FFT_Switch_L.gain(2, 0.0f); // Ch 2 is test tone, Turn off
+        FFT_Switch_R.gain(2, 0.0f); // Ch 2 is test tone, Turn off
+        
+        OutputSwitch_L.gain(0, 1.0f); // Ch 0 is RX, Turn on
+        OutputSwitch_R.gain(0, 1.0f); // Ch 0 is RX, Turn on
+        OutputSwitch_L.gain(1, 0.0f); // Turn TX off
+        OutputSwitch_R.gain(1, 0.0f); // Turn TX off   
+    
         Serial.println("Switching to Rx"); 
         codec1.muteLineout(); //mute the TX audio output to transmitter input 
         codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
