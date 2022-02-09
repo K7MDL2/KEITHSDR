@@ -48,7 +48,7 @@
 */
 #include <Arduino.h>
 
-//#define USE_RA8875    // Uncomment for RA8876 AND in your main program
+#define USE_RA8875    // Uncomment for RA8876 AND in your main program
 
 //  Usually also defined in main program header file such as RadioConfig.h for SDR_887x program
 #ifdef USE_RA8875
@@ -103,7 +103,11 @@
 #define myYELLOW                RA8875_YELLOW
 #define myGREEN                 RA8875_GREEN
 
-#define FFT_AXIS                2
+#ifdef USE_RA8875
+  #define FFT_AXIS                3
+#else
+  #define FFT_AXIS                2
+#endif
     // Set the FFT bin order to our needs. Called in drawSpectrumframe()
     // used for myFFT.setXAxis(FFT_AXIS);   //Note from Bob W7PUA
     // On ordering of the frequencies, this ends up being dependent on the mixer wiring. 
