@@ -103,11 +103,8 @@
 #define myYELLOW                RA8875_YELLOW
 #define myGREEN                 RA8875_GREEN
 
-#ifdef USE_RA8875
-  #define FFT_AXIS                3
-#else
-  #define FFT_AXIS                2
-#endif
+
+#define FFT_AXIS                2
     // Set the FFT bin order to our needs. Called in drawSpectrumframe()
     // used for myFFT.setXAxis(FFT_AXIS);   //Note from Bob W7PUA
     // On ordering of the frequencies, this ends up being dependent on the mixer wiring. 
