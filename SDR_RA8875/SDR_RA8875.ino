@@ -1325,32 +1325,32 @@ void TXAudio(int TX)
     
     if (TX)  // Switch to Mic input on TX
     {
-        TxTestTone_Vol = 0.04f;
+        TxTestTone_Vol = 0.8f;
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_A.frequency(1000.0f); 
-        TxTestTone_B.amplitude(TxTestTone_Vol);
+        TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
         TxTestTone_B.frequency(2000.0f); 
 
-        RxTx_InputSwitch_L.setChannel(1); // Route input to TX path
-        RxTx_InputSwitch_R.setChannel(1); // Route input to TX path
+        RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)
+        RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
 
         // Typically choose one pair, Ch 0, 1 or 2.
-        FFT_Switch_L.gain(0, 0.0f);     //  Turn Rx Off
-        FFT_Switch_R.gain(0, 0.0f);     //  Turn Rx Off
-        FFT_Switch_L.gain(1, 0.0f);     //  Select mic/tone source for TX
-        FFT_Switch_R.gain(1, 0.0f);     //  Select mic/tone source for TX
-        FFT_Switch_L.gain(2, 1.0f);     //  Ch 2 is test tone A
-        FFT_Switch_R.gain(2, 0.0f);     //  Ch 2 is test tone B
+        FFT_Switch_L.gain(0, 0.0f);     //  Turn Rx line-In source Off (ch 0)
+        FFT_Switch_R.gain(0, 0.0f);     //  Turn Rx line-In source Off (ch0)
+        FFT_Switch_L.gain(1, 0.0f);     //  Select mic source for TX (ch 1)
+        FFT_Switch_R.gain(1, 0.0f);     //  Select mic source for TX (ch 1)
+        FFT_Switch_L.gain(2, 1.0f);     //  Ch 2 is test tone A source (ch 2) 
+        FFT_Switch_R.gain(2, 1.0f);     //  Ch 2 is test tone B source (ch 2)
 
-        OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF 
+        OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF (ch 0 to 0.0)
         OutputSwitch_R.gain(0, 0.0f);   // Turn RX OFF  
-        OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON
-        OutputSwitch_R.gain(1, 1.0f);   // Turn TX ON          
+        OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON (ch 1 to 1.0f)
+        OutputSwitch_R.gain(1, -1.0f);   // Turn TX ON          
         
         codec1.micGain(30);  // 0 to 63dB
 
         Serial.println("Switching to Tx"); 
-        //codec1.muteHeadphone(); 
+        codec1.muteHeadphone(); 
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
         codec1.unmuteLineout();
     }
