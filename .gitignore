@@ -7,3 +7,5 @@
 .lib
 .*.zip
 **/lib/**
+SDR_RA8875/.vscode/settings.json
+SDR_RA8875/.vscode/c_cpp_properties.json
