@@ -238,8 +238,8 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 {
 	uint8_t mfg; 
 	MF_ENC.updateStatus();
-	mfg = MF_ENC.readStatus();
-	Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
+	//mfg = MF_ENC.readStatus();
+	//Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
 	//#ifdef MF_ENC_ADDR
 	// Check the status of the encoder (if enabled) and call the callback
 	//if(mfg == 0 && press_timer.check() == 1 && obj->id == user_settings[user_Profile].encoder1_client && user_settings[user_Profile].encoder1_client == MFTUNE)
