@@ -731,7 +731,7 @@ COLD void setAFgain(int8_t toggle)
             clearMeter();
         else
         {
-            user_settings[user_Profile].afGain_en = ON;  // le the af tracking state to ON
+            user_settings[user_Profile].afGain_en = ON;  // set the af tracking state to ON
             setMeter(AFGAIN_BTN);
         }
     }
