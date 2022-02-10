@@ -192,7 +192,6 @@ float       fft_bin_size     = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin
 int16_t     spectrum_preset  = 0;            // Specify the default layout option for spectrum window placement and size.
 int16_t     FFT_Source       = 0;            // Used to switch the FFT input source around
 
-int pitch = 600;
 int filterCenter;
 int filterBandwidth;
 
@@ -363,6 +362,28 @@ COLD void setup()
         #endif  // USE_RA8875
     #endif // USE_FT5206_TOUCH
 
+    // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
+    #ifdef ENET
+    if (user_settings[user_Profile].enet_enabled)
+    {
+        struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
+
+        tft.fillRect(t_ptr->bx, t_ptr->by, t_ptr->bw, t_ptr->bh, RA8875_BLACK);
+        tft.setFont(Arial_14);
+        tft.setTextColor(RA8875_BLUE);
+        tft.setCursor(t_ptr->bx+10, t_ptr->by+10);
+        tft.print(F("Starting Network"));
+        enet_start();
+        if (!enet_ready)
+        {
+            enet_start_fail_time = millis(); // set timer for 10 minute self recovery in main loop
+            Serial.println(F("Ethernet System Startup Failed, setting retry timer (10 minutes)"));
+        }
+        Serial.println(F("Ethernet System Startup Completed"));
+        //setSyncProvider(getNtpTime);
+    }
+    #endif
+
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
@@ -406,8 +427,9 @@ COLD void setup()
         lcd.print(F("MyCall SDR"));  // Edit this to what you like to see on your display
     #endif
 
-/*   To use the audio card SD card Reader instead f hte Teensy 4.1 onboard Card Reader
-    //UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
+/*  // Read SD Crard data
+    // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
+    // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
     //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
     //SPI.setSCK(14);  // Audio shield has SCK on pin 14
     // see if the card is present and can be initialized:
@@ -418,8 +440,8 @@ COLD void setup()
     // make a string for assembling the data to log:
     write_db_tables();
     read_db_tables();
-    write_radiocfg_h();        // write out the #define to a file on the SD card.  
-                        // This could be used by the PC during compile to override the RadioCFg.h
+    write_radiocfg_h();         // write out the #define to a file on the SD card.  
+                                // This could be used by the PC during compile to override the RadioConfig.h
 */
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
@@ -437,10 +459,8 @@ COLD void setup()
 
     // Assignments for our encoder knobs, if any
     initVfo(); // initialize the si5351 vfo
-Serial.println("****ENET Locks up in displayRefresh() function");
     //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
     displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
-Serial.println("***********Loop2");
 #ifndef DBGSPECT    
     spectrum_RA887x.Spectrum_Parm_Generator(spectrum_preset, spectrum_preset); // use this to generate new set of params for the current window size values. 
                                                               // 1st arg is target, 2nd arg is current value
@@ -456,28 +476,6 @@ Serial.println("***********Loop2");
     Serial.print(F("\nInitial Dial Frequency is "));
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
-
-    // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
-    #ifdef ENET
-    if (user_settings[user_Profile].enet_enabled)
-    {
-        struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
-
-        tft.fillRect(t_ptr->bx, t_ptr->by, t_ptr->bw, t_ptr->bh, RA8875_BLACK);
-        tft.setFont(Arial_14);
-        tft.setTextColor(RA8875_BLUE);
-        tft.setCursor(t_ptr->bx+10, t_ptr->by+10);
-        tft.print(F("Starting Network"));
-        enet_start();
-        if (!enet_ready)
-        {
-            enet_start_fail_time = millis(); // set timer for 10 minute self recovery in main loop
-            Serial.println(F(">Ethernet System Startup Failed, setting retry timer (10 minutes)"));
-        }
-        Serial.println(F(">Ethernet System Startup"));
-        //setSyncProvider(getNtpTime);
-    }
-    #endif
 
     // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
     if (user_settings[user_Profile].spkr_en == ON)
@@ -1256,12 +1254,12 @@ void initDSP(void)
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
     codec1.inputSelect(RxAudioIn);
     codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
-    //codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
-    //autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
+        //   codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
+        //   autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
     codec1.autoVolumeEnable(); // let the volume control itself..... poor mans agc
     //codec1.autoVolumeDisable();// Or don't let the volume control itself
-    codec1.muteLineout(); //mute the audio output until we finish thumping relays 
-    codec1.unmuteHeadphone();
+    codec1.muteLineout(); //mute TX audio 
+    codec1.muteHeadphone();
     codec1.adcHighPassFilterDisable();
     codec1.dacVolume(0); // set the "dac" volume (extra control)
 
@@ -1283,8 +1281,9 @@ void initDSP(void)
     OutputSwitch_L.gain(1, 0.0f); // Turn TX off
     OutputSwitch_R.gain(1, 0.0f); // Turn TX off          
 
-    AudioInterrupts();
     NoiseBlanker.useTwoChannel(true);
+    AudioInterrupts();
+
     AFgain(0);  // Set RX audio level back to last position on RX
 
     /*
@@ -1315,7 +1314,7 @@ void initDSP(void)
 void TXAudio(int TX)
 {
 
-    float TxTestTone_Vol = 0.04f;
+    float TxTestTone_Vol = 0.5f;
 
     // initDSP() and startup in RX mode already enables most of our resources.  
     // This function switches input sources between line in and mic in and Test Tones (A and B),
@@ -1330,7 +1329,9 @@ void TXAudio(int TX)
         TxTestTone_A.frequency(1000.0f); 
         TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
         TxTestTone_B.frequency(2000.0f); 
-
+        
+        AudioNoInterrupts();
+        
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)
         RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
 
@@ -1353,9 +1354,13 @@ void TXAudio(int TX)
         codec1.muteHeadphone(); 
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
         codec1.unmuteLineout();
+        
+        AudioInterrupts();
     }
     else // back to RX
     {
+        AudioNoInterrupts();
+
         TxTestTone_Vol = 0.0f;
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_B.amplitude(TxTestTone_Vol);        
@@ -1380,6 +1385,8 @@ void TXAudio(int TX)
         codec1.muteLineout(); //mute the TX audio output to transmitter input 
         codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
         codec1.unmuteHeadphone();
+        
+        AudioInterrupts();
     }
 }
 
