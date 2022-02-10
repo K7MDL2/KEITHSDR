@@ -338,7 +338,7 @@ struct User_Settings {
     uint8_t     usrcfgpage_1;       // index to user configuration page layout
     uint8_t     usrcfgpage_2;       // index to user configuration page layout
     uint8_t     usrcfgpage_3;       // index to user configuration page layout
-    uint8_t     last_band;          // index into band memeory table to recall last settings  - this might get moved out later
+    uint8_t     last_band;          // index into band memory table to recall last settings  - this might get moved out later
     uint8_t     mute;               // Current status of Mute 
     uint8_t     mic_input_en;       // mic on or off
     float       mic_Gain_last;      // last used mic gain on this band
