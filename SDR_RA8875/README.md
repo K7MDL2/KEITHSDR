@@ -2,6 +2,12 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Feb 2022
+    1. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks.  RF output is flowing though.
+    2. Moved ENET startup code earlier in startup before time sync.  Was causing a deadlock resulting in CPU reboots at enet init time. Now there is no more long startup delay when ENET is enabled.
+    3. Pitch is now read from the database and applied to CW filter center frequency.
+    4. Raised Line-In volume max value in database (RX board input), set default AF gain setting to about 30 (was 90 or so).
+    5. Planning to work more on MIDI for remote control pod and keyers.
 ## Jan 2022
     1. Updated code to compile and run with Win11+IDE 1.8.19 + Teensyduino 1.56.
     2. Updated to latest RA8876Lite library (V1.0.0) and Adafruit MCP23107 V2.02 library with some minor code changes required.
@@ -15,12 +21,6 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     10. Added #define DBGSPECT to all code section that deal with the spectrum display.  Could be useful someday to more easily find and swap for another spectrum library on a different display.
     11. Fixed MODE sideband selection issue.  Was due to Noiseblanker not initialized at startup, was only done when it was adjusted.
     12. Added Transmit DSP chain, switches input to mic.  RX is Output to headphone jack, TX is output to LineOut. For now I have no modulation blocks and a 1KHz test sinewave in place of the mic as I have neither a mic or a TX board connected yet. The FFT will show the Transmit spectrum.  
-    13. Bug: Slight audio level goofiness. After Tx or AF Gain adjust, the resulting audio level is slightly lower than startup or after band change level.
-    14. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks.  RF output is flowing though.
-    15. Moved ENET startup code earlier in startup before time sync.  Was causing a deadlock resulting in CPU reboots at enet init time. Now there is no more long startup delay when ENET is enabled.
-    16. Pitch is now read from the database and applied to CW filter center frequency.
-    17. Raised Line-In volume max value in database (RX board input), set default AF gain setting to about 30 (was 90 or so).
-    18. Planning to work more on MIDI for remote control pod and keyers.
 
 ## Summer 2021
     1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
