@@ -9,7 +9,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     3. Pitch is now read from the database and applied to CW filter center frequency.
     4. Raised Line-In volume max value in database (RX board input), set default AF gain setting to about 30 (was 90 or so).
     5. Planning to work more on MIDI for remote control pod and keyers.
-    6.  At times I get dupe glcdfont.c compile errors.  Renaming the glcdfonts.c file in the RA8875 or RA8876 library seems to resolve it.  Ugly solution.
+    6. At times I get dupe glcdfont.c compile errors.  Renaming the glcdfonts.c file in the RA8875 or RA8876 library seems to resolve it.  Ugly solution.
 
 ## Jan 2022
 
