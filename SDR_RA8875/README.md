@@ -3,12 +3,15 @@
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## Feb 2022
+
     1. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks.  RF output is flowing though.
     2. Moved ENET startup code earlier in startup before time sync.  Was causing a deadlock resulting in CPU reboots at enet init time. Now there is no more long startup delay when ENET is enabled.
     3. Pitch is now read from the database and applied to CW filter center frequency.
     4. Raised Line-In volume max value in database (RX board input), set default AF gain setting to about 30 (was 90 or so).
     5. Planning to work more on MIDI for remote control pod and keyers.
+
 ## Jan 2022
+
     1. Updated code to compile and run with Win11+IDE 1.8.19 + Teensyduino 1.56.
     2. Updated to latest RA8876Lite library (V1.0.0) and Adafruit MCP23107 V2.02 library with some minor code changes required.
     3. Removed T4_Powerbutton memory report as it now locks up the CPU with the above dev env.
@@ -23,6 +26,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     12. Added Transmit DSP chain, switches input to mic.  RX is Output to headphone jack, TX is output to LineOut. For now I have no modulation blocks and a 1KHz test sinewave in place of the mic as I have neither a mic or a TX board connected yet. The FFT will show the Transmit spectrum.  
 
 ## Summer 2021
+
     1. Nothing major while occupied with summer projects.  There are some minor check-ins for simple fixes for typos and working on some oddities while operating in Panadapter mode.
     
     2. Added long push for Encoder #2
@@ -39,7 +43,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     A DDC (direct downconverter) or IF stage is needed to bypass that problem.  Connected to an antenna you are radiating a low level signal on the carrier you are listening to, not great either. 
 
     7. Experimenting with MIDI commands over USB commands leveraging my Teensy SDR's i2c encoders and their push switches. It working with Quisk, mostly works with Thetis for Hermes Lite 2.  Idea is to copy this code to a separate Teensy MIDI SDR control pod program with dedicated knobs and dials for a PC/Laptop or even a PiHPSDR.
-    
+
 ## 4/22/2021
 
     1.  Enhanced the I2C scanner to list likely address matches with known boards. I added the DupPPa I2C encoders that some of us are using to the range of 0x61 to 0x68.
