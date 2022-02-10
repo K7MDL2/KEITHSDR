@@ -12,10 +12,7 @@
     },
     {
       "label": "Clean",
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
+      "group": "build",
       "command": "C:/Progra~2/GnuWin32/bin/make.exe",
       "args": [
         "clean"
@@ -23,10 +20,7 @@
     },
     {
       "label": "Upload (teensy.exe)",
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
+      "group": "build",
       "command": "C:/Progra~2/GnuWin32/bin/make.exe",
       "args": [
         "upload",
