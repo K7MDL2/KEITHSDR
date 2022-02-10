@@ -288,7 +288,7 @@ COLD void setup()
     pinMode(PTT_OUT1, OUTPUT);
     digitalWrite(PTT_OUT1, HIGH);
     Serial.begin(115200);
-    delay(500);
+    //delay(500);
     Serial.println(F("Initializing SDR_RA887x Program"));
     Serial.print(F("FFT Size is "));
     Serial.println(FFT_SIZE);
@@ -361,7 +361,7 @@ COLD void setup()
             //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
         #endif  // USE_RA8875
     #endif // USE_FT5206_TOUCH
-
+ 
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
     #ifdef ENET
     if (user_settings[user_Profile].enet_enabled)
@@ -384,6 +384,11 @@ COLD void setup()
     }
     #endif
 
+    //--------------------------   Setup our Audio System -------------------------------------
+    initDSP();
+    RFgain(0);
+    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
@@ -401,11 +406,6 @@ COLD void setup()
         }
     }
     digitalClockDisplay(); // print time to terminal
-
-    //--------------------------   Setup our Audio System -------------------------------------
-    initDSP();
-    RFgain(0);
-    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
 
 #ifndef DBGSPECT
     spectrum_RA887x.initSpectrum(spectrum_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
@@ -768,13 +768,12 @@ COLD void RampVolume(float vol, int16_t rampType)
         return;
     #endif
 
-    const char *rampName[] = {
-        "No Ramp (instant)", // loud pop due to instant change
-        "Normal Ramp",       // graceful transition between volume levels
-        "Linear Ramp"        // slight click/chirp
-    };
-
-    Serial.println(rampName[rampType]);
+    //const char *rampName[] = {
+    //    "No Ramp (instant)", // loud pop due to instant change
+    //    "Normal Ramp",       // graceful transition between volume levels
+    //    "Linear Ramp"        // slight click/chirp
+    //};
+    //Serial.println(rampName[rampType]);
 
     // configure which type of volume transition to use
     if (rampType == 0)
