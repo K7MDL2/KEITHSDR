@@ -38,8 +38,10 @@ const int timeZone = 0;     // UTC
 
 // Choose to use DHCP or a static IP address for the SDR   
 #ifndef USE_DHCP
-// The IP Address is ignored if using DHCP
+	// The IP Address is ignored if using DHCP
 	IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
+	IPAddress dns(192, 168, 1, 1);    // Our static IP address.  Could use DHCP but preferring static address.
+	IPAddress gateway(192, 168, 1, 1);    // Our static IP address.  Could use DHCP but preferring static address.
 #endif // USE_DHCP
 
 unsigned int localPort = MY_LOCAL_PORTNUM;     // local port to LISTEN for the remote display/Desktop app
@@ -239,14 +241,16 @@ COLD void enet_start(void)
 
 	uint8_t mac[6];
 	teensyMAC(mac);   
-	delay(500);
+	//	byte mac[] = {
+	//  		0x04, 0xE9, 0xE5, 0x0D, 0x63, 0x2C
+	//	};
+	
 	// start the Ethernet 
-
-	#ifndef USE_DHCP 
-	// If using DHCP (leave off the ip arg) works but more difficult to configure the desktop and remote touchscreen clients
-		Ethernet.begin(mac, ip);  // Static IP optinon
-	#else 
+	#ifdef USE_DHCP 
+		// If using DHCP (leave off the ip arg) works but more difficult to configure the desktop and remote touchscreen clients
 		Ethernet.begin(mac);   // DHCP option
+	#else 
+		Ethernet.begin(mac, ip);  // Static IP option
 	#endif
 
 	// Check for Ethernet hardware present
