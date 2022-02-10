@@ -589,14 +589,16 @@ void loop()
         if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
         {            
             mfg = MF_ENC.readStatus();
-            if (mfg) { Serial.print(F("****Checked MF_Enc status = ")); Serial.println(mfg); }
+            if (mfg) {}
+                //{ Serial.print(F("****Checked MF_Enc status = ")); Serial.println(mfg); }
         }
         #endif
         #ifdef ENC2_ADDR
         if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client)
         {
             mfg = ENC2.readStatus();
-            if (mfg) {Serial.print(F("****Checked Encoder #2 status = ")); Serial.println(mfg); }
+            if (mfg) {}
+                //{Serial.print(F("****Checked Encoder #2 status = ")); Serial.println(mfg); }
         }
         #endif
         #ifdef ENC3_ADDR
