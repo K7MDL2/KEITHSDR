@@ -10,13 +10,14 @@
 //extern AudioFilterFIR_F32               RX_Hilbert_Plus_45;
 //extern AudioFilterFIR_F32               RX_Hilbert_Minus_45;
 //extern AudioFilterBiquad_F32    CW_Filter;
-extern struct Band_Memory               bandmem[];
-extern uint8_t curr_band;   // global tracks our current band setting. 
+extern struct  Band_Memory              bandmem[];
+extern uint8_t                          curr_band;   // global tracks our current band setting. 
 extern const struct Filter_Settings     filter[];
-extern void SetFilter(void);
-extern int pitch;
-extern int filterCenter;
-extern int filterBandwidth;
+extern void                             SetFilter(void);
+extern struct User_Settings             user_settings[];
+extern uint8_t                          user_Profile;
+extern int                              filterCenter;
+extern int                              filterBandwidth;
 
 ////////////////////////////////////////////////////////////////////////////////////
 COLD void selectBandwidth(uint8_t bndx)
@@ -35,9 +36,9 @@ COLD void selectBandwidth(uint8_t bndx)
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_500,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,250.0f,9.0f);   
-        //CW_Filter.begin();   
-        filterCenter=pitch;  // Use pitch since this is a CW filter
-        filterBandwidth=250;
+        //CW_Filter.begin();           
+        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterBandwidth = 250;
         SetFilter();               
     }
 
@@ -49,8 +50,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,500.0f,9.0f);
         //CW_Filter.begin();
-        filterCenter=pitch;  // Use pitch since this is a CW filter
-        filterBandwidth=500;
+        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterBandwidth = 500;
         SetFilter();
     }
     
@@ -62,8 +63,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,700.0f,9.0f);
         //CW_Filter.begin();
-        filterCenter=pitch;  // Use pitch since this is a CW filter
-        filterBandwidth=700;
+        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterBandwidth = 700;
         SetFilter();
     }
 
@@ -75,7 +76,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,1000.0f,9.0f);
         //CW_Filter.begin();
-        filterCenter=pitch;  // Use pitch since this is a CW filter
+        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth=1000;
         SetFilter();
     }
@@ -85,8 +86,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 1.8 kHz";  
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_18K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_18K,151);
-        filterCenter=1850/2;
-        filterBandwidth=1800;
+        filterCenter = 1850/2;
+        filterBandwidth = 1800;
         SetFilter();
     }
 
@@ -95,8 +96,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 2.3kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_23K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_23K,151);
-        filterCenter=2350/2;
-        filterBandwidth=2300;
+        filterCenter = 2350/2;
+        filterBandwidth = 2300;
         SetFilter();
     }
 
@@ -105,8 +106,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 2.8 kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151);
-        filterCenter=2850/2;
-        filterBandwidth=2800;
+        filterCenter = 2850/2;
+        filterBandwidth = 2800;
         SetFilter();
     }
     
@@ -115,8 +116,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 3.2 kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_32K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_32K,151);
-        filterCenter=3250/2;
-        filterBandwidth=3200;
+        filterCenter = 3250/2;
+        filterBandwidth = 3200;
         SetFilter();           
     }
   
@@ -125,8 +126,8 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="4.0 kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151);
-        filterCenter=4050/2;
-        filterBandwidth=4000;
+        filterCenter = 4050/2;
+        filterBandwidth = 4000;
         SetFilter();
     } 
 
