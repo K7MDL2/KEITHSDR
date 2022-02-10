@@ -16,8 +16,8 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="CW";
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 1.0f);
-		RX_Summer.gain(1, 1.0f);
+		RX_Summer.gain(0, 2.0f);
+		RX_Summer.gain(1, 2.0f);
 		//Serial.println("CW");
 		//FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
@@ -30,8 +30,8 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="CW";
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 1.0f);
-		RX_Summer.gain(1, -1.0f);
+		RX_Summer.gain(0, 2.0f);
+		RX_Summer.gain(1, -2.0f);
 		//Serial.println("CW-R");
 		//FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
