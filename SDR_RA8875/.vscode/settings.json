@@ -11,5 +11,9 @@
     ".lib": true,
     ".*.zip": true
   },
-  "C_Cpp.exclusionPolicy": "checkFilesAndFolders"
+  "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
+  "C_Cpp.errorSquiggles": "Disabled",
+  "C_Cpp.default.includePath": [
+    "D:\\ProgramFiles\\Arduino"
+  ]
 }
