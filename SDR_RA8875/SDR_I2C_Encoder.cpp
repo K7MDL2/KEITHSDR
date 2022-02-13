@@ -236,7 +236,7 @@ COLD void encoder_thresholds(i2cEncoderLibV2* obj)
 //Callback when the fading process finishes and set the RGB led off
 COLD void encoder_fade(i2cEncoderLibV2* obj) 
 {
-	uint8_t mfg; 
+	//uint8_t mfg; 
 	MF_ENC.updateStatus();
 	//mfg = MF_ENC.readStatus();
 	//Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
