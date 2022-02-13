@@ -81,7 +81,7 @@
                             // The rotation will be 0, touch rotation will be "defined"
                             // When the 7" is vertically mounted the ribbon should be down with Touch Rotation "undefined".
 
-//#define USE_RA8875          // Turns on support for RA8875 LCD Touchscreen Display with FT5204 Touch controller
+#define USE_RA8875          // Turns on support for RA8875 LCD Touchscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type connected via 4-wire SPI bus.
                             // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
