@@ -18,7 +18,7 @@
 	extern RA8876_t3 tft;
 #endif
 #ifndef DBGSPECT
-extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
+    extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
 #endif
 extern          uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
@@ -45,7 +45,6 @@ extern          void                set_MF_Service(uint8_t client_name);
 extern          void                unset_MF_Service(uint8_t client_name);
 extern          uint8_t             MF_client; // Flag for current owner of MF knob services
 extern          float               fft_bin_size;       // = sample_rate_Hz/(FFT_SIZE*2) -  Size of FFT bin in Hz
-extern          int16_t             spectrum_preset;    // Specify the default layout option for spectrum window placement and size.
 extern          void                touchBeep(bool enable);
 extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern          Metro               MF_Timeout;
@@ -102,21 +101,22 @@ COLD void Set_Spectrum_Scale(int8_t zoom_dir)
 {
     //Serial.println(zoom_dir);
     //extern struct Spectrum_Parms Sp_Parms_Def[];    
-    if (Sp_Parms_Def[spectrum_preset].spect_wf_scale > 2.0) 
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale = 0.5;
-    if (Sp_Parms_Def[spectrum_preset].spect_wf_scale < 0.5)
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale = 2.0; 
+    //extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
+    if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale > 2.0) 
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale = 0.5;
+    if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale < 0.5)
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale = 2.0; 
     if (zoom_dir == 1)
     {
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale += 0.1;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale += 0.1;
         //Serial.println("ZOOM IN");
     }
     else
     {        
-        Sp_Parms_Def[spectrum_preset].spect_wf_scale -= 0.1;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale -= 0.1;
         //Serial.println("ZOOM OUT"); 
     }
-    //Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_scale);
+    //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale);
 }
 
 // Use gestures to raise and lower the spectrum reference level relative to the bottom of the window (noise floor)
@@ -126,18 +126,18 @@ COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
     
     if (zoom_dir == 1)
     {
-        Sp_Parms_Def[spectrum_preset].spect_floor -= 1;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= 1;
         //Serial.print("RefLvl=UP");
     }        
     else
     {
-        Sp_Parms_Def[spectrum_preset].spect_floor += 1;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += 1;
         //Serial.print("RefLvl=DOWN");
     }
-    if (Sp_Parms_Def[spectrum_preset].spect_floor < -400)
-        Sp_Parms_Def[spectrum_preset].spect_floor = -400; 
-    if (Sp_Parms_Def[spectrum_preset].spect_floor > 400)
-        Sp_Parms_Def[spectrum_preset].spect_floor = 400;
+    if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor < -400)
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = -400; 
+    if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor > 400)
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = 400;
 }
 #endif
 //
@@ -147,14 +147,13 @@ COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
 // A alternate method (not in this function) is to use a band button or gesture to do a pop up selection map.  
 // A rotary encoder can cycle through the choices and push to select or just touch the desired band.
 //
-//
 // --------------------- Change bands using database -----------------------------------
 // Returns 0 if cannot change bands
 // Returns 1 if success
 
 COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
 {
-    // TODO search bands column for match toaccount for mapping that does not start with 0 and bands could be in odd order and disabled.
+    // TODO search bands column for match to account for mapping that does not start with 0 and bands could be in odd order and disabled.
     //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
     bandmem[curr_band].vfo_A_last = VFOA;
     bandmem[curr_band].vfo_B_last = VFOB;
@@ -180,7 +179,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     VFOB = bandmem[curr_band].vfo_B_last;
     
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
-   // delay(20);  // small delay for audio ramp to work
+    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
     Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     selectBandwidth(bandmem[curr_band].filter);
@@ -193,7 +192,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     ///AFgain(0);
     setNBLevel(0);
 #ifndef DBGSPECT
-    spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
+    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
@@ -263,7 +262,6 @@ COLD void pop_win(uint8_t init)
 //
 //  -----------------------   Button Functions --------------------------------------------
 //   Called by Touch, Encoder, or Switch events
-
 
 // ---------------------------Mode() ----------------------------------
 //   Input: 0 = set to current value in the database (circular rotation through all modes)
@@ -465,12 +463,12 @@ COLD void Menu()
     //popup = 1;
     //pop_win(1);
 #ifndef DBGSPECT
-    Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
-    if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
-        Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
+    Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp += 10;
+    if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp > 10000)
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp = 1;              
 #endif
     //Serial.print("spectrum_wf_colortemp = ");
-    //Serial.println(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp); 
+    //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp); 
     displayMenu();
     //Serial.println("Menu Pressed");
 }
@@ -542,9 +540,9 @@ COLD void Atten(int8_t toggle)
     
     #ifdef SV1AFN_BPF
       //if (bandmem[curr_band].attenuator == ATTEN_OFF)
-        //Sp_Parms_Def[spectrum_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
+        //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
       //else 
-        //Sp_Parms_Def[spectrum_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
+        //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
@@ -557,7 +555,7 @@ COLD void Atten(int8_t toggle)
     //Serial.print(" Atten_dB is ");
     //Serial.print(bandmem[curr_band].attenuator_dB);
     //Serial.print(" and Ref Level is ");
-    //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
+    //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // PREAMP button
@@ -583,9 +581,9 @@ COLD void Preamp(int8_t toggle)
     
     #ifdef SV1AFN_BPF
       //if (bandmem[curr_band].preamp == PREAMP_OFF)
-      //  Sp_Parms_Def[spectrum_preset].spect_floor -= 30;  // reset back to normal
+      //  Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= 30;  // reset back to normal
       //else 
-      //  Sp_Parms_Def[spectrum_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
+      //  Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
  
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setPreamp((bool) bandmem[curr_band].preamp);
@@ -1021,7 +1019,7 @@ COLD void setRefLevel(int8_t toggle)
 
     displayRefLevel();
     //Serial.print(" and Ref Level is ");
-    //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
+    //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // Ref Level adjust
@@ -1034,11 +1032,11 @@ COLD void RefLevel(int8_t newval)
     if (bandmem[curr_band].sp_ref_lvl < -50)
         bandmem[curr_band].sp_ref_lvl = -50; 
 #ifndef DBGSPECT        
-    Sp_Parms_Def[spectrum_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
+    Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
 #endif
     displayRefLevel();
     //Serial.print("Set Reference Level to ");
-    //Serial.println(Sp_Parms_Def[spectrum_preset].spect_floor);
+    //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // Notch button
@@ -1087,17 +1085,17 @@ COLD void Band()
 COLD void Display()
 {   
 #ifndef DBGSPECT
-    if (Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode)
+    if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_dot_bar_mode)
     {
         display_state = 0;
-        Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 0;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_dot_bar_mode = 0;
     }
     else 
     {
         display_state = 1;
-        Sp_Parms_Def[spectrum_preset].spect_dot_bar_mode = 1;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_dot_bar_mode = 1;
     }
-    spectrum_RA887x.drawSpectrumFrame(spectrum_preset);
+    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif
     //popup = 1;
     //pop_win(1);
@@ -1109,7 +1107,7 @@ COLD void Display()
 COLD void TouchTune(int16_t touch_Freq)
 {
 #ifndef DBGSPECT
-    touch_Freq -= Sp_Parms_Def[spectrum_preset].spect_width/2;     // adjust coordinate relative to center 
+    touch_Freq -= Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_width/2;     // adjust coordinate relative to center 
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
     
     //Serial.print("TouchTune(r) frequency is ");
