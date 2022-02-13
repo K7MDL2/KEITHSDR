@@ -18,7 +18,7 @@ struct Band_Memory bandmem[BANDS] = {
     #ifdef PANADAPTER
     { "40M", 8000000, 8500000, 8215000, 8215000,VFO_A, USB, USB, BW3_2, BAND4, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 3,  ATTEN_ON,  5,  PREAMP_ON,  0,  3,  8},
     #else 
-    { "40M", 7000000, 7300000, 7074000, 8215000,VFO_A,DATA, LSB, BW4_0, BAND4, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON,  2, PREAMP_OFF,  0,  3,  8},
+    { "40M", 7000000, 7300000, 7074000, 7200000,VFO_A,DATA, LSB, BW4_0, BAND4, 1,AGC_FAST, ON,OFF,0,OFF,0, ON,ANT2, 3,  ATTEN_ON,  2, PREAMP_OFF,  0,  3,  8},
     #endif
     { "30M", 9990000,10150000,10000000,10136000,VFO_A,DATA, USB, BW3_2, BAND5, 1,AGC_SLOW,OFF, ON,0,OFF,0,OFF,ANT1, 4,  ATTEN_ON,  1,  PREAMP_ON,  0,  4,  8},
     { "20M",14000000,14350000,14074000,14200000,VFO_A,DATA, USB, BW4_0, BAND6, 1,AGC_SLOW,OFF,OFF,0, ON,0,OFF,ANT2, 5,  ATTEN_ON,  7,  PREAMP_ON,  0,  5,  8},
@@ -29,7 +29,7 @@ struct Band_Memory bandmem[BANDS] = {
     {  "6M",50000000,54000000,50125000,50313000,VFO_A, USB,DATA, BW3_2,BAND11, 1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 10, ATTEN_ON,  4,  PREAMP_ON,  0, 10,  8}
 };
 
-PROGMEM struct Transverter xvtr[XVTRS] = {
+struct Transverter xvtr[XVTRS] = {
     {"50",      OFF,  XVTR1,    50,   28, 0.50, 0.0, XVTR1},
     {"144",     OFF,  XVTR2,   144,   28, 0.50, 0.0, XVTR2},
     {"222",     OFF,  XVTR3,   222,   28, 0.50, 0.0, XVTR3},
@@ -175,7 +175,7 @@ struct Label labels[LABEL_NUM] = {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-    //Profile name   spect mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoLvl LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1          enc2          enc3    
+//Profile name    sp_preset mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoLvl LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1          enc2          enc3    
     {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0, 13,   OFF,   100,   ON,   OFF,   30,  ON,  31,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
     {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0, 13,   OFF,   100,   ON,   OFF,   30,  ON,  31,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN},
     {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0, 13,   OFF,   100,   ON,   OFF,   30,  ON,  31,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN}
@@ -248,5 +248,62 @@ PROGMEM struct Modes_List modeList[MODES_NUM] = {
     {6, "CW-R  "},
     {7, "DATA-R"}
  };
+
+// Use the generator function to create 1 set of data to define preset values for window size and placement.  
+// Just copy and paste from the serial terminal into each record row.
+#define PRESETS 12  // number of parameter records with our preset spectrum window values
+struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
+//W LE  RE  CG x   y   w  h  c sp st clr sc mode scal reflvl wfrate
+    #ifdef USE_RA8875
+        {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 90},
+        {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 90}, // hal
+        {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40, 5, 90},
+        {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
+    #else
+        {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,6,890,1.5,0.9,1,20,10, 80},
+        { 508,1,1,  1, 509,254,14,8,214,236,236,528,520,113,171,349,349,  0,210, 510,319,40,20,2,310,1.0,0.9,0,40, 8,100},
+        { 508,1,1,513,1021,766,14,8,214,236,236,528,520,113,171,349,349,512,210, 510,319,40,20,2,310,1.0,0.9,1,40, 8,100},
+        { 298,1,1,601, 899,749,14,8,304,326,326,499,491, 99, 66,425,425,600,300, 300,200,60,20,2,310,1.0,0.9,0,40, 6,100},
+    #endif        
+        {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60, 8, 80},  // Small wide bottom screen area to fit under pop up wndows.
+        {498,1, 1,  1,499,249,14,8,143,165,165,408,400, 94,141,259,259,  0,139,500,270,40,20,2,310,1.0,0.9,0,40, 6,100},    //smaller centered
+        {198,1, 1,551,749,649,14,8,183,205,205,408,400,136, 59,341,341,550,179,200,230,70,20,2,310,1.0,0.9,1,40, 0,100},  // low wide high gain
+        {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25,2,320,1.0,0.9,1,30, 8, 75},     //60-100 good
+        {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25,2,310,1.7,0.9,0,60, 8,100},
+        {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25,2,310,1.7,0.9,0,40, 8,100},
+        {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,2,450,0.7,0.9,1,40, 8, 40},
+        {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25,5,440,1.0,0.9,0,40, 8, 30}
+};
+
+// To create new layout records for the above table the below paramaters.
+// The library utility fucntion Spectrum_Parm_Generator() is called at startup and writes out a complete layout record to serial debug screen
+// This structure is defined in the Spectrum_RA887x library .h file.
+// Cut and paste the debug data line into the table above.  Adjust the PRESETS value as needed.
+// The user_profile table specifies which layout to actually use from the table above.
+// This data only generates the data row for cut and paste.  Some day it could be real time. 
+// This is primarily an aid to fit new screen sizes if not already defined above.
+
+struct New_Spectrum_Layout Custom_Layout[1] = {      // Temp storage for generating new layouts    
+    0,        // spectrum_x >  0 to width of display - window width. Must fit within the button frame edges left and right
+                    // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
+    153,      // spectrum_y0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
+    256,      // spectrum_height Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
+    50,       // spectrum_center Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
+                    // Smaller value makes spectrum smaller, waterfall bigger
+    799,      // spectrum_width Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
+    20,       // spectrum_span Value in KHz.  Ths will be the maximum span shown in the display graphs.  
+                    // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
+                    // Max value and resolutoin (pixels per bin) is dependent on sample frequency
+                    // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
+                    // 12500 would result in 2 pixels per bin. Bad numbers here should be corrected to best fit by the function
+    2,        // spectrum_wf_style Range 1- 6. Specifies the Waterfall style.
+    330,      // spectrum_wf_colortemp Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
+    1.0f,      // spectrum_wf_scal e0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
+    0.9f,      // spectrum_LPFcoeff 1.0f to 0.0f. Data smoothing
+    1,        // spectrum_dot_bar_mode 0=bar, 1=Line. Spectrum box
+    40,       // spectrum_sp_scale 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
+    -175,     // spectrum_floor 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
+    70        // spectrum_wf_rate window update rate in ms.  25 is fast enough to see dit and dahs well    
+};
 
 #endif //  _SDR_DATA_RA8876_H_ 
