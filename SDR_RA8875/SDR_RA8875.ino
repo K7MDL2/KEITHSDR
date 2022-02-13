@@ -127,10 +127,6 @@ static int  PTT_pin_state = 1;    // current input pin state
 static unsigned long PTT_Input_time = 0;  // Debounce timer
 static int  PTT_Input_debounce = 0;   // Debounce state tracking
 
-#ifndef DBGSPECT
-  Spectrum_RA887x spectrum_RA887x;   // initialize the Spectrum Library
-#endif
-
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
 #else
@@ -166,6 +162,20 @@ bool    MF_default_is_active = true;
 //============================================  Start of Spectrum Setup Section =====================================================
 //
 
+#define FFT_SIZE 4096              //2048//1024  // need a constant for array size declarion so manually set this value here   Could try a macro later
+
+#if   (FFT_SIZE == 4096)
+    AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
+#elif (FFT_SIZE == 2048)    
+    AudioAnalyzeFFT2048_IQ_F32  myFFT;
+#elif (FFT_SIZE == 1024)
+    AudioAnalyzeFFT1024_IQ_F32  myFFT;
+#endif
+
+#ifndef DBGSPECT
+  Spectrum_RA887x spectrum_RA887x(0, FFT_SIZE);   //, &myFFT);   // initialize the Spectrum Library
+#endif
+
 #ifndef DBGSPECT
     extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
     extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -182,14 +192,9 @@ const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 //
-// ---------------------------- Set FFT Size parameters ------------------------------------
-// #define FFT_SIZE  2048    
-// Used for spectrum object - defined in Spectrum_RA887x.h library file
-// Choose 1024, 2048 or 4096.  The system will adjust accordingly
-// ----------------------------------------------------------------------------------------------
+// ---------------------------- Set some FFT related parameters ------------------------------------
 int16_t     fft_bins         = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float       fft_bin_size     = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
-int16_t     spectrum_preset  = 0;            // Specify the default layout option for spectrum window placement and size.
 int16_t     FFT_Source       = 0;            // Used to switch the FFT input source around
 
 int filterCenter;
@@ -198,16 +203,7 @@ int filterBandwidth;
 const int audio_block_samples = 128;          // do not change this!
 const int RxAudioIn = AUDIO_INPUT_LINEIN;
 const int MicAudioIn = AUDIO_INPUT_MIC;
-
-#if FFT_SIZE == 4096
-    AudioAnalyzeFFT4096_IQ_F32  myFFT;  // FFT_Size is set in the Spectrum_RA887x.H file.
-#endif
-#if FFT_SIZE == 2048    
-    AudioAnalyzeFFT2048_IQ_F32  myFFT;
-#endif
-#if FFT_SIZE == 1024
-    AudioAnalyzeFFT1024_IQ_F32  myFFT;
-#endif
+ 
 AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);                           
 AudioInputI2S_F32           Input(audio_settings);
 AudioMixer4_F32             FFT_Switch_L(audio_settings);
@@ -232,44 +228,44 @@ AudioSynthSineCosine_F32    TxTestTone_A;  // For TX path test tone
 AudioSynthWaveformSine_F32  TxTestTone_B;  // For TX path test tone
 
 // Connections for FINput and FFT - chooses either the input or the output to display in the spectrum plot
-AudioConnection_F32     patchCord_FFT_In_L(Input,0,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_FFT_In_R(Input,1,                         FFT_Switch_R,0);
+AudioConnection_F32     patchCord_FFT_In_L(Input,1,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_FFT_In_R(Input,0,                         FFT_Switch_R,0);
 AudioConnection_F32     patchCord_FFT_Tone_L(OutputSwitch_L,0,              FFT_Switch_L,1);  // route final audio out to the FFT display
 AudioConnection_F32     patchCord_FFT_Tone_R(OutputSwitch_R,0,              FFT_Switch_R,1);
-AudioConnection_F32     patchCord_Tx_Tone_L(TxTestTone_A,0,        FFT_Switch_L,2);  // Test Tones
-AudioConnection_F32     patchCord_Tx_Tone_R(TxTestTone_B,0,        FFT_Switch_R,2);
+AudioConnection_F32     patchCord_Tx_Tone_L(TxTestTone_A,0,                 FFT_Switch_L,2);  // Test Tones
+AudioConnection_F32     patchCord_Tx_Tone_R(TxTestTone_B,0,                 FFT_Switch_R,2);
 
-AudioConnection_F32     patchCord_FFT_L(FFT_Switch_L,0,                      myFFT,0);        // Rouyte selected audio source to the FFT
-AudioConnection_F32     patchCord_FFT_R(FFT_Switch_R,0,                      myFFT,1);
+AudioConnection_F32     patchCord_FFT_L(FFT_Switch_L,0,                     myFFT,0);        // Rouyte selected audio source to the FFT
+AudioConnection_F32     patchCord_FFT_R(FFT_Switch_R,0,                     myFFT,1);
 
 // Input (Mic or Line) go to switch.   Use source selected for FFT.
-//AudioConnection_F32     patchCord_Input_L(Input,0,              RxTx_InputSwitch_L,0);
-//AudioConnection_F32     patchCord_Input_R(Input,1,              RxTx_InputSwitch_R,0);
-AudioConnection_F32     patchCord_Input_L(FFT_Switch_L,0,              RxTx_InputSwitch_L,0);  // 0 is RX. Output 1 is Tx chain
-AudioConnection_F32     patchCord_Input_R(FFT_Switch_R,0,              RxTx_InputSwitch_R,0);
+//AudioConnection_F32     patchCord_Input_L(Input,0,                        RxTx_InputSwitch_L,0);
+//AudioConnection_F32     patchCord_Input_R(Input,1,                        RxTx_InputSwitch_R,0);
+AudioConnection_F32     patchCord_Input_L(FFT_Switch_L,0,                   RxTx_InputSwitch_L,0);  // 0 is RX. Output 1 is Tx chain
+AudioConnection_F32     patchCord_Input_R(FFT_Switch_R,0,                   RxTx_InputSwitch_R,0);
 
 // Noise Blanker
-AudioConnection_F32     patchCord10a(RxTx_InputSwitch_L,0,      NoiseBlanker,0);
-AudioConnection_F32     patchCord10b(RxTx_InputSwitch_R,0,      NoiseBlanker,1);
-AudioConnection_F32     patchCord11a(NoiseBlanker,0,            RX_Hilbert_Plus_45,0);
-AudioConnection_F32     patchCord11b(NoiseBlanker,1,            RX_Hilbert_Minus_45,0);
+AudioConnection_F32     patchCord10a(RxTx_InputSwitch_L,0,                  NoiseBlanker,0);
+AudioConnection_F32     patchCord10b(RxTx_InputSwitch_R,0,                  NoiseBlanker,1);
+AudioConnection_F32     patchCord11a(NoiseBlanker,0,                        RX_Hilbert_Plus_45,0);
+AudioConnection_F32     patchCord11b(NoiseBlanker,1,                        RX_Hilbert_Minus_45,0);
 
 // Normal Audio Chain - RX audio on Line In to headphone jack
-AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,       I_Peak,0);
-AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,      Q_Peak,0);
-AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,       RX_Summer,0);  // phase shift +45 deg
-AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,      RX_Summer,1);  // phase shift -45 deg
-AudioConnection_F32     patchCord2e(Beep_Tone,0,                RX_Summer,2);  // For button beep if enabled
-AudioConnection_F32     patchCord3a(RX_Summer,0,                S_Peak,0);  // S meter source
-AudioConnection_F32     patchCord3L(RX_Summer,0,                FilterConv,0);  // variable Bandwidth filtering
-AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,         OutputSwitch_L,0);  // route raw input audio to output for TX
-AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,         OutputSwitch_R,0);  // route raw input audio to output for TX
+AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,                   I_Peak,0);
+AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,                  Q_Peak,0);
+AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,                   RX_Summer,0);  // phase shift +45 deg
+AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,                  RX_Summer,1);  // phase shift -45 deg
+AudioConnection_F32     patchCord2e(Beep_Tone,0,                            RX_Summer,2);  // For button beep if enabled
+AudioConnection_F32     patchCord3a(RX_Summer,0,                            S_Peak,0);  // S meter source
+AudioConnection_F32     patchCord3L(RX_Summer,0,                            FilterConv,0);  // variable Bandwidth filtering
+AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     OutputSwitch_L,0);  // route raw input audio to output for TX
+AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_R,0);  // route raw input audio to output for TX
 
 // In TX mic is selected as input and is switched to the TX audio path (straight to output for now)
 AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         RX_Hilbert_Plus_45_TX,0);
 AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         RX_Hilbert_Minus_45_TX,0);
-AudioConnection_F32     patchCord_Tx_Filt_L(RX_Hilbert_Plus_45_TX,0,           OutputSwitch_L,1);  // phase shift +45 deg
-AudioConnection_F32     patchCord_Tx_Filt_R(RX_Hilbert_Minus_45_TX,0,          OutputSwitch_R,1);  // phase shift -45 deg
+AudioConnection_F32     patchCord_Tx_Filt_L(RX_Hilbert_Plus_45_TX,0,        OutputSwitch_L,1);  // phase shift +45 deg
+AudioConnection_F32     patchCord_Tx_Filt_R(RX_Hilbert_Minus_45_TX,0,       OutputSwitch_R,1);  // phase shift -45 deg
 
 // Selected source go to output (selected as headphone or lineout in the code)
 AudioConnection_F32     patchCord4L(OutputSwitch_L,0,                       Output,0);  // output to headphone jack Left
@@ -387,8 +383,7 @@ COLD void setup()
     //--------------------------   Setup our Audio System -------------------------------------
     initDSP();
     RFgain(0);
-    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-
+    
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
@@ -406,9 +401,10 @@ COLD void setup()
         }
     }
     digitalClockDisplay(); // print time to terminal
+    Serial.println("Clock Update");
 
 #ifndef DBGSPECT
-    spectrum_RA887x.initSpectrum(spectrum_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    spectrum_RA887x.initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 #endif
 
     #ifdef DIG_STEP_ATT
@@ -427,7 +423,7 @@ COLD void setup()
         lcd.print(F("MyCall SDR"));  // Edit this to what you like to see on your display
     #endif
 
-/*  // Read SD Crard data
+/*  // Read SD Card data
     // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
     // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
     //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
@@ -446,8 +442,7 @@ COLD void setup()
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
     curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
-    //user_settings[user_Profile].sp_preset = spectrum_preset; // uncomment this line to update user profile layout choice
-    spectrum_preset = user_settings[user_Profile].sp_preset;
+
     //==================================== Frequency Set ==========================================
     #ifdef PANADAPTER
     VFOA = PANADAPTER_LO;
@@ -457,13 +452,12 @@ COLD void setup()
     VFOB = bandmem[curr_band].vfo_B_last;
     #endif
 
-    // Assignments for our encoder knobs, if any
     initVfo(); // initialize the si5351 vfo
-    //changeBands(0);   // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
-    displayRefresh(); // calls the whole group of displayxxx();  Needed to refresh after other windows moving.
+
 #ifndef DBGSPECT    
-    spectrum_RA887x.Spectrum_Parm_Generator(spectrum_preset, spectrum_preset); // use this to generate new set of params for the current window size values. 
-                                                              // 1st arg is target, 2nd arg is current value
+    spectrum_RA887x.Spectrum_Parm_Generator(0, 0); // use this to generate new set of params for the current window size values. 
+                                                              // 1st arg is new target layout record - usually 0 unless you create more examples
+                                                              // 2nd arg is current empty layout record (preset) value - usually 0
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
                                                               // Generator only reads the global values, it does not change them or the database, just prints the new params                                                             
     spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
@@ -473,6 +467,7 @@ COLD void setup()
                                                               // Print out our starting frequency for testing
     //sp.drawSpectrumFrame(6);   // for 2nd window
 #endif  
+
     Serial.print(F("\nInitial Dial Frequency is "));
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
@@ -480,7 +475,7 @@ COLD void setup()
     // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
     if (user_settings[user_Profile].spkr_en == ON)
     {
-        codec1.volume(1.0); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
+        codec1.volume(1.0f); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
         // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
         codec1.unmuteHeadphone();
         codec1.unmuteLineout(); //unmute the audio output
@@ -528,7 +523,7 @@ void loop()
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
             if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
-                spectrum_RA887x.spectrum_update(spectrum_preset, (bandmem[curr_band].VFO_AB_Active == VFO_A), VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+                spectrum_RA887x.spectrum_update(user_settings[user_Profile].sp_preset, (bandmem[curr_band].VFO_AB_Active == VFO_A), VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
                 // spectrum_update(6);  // for 2nd window
     }
 #endif
@@ -1286,7 +1281,8 @@ void initDSP(void)
     AudioInterrupts();
 
     AFgain(0);  // Set RX audio level back to last position on RX
-
+    // Set up TX Audio audio out level
+    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
     /*
     //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
     // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
