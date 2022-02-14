@@ -7,12 +7,11 @@
 //  Audio connection to the control head will for now be analog.
 //  The Control head could be another Teensy/arduino with display, or a PC client app.
 //
-
-#include "SDR_RA8875.h"
 #include "RadioConfig.h"
+#include "SDR_RA8875.h"
 //#include "SDR_Network.h"
 
-#ifdef ENET    
+#ifdef ENET    // Skip all of this file if no enet
 
 #include <NativeEthernet.h>
 #include <NativeEthernetUdp.h>
@@ -36,7 +35,7 @@ const int timeZone = 0;     // UTC
 //  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEC
 //};
 
-// Choose to use DHCP or a static IP address for the SDR   
+// Choose to use DHCP or a static IP address for the SDR - set in RadioConfig.h  
 #ifndef USE_DHCP
 	// The IP Address is ignored if using DHCP
 	IPAddress ip(192, 168, 1, 237);    // Our static IP address.  Could use DHCP but preferring static address.
@@ -130,59 +129,59 @@ COLD void teensyMAC(uint8_t *mac)
   	static char teensyMac[23];
   
   	#if defined (HW_OCOTP_MAC1) && defined(HW_OCOTP_MAC0)
-    Serial.println("using HW_OCOTP_MAC* - see https://forum.pjrc.com/threads/57595-Serial-amp-MAC-Address-Teensy-4-0");
-    for(uint8_t by=0; by<2; by++) mac[by]=(HW_OCOTP_MAC1 >> ((1-by)*8)) & 0xFF;
-    for(uint8_t by=0; by<4; by++) mac[by+2]=(HW_OCOTP_MAC0 >> ((3-by)*8)) & 0xFF;
-
-    #define MAC_OK
+      Serial.println("using HW_OCOTP_MAC* - see https://forum.pjrc.com/threads/57595-Serial-amp-MAC-Address-Teensy-4-0");
+      for(uint8_t by=0; by<2; by++) mac[by]=(HW_OCOTP_MAC1 >> ((1-by)*8)) & 0xFF;
+      for(uint8_t by=0; by<4; by++) mac[by+2]=(HW_OCOTP_MAC0 >> ((3-by)*8)) & 0xFF;
+  
+      #define MAC_OK
 
   	#else
     
-    mac[0] = 0x04;
-    mac[1] = 0xE9;
-    mac[2] = 0xE5;
-
-    uint32_t SN=0;
-    __disable_irq();
-    
-    #if defined(HAS_KINETIS_FLASH_FTFA) || defined(HAS_KINETIS_FLASH_FTFL)
-	Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
-	
-	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
-	FTFL_FCCOB0 = 0x41;
-	FTFL_FCCOB1 = 15;
-	FTFL_FSTAT = FTFL_FSTAT_CCIF;
-	while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
-	SN = *(uint32_t *)&FTFL_FCCOB7;
-
-	#define MAC_OK
+      mac[0] = 0x04;
+      mac[1] = 0xE9;
+      mac[2] = 0xE5;
+  
+      uint32_t SN=0;
+      __disable_irq();
       
-    #elif defined(HAS_KINETIS_FLASH_FTFE)
-	Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
-	
-	kinetis_hsrun_disable();
-	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
-	*(uint32_t *)&FTFL_FCCOB3 = 0x41070000;
-	FTFL_FSTAT = FTFL_FSTAT_CCIF;
-	while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
-	SN = *(uint32_t *)&FTFL_FCCOBB;
-	kinetis_hsrun_enable();
-
-	#define MAC_OK
-      
-    #endif
+      #if defined(HAS_KINETIS_FLASH_FTFA) || defined(HAS_KINETIS_FLASH_FTFL)
+    	  Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
+    	
+      	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
+      	FTFL_FCCOB0 = 0x41;
+      	FTFL_FCCOB1 = 15;
+      	FTFL_FSTAT = FTFL_FSTAT_CCIF;
+      	while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
+      	SN = *(uint32_t *)&FTFL_FCCOB7;
     
-    __enable_irq();
-
-    for(uint8_t by=0; by<3; by++) mac[by+3]=(SN >> ((2-by)*8)) & 0xFF;
+    	  #define MAC_OK
+        
+      #elif defined(HAS_KINETIS_FLASH_FTFE)
+    	  Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
+    	
+      	kinetis_hsrun_disable();
+      	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
+      	*(uint32_t *)&FTFL_FCCOB3 = 0x41070000;
+      	FTFL_FSTAT = FTFL_FSTAT_CCIF;
+      	while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) ; // wait
+      	SN = *(uint32_t *)&FTFL_FCCOBB;
+      	kinetis_hsrun_enable();
+    
+    	  #define MAC_OK
+        
+      #endif
+      
+      __enable_irq();
+  
+      for(uint8_t by=0; by<3; by++) mac[by+3]=(SN >> ((2-by)*8)) & 0xFF;
 
   	#endif
 
   	#ifdef MAC_OK
-    sprintf(teensyMac, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    Serial.println(teensyMac);
-  	#else
-    Serial.println("ERROR: could not get MAC");
+      sprintf(teensyMac, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+      Serial.println(teensyMac);
+    	#else
+      Serial.println("ERROR: could not get MAC");
   	#endif
 }
 
@@ -289,21 +288,21 @@ COLD time_t getNtpTime()
 {
     int size = Udp_NTP.parsePacket();
     if (size >= NTP_PACKET_SIZE) 
-	{
-		//Serial.println("Receive NTP Response");
-		Udp_NTP.read(packetBuffer_NTP, NTP_PACKET_SIZE);  // read packet into the buffer
-		unsigned long secsSince1900;
-		// convert four bytes starting at location 40 to a long integer
-		secsSince1900 =  (unsigned long)packetBuffer_NTP[40] << 24;
-		secsSince1900 |= (unsigned long)packetBuffer_NTP[41] << 16;
-		secsSince1900 |= (unsigned long)packetBuffer_NTP[42] << 8;
-		secsSince1900 |= (unsigned long)packetBuffer_NTP[43];
-		//Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
-		time_t t;
-		t = secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
-		Teensy3Clock.set(t); // set the RTC
-		setTime(t);			 // set the time structure
-		return t;
+	  {
+    		//Serial.println("Receive NTP Response");
+    		Udp_NTP.read(packetBuffer_NTP, NTP_PACKET_SIZE);  // read packet into the buffer
+    		unsigned long secsSince1900;
+    		// convert four bytes starting at location 40 to a long integer
+    		secsSince1900 =  (unsigned long)packetBuffer_NTP[40] << 24;
+    		secsSince1900 |= (unsigned long)packetBuffer_NTP[41] << 16;
+    		secsSince1900 |= (unsigned long)packetBuffer_NTP[42] << 8;
+    		secsSince1900 |= (unsigned long)packetBuffer_NTP[43];
+    		//Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
+    		time_t t;
+    		t = secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
+    		Teensy3Clock.set(t); // set the RTC
+    		setTime(t);			 // set the time structure
+    		return t;
     }
   	Serial.println(F("No NTP Response :-("));
   	return 0; // return 0 if unable to get the time
