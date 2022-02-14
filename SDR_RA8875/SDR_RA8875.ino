@@ -63,30 +63,25 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
  Si5351mcu si5351;
 #endif // OCXO_10MHZ
 
-#ifdef USE_RA8875
-  //#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-  //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-#endif // USE_RA8875
-
 #ifdef I2C_LCD
   #include <LiquidCrystal_I2C.h>
   LiquidCrystal_I2C lcd(LCD_ADR,LCD_COL, LCD_LINES);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 #endif
 
-void I2C_Scanner(void);
-void MF_Service(int8_t counts, int8_t knob);
-void RampVolume(float vol, int16_t rampType);
-void printHelp(void);
-void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
-void respondToByte(char c);
-void touchBeep(bool enable);
-void digitalClockDisplay(void); 
-unsigned long processSyncMessage();
-time_t getTeensy3Time();
-void printDigits(int digits);
-void Check_PTT(void);
-void initDSP(void);
-void SetFilter(void);
+COLD void I2C_Scanner(void);
+COLD void MF_Service(int8_t counts, int8_t knob);
+COLD void RampVolume(float vol, int16_t rampType);
+COLD void printHelp(void);
+COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis);
+COLD void respondToByte(char c);
+COLD void touchBeep(bool enable);
+COLD void digitalClockDisplay(void); 
+COLD unsigned long processSyncMessage();
+COLD time_t getTeensy3Time();
+COLD void printDigits(int digits);
+HOT void Check_PTT(void);
+COLD void initDSP(void);
+COLD void SetFilter(void);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -161,24 +156,31 @@ bool    MF_default_is_active = true;
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
+// Pick the one to run through the whole audio chain and FFT on the display
+#define FFT_SIZE 4096               // 4096 //2048//1024     
+uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init function.
+                                    // Ensure the matching FFT resources are enabled in the lib .h file!
 
-#define FFT_SIZE 4096              //2048//1024  // need a constant for array size declarion so manually set this value here   Could try a macro later
+// These are normally defined in the spectrum_RA887z.h file
+// enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
+//#define FFT_4096
+//#define FFT_2048
+//#define FFT_1024
 
-#if   (FFT_SIZE == 4096)
-    AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
-#elif (FFT_SIZE == 2048)    
-    AudioAnalyzeFFT2048_IQ_F32  myFFT;
-#elif (FFT_SIZE == 1024)
-    AudioAnalyzeFFT1024_IQ_F32  myFFT;
+#ifdef FFT_4096
+    DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+#endif
+#ifdef FFT_2048   
+    DMAMEM AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
+#endif
+#ifdef FFT_1024
+    DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
-#ifndef DBGSPECT
-  Spectrum_RA887x spectrum_RA887x(0, FFT_SIZE);   //, &myFFT);   // initialize the Spectrum Library
-#endif
-
-#ifndef DBGSPECT
-    extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-    extern struct   Spectrum_Parms Sp_Parms_Def[];
+#ifndef BYPASS_SPECTRUM_MODULE
+  Spectrum_RA887x spectrum_RA887x(0, fft_size);   //, &myFFT);   // initialize the Spectrum Library
+  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
+  extern struct   Spectrum_Parms Sp_Parms_Def[];
 #endif
 
 // Audio Library setup stuff
@@ -187,14 +189,15 @@ bool    MF_default_is_active = true;
 //const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-//const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+//const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 //
 // ---------------------------- Set some FFT related parameters ------------------------------------
-int16_t     fft_bins         = FFT_SIZE;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
-float       fft_bin_size     = sample_rate_Hz/(FFT_SIZE*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
+int16_t     fft_bins         = fft_size;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
+float       fft_bin_size     = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 int16_t     FFT_Source       = 0;            // Used to switch the FFT input source around
 
 int filterCenter;
@@ -210,36 +213,50 @@ AudioMixer4_F32             FFT_Switch_L(audio_settings);
 AudioMixer4_F32             FFT_Switch_R(audio_settings);
 AudioSwitch4_OA_F32         RxTx_InputSwitch_L(audio_settings);
 AudioSwitch4_OA_F32         RxTx_InputSwitch_R(audio_settings);
+AudioSwitch4_OA_F32         FFT_OutSwitch_L(audio_settings);
+AudioSwitch4_OA_F32         FFT_OutSwitch_R(audio_settings);
 AudioMixer4_F32             OutputSwitch_L(audio_settings);
 AudioMixer4_F32             OutputSwitch_R(audio_settings);
-AudioFilterFIR_F32          RX_Hilbert_Plus_45(audio_settings);
-AudioFilterFIR_F32          RX_Hilbert_Minus_45(audio_settings);
-AudioFilterFIR_F32          RX_Hilbert_Plus_45_TX(audio_settings);
-AudioFilterFIR_F32          RX_Hilbert_Minus_45_TX(audio_settings);
-AudioFilterConvolution_F32  FilterConv(audio_settings);
+DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
+DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
+DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
+DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
+AudioFilterConvolution_F32  FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioAnalyzePeak_F32        Q_Peak(audio_settings); 
 AudioAnalyzePeak_F32        I_Peak(audio_settings);
 AudioOutputI2S_F32          Output(audio_settings);
-radioNoiseBlanker_F32       NoiseBlanker(audio_settings);
+radioNoiseBlanker_F32       NoiseBlanker(audio_settings);  // DMAMEM on this item breaks stopping RX audio flow.  Would save 10K local variable space
 AudioSynthWaveformSine_F32  Beep_Tone; // for audible alerts like touch beep confirmations
 AudioSynthSineCosine_F32    TxTestTone_A;  // For TX path test tone
 AudioSynthWaveformSine_F32  TxTestTone_B;  // For TX path test tone
 
 // Connections for FINput and FFT - chooses either the input or the output to display in the spectrum plot
-AudioConnection_F32     patchCord_FFT_In_L(Input,0,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_FFT_In_R(Input,1,                         FFT_Switch_R,0);
+AudioConnection_F32     patchCord_FFT_In_L(Input,1,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_FFT_In_R(Input,0,                         FFT_Switch_R,0);
 AudioConnection_F32     patchCord_FFT_Tone_L(OutputSwitch_L,0,              FFT_Switch_L,1);  // route final audio out to the FFT display
 AudioConnection_F32     patchCord_FFT_Tone_R(OutputSwitch_R,0,              FFT_Switch_R,1);
 AudioConnection_F32     patchCord_Tx_Tone_L(TxTestTone_A,0,                 FFT_Switch_L,2);  // Test Tones
 AudioConnection_F32     patchCord_Tx_Tone_R(TxTestTone_B,0,                 FFT_Switch_R,2);
 
-AudioConnection_F32     patchCord_FFT_L(FFT_Switch_L,0,                     myFFT,0);        // Rouyte selected audio source to the FFT
-AudioConnection_F32     patchCord_FFT_R(FFT_Switch_R,0,                     myFFT,1);
+AudioConnection_F32     patchCord_FFT_OUT_L(FFT_Switch_L,0,                FFT_OutSwitch_L,0);        // Route selected audio source to the selected FFT - should save CPU time
+AudioConnection_F32     patchCord_FFT_OUT_R(FFT_Switch_R,0,                FFT_OutSwitch_R,0);
 
+#ifdef FFT_4096
+AudioConnection_F32     patchCord_FFT_L_4096(FFT_OutSwitch_L,0,             myFFT_4096,0);        // Route selected audio source to the FFT
+AudioConnection_F32     patchCord_FFT_R_4096(FFT_OutSwitch_R,0,             myFFT_4096,1);
+#endif
+#ifdef FFT_2048
+AudioConnection_F32     patchCord_FFT_L_2048(FFT_OutSwitch_L,1,             myFFT_2048,0);        // Route selected audio source to the FFT
+AudioConnection_F32     patchCord_FFT_R_2048(FFT_OutSwitch_R,1,             myFFT_2048,1);
+#endif
+#ifdef FFT_1024
+AudioConnection_F32     patchCord_FFT_L_1024(FFT_OutSwitch_L,2,             myFFT_1024,0);        // Route selected audio source to the FFT
+AudioConnection_F32     patchCord_FFT_R_1024(FFT_OutSwitch_R,2,             myFFT_1024,1);
+#endif
 // Input (Mic or Line) go to switch.   Use source selected for FFT.
-//AudioConnection_F32     patchCord_Input_L(Input,0,                        RxTx_InputSwitch_L,0);
+//AudioConnection_F32     patchCord_Input_L(Input,0,                        RxTx_InputSwitch_L,0);  // Test bypass
 //AudioConnection_F32     patchCord_Input_R(Input,1,                        RxTx_InputSwitch_R,0);
 AudioConnection_F32     patchCord_Input_L(FFT_Switch_L,0,                   RxTx_InputSwitch_L,0);  // 0 is RX. Output 1 is Tx chain
 AudioConnection_F32     patchCord_Input_R(FFT_Switch_R,0,                   RxTx_InputSwitch_R,0);
@@ -262,10 +279,10 @@ AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     Outp
 AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_R,0);  // route raw input audio to output for TX
 
 // In TX mic is selected as input and is switched to the TX audio path (straight to output for now)
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         RX_Hilbert_Plus_45_TX,0);
-AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         RX_Hilbert_Minus_45_TX,0);
-AudioConnection_F32     patchCord_Tx_Filt_L(RX_Hilbert_Plus_45_TX,0,        OutputSwitch_L,1);  // phase shift +45 deg
-AudioConnection_F32     patchCord_Tx_Filt_R(RX_Hilbert_Minus_45_TX,0,       OutputSwitch_R,1);  // phase shift -45 deg
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         TX_Hilbert_Plus_45,0);
+AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         TX_Hilbert_Minus_45,0);
+AudioConnection_F32     patchCord_Tx_Filt_L(TX_Hilbert_Plus_45,0,           OutputSwitch_L,1);  // phase shift +45 deg
+AudioConnection_F32     patchCord_Tx_Filt_R(TX_Hilbert_Minus_45,0,          OutputSwitch_R,1);  // phase shift -45 deg
 
 // Selected source go to output (selected as headphone or lineout in the code)
 AudioConnection_F32     patchCord4L(OutputSwitch_L,0,                       Output,0);  // output to headphone jack Left
@@ -287,7 +304,7 @@ COLD void setup()
     //delay(500);
     Serial.println(F("Initializing SDR_RA887x Program"));
     Serial.print(F("FFT Size is "));
-    Serial.println(FFT_SIZE);
+    Serial.println(fft_size);
     Serial.println(F("**** Running I2C Scanner ****"));
 
     // ---------------- Setup our basic display and comms ---------------------------
@@ -332,7 +349,7 @@ COLD void setup()
         //tft.activeWindowXY(0,0);
         //tft.activeWindowWH(SCREEN_WIDTH,SCREEN_HEIGHT);
 
-#ifndef DBGSPECT        
+#ifndef BYPASS_SPECTRUM_MODULE        
         spectrum_RA887x.setActiveWindow_default();
 #endif        
         tft.graphicMode(true);
@@ -403,7 +420,7 @@ COLD void setup()
     digitalClockDisplay(); // print time to terminal
     Serial.println("Clock Update");
 
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     spectrum_RA887x.initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 #endif
 
@@ -454,7 +471,7 @@ COLD void setup()
 
     initVfo(); // initialize the si5351 vfo
 
-#ifndef DBGSPECT    
+#ifndef BYPASS_SPECTRUM_MODULE    
     spectrum_RA887x.Spectrum_Parm_Generator(0, 0); // use this to generate new set of params for the current window size values. 
                                                               // 1st arg is new target layout record - usually 0 unless you create more examples
                                                               // 2nd arg is current empty layout record (preset) value - usually 0
@@ -511,12 +528,12 @@ static uint32_t delta = 0;
 //
 // __________________________________________ Main Program Loop  _____________________________________
 //
-void loop()
+HOT void loop()
 {
     static int32_t newFreq = 0;
     static uint32_t time_old = 0;
 
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     // Update spectrum and waterfall based on timer
     if (spectrum_waterfall_update.check() == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
     {
@@ -711,7 +728,7 @@ void loop()
 //-------------------------------------  Check_PTT() ------------------------------------------------------
 // Check on GPIO pins  - PTT, others
 //
-void Check_PTT(void)
+HOT void Check_PTT(void)
 {
     PTT_pin_state = digitalRead(PTT_INPUT);
     // Start debpunce timer if a new pin change of state detected
@@ -1072,7 +1089,7 @@ COLD void I2C_Scanner(void)
 }
 
 // prints a list of known i2C devices that match a discovered address
-void printKnownChips(byte address)
+COLD void printKnownChips(byte address)
 {
   // Is this list missing part numbers for chips you use?
   // Please suggest additions here:
@@ -1235,16 +1252,13 @@ COLD void SetFilter(void)
     FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
 }
 
-void initDSP(void)
+COLD void initDSP(void)
 {
-    if (fft_bins <= 2048)
-        AudioMemory_F32(50, audio_settings);   // 50 is good for 2048IQ FFT.
-    else
-        AudioMemory_F32(100, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+    AudioMemory_F32(100, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
-    RX_Hilbert_Plus_45_TX.begin(Hilbert_Plus45_28K,151);   // Left channel TX
-    RX_Hilbert_Minus_45_TX.begin(Hilbert_Minus45_28K,151); // Right channel TX
+    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
+    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
     codec1.dacVolumeRampDisable(); // Turn off the sound for now
@@ -1272,6 +1286,24 @@ void initDSP(void)
     FFT_Switch_L.gain(2, 0.0f); //  1 is TestTone A on, 0 OFF
     FFT_Switch_R.gain(2, 0.0f); //  1 is TestTone B on, 0 OFF
 
+    // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
+    if (fft_size == 4096)
+    {
+        FFT_OutSwitch_L.setChannel(0); //  1 is 4096, 0 is Off
+        FFT_OutSwitch_R.setChannel(0); //  1 is 4096, 0 is Off
+    }
+    else if (fft_size == 2048)
+    {
+      FFT_OutSwitch_L.setChannel(1); //  1 is 2048, 0 is Off
+      FFT_OutSwitch_R.setChannel(1); //  1 is 2048, 0 is Off
+    }
+    else if(fft_size == 1024)
+    {
+        FFT_OutSwitch_L.setChannel(2); //  1 is 1024, 0 is Off
+        FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
+    }
+
+    // Send the audio out to the world
     OutputSwitch_L.gain(0, 1.0f); // Ch 0 is Left 
     OutputSwitch_R.gain(0, 1.0f); // Ch 1 is Right    
     OutputSwitch_L.gain(1, 0.0f); // Turn TX off
@@ -1299,13 +1331,33 @@ void initDSP(void)
     */
   
     // Choose our output type.  Can do dB, RMS or power
-    myFFT.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
-    // Uncomment one these to try other window functions
-    //  myFFT.windowFunction(NULL);
-    //  myFFT.windowFunction(AudioWindowBartlett1024);
-    //  myFFT.windowFunction(AudioWindowFlattop1024);
-    myFFT.windowFunction(AudioWindowHanning1024);
-    myFFT.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
+    #ifdef FFT_4096
+        myFFT_4096.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
+        // Uncomment one these to try other window functions
+        //  myFFT.windowFunction(NULL);
+        //  myFFT.windowFunction(AudioWindowBartlett1024);
+        //  myFFT.windowFunction(AudioWindowFlattop1024);
+        myFFT_4096.windowFunction(AudioWindowHanning1024);
+        myFFT_4096.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
+    #endif
+    #ifdef FFT_2048
+        myFFT_2048.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
+        // Uncomment one these to try other window functions
+        //  myFFT.windowFunction(NULL);
+        //  myFFT.windowFunction(AudioWindowBartlett1024);
+        //  myFFT.windowFunction(AudioWindowFlattop1024);
+        myFFT_2048.windowFunction(AudioWindowHanning1024);
+        myFFT_2048.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
+    #endif
+    #ifdef FFT_1024
+        myFFT_1024.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
+        // Uncomment one these to try other window functions
+        //  myFFT.windowFunction(NULL);
+        //  myFFT.windowFunction(AudioWindowBartlett1024);
+        //  myFFT.windowFunction(AudioWindowFlattop1024);
+        myFFT_1024.windowFunction(AudioWindowHanning1024);
+        myFFT_1024.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
+    #endif
 }
 
 void TXAudio(int TX)
@@ -1386,4 +1438,3 @@ void TXAudio(int TX)
         AudioInterrupts();
     }
 }
-
