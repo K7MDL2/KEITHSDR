@@ -11,6 +11,8 @@
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
+#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
+//#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 
 extern int16_t                      fft_bins;       //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
 extern float                        fft_bin_size;   //   Hz per bin
@@ -18,7 +20,7 @@ extern volatile int32_t             Freq_Peak;
 extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 
 extern struct New_Spectrum_Layout   Custom_Layout[1];
 // Place to hold custom data for creating new layouts using the Generator function
-struct Spectrum_Parms               Sp_Parms_Custom[1] = {};      // Temp storage for generating new layouts    
+struct Spectrum_Parms               Sp_Parms_Custom[1]; // = {};      // Temp storage for generating new layouts    
 
 #ifdef USE_RA8875
 	extern RA8875 tft;
@@ -40,9 +42,9 @@ static int16_t spectrum_scale_maxdB = 1;       // max value in dB above the spec
 static int16_t spectrum_scale_mindB = 80;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
 //static int16_t fftFrequency         = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 static int16_t fftMaxPower          = 0;        // Used to hold the FFT peak power for the strongest signal
+struct Spectrum_Parms *ptr = &Sp_Parms_Def[0];
 
 // Function Declarations
-
 //-------------- COLOR CONVERSION -----------------------------------------------------------
 	inline uint16_t _Color565(uint8_t r,uint8_t g,uint8_t b) { return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3); }
 //	inline uint16_t Color24To565(int32_t color_) { return ((((color_ >> 16) & 0xFF) / 8) << 11) | ((((color_ >> 8) & 0xFF) / 4) << 5) | (((color_) &  0xFF) / 8);}
@@ -110,7 +112,8 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
     //if (s >= PRESETS) 
     //    s=PRESETS-1;   // Cycle back to 0
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.    
-    struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
+    //struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
+    *ptr = Sp_Parms_Def[s];
     
     int16_t blanking = 3;  // used to remove the DC line from the graphs at Fc
     int16_t pix_o16;
@@ -127,10 +130,23 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
      
     int16_t i;
     float avg = 0.0;
-    int16_t pixelnew[SCREEN_WIDTH+2];           //  Stores current pixel fopr spectrum portion only
+    int16_t pixelnew[SCREEN_WIDTH+2];           //  Stores current pixel for spectrum portion only
     static int16_t pixelold[SCREEN_WIDTH+2];    //  Stores copy of current pixel so it can be erased in next update
     //int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
-    float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
+    
+    float *pout=NULL;
+    //float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
+    // Only 1 of the FFT outputs can be displayed
+    #ifdef FFT_4096
+        if (fft_size == 4096) pout = myFFT_4096.getData();
+    #endif
+    #ifdef FFT_2048
+        if (fft_size == 2048) pout = myFFT_2048.getData();
+    #endif
+    #ifdef FFT_1024
+        if (fft_size == 1024) pout = myFFT_1024.getData();
+    #endif
+
     int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
     int16_t L_EDGE = 0; 
 
@@ -138,18 +154,29 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
      extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
      extern uint8_t tx_buffer[];
     #endif
-    
-    if (myFFT.available()) 
+
+    // While more than 1 FFT may be enabled, only 1 (fft_size) is chosen for display
+    uint8_t process_FFT = 0;
+    #ifdef FFT_4096
+        if (fft_size == 4096 && myFFT_4096.available()) process_FFT = 1;
+    #endif
+    #ifdef FFT_2048
+        if (fft_size == 2048 && myFFT_2048.available()) process_FFT = 1;
+    #endif
+    #ifdef FFT_1024
+        if (fft_size == 1024 && myFFT_1024.available()) process_FFT = 1;
+    #endif
+    if (process_FFT == 1)
     {     
         #ifdef ENET
             if (enet_data_out && enet_ready)
             {
-                for (i = 0; i < FFT_SIZE; i++)
+                for (i = 0; i < fft_size; i++)
                 {
                     tx_buffer[i] = (uint8_t) abs(*(pout+i));
                 }
-                //memcpy(tx_buffer, full_FFT, FFT_SIZE);
-                enet_write(tx_buffer, FFT_SIZE);
+                //memcpy(tx_buffer, full_FFT, fft_size);
+                enet_write(tx_buffer, fft_size);
             }
         #endif
 
@@ -178,12 +205,12 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
         
         // else   // When FFT data is < available graph area
         // {      // If our display area is less then our data width, fill in the outside areas with low values.
-            //L_EDGE = (ptr->wf_sp_width - FFT_SIZE - )/2;
+            //L_EDGE = (ptr->wf_sp_width - fft_size - )/2;
             //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
             /*
-            for (i=0; i< FFT_SIZE/4; i++)        
+            for (i=0; i< fft_size/4; i++)        
                 tempfft[i] = -500;
-            for (i=(FFT_SIZE/4)*3; i< FFT_SIZE; i++)        
+            for (i=(fft_size/4)*3; i< fft_size; i++)        
                  tempfft[i] = -500;
             //L_EDGE = FFT_center - GRAPH_center;
             */
@@ -597,7 +624,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
 //   Can be used for initial setup and also for refresh after a user changes the location or size, or a pop-up page window is removed requiring a redraw
 //
 //
-void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
+FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
 {
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.
 
@@ -605,7 +632,7 @@ void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
     //if (s >= PRESETS) s=PRESETS-1;   // Cycle back to 0
     // Test lines for alignment
 
-    struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
+    //struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
     
     if (ptr->spect_wf_rate > 40)
         spectrum_waterfall_update.interval(ptr->spect_wf_rate);
@@ -619,8 +646,17 @@ void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
     #endif
 
     Serial.print("fft_axis=");Serial.println(fft_axis);
-    myFFT.setXAxis(fft_axis);    // Set the FFT bin order to our needs
-    
+
+    #ifdef FFT_4096
+        myFFT_4096.setXAxis(fft_axis);    // Set the FFT bin order to our needs
+    #endif
+    #ifdef FFT_2048
+        myFFT_2048.setXAxis(fft_axis);    // Set the FFT bin order to our needs
+    #endif
+    #ifdef FFT_1024
+        myFFT_1024.setXAxis(fft_axis);    // Set the FFT bin order to our needs
+    #endif
+
     tft.fillRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLACK);  // x start, y start, width, height, array of colors w x h
     //tft.drawRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLUE);  // x start, y start, width, height, array of colors w x h
     
@@ -667,43 +703,17 @@ void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
 //
 //   Must be called before any text is written tothe screen. If not that text will be corrupted.
 //
-void Spectrum_RA887x::initSpectrum(int16_t preset) // preset is the spectrum frame definition index value chosen by external functions.
+FLASHMEM void Spectrum_RA887x::initSpectrum(int16_t preset) // preset is the spectrum frame definition index value chosen by external functions.
 {
     //tft.begin(RA8875_800x480);   // likely redundant but just in case and allows to be used standalone.
-#ifdef USE_RA8875
-    // Setup for scrollig attributes
-    tft.useLayers(1);       //mainly used to turn of layers!    
-    tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
-    tft.setScrollMode(LAYER1ONLY);    // One of these 4 modes {SIMULTANEOUS, LAYER1ONLY, LAYER2ONLY, BUFFERED }
-#else
-    tft.selectScreen(PAGE1_START_ADDR);   // For the RA8876 this is the equivalent of Layer1Only
-#endif
-
-    //spectrum_preset = S;   // <<<==== Set this value.  Range is 0-PRESETS.  Specify the default layout option for spectrum window placement and size.
-    /*
-    // These values are only used to generate a new config record.  Cut and paste the results into the array to use.
-    spectrum_x              = 0;      // 0 to width of display - window width. Must fit within the button frame edges left and right
-                                                // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
-    spectrum_y              = 153;      // 0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
-    spectrum_height         = 256;      // Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
-    spectrum_center         = 50;       // Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
-                                                // Smaller value makes spectrum smaller, waterfall bigger
-    spectrum_width          = 799;      // Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
-    spectrum_span           = 20;       // Value in KHz.  Ths will be the maximum span shown in the display graphs.  
-                                                // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
-                                                // Max value and resolutoin (pixels per bin) is dependent on sample frequency
-                                                // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
-                                                // 12500 would result in 2 pixels per bin. Bad numbers here should be corrected to best fit by the function
-    spectrum_wf_style       = 2;        // Range 1- 6. Specifies the Waterfall style.
-    spectrum_wf_colortemp   = 330;      // Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
-    spectrum_wf_scale       = 1.0;      // 0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
-    spectrum_LPFcoeff       = 0.9;      // 1.0f to 0.0f. Data smoothing
-    spectrum_dot_bar_mode   = 1;        // 0=bar, 1=Line. Spectrum box
-    spectrum_sp_scale       = 40;       // 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
-    spectrum_floor          = -175;      // 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
-    spectrum_wf_rate        = 70;          // window update rate in ms.  25 is fast enough to see dit and dahs well   
-    spectrum_waterfall_update = Metro(spectrum_wf_rate); 
-    */
+    #ifdef USE_RA8875
+        // Setup for scrollig attributes
+        tft.useLayers(1);       //mainly used to turn of layers!    
+        tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
+        tft.setScrollMode(LAYER1ONLY);    // One of these 4 modes {SIMULTANEOUS, LAYER1ONLY, LAYER2ONLY, BUFFERED }
+    #else
+        tft.selectScreen(PAGE1_START_ADDR);   // For the RA8876 this is the equivalent of Layer1Only
+    #endif
 }
 
 //
@@ -734,7 +744,7 @@ void Spectrum_RA887x::initSpectrum(int16_t preset) // preset is the spectrum fra
 //          
 //  TODO:  Store data structure in EEPROM
 //
-void Spectrum_RA887x::Spectrum_Parm_Generator(int16_t parm_set, int16_t preset)
+FLASHMEM void Spectrum_RA887x::Spectrum_Parm_Generator(int16_t parm_set, int16_t preset)
 {
 //  User Variables used:
 //  int16_t spectrum_x              // 0 to width of display - window's NE corner. Must fit within the button frame edges left and right
@@ -887,14 +897,33 @@ int16_t Spectrum_RA887x::_find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    //
     float specMax = -200.0f;
     uint16_t iiMax = 0;
     int16_t f_peak = 0.0f;
-    
     uint16_t bin_center = (bin_max-bin_min)/2 + bin_min;
 
     //sp_FFT.setOutputType(FFT_POWER);   // change to power, return it to FFT_DBFS at end
-    myFFT.windowFunction(AudioWindowHanning1024);
+    #ifdef FFT_4096
+        myFFT_4096.windowFunction(AudioWindowHanning4096);
+    #endif
+    #ifdef FFT_2048
+        myFFT_2048.windowFunction(AudioWindowHanning2048);
+    #endif
+    #ifdef FFT_1024
+        myFFT_1024.windowFunction(AudioWindowHanning1024);
+    #endif
+
     // Get pointer to data array of powers, float output[512];
-    //  setAxis(fft_axis)  // Called in drawSpectrumFrame() to set the bin order to lowest frequency at 0 bin and highest at bin 1023
-    float *pPwr = myFFT.getData();
+    // setAxis(fft_axis)  // Called in drawSpectrumFrame() to set the bin order to lowest frequency at 0 bin and highest at bin 1023
+    float *pPwr=NULL;
+    //float *pPwr; = myFFT.getData();
+    // only 1 of these (fft_size) is chosen to be used to display
+    #ifdef FFT_4096
+        if (fft_size == 4096) pPwr = myFFT_4096.getData();
+    #endif
+    #ifdef FFT_2048
+        if (fft_size == 2048) pPwr = myFFT_2048.getData();
+    #endif
+    #ifdef FFT_1024
+        if (fft_size == 1024) pPwr = myFFT_1024.getData();   
+    #endif
     // Find biggest bin
     for(int ii=bin_min; ii<bin_max; ii++)  
     {        
@@ -927,9 +956,18 @@ int16_t Spectrum_RA887x::_find_FFT_Max(uint16_t bin_min, uint16_t bin_max)    //
         }
         // return a frequency value adjusted to be relative to the center bin
         fftMaxPower = iiMax + (2-R)/(1+R);
-        f_peak = fftMaxPower - bin_center;   //adjust for center
-        fftMaxPower = myFFT.read(fftMaxPower)-20; // set global fftMaxPower = Power of the strongest signal if possible
+        f_peak = fftMaxPower - bin_center;   //adjust for center  
+        //fftMaxPower = myFFT.read(fftMaxPower)-20; // set global fftMaxPower = Power of the strongest signal if possible
                                                             // -20 is a cal factor experimentally determined
+        #ifdef FFT_4096
+            if (fft_size == 4096) fftMaxPower = myFFT_4096.read(fftMaxPower)-20; 
+        #endif
+        #ifdef FFT_2048
+            if (fft_size == 2048) fftMaxPower = myFFT_2048.read(fftMaxPower)-20; 
+        #endif
+        #ifdef FFT_1024 
+            if (fft_size == 1024) fftMaxPower = myFFT_1024.read(fftMaxPower)-20;    
+        #endif
     }
     //Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" fftMaxPower="); Serial.println(fftMaxPower); 
     return f_peak;    // return -200 unless there is a good value to send out

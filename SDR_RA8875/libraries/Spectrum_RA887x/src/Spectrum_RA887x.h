@@ -49,8 +49,23 @@
 #include <Arduino.h>
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 
-#define FFT_SIZE             4096  // Choose 1024, 2048, or 4096 - size must match your main file FFT_SIZE
+
+// USER DEFINED SECTION --------------------------------------------------------------------//
+
 #define USE_RA8875                 // Uncomment for RA8876 AND in your main program
+
+// Choose 1024, 2048, or 4096 - usually defined in the main program
+////#define FFT_SIZE            2048   
+
+// --->>>> Enable one or more FFT pipelines
+// Ideally this would be automatically chosen from the main program when we figure out how to do that.
+#define FFT_4096
+//#define FFT_2048
+//#define FFT_1024
+// --->>>><<<<<---- //
+
+// END of USER DEFINED SECTION ------------------------------------------------------------//
+
 
 //  Usually also defined in main program header file such as RadioConfig.h for SDR_887x program
 #ifdef USE_RA8875
@@ -94,9 +109,6 @@
   const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
   const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
 #endif // USE_RA8876_t3
-
-#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 
 struct Spectrum_Parms {
     int16_t wf_sp_width;        // User specified active graphing area width with no padding. Max is fft_bins, can be smaller.
@@ -170,12 +182,14 @@ struct New_Spectrum_Layout {      // Temp storage for generating new layouts
       int16_t spectrum_wf_rate;       // window update rate in ms.  25 is fast enough to see dit and dahs well    
 };
 
-#if   (FFT_SIZE == 4096)
-    extern AudioAnalyzeFFT4096_IQ_F32  myFFT;  // choose which you like, set FFT_SIZE accordingly.
-#elif (FFT_SIZE == 2048)    
-    extern AudioAnalyzeFFT2048_IQ_F32  myFFT;
-#elif (FFT_SIZE == 1024)
-    extern AudioAnalyzeFFT1024_IQ_F32  myFFT;
+#ifdef FFT_4096
+    extern AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+#endif
+#ifdef FFT_2048    
+    extern AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
+#endif
+#ifdef FFT_1024
+    extern AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
 class Spectrum_RA887x
@@ -211,15 +225,15 @@ class Spectrum_RA887x
           }
           // publish externally avaialble functions
           void spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB);
-          void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset);
-          void drawSpectrumFrame(uint8_t s);
-          void initSpectrum(int16_t preset);
+          FLASHMEM void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset);
+          FLASHMEM void drawSpectrumFrame(uint8_t s);
+          FLASHMEM void initSpectrum(int16_t preset);
           void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
           void setActiveWindow_default(void);
           void updateActiveWindow(bool full);
     
     private:  
-      uint16_t fft_size = FFT_SIZE;
+      uint16_t fft_size = 0;
       /*
       #if   (FFT_SIZE == 4096)
           AudioAnalyzeFFT4096_IQ_F32  *sp_FFT=NULL;  //=NULL;  // choose which you like, set FFT_SIZE accordingly.
