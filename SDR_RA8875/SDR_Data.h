@@ -2,12 +2,11 @@
 //  SDR_Data_RA8876.h
 //
 //
-
-#include "SDR_RA8875.h"
-
 #ifndef _SDR_DATA_RA8876_H_
 #define _SDR_DATA_RA8876_H_
+
 #include "RadioConfig.h"
+#include "SDR_RA8875.h"
 
 struct Band_Memory bandmem[BANDS] = { 
     // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band  ts  agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   att_DB  PREAMP    XVE XV#  SpRef
@@ -255,7 +254,7 @@ PROGMEM struct Modes_List modeList[MODES_NUM] = {
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
 //W LE  RE  CG x   y   w  h  c sp st clr sc mode scal reflvl wfrate
     #ifdef USE_RA8875
-        {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 90},
+        {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 70},
         {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 90}, // hal
         {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40, 5, 90},
         {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
