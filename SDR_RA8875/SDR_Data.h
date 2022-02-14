@@ -175,9 +175,9 @@ struct Label labels[LABEL_NUM] = {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoLvl LoVol enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1          enc2          enc3    
-    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0, 13,   OFF,   100,   ON,   OFF,   30,  ON,  31,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0, 13,   OFF,   100,   ON,   OFF,   30,  ON,  31,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN},
-    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0, 13,   OFF,   100,   ON,   OFF,   30,  ON,  31,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN}
+    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0, 15,   OFF,   100,   ON,   OFF,   30,  ON,  31,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0, 15,   OFF,   100,   ON,   OFF,   30,  ON,  31,  OFF,  OFF,  OFF,  NB2,  NR3,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN},
+    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0, 15,   OFF,   100,   ON,   OFF,   30,  ON,  31,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,  MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -195,15 +195,23 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     #endif  // USE_RA8875
 };
 
+// (   name,  maxGain, response, hardLimit, threshold,   attack,  decay);
+// ( "AGC-x", 0-2,     0-3,      0-1,       0 to -96.0,  x.0,     x.0)
+// gain 0(0dB), 1(6.0dB), 2(12dB) max gain applied for expanding
+// response 0(0ms), 1(25ms), 2(50ms), 3(100ms) integration time for compressor - larger allows short term peaks to pass through
+// hardlimit 0 = softknee compressor - progressively compresses signals louder than threshold
+// hardlimit 1 = hard compressor used - all values above threshold are same loudness
+// threshold float in range of 0.0 to -96.0dBFS where -18.0dBFS is typical
+// attack float controls rate of decrease in gain when signal is over threshold - in dB/s
+// decay how fast gain is restored once level drops below threshold in dB/s - typically set longer than attack value
 PROGMEM struct AGC agc_set[AGC_SET_NUM] = {
-    {"AGC- ",2,0,0,-36.0,12.0,6.0},
-    {"AGC-S",2,0,0,-36.0,12.0,6.0},
-    {"AGC-M",2,0,0,-36.0,12.0,6.0},
-    {"AGC-F",2,0,0,-36.0,12.0,6.0}
+    {"AGC- ",0,0,0,0.0f,0.0f,0.0f},  
+    {"AGC-S",2,1,0,-4.0f,1.0f,2.0f},
+    {"AGC-M",2,0,0,-8.0f,0.05f,1.0f},
+    {"AGC-F",2,0,0,-12.0f,0.005f,0.20f}
 };
 
-// Settings ranges
-// threshold recommended to be between 1.5 and 20, closer to 3 maybe best
+// Settings ranges.5 and 20, closer to 3 maybe best
 // nAnticipation is 1 to 125
 // Decay is 1 to 10
 PROGMEM struct NB nb[NB_SET_NUM] = {

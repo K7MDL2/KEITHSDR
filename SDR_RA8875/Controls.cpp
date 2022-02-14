@@ -1238,6 +1238,21 @@ COLD void selectAgc(uint8_t andx)
     	andx = AGC_SET_NUM - 1;		// Cycle around
 		
   	bandmem[curr_band].agc_mode = andx;
+
+    if (andx == AGC_OFF)
+        codec1.autoVolumeDisable();
+    else
+    {
+        struct AGC *pAGC = &agc_set[andx];
+        codec1.autoVolumeControl(
+            pAGC->agc_maxGain,
+            pAGC->agc_response,
+            pAGC->agc_hardlimit,
+            pAGC->agc_threshold,
+            pAGC->agc_attack,
+            pAGC->agc_decay);
+        codec1.autoVolumeEnable();
+    }
  	//displayAgc();
 }
 
