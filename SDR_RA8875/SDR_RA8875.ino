@@ -233,8 +233,8 @@ AudioSynthSineCosine_F32    TxTestTone_A;  // For TX path test tone
 AudioSynthWaveformSine_F32  TxTestTone_B;  // For TX path test tone
 
 // Connections for FINput and FFT - chooses either the input or the output to display in the spectrum plot
-AudioConnection_F32     patchCord_FFT_In_L(Input,1,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_FFT_In_R(Input,0,                         FFT_Switch_R,0);
+AudioConnection_F32     patchCord_FFT_In_L(Input,0,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_FFT_In_R(Input,1,                         FFT_Switch_R,0);
 AudioConnection_F32     patchCord_FFT_Tone_L(OutputSwitch_L,0,              FFT_Switch_L,1);  // route final audio out to the FFT display
 AudioConnection_F32     patchCord_FFT_Tone_R(OutputSwitch_R,0,              FFT_Switch_R,1);
 AudioConnection_F32     patchCord_Tx_Tone_L(TxTestTone_A,0,                 FFT_Switch_L,2);  // Test Tones

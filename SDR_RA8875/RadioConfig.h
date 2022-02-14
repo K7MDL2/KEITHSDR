@@ -147,7 +147,9 @@
     #undef USE_DHCP                
     #define USE_DHCP                  // UNCOMMENT this for static IP  
     #define ENET
-    #define USE_ENET_PROFILE
+    #ifdef ENET
+      #define USE_ENET_PROFILE
+    #endif
     //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
     //#define SV1AFN_BPF              // Use the BPF board
     //#define DIG_STEP_ATT            // Use the step atten usually the PE4302 board
@@ -193,55 +195,6 @@
   #define Atten_DATA      32
   #define Atten_LE        30
 #endif  // DIG_STEP_ATT
-
-//
-//--------------------------------- RA8875 LCD TOUCH DISPLAY INIT & PINS --------------------------
-//
-
-#ifdef USE_RA8875
-  //#define  SCREEN_WIDTH      800 
-  //#define  SCREEN_HEIGHT     480
-  #define  RA8875_INT        14   //any pin
-  #define  RA8875_CS         10   //any digital pin
-  #define  RA8875_RESET      9    //any pin or nothing!
-  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-  #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
-  #include <SPI.h>                // included with Arduino
-#else // If RA8876 is not used then assume the RA8876_t3 1024x600 is.
-  //
-  //
-  //
-  //--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
-  //
-  #define USE_RA8876_t3
-  //
-  #define  SCREEN_WIDTH      1024 
-  #define  SCREEN_HEIGHT     600
-  #include <RA8876_t3.h>           // Github
-  #include <FT5206.h>
-  #define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
-  #define  RA8876_CS         10   //any digital pin
-  #define  RA8876_RESET      9    //any pin or nothing!
-  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-/*
-  // From RA8875/_settings/RA8875ColorPresets.h
-  // Colors preset (RGB565)
-  const uint16_t	RA8875_BLACK            = 0x0000;
-  const uint16_t 	RA8875_WHITE            = 0xFFFF;
-  const uint16_t	RA8875_RED              = 0xF800;
-  const uint16_t	RA8875_GREEN            = 0x07E0;
-  const uint16_t	RA8875_BLUE             = 0x001F;
-  const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
-  const uint16_t 	RA8875_MAGENTA          = 0xF81F;
-  const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
-  const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
-  const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
-  const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
-  const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
-  const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
-  const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
-*/
-#endif // USE_RA8876_t3
 //
 //
 //------------------------------------  Ethernet UDP messaging section --------------------------
