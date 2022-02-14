@@ -15,6 +15,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     9. Did extensive perf measurements for 1 to 3 FFT processing sizes in combinations, at various sample rates and FFT display sizes.  See forum thread for details.
     10. Perf is good now with 102K sample rate, enet on, 2 FFT pipelines (4096IQ + 1024IQ) and 4096IQ audio and display.  CPU boosted to 815Mhz and Fastest optimization selected.  Runs at 145F i open box.
     11. Local variable space was runnig low. Used HOT and COLD macros and more use of PROGMEM, DMAMEM, FLASHMEM.  DMAMEM helps with audio filter and FFT object memory relocation into RAM2. It does not work with the Convolution filter and noiseblanker objects.
+    12. Enabled AGC feature using values in the SDR_Data.h AGC table.  Experimented with several values, you may want to do more.
 
 ## Jan 2022
 

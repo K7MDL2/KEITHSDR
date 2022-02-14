@@ -2,19 +2,18 @@
 //
 //  Main Program File
 //
-//  Spectrum, Display, full F32 library conversion completed 3/2021. Uses FFTXXXX_IQ_F32 FFT I and Q version files
-//      XXXX can be the 256, 1024, 2048 or 4096 versions.
+//  Spectrum, Display, full FP32 library conversion completed 3/2021. Uses FFTXXXX_IQ_F32 FFT I and Q version files
+//      XXXX can be the 1024, 2048 or 4096 versions.
 //  Spectrum uses the raw FFT output and is not calibrated.
 //
 //  Test tones are enabled in spectrum only, not in audio path.
 //
 // _______________________________________ Setup_____________________________________________
 //
-
+// Pickup build time options from RadioConfig.h
+#include "RadioConfig.h"        // Majority of declarations here to drive the #ifdefs that follow
 #include "SDR_RA8875.h"
 #include "SDR_Data.h"
-// Now pickup build time options from RadioConfig.h
-#include "RadioConfig.h"        // Majority of declarations here to drive the #ifdefs that follow
 #include "Hilbert.h"            // filter coefficients
 #include "AudioFilterConvolution_F32.h"
 #include <AudioSwitch_OA_F32.h>
@@ -161,7 +160,7 @@ bool    MF_default_is_active = true;
 uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init function.
                                     // Ensure the matching FFT resources are enabled in the lib .h file!
 
-// These are normally defined in the spectrum_RA887z.h file
+// These are normally defined in the spectrum_RA887x.h file
 // enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
 //#define FFT_4096
 //#define FFT_2048
@@ -1254,6 +1253,7 @@ COLD void SetFilter(void)
 
 COLD void initDSP(void)
 {
+    AudioNoInterrupts();    
     AudioMemory_F32(100, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
@@ -1261,20 +1261,21 @@ COLD void initDSP(void)
     TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
-    codec1.dacVolumeRampDisable(); // Turn off the sound for now
     codec1.inputSelect(RxAudioIn);
-    codec1.autoVolumeControl(2, 0, 0, -36.0, 12, 6);                   // add a compressor limiter
-        //   codec1.autoVolumeControl( 0-2, 0-3, 0-1, 0-96, 3, 3);
-        //   autoVolumeControl(maxGain, response, hardLimit, threshold, attack, decay);
-    codec1.autoVolumeEnable(); // let the volume control itself..... poor mans agc
-    //codec1.autoVolumeDisable();// Or don't let the volume control itself
     codec1.muteLineout(); //mute TX audio 
     codec1.muteHeadphone();
-    codec1.adcHighPassFilterDisable();
-    codec1.dacVolume(0); // set the "dac" volume (extra control)
+    codec1.volume(0.0);
+    
+    codec1.adcHighPassFilterDisable(); // Turn off DC blocking filter - reduces noise according to forum
+    //codec1.adcHighPassFilterEnable();  // Turn on DC blocking filter (default) 
+    //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
+
+    // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
+    //codec1.audioPreProcessorEnable();  // AGC on Line-In level
+    codec1.audioPostProcessorEnable();   // AGC on Line-Out level
+    //codec1.audioProcessorDisable();   // Default 
 
     // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
-    AudioNoInterrupts();    
     RxTx_InputSwitch_L.setChannel(0); // Select RX path
     RxTx_InputSwitch_R.setChannel(0); // Select RX path
 
