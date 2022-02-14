@@ -4,7 +4,7 @@
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 #include "Display.h"
-
+      
 #ifdef USE_RA8875
 	extern RA8875 tft;
 #else 
@@ -12,12 +12,12 @@
 #endif
 
 #ifdef I2C_LCD
-  #include <LiquidCrystal_I2C.h>
-  extern LiquidCrystal_I2C lcd;
+  	#include <LiquidCrystal_I2C.h>
+  	extern LiquidCrystal_I2C lcd;
 #endif
 
 #ifdef ENET
-  extern uint8_t enet_ready;
+  	extern uint8_t enet_ready;
 #endif
 
 extern uint8_t display_state;   // something to hold the button state for the display pop-up window later.
