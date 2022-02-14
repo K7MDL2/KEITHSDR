@@ -17,7 +17,7 @@
 #else 
 	extern RA8876_t3 tft;
 #endif
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
 #endif
 extern          uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
@@ -95,7 +95,7 @@ void selectAgc(uint8_t andx);
 void clearMeter(void);
 void setMeter(uint8_t id);
 
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 COLD void Set_Spectrum_Scale(int8_t zoom_dir)
 {
@@ -191,7 +191,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RFgain(0);
     ///AFgain(0);
     setNBLevel(0);
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif
     //Rate(0); Not needed
@@ -252,7 +252,7 @@ COLD void pop_win(uint8_t init)
 
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);
-#ifndef DBGSPECT        
+#ifndef BYPASS_SPECTRUM_MODULE        
         spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif        
         displayRefresh();
@@ -462,7 +462,7 @@ COLD void Menu()
 {   
     //popup = 1;
     //pop_win(1);
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp += 10;
     if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp > 10000)
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp = 1;              
@@ -1031,7 +1031,7 @@ COLD void RefLevel(int8_t newval)
         bandmem[curr_band].sp_ref_lvl = 50; 
     if (bandmem[curr_band].sp_ref_lvl < -50)
         bandmem[curr_band].sp_ref_lvl = -50; 
-#ifndef DBGSPECT        
+#ifndef BYPASS_SPECTRUM_MODULE        
     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
 #endif
     displayRefLevel();
@@ -1084,7 +1084,7 @@ COLD void Band()
 // DISPLAY button
 COLD void Display()
 {   
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_dot_bar_mode)
     {
         display_state = 0;
@@ -1106,7 +1106,7 @@ COLD void Display()
 
 COLD void TouchTune(int16_t touch_Freq)
 {
-#ifndef DBGSPECT
+#ifndef BYPASS_SPECTRUM_MODULE
     touch_Freq -= Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_width/2;     // adjust coordinate relative to center 
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
     
