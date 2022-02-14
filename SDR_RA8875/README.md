@@ -4,12 +4,16 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## Feb 2022
 
-    1. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks.  RF output is flowing though.
+    1. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks more.  RF output is flowing though.
     2. Moved ENET startup code earlier in startup before time sync.  Was causing a deadlock resulting in CPU reboots at enet init time. Now there is no more long startup delay when ENET is enabled.
     3. Pitch is now read from the database and applied to CW filter center frequency.
     4. Raised Line-In volume max value in database (RX board input), set default AF gain setting to about 30 (was 90 or so).
     5. Planning to work more on MIDI for remote control pod and keyers.
-    6. At times I get dupe glcdfont.c compile errors.  Renaming the glcdfonts.c file in the RA8875 or RA8876 library seems to resolve it.  Ugly solution.
+    6. Added ability to select up to 3 parallel FFT pipelines, 1 is chosen for audio and (main) display.  Setting up for future pan and zoom using an optimal sized raw FFT.
+    7. Moved user data out of the Spectrum_RA887x library and can now pass some parameters to the library such as spectrum_preset value (screen layout record nunber set) and fft_size to use.  Still have to set matching #define for FFT pipelines to use.  Read the file comments for details.
+    8. Moved some header files stuff around to eliminate the glcdfont.c issue when compiling enet or not.  Also reduced instances of duplicate includes (mostly font libraries) in the main program and spectrum library.
+    9. Did extensive perf measurments for 1 to 3 FFT processing sizes in combinations, at various sample rates and FFT display size.  See forum thread for details.
+    10. Perf is good now with 102K sample rate, enet on, 2 FFT pipelines (4096IQ + 1024IQ) and 4096IQ audio and display.  CPU boosted to 815Mhz and Fastest optimization selected.  Runs at 145F i open box. 
 
 ## Jan 2022
 
@@ -22,7 +26,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     7. Updated the DSP chain and Bandwidth2.cpp to use the convoluntional filtering Keith released in his Jan 13 build.
     8. Added PTT_IN and PTT_OUT1 pins and PTT detection logic.  Calls existing Xmit() button function to toggle state and display update.  RadioConfig.h defines the IO pins.
     9. New #define MECH_ENCODERS added to RadioConfig.h. If this is enabled and no physical mechanical encoders are connected, AND ENET is enabled, the system will hang and reboot after ENET subsystem init.  Can use I2C_ENCODERS or MECH_ENCODERS, or neither.
-    10. Added #define DBGSPECT to all code section that deal with the spectrum display.  Could be useful someday to more easily find and swap for another spectrum library on a different display.
+    10. Added #define BYPASS_SPECTRUM_MODULE to all code section that deal with the spectrum display.  Could be useful someday to more easily find and swap for another spectrum library on a different display.
     11. Fixed MODE sideband selection issue.  Was due to Noiseblanker not initialized at startup, was only done when it was adjusted.
     12. Added Transmit DSP chain, switches input to mic.  RX is Output to headphone jack, TX is output to LineOut. For now I have no modulation blocks and a 1KHz test sinewave in place of the mic as I have neither a mic or a TX board connected yet. The FFT will show the Transmit spectrum.  
 
