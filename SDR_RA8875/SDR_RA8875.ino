@@ -230,6 +230,8 @@ radioNoiseBlanker_F32       NoiseBlanker(audio_settings);  // DMAMEM on this ite
 AudioSynthWaveformSine_F32  Beep_Tone; // for audible alerts like touch beep confirmations
 AudioSynthSineCosine_F32    TxTestTone_A;  // For TX path test tone
 AudioSynthWaveformSine_F32  TxTestTone_B;  // For TX path test tone
+AudioEffectGain_F32         Amp1_L;
+AudioEffectGain_F32         Amp1_R;  // Some well placed gain stages
 
 // Connections for FINput and FFT - chooses either the input or the output to display in the spectrum plot
 AudioConnection_F32     patchCord_FFT_In_L(Input,0,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
@@ -284,8 +286,10 @@ AudioConnection_F32     patchCord_Tx_Filt_L(TX_Hilbert_Plus_45,0,           Outp
 AudioConnection_F32     patchCord_Tx_Filt_R(TX_Hilbert_Minus_45,0,          OutputSwitch_R,1);  // phase shift -45 deg
 
 // Selected source go to output (selected as headphone or lineout in the code)
-AudioConnection_F32     patchCord4L(OutputSwitch_L,0,                       Output,0);  // output to headphone jack Left
-AudioConnection_F32     patchCord4R(OutputSwitch_R,0,                       Output,1);  // output to headphone jack Right
+AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_L,0,                  Amp1_L,0);  // output to headphone jack Left
+AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_R,0,                  Amp1_R,0);  // output to headphone jack Right
+AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
+AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
 
@@ -1305,6 +1309,10 @@ COLD void initDSP(void)
     RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
 
     NoiseBlanker.useTwoChannel(true);
+
+    Amp1_L.setGain_dB(6.0f);    // Adjustable fixed output boost in dB.
+    Amp1_R.setGain_dB(6.0f);
+
     AudioInterrupts();
 
     TXAudio(0);  // Finish RX audio chain setup

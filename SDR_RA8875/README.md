@@ -21,6 +21,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     15. Reordered the modes list so now CW/CW-REV, USB/LSB, DATA/DATA_REV, AM, FM are more predictable in the rotation.
     16. The last-used filter width is now stored per mode. After a reset/power cycle it will default to the modeList[] table defaults. Some day this and many other parameters will be stored in EEPROM or SD card. 
     17. Moved more user defined parameters out of the spectrum library, now passing them via function arguments.
+    18. Added a audio gain stage in the final output to boost things a bit. For CW modes, the narrower the filter, the more boost is added to keep the signal sounding the same level.
 
 ## Jan 2022
 

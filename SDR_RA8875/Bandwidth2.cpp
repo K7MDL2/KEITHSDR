@@ -18,10 +18,16 @@ extern struct User_Settings             user_settings[];
 extern uint8_t                          user_Profile;
 extern int16_t                          filterCenter;
 extern int16_t                          filterBandwidth;
+extern AudioEffectGain_F32              Amp1_L;  // Some well placed gain stages
+extern AudioEffectGain_F32              Amp1_R;  // Some well placed gain stages
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 COLD void selectBandwidth(uint8_t bndx)
 {
+    Amp1_L.setGain_dB(6.0f);    // Adjustable fixed output boost in dB.
+    Amp1_R.setGain_dB(6.0f);
     // For convolutional filter method, just set a single fixed Hibert filter width. Rest is taken care of after the summer
     //RX_Hilbert_Plus_45.end();
     //RX_Hilbert_Minus_45.end();
@@ -39,6 +45,10 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.begin();           
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 250;
+        AudioNoInterrupts();
+        Amp1_L.setGain_dB(18.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(18.0f);
+        AudioInterrupts();
         SetFilter();               
     }
 
@@ -52,6 +62,10 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.begin();
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 500;
+        AudioNoInterrupts();
+        Amp1_L.setGain_dB(15.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(15.0f);
+        AudioInterrupts();
         SetFilter();
     }
     
@@ -65,6 +79,10 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.begin();
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 700;
+        AudioNoInterrupts();
+        Amp1_L.setGain_dB(12.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(12.0f);
+        AudioInterrupts();
         SetFilter();
     }
 
@@ -78,6 +96,10 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.begin();
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth=1000;
+        AudioNoInterrupts();
+        Amp1_L.setGain_dB(9.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(9.0f);
+        AudioInterrupts();
         SetFilter();
     }
     
