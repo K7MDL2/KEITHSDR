@@ -14,24 +14,6 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 
-extern int16_t                      fft_bins;       //Number of FFT bins. 1024 FFT has 512 bins for 50Hz per bin   (sample rate / FFT size)
-extern float                        fft_bin_size;   //   Hz per bin
-extern volatile int32_t             Freq_Peak;
-extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 
-extern struct New_Spectrum_Layout   Custom_Layout[1];
-// Place to hold custom data for creating new layouts using the Generator function
-struct Spectrum_Parms               Sp_Parms_Custom[1]; // = {};      // Temp storage for generating new layouts    
-
-#ifdef USE_RA8875
-	extern RA8875 tft;
-#else 
-	extern RA8876_t3 tft;
-    int16_t	_activeWindowXL = 0;
-    int16_t _activeWindowXR = SCREEN_WIDTH;
-    int16_t	_activeWindowYT = 0;
-    int16_t _activeWindowYB = SCREEN_HEIGHT;
-#endif
-
 int16_t wf_time_line                = 15000;
 int16_t fftFreq_refresh             = 1000;
 Metro   waterfall_timestamp         = Metro(wf_time_line);  // Used to draw a time stamp line across the waterfall window.  Cha
@@ -42,7 +24,10 @@ static int16_t spectrum_scale_maxdB = 1;       // max value in dB above the spec
 static int16_t spectrum_scale_mindB = 80;       // min value in dB above the spectrum floor we will plot signal values (dB scale max)
 //static int16_t fftFrequency         = 0;        // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 static int16_t fftMaxPower          = 0;        // Used to hold the FFT peak power for the strongest signal
-struct Spectrum_Parms *ptr = &Sp_Parms_Def[0];
+
+// Place to hold custom data for creating new layouts using the Generator function
+struct Spectrum_Parms Sp_Parms_Custom[1]    = {};      // Temp storage for generating new layouts    
+struct Spectrum_Parms *ptr                  = &Sp_Parms_Def[0];
 
 // Function Declarations
 //-------------- COLOR CONVERSION -----------------------------------------------------------
@@ -100,7 +85,7 @@ void Spectrum_RA887x::updateActiveWindow(bool full)
 }
 #endif
 
-void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB)
+int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.
@@ -123,6 +108,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
     int16_t fft_pk_bin                = 0;
     static int16_t fftPower_pk_last   = ptr->spect_floor;
     static int16_t pix_min            = ptr->spect_floor;
+    int32_t freq_peak                 = 0;
 
     //for testing alignments
     //tft.drawRect(spectrum_x, spectrum_y, spectrum_width, spectrum_height, myBLUE);  // x start, y start, width, height, array of colors w x h
@@ -282,9 +268,10 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
                     pix_min = pixelnew[i];
             }
         }
-        // Takes a snapshot of the current window without the bottom row. Stores it in Layer 2 then brings it back beginning at the 2nd row. 
-        //    Then write new row data into the missing top row to get a scroll effect using display hardware, not the CPU.
-        //    Documentation for BTE: BTE_move(int16_t SourceX, int16_t SourceY, int16_t Width, int16_t Height, int16_t DestX, int16_t DestY, uint8_t SourceLayer=0, uint8_t DestLayer=0, bool Transparent = false, uint8_t ROP=RA8875_BTEROP_SOURCE, bool Monochrome=false, bool ReverseDir = false);                  
+        //  UPDATE WATERFALL 
+        //  Takes a snapshot of the current window without the bottom row. Stores it in Layer 2 then brings it back beginning at the 2nd row. 
+        //  Then write new row data into the missing top row to get a scroll effect using display hardware, not the CPU.
+        //  Documentation for BTE: BTE_move(int16_t SourceX, int16_t SourceY, int16_t Width, int16_t Height, int16_t DestX, int16_t DestY, uint8_t SourceLayer=0, uint8_t DestLayer=0, bool Transparent = false, uint8_t ROP=RA8875_BTEROP_SOURCE, bool Monochrome=false, bool ReverseDir = false);                  
         #ifdef USE_RA8875
             tft.BTE_move(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, ptr->wf_height-4, ptr->l_graph_edge+1, ptr->wf_top_line+2, 1, 2);  // Layer 1 to Layer 2
             while (tft.readStatus());  // Make sure it is done.  Memory moves can take time.
@@ -312,9 +299,10 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
         //
         //--------------------------------  Spectrum Window ------------------------------------------
         //
-        // Done with waterfall, now draw the spectrum section
+        // UPDATE SPECTRUM
+        // Done with waterfall, now UPDATE SPECTRUM section
         // start at 2 to prevent reading out of bounds during averaging formula
-                    // Draw our image on canvas 2 which is not visible
+        // Draw our image on canvas 2 which is not visible
 
         #ifdef USE_RA8875
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2); 
@@ -329,8 +317,21 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
             setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+1, ptr->sp_bottom_line-1);
         #endif
         
+        // Erase old spectrum window
         tft.fillRect(ptr->l_graph_edge+1,    ptr->sp_top_line+1,    ptr->wf_sp_width,     ptr->sp_height-2,    myBLACK);
-
+        // Draw in filter bandwidth "shaded" area
+        int8_t filt_side = 0;
+        if (Offset == 1 || Offset == 0 || Offset == -1) 
+        {
+            filt_side = Offset;  //Figure out mode to shade correct side
+        }
+        else
+        {
+            if (Offset > 1) filt_side = 1;
+            else filt_side = -1;
+        }
+        tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_size/2)*filt_side)-(filterBandwidth/fft_bin_size/2/2), ptr->sp_top_line+1, filterBandwidth/fft_bin_size/2, ptr->sp_height-2, myBLUE);
+              
         //int pix_min = pixelnew[2];
         //for (i = 2; i < (ptr->wf_sp_width-1); i++)
         //    if (pixelnew[i] < pix_min)
@@ -482,6 +483,12 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
                 }
                 // redraw the center line
                 tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+2, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
+                        // redraw the pitch line if in CW modes (Offset not 0).  Offset is in HZ so corect for current fft bin size
+                if (Offset < -1 || Offset > 1)  // only draw for CW modes
+                {
+                    tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+2+(Offset/fft_bin_size/2), ptr->sp_top_line+1, ptr->sp_height, myRED);
+                    tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+3+(Offset/fft_bin_size/2), ptr->sp_top_line+1, ptr->sp_height, myRED);
+                }
             }
         } // end of spectrum pixel plotting
 
@@ -525,7 +532,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
         float pk_temp = _VFO_ + (2 * (fft_bin_size * fft_pk_bin));   // relate the peak bin to the center bin
-        Freq_Peak = pk_temp;
+        freq_peak = pk_temp;
         tft.print(_formatFreq(pk_temp));
         
         // Write the Scale value 
@@ -563,9 +570,9 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
         spectrum_clear.reset();
 
         //
-        //------------------------ Code above is writing only in the active spectrum window  (RA8875 only)----------------------
+        //------------------------ Code above is writing only in the active spectrum window ----------------------
         //
-        //-----------------------   This part onward is outside the active window (for RA8875 only)------------------------------
+        //-----------------------   This part onward is outside the active window ------------------------------
         //
 
         #ifdef USE_RA8875
@@ -613,6 +620,7 @@ void Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA,
             //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
         }
     }
+    return freq_peak;  // for use by the main program for more accurate touch tuning
 }
 //
 //--------------------------------------------------------------------------------------------------------------------------------------------
@@ -632,7 +640,7 @@ FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
     //if (s >= PRESETS) s=PRESETS-1;   // Cycle back to 0
     // Test lines for alignment
 
-    //struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
+    //e
     
     if (ptr->spect_wf_rate > 40)
         spectrum_waterfall_update.interval(ptr->spect_wf_rate);

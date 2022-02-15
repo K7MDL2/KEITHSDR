@@ -49,10 +49,12 @@
 #include <Arduino.h>
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 
-
 // USER DEFINED SECTION --------------------------------------------------------------------//
 
 #define USE_RA8875                 // Uncomment for RA8876 AND in your main program
+// Vars from main program.  Eventually pass these into function at run time.
+extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 
+extern struct New_Spectrum_Layout   Custom_Layout[1];
 
 // Choose 1024, 2048, or 4096 - usually defined in the main program
 ////#define FFT_SIZE            2048   
@@ -64,8 +66,17 @@
 //#define FFT_1024
 // --->>>><<<<<---- //
 
-// END of USER DEFINED SECTION ------------------------------------------------------------//
+#ifdef FFT_4096
+    extern AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+#endif
+#ifdef FFT_2048    
+    extern AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
+#endif
+#ifdef FFT_1024
+    extern AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
+#endif
 
+// END of USER DEFINED SECTION ------------------------------------------------------------//
 
 //  Usually also defined in main program header file such as RadioConfig.h for SDR_887x program
 #ifdef USE_RA8875
@@ -77,6 +88,7 @@
   //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   #include <SPI.h>                // included with Arduino
   #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+  extern RA8875 tft;
 #else 
   //
   //--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
@@ -108,6 +120,12 @@
   const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
   const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
   const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
+  
+  extern RA8876_t3 tft;
+  int16_t	_activeWindowXL = 0;
+  int16_t _activeWindowXR = SCREEN_WIDTH;
+  int16_t	_activeWindowYT = 0;
+  int16_t _activeWindowYB = SCREEN_HEIGHT;
 #endif // USE_RA8876_t3
 
 struct Spectrum_Parms {
@@ -182,19 +200,9 @@ struct New_Spectrum_Layout {      // Temp storage for generating new layouts
       int16_t spectrum_wf_rate;       // window update rate in ms.  25 is fast enough to see dit and dahs well    
 };
 
-#ifdef FFT_4096
-    extern AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
-#endif
-#ifdef FFT_2048    
-    extern AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
-#endif
-#ifdef FFT_1024
-    extern AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
-#endif
-
 class Spectrum_RA887x
 {
-    //  ToDO: make work again to dump FFT data over ethernet.  Worked before moving to library.
+    //  ToDo: make work again to dump FFT data over ethernet.  Worked before moving to library.
     //#ifdef ENET
       //  extern uint8_t enet_ready;
         //extern unsigned long enet_start_fail_time;
@@ -204,51 +212,40 @@ class Spectrum_RA887x
 
     public:
       Spectrum_RA887x(             
-          int16_t sp_preset,        // Set index to user configuration record.
-          uint16_t sp_fft_size
-          /*,     // size of FFT.  
-          #if   (FFT_SIZE == 4096)  // using #define until I figure out how to swtich this dynamically
-              AudioAnalyzeFFT4096_IQ_F32  *p_FFT  // choose which you like, set FFT_SIZE accordingly.
-          #elif (FFT_SIZE == 2048)    
-              AudioAnalyzeFFT2048_IQ_F32  *p_FFT
-          #elif (FFT_SIZE == 1024) 
-              AudioAnalyzeFFT1024_IQ_F32  *p_FFT
-          #endif
-          */
-          )  // end of args
-          // Place functions here if needed 
-          {
-              // Copy arguments to local variables
-              // 
-              fft_size = sp_fft_size;   // Array size declaration.  Can override compile #define but will break if different
-              //sp_FFT = p_FFT;           // Make our FFT data available to the library functions.  
-          }
-          // publish externally avaialble functions
-          void spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB);
-          FLASHMEM void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset);
-          FLASHMEM void drawSpectrumFrame(uint8_t s);
-          FLASHMEM void initSpectrum(int16_t preset);
-          void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
-          void setActiveWindow_default(void);
-          void updateActiveWindow(bool full);
+        uint16_t sp_fft_size,
+        int16_t sp_fft_bins,
+        float sp_fft_bin_size)  // end of args
+        // 
+        //   ---   Place functions here if needed    ---
+        //
+        {
+            // Copy arguments to local variables
+            // 
+            fft_size      = sp_fft_size;   // Array size declaration.  Can override compile #define but will break if different
+            fft_bins      = sp_fft_bins;
+            fft_bin_size  = sp_fft_bin_size;
+        }
+        // publish externally avaialble functions
+        int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth);
+        FLASHMEM void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset);
+        FLASHMEM void drawSpectrumFrame(uint8_t s);
+        FLASHMEM void initSpectrum(int16_t preset);
+        void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
+        void setActiveWindow_default(void);
+        void updateActiveWindow(bool full);
     
     private:  
-      uint16_t fft_size = 0;
-      /*
-      #if   (FFT_SIZE == 4096)
-          AudioAnalyzeFFT4096_IQ_F32  *sp_FFT=NULL;  //=NULL;  // choose which you like, set FFT_SIZE accordingly.
-      #elif (FFT_SIZE == 2048)    
-          AudioAnalyzeFFT2048_IQ_F32  *sp_FFT=NULL;
-      #elif (FFT_SIZE == 1024)
-          AudioAnalyzeFFT1024_IQ_F32  *sp_FFT=NULL;
-      #endif
-      */
+      uint16_t fft_size   = 0;
+      int16_t fft_bins    = 0;
+      float fft_bin_size  = 0;
+
       const uint16_t myLT_GREY  = RA8875_LIGHT_GREY;
       const uint16_t myBLUE     = RA8875_BLUE;
       const uint16_t myBLACK    = RA8875_BLACK;
       const uint16_t myWHITE    = RA8875_WHITE;
       const uint16_t myYELLOW   = RA8875_YELLOW;
       const uint16_t myGREEN    = RA8875_GREEN;
+      const uint16_t myRED      = RA8875_RED;
 
       const uint16_t FFT_AXIS  = 2;
       uint8_t fft_axis = FFT_AXIS;
