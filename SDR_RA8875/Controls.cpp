@@ -51,6 +51,7 @@ extern          bool                MeterInUse;  // S-meter flag to block update
 extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
 extern          void                TXAudio(int TX);
+extern          int32_t 		    ModeOffset;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -1129,8 +1130,8 @@ COLD void TouchTune(int16_t touch_Freq)
         VFOA += _newfreq;
         if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 800)
         {
-            if (bandmem[curr_band].mode_A == CW)
-                VFOA = Freq_Peak + user_settings[user_Profile].pitch;
+            if (bandmem[curr_band].mode_A == CW || bandmem[curr_band].mode_A == CW_REV)
+                VFOA = Freq_Peak - ModeOffset;  //user_settings[user_Profile].pitch;
             else
                 VFOA = Freq_Peak;
         }
@@ -1141,8 +1142,8 @@ COLD void TouchTune(int16_t touch_Freq)
         VFOB += _newfreq; 
         if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 800)
         {
-            if (bandmem[curr_band].mode_B == CW)
-                VFOB = Freq_Peak + user_settings[user_Profile].pitch;
+            if (bandmem[curr_band].mode_B == CW || bandmem[curr_band].mode_B == CW_REV)
+                VFOB = Freq_Peak - ModeOffset; //user_settings[user_Profile].pitch;
             else
                 VFOB = Freq_Peak;
         }
