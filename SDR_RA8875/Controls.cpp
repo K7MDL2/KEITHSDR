@@ -179,7 +179,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     #endif
     VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
     VFOB = bandmem[curr_band].vfo_B_last;
-    
+   
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
     // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
@@ -192,7 +192,8 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RefLevel(0);    // 0 just updates things to be current value
     RFgain(0);
     ///AFgain(0);
-    setNBLevel(0);
+    setNBLevel(0);   // 0 just updates things to be current value
+    
 #ifndef BYPASS_SPECTRUM_MODULE
     spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif
@@ -520,7 +521,7 @@ COLD void VFO_AB()
 //
 COLD void Atten(int8_t toggle)
 {
-    Serial.print("toggle = "); Serial.println(toggle);
+    //Serial.print("toggle = "); Serial.println(toggle);
     // Set the attenuation level from the value in the database
     #ifdef DIG_STEP_ATT 
       setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
@@ -791,7 +792,7 @@ COLD void AFgain(int8_t delta)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
 
     user_settings[user_Profile].afGain = _afLevel;  // was 3 finger swipe down
-    RampVolume(_afLevel/100, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    RampVolume((float) _afLevel/100, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     //Serial.print(" Volume set to  "); 
     //Serial.println(_afLevel);
     displayAFgain();
@@ -839,11 +840,11 @@ COLD void RFgain(int8_t delta)
 
     _rfLevel = user_settings[user_Profile].rfGain;   // Get last absolute volume setting as a value 0-100
 
-//Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+    //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
     _rfLevel += delta;      // convert percentage request to a single digit float
 
-//Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+    //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
     if (_rfLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
         _rfLevel = 100;
@@ -1242,8 +1243,8 @@ COLD void selectStep(uint8_t fndx)
 
 COLD void selectAgc(uint8_t andx)
 {
-
-	// TODO   Put in some code for custom AGC. Use the AGC table of settings.
+    struct AGC *pAGC = &agc_set[andx];
+	
     if (andx >= AGC_SET_NUM)
       	andx = AGC_OFF; 		// Cycle around
 
@@ -1253,10 +1254,7 @@ COLD void selectAgc(uint8_t andx)
   	bandmem[curr_band].agc_mode = andx;
 
     if (andx == AGC_OFF)
-        codec1.autoVolumeDisable();
-    else
     {
-        struct AGC *pAGC = &agc_set[andx];
         codec1.autoVolumeControl(
             pAGC->agc_maxGain,
             pAGC->agc_response,
@@ -1264,6 +1262,19 @@ COLD void selectAgc(uint8_t andx)
             pAGC->agc_threshold,
             pAGC->agc_attack,
             pAGC->agc_decay);
+        codec1.autoVolumeDisable();
+        codec1.audioProcessorDisable();
+    }
+    else
+    {
+        codec1.autoVolumeControl(
+            pAGC->agc_maxGain,
+            pAGC->agc_response,
+            pAGC->agc_hardlimit,
+            pAGC->agc_threshold,
+            pAGC->agc_attack,
+            pAGC->agc_decay);
+        codec1.audioPostProcessorEnable();
         codec1.autoVolumeEnable();
     }
  	//displayAgc();

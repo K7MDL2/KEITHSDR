@@ -22,6 +22,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     16. The last-used filter width is now stored per mode. After a reset/power cycle it will default to the modeList[] table defaults. Some day this and many other parameters will be stored in EEPROM or SD card. 
     17. Moved more user defined parameters out of the spectrum library, now passing them via function arguments.
     18. Added a audio gain stage in the final output to boost things a bit. For CW modes, the narrower the filter, the more boost is added to keep the signal sounding the same level.
+    19. Fixed TX to RX tranmsient audio pop (via 25ms delay).  Reordered some things as well.  Reduced duplicate fucntion calls at init time including using TXAudio(0) (0 is RX, 12 is TX) to do most of the path and level setting.
+    20. Fixed the problem with low audio output after TX. Change bands and it woud jump back up. Related to RFGain and LineInlevel changes.
+    21. With audio output now much higher again, can convert the AFGain control to "Audio taper" and finish tweaking the AGC and audio gain stage optimizations.
 
 ## Jan 2022
 

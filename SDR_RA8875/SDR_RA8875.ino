@@ -402,7 +402,7 @@ COLD void setup()
 
     //--------------------------   Setup our Audio System -------------------------------------
     initDSP();
-    RFgain(0);
+    //RFgain(0);
     
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
@@ -649,8 +649,6 @@ HOT void loop()
     if (meter.check() == 1) // update our meters
     {
         Peak();
-        // Code_Peak();
-        // Quad_Check();
     }
 
     #ifdef PANADAPTER
@@ -1317,7 +1315,7 @@ COLD void initDSP(void)
 
     TXAudio(0);  // Finish RX audio chain setup
     
-    AFgain(0);  // Set RX audio level back to last position on RX
+    //AFgain(0);  // Set RX audio level back to last position on RX
     // Set up TX Audio audio out level
     codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
   
@@ -1369,6 +1367,9 @@ void TXAudio(int TX)
         TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
         TxTestTone_B.frequency(2000.0f); 
         
+        Serial.println("Switching to Tx"); 
+        codec1.muteHeadphone(); 
+
         AudioNoInterrupts();
         
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)
@@ -1389,8 +1390,6 @@ void TXAudio(int TX)
         
         codec1.micGain(30);  // 0 to 63dB
 
-        Serial.println("Switching to Tx"); 
-        codec1.muteHeadphone(); 
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
         codec1.unmuteLineout();           // Audio out to Line-Out and TX board
         
@@ -1398,8 +1397,13 @@ void TXAudio(int TX)
     }
     else // back to RX
     {
-        AudioNoInterrupts();
+        Serial.println("Switching to Rx"); 
+        codec1.muteLineout(); //mute the TX audio output to transmitter input 
 
+        AudioNoInterrupts();
+        
+        codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
+        
         TxTestTone_Vol = 0.0f;
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_B.amplitude(TxTestTone_Vol);        
@@ -1420,12 +1424,13 @@ void TXAudio(int TX)
         OutputSwitch_R.gain(0, 1.0f); // Ch 0 is RX, Turn on
         OutputSwitch_L.gain(1, 0.0f); // Turn TX off
         OutputSwitch_R.gain(1, 0.0f); // Turn TX off   
-    
-        Serial.println("Switching to Rx"); 
-        codec1.muteLineout(); //mute the TX audio output to transmitter input 
-        codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
-        codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
         
         AudioInterrupts();
+        
+        // Restore RX audio in and out levels, squelch large Pop in unmute.
+        delay(25);  // let audio chain settle (empty) from transient
+        codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
+        RFgain(0);
+        AFgain(0);
     }
 }
