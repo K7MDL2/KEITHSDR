@@ -11,7 +11,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     5. Planning to work more on MIDI for remote control pod and keyers.
     6. Added ability to select up to 3 parallel FFT pipelines, 1 is chosen for audio and (main) display.  Setting up for future pan and zoom using an optimal sized raw FFT.
     7. Moved user data out of the Spectrum_RA887x library and can now pass some parameters to the library such as spectrum_preset value (screen layout record nunber set) and fft_size to use.  Still have to set matching #define for FFT pipelines to use.  Read the file comments for details.
-    8. Moved some header files stuff around to eliminate the glcdfont.c issue when compiling enet or not.  Also reduced instances of duplicate includes (mostly font libraries) in the main program and spectrum library.
+    8. Moved some header files stuff around to attempt to eliminate the duplicate glcdfont.c issue when compiling enet or not. Also reduced instances of duplicate includes (mostly font libraries) in the main program and spectrum library.
     9. Did extensive perf measurements for 1 to 3 FFT processing sizes in combinations, at various sample rates and FFT display sizes.  See forum thread for details.
     10. Perf is good now with 102K sample rate, enet on, 2 FFT pipelines (4096IQ + 1024IQ) and 4096IQ audio and display.  CPU boosted to 815Mhz and Fastest optimization selected.  Runs at 145F i open box.
     11. Local variable space was runnig low. Used HOT and COLD macros and more use of PROGMEM, DMAMEM, FLASHMEM.  DMAMEM helps with audio filter and FFT object memory relocation into RAM2. It does not work with the Convolution filter and noiseblanker objects.
