@@ -205,10 +205,10 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
 // attack float controls rate of decrease in gain when signal is over threshold - in dB/s
 // decay how fast gain is restored once level drops below threshold in dB/s - typically set longer than attack value
 PROGMEM struct AGC agc_set[AGC_SET_NUM] = {
-    {"AGC- ",0,0,0,0.0f,0.0f,0.0f},  
-    {"AGC-S",2,1,0,-4.0f,1.0f,2.0f},
-    {"AGC-M",2,0,0,-8.0f,0.05f,1.0f},
-    {"AGC-F",2,0,0,-12.0f,0.005f,0.20f}
+    {"AGC- ", 0, 0, 0,   0.0f,  0.0f,  0.0f},  
+    {"AGC-S", 2, 1, 0,  -3.0f,  1.0f,  2.0f},
+    {"AGC-M", 2, 1, 0,  -3.0f,  0.6f,  1.0f},
+    {"AGC-F", 2, 1, 0,  -3.0f,  0.3f,  0.5f}
 };
 
 // Settings ranges.5 and 20, closer to 3 maybe best
