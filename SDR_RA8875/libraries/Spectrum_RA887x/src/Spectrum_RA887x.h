@@ -52,6 +52,7 @@
 // USER DEFINED SECTION --------------------------------------------------------------------//
 
 #define USE_RA8875                 // Uncomment for RA8876 AND in your main program
+
 // Vars from main program.  Eventually pass these into function at run time.
 extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 
 extern struct New_Spectrum_Layout   Custom_Layout[1];
@@ -91,41 +92,19 @@ extern struct New_Spectrum_Layout   Custom_Layout[1];
   extern RA8875 tft;
 #else 
   //
-  //--------------------------------- RA8876 LCD TOUCH DISPLAY INIT & PINS --------------------------
+  //--------------------------------- RA8876 LCD & TOUCH DISPLAY INIT & PINS --------------------------
   //
   #define USE_RA8876_t3
   //
   #define  SCREEN_WIDTH       1024 
   #define  SCREEN_HEIGHT      600
   #include <RA8876_t3.h>           // Github
-  //#include <FT5206.h>
-  //#define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
-  //#define  RA8876_CS         10   //any digital pin
-  //#define  RA8876_RESET      9    //any pin or nothing!
-  //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-  
-  // From RA8875/_settings/RA8875ColorPresets.h
-  // Colors preset (RGB565)
-  const uint16_t	RA8875_BLACK            = 0x0000;
-  const uint16_t 	RA8875_WHITE            = 0xFFFF;
-  const uint16_t	RA8875_RED              = 0xF800;
-  const uint16_t	RA8875_GREEN            = 0x07E0;
-  const uint16_t	RA8875_BLUE             = 0x001F;
-  const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
-  const uint16_t 	RA8875_MAGENTA          = 0xF81F;
-  const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
-  const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
-  const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
-  const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
-  const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
-  const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
-  const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
-  
+  #include <FT5206.h>
+  #define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
+  #define  RA8876_CS         10   //any digital pin
+  #define  RA8876_RESET      9    //any pin or nothing!
+  #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
   extern RA8876_t3 tft;
-  int16_t	_activeWindowXL = 0;
-  int16_t _activeWindowXR = SCREEN_WIDTH;
-  int16_t	_activeWindowYT = 0;
-  int16_t _activeWindowYB = SCREEN_HEIGHT;
 #endif // USE_RA8876_t3
 
 struct Spectrum_Parms {
@@ -238,6 +217,30 @@ class Spectrum_RA887x
       uint16_t fft_size   = 0;
       int16_t fft_bins    = 0;
       float fft_bin_size  = 0;
+      
+      #ifndef USE_RA8875
+        int16_t _activeWindowXL = 0;
+        int16_t _activeWindowXR = SCREEN_WIDTH;
+        int16_t _activeWindowYT = 0;
+        int16_t _activeWindowYB = SCREEN_HEIGHT;
+      #endif
+
+      // From RA8875/_settings/RA8875ColorPresets.h
+      // Colors preset (RGB565)
+      const uint16_t	RA8875_BLACK            = 0x0000;
+      const uint16_t 	RA8875_WHITE            = 0xFFFF;
+      const uint16_t	RA8875_RED              = 0xF800;
+      const uint16_t	RA8875_GREEN            = 0x07E0;
+      const uint16_t	RA8875_BLUE             = 0x001F;
+      const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
+      const uint16_t 	RA8875_MAGENTA          = 0xF81F;
+      const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
+      const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
+      const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
+      const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
+      const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
+      const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
+      const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
 
       const uint16_t myLT_GREY  = RA8875_LIGHT_GREY;
       const uint16_t myBLUE     = RA8875_BLUE;
