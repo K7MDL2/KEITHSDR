@@ -1279,21 +1279,9 @@ COLD void initDSP(void)
     //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
 
     // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
-    //codec1.audioPreProcessorEnable();  // AGC on Line-In level
-    codec1.audioPostProcessorEnable();   // AGC on Line-Out level
+    //codec1.audioPreProcessorEnable();   // AGC on Line-In level
+    codec1.audioPostProcessorEnable();  // AGC on Line-Out level
     //codec1.audioProcessorDisable();   // Default 
-
-    // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
-    RxTx_InputSwitch_L.setChannel(0); // Select RX path
-    RxTx_InputSwitch_R.setChannel(0); // Select RX path
-
-    // Typically Choose one pair - RX input, DSP chain output (RX or TX), or Test Tone (input before processing)
-    FFT_Switch_L.gain(0, 1.0f); //  1 is RX, 0 is TX
-    FFT_Switch_R.gain(0, 1.0f); //  1 is RX, 0 is TX
-    FFT_Switch_L.gain(1, 0.0f); //  1 is TX, 0 is RX
-    FFT_Switch_R.gain(1, 0.0f); //  1 is TX, 0 is RX
-    FFT_Switch_L.gain(2, 0.0f); //  1 is TestTone A on, 0 OFF
-    FFT_Switch_R.gain(2, 0.0f); //  1 is TestTone B on, 0 OFF
 
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
     if (fft_size == 4096)
@@ -1303,41 +1291,27 @@ COLD void initDSP(void)
     }
     else if (fft_size == 2048)
     {
-      FFT_OutSwitch_L.setChannel(1); //  1 is 2048, 0 is Off
-      FFT_OutSwitch_R.setChannel(1); //  1 is 2048, 0 is Off
+        FFT_OutSwitch_L.setChannel(1); //  1 is 2048, 0 is Off
+        FFT_OutSwitch_R.setChannel(1); //  1 is 2048, 0 is Off
     }
     else if(fft_size == 1024)
     {
         FFT_OutSwitch_L.setChannel(2); //  1 is 1024, 0 is Off
         FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
     }
-
-    // Send the audio out to the world
-    OutputSwitch_L.gain(0, 1.0f); // Ch 0 is Left 
-    OutputSwitch_R.gain(0, 1.0f); // Ch 1 is Right    
-    OutputSwitch_L.gain(1, 0.0f); // Turn TX off
-    OutputSwitch_R.gain(1, 0.0f); // Turn TX off          
+    
+    RX_Summer.gain(0, 0.8f);  // Left Channel into mixer
+	RX_Summer.gain(1, 0.8f);  // Right Channel, intoi Miver
+    RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
 
     NoiseBlanker.useTwoChannel(true);
     AudioInterrupts();
 
+    TXAudio(0);  // Finish RX audio chain setup
+    
     AFgain(0);  // Set RX audio level back to last position on RX
     // Set up TX Audio audio out level
     codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    /*
-    //Shows how to use the switch object.  Not using right now but have several ideas for later so saving it here.
-    // The switch is single pole 4 position, numbered (0, 3)  0=FFT before filters, 1 = FFT after filters
-    if(mndx = 1 || mndx==2)
-    { 
-      FFT_Switch1.setChanne1(1); Serial.println("Unfiltered FFT"); }
-      FFT_Switch2.setChanne1(0); Serial.println("Unfiltered FFT"); }
-    )  
-    else if(mndx==0) // Input is on Switch 1, CW is on Switch 2
-    { 
-      FFT_Switch1.setChannel(0); Serial.println("CW Filtered FFT"); 
-      FFT_Switch2.setChannel(1); Serial.println("CW Filtered FFT"); 
-    }
-    */
   
     // Choose our output type.  Can do dB, RMS or power
     #ifdef FFT_4096
@@ -1371,10 +1345,9 @@ COLD void initDSP(void)
 
 void TXAudio(int TX)
 {
-
     float TxTestTone_Vol = 0.5f;
 
-    // initDSP() and startup in RX mode already enables most of our resources.  
+    // initDSP() and startup in RX mode enables our resources.  
     // This function switches input sources between line in and mic in and Test Tones (A and B),
     //   then set levels and retores them on RX.
     // Previously Lineout was the same as the headphone and used for RX audio to speaker.
@@ -1404,14 +1377,14 @@ void TXAudio(int TX)
         OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF (ch 0 to 0.0)
         OutputSwitch_R.gain(0, 0.0f);   // Turn RX OFF  
         OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON (ch 1 to 1.0f)
-        OutputSwitch_R.gain(1, -1.0f);   // Turn TX ON          
+        OutputSwitch_R.gain(1,-1.0f);   // Turn TX ON          
         
         codec1.micGain(30);  // 0 to 63dB
 
         Serial.println("Switching to Tx"); 
         codec1.muteHeadphone(); 
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
-        codec1.unmuteLineout();
+        codec1.unmuteLineout();           // Audio out to Line-Out and TX board
         
         AudioInterrupts();
     }
@@ -1423,6 +1396,7 @@ void TXAudio(int TX)
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_B.amplitude(TxTestTone_Vol);        
 
+        // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
 
@@ -1442,7 +1416,7 @@ void TXAudio(int TX)
         Serial.println("Switching to Rx"); 
         codec1.muteLineout(); //mute the TX audio output to transmitter input 
         codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
-        codec1.unmuteHeadphone();
+        codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
         
         AudioInterrupts();
     }
