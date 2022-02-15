@@ -106,6 +106,7 @@ uint8_t     curr_band   = BAND2;    // global tracks our current band setting.
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 
 //control display and serial interaction
 bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
@@ -159,7 +160,6 @@ bool    MF_default_is_active = true;
 #define FFT_SIZE 4096               // 4096 //2048//1024     
 uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init function.
                                     // Ensure the matching FFT resources are enabled in the lib .h file!
-
 // These are normally defined in the spectrum_RA887x.h file
 // enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
 //#define FFT_4096
@@ -174,12 +174,6 @@ uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init
 #endif
 #ifdef FFT_1024
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
-#endif
-
-#ifndef BYPASS_SPECTRUM_MODULE
-  Spectrum_RA887x spectrum_RA887x(0, fft_size);   //, &myFFT);   // initialize the Spectrum Library
-  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-  extern struct   Spectrum_Parms Sp_Parms_Def[];
 #endif
 
 // Audio Library setup stuff
@@ -199,8 +193,14 @@ int16_t     fft_bins         = fft_size;     // Number of FFT bins which is FFT_
 float       fft_bin_size     = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 int16_t     FFT_Source       = 0;            // Used to switch the FFT input source around
 
-int filterCenter;
-int filterBandwidth;
+#ifndef BYPASS_SPECTRUM_MODULE
+  Spectrum_RA887x spectrum_RA887x(fft_size, fft_bins, fft_bin_size);  // initialize the Spectrum Library
+  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
+  extern struct   Spectrum_Parms Sp_Parms_Def[];
+#endif
+
+uint16_t filterCenter;
+uint16_t filterBandwidth;
 
 const int audio_block_samples = 128;          // do not change this!
 const int RxAudioIn = AUDIO_INPUT_LINEIN;
@@ -539,7 +539,15 @@ HOT void loop()
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
             if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
-                spectrum_RA887x.spectrum_update(user_settings[user_Profile].sp_preset, (bandmem[curr_band].VFO_AB_Active == VFO_A), VFOA, VFOB); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+                Freq_Peak = spectrum_RA887x.spectrum_update(
+                    user_settings[user_Profile].sp_preset,
+                    (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO
+                    VFOA,           // for onscreen freq info
+                    VFOB,           // Not really needed today
+                    ModeOffset,     // Move spectrum cursor to center or offset it by pitch value when in CW modes
+                    filterCenter,   // Center the on screen filter shaded area
+                    filterBandwidth // Display the filter width on screen
+                    ); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
                 // spectrum_update(6);  // for 2nd window
     }
 #endif

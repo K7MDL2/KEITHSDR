@@ -35,8 +35,9 @@ extern struct AGC agc_set[];
 extern struct NB nb[];
 extern struct Modes_List modeList[];
 extern struct TuneSteps tstep[];
-extern bool   MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern bool    MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern uint8_t MF_client;  // Flag for current owner of MF knob services
+extern int32_t ModeOffset;
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -504,6 +505,7 @@ COLD const char* formatVFO(uint32_t vfo)
 {
 	static char vfo_str[25] = {""};
 	
+	vfo += ModeOffset;  // Account for pitch offset when in CW modes
 	uint16_t MHz = (vfo/1000000 % 1000000);
 	uint16_t Hz  = (vfo % 1000);
 	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;

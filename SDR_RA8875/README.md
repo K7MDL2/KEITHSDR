@@ -16,6 +16,11 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     10. Perf is good now with 102K sample rate, enet on, 2 FFT pipelines (4096IQ + 1024IQ) and 4096IQ audio and display.  CPU boosted to 815Mhz and Fastest optimization selected.  Runs at 145F i open box.
     11. Local variable space was runnig low. Used HOT and COLD macros and more use of PROGMEM, DMAMEM, FLASHMEM.  DMAMEM helps with audio filter and FFT object memory relocation into RAM2. It does not work with the Convolution filter and noiseblanker objects.
     12. Enabled AGC feature using values in the SDR_Data.h AGC table.  Experimented with several values, you may want to do more.
+    13. Added a blue (for now) shaded filter width zone on spectrum, centered on filter's center frequency.Auto shifts left or right per mode.
+    14. In CW modes a new red cursor line represents CW pitch in shaded filter width area.  VFO dial frequency is adjusted so that when you center a CW signal under the red cursor, the VFO will read the correct RF carrier frequency.
+    15. Reordered the modes list so now CW/CW-REV, USB/LSB, DATA/DATA_REV, AM, FM are more predictable in the rotation.
+    16. The last-used filter width is now stored per mode. After a reset/power cycle it will default to the modeList[] table defaults. Some day this and many other parameters will be stored in EEPROM or SD card. 
+    17. Moved more user defined parameters out of the spectrum library, now passing them via function arguments.
 
 ## Jan 2022
 

@@ -24,6 +24,7 @@ extern          uint8_t             display_state;   // something to hold the bu
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
 extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern          uint32_t            VFOB;
+extern struct   Modes_List          modeList[];
 extern struct   Band_Memory         bandmem[];
 extern struct   User_Settings       user_settings[];
 extern struct   Standard_Button     std_btn[];
@@ -280,7 +281,7 @@ COLD void setMode(int8_t dir)
 	
 	mndx += dir; // Make the change
 
-  	if (mndx > DATA_REV)		// Validate change and fix if needed
+  	if (mndx > FM)		// Validate change and fix if needed
    		mndx=0;
 	if (mndx < CW)
 		mndx = CW;
@@ -292,15 +293,18 @@ COLD void setMode(int8_t dir)
 	else	
 		bandmem[curr_band].mode_B = mndx;    
     
+    // Update the filter setting per mode 
+    Filter(2);
     //Serial.println("Set Mode");  
     displayMode();
-    selectFrequency(0);  // Call in case a mode change requires a frequency offset 
+    selectFrequency(0);  // Call in case a mode change requires a frequency offset
 }
 
 // ---------------------------Filter() ---------------------------
 //   Input: 0 = step to next based on last direction (starts upwards).  Ramps up then down then up.
 //          1 = step up 1 filter (wider)
 //         -1 = step down 1 filter (narrower)
+//          2 = use last filter width used in this mode (from modeList table)
 //      This is mode-aware. In non-CW modes we will only cycle through SSB width filters as set in the filter tables
 
 // FILTER button
@@ -330,7 +334,7 @@ COLD void Filter(int dir)
     else
         _mode = bandmem[curr_band].mode_B;
 
-    if (_mode == CW)  // CW modes
+    if (_mode == CW || _mode == CW_REV)  // CW modes
     {
         if (_bndx > FILTER-1)   // go to bottom band   
         {
@@ -357,11 +361,19 @@ COLD void Filter(int dir)
         }
     }
 
-        if (dir == 0)
-            _bndx += direction; // Index our step up or down
-		else	
-			_bndx += dir;  // forces a step higher or lower then current
-		
+    if (dir == 0)
+        _bndx += direction; // Index our step up or down
+    else	
+        _bndx += dir;  // forces a step higher or lower then current
+    
+    if (dir == 2) // Use last filter width used in this mode, ignore the rest (hopefully it is valid)
+    {    
+        if (modeList[_mode].Width <= BW4_0 && modeList[_mode].Width >= 0)
+            _bndx = modeList[_mode].Width;
+    }
+    else
+        modeList[_mode].Width = _bndx;  //if filter changed without a mode change, store it in last use per mode table.
+
     selectBandwidth(_bndx);
     //Serial.print("Set Filter to ");
     //Serial.println(bandmem[curr_band].filter);

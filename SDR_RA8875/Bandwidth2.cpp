@@ -16,8 +16,8 @@ extern const struct Filter_Settings     filter[];
 extern void                             SetFilter(void);
 extern struct User_Settings             user_settings[];
 extern uint8_t                          user_Profile;
-extern int                              filterCenter;
-extern int                              filterBandwidth;
+extern int16_t                          filterCenter;
+extern int16_t                          filterBandwidth;
 
 ////////////////////////////////////////////////////////////////////////////////////
 COLD void selectBandwidth(uint8_t bndx)
@@ -37,7 +37,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,250.0f,9.0f);   
         //CW_Filter.begin();           
-        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 250;
         SetFilter();               
     }
@@ -50,7 +50,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,500.0f,9.0f);
         //CW_Filter.begin();
-        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 500;
         SetFilter();
     }
@@ -63,7 +63,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,700.0f,9.0f);
         //CW_Filter.begin();
-        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 700;
         SetFilter();
     }
@@ -76,11 +76,13 @@ COLD void selectBandwidth(uint8_t bndx)
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,1000.0f,9.0f);
         //CW_Filter.begin();
-        filterCenter = (float) user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth=1000;
         SetFilter();
     }
-
+    
+    // Above are CW mode filter widths.  Below are wider filters for voice and data modes
+    
     if(bndx==4)
     {
         //bandwidth="Bw 1.8 kHz";  
@@ -96,7 +98,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 2.3kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_23K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_23K,151);
-        filterCenter = 2350/2;
+        filterCenter = 2400/2;
         filterBandwidth = 2300;
         SetFilter();
     }
@@ -106,7 +108,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 2.8 kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151);
-        filterCenter = 2850/2;
+        filterCenter = 2900/2;
         filterBandwidth = 2800;
         SetFilter();
     }
@@ -116,7 +118,7 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="Bw 3.2 kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_32K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_32K,151);
-        filterCenter = 3250/2;
+        filterCenter = 3300/2;
         filterBandwidth = 3200;
         SetFilter();           
     }
@@ -126,12 +128,12 @@ COLD void selectBandwidth(uint8_t bndx)
         //bandwidth="4.0 kHz";
     //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);
     //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151);
-        filterCenter = 4050/2;
+        filterCenter = 4100/2;
         filterBandwidth = 4000;
         SetFilter();
     } 
 
-    bandmem[curr_band].filter = bndx;
+    bandmem[curr_band].filter = bndx; // Set new filter into memory
     Serial.print("Filter Set to ");
     Serial.println(filter[bandmem[curr_band].filter].Filter_name);
     

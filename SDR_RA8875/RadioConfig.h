@@ -137,7 +137,7 @@
     #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
     #else      
-      #define si5351_CORRECTION 1720  // for standard crystal PLL
+      #define si5351_CORRECTION 1780  // for standard crystal PLL
     #endif
     #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default
     #ifdef VFO_MULT 
@@ -146,9 +146,9 @@
     #endif
     #undef USE_DHCP                
     #define USE_DHCP                  // UNCOMMENT this for static IP  
-    #define ENET
-    #ifdef ENET
-      #define USE_ENET_PROFILE
+    //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET
+    #ifdef USE_ENET_PROFILE
+      #define ENET
     #endif
     //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
     //#define SV1AFN_BPF              // Use the BPF board

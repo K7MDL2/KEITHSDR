@@ -237,23 +237,24 @@ PROGMEM struct Filter_Settings filter[FILTER] = {
 };
 
 PROGMEM struct TuneSteps  tstep[TS_STEPS] = {
-    {"1",   "Hz",     1,  CW},
-    {"10",  "Hz",    10, USB},
-    {"100", "Hz",   100, USB},
+    {"1",   "Hz",      1, CW},
+    {"10",  "Hz",     10, USB},
+    {"100", "Hz",    100, USB},
     {"1.0", "KHz",  1000, USB},
     {"2.5", "KHz",  2500, USB},
     {"5.0", "KHz",  5000, USB}
 };
 
-PROGMEM struct Modes_List modeList[MODES_NUM] = {
-    {0, "CW    "},
-    {1, "LSB   "},
-    {2, "USB   "},
-    {3, "DATA  "},
-    {4, "FM    "},
-    {5, "AM    "},
-    {6, "CW-R  "},
-    {7, "DATA-R"}
+//Remember filter per mode  Last field "Width" is writable
+struct Modes_List modeList[MODES_NUM] = {
+    {0, "CW    ", BW0_7},
+    {1, "CW-R  ", BW0_7},
+    {2, "USB   ", BW2_8},
+    {3, "LSB   ", BW2_8},
+    {4, "DATA  ", BW3_2},
+    {5, "DATA-R", BW3_2},
+    {6, "AM    ", BW4_0},
+    {7, "FM    ", BW4_0}
  };
 
 // Use the generator function to create 1 set of data to define preset values for window size and placement.  

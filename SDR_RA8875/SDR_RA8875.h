@@ -102,6 +102,7 @@
     #define myWHITE                 RA8875_WHITE
     #define myYELLOW                RA8875_YELLOW
     #define myGREEN                 RA8875_GREEN
+    #define myRED                   RA8875_RED
 
     #ifdef USE_RA8875
 	//extern RA8875 tft;
@@ -147,13 +148,13 @@
 //  Pretty much every global variable that controls a setting is here in a table of some sort. 
 //
 #define CW          0
-#define CW_REV      6
-#define LSB         1     
+#define CW_REV      1
 #define USB         2
-#define DATA        3
-#define DATA_REV    7
-#define FM          4
-#define AM          5
+#define LSB         3     
+#define DATA        4
+#define DATA_REV    5
+#define AM          6
+#define FM          7
 
 #define ON          1
 #define OFF         0
@@ -433,10 +434,10 @@ struct User_Settings {
 
 struct Frequency_Display {
     uint16_t bx;        // X - upper left corner anchor point
-	  uint16_t by;        // Y - upper left corner anchor point
-	  uint16_t bw;        // width of whole box
-	  uint16_t bh;        // height of whole box
-	  uint16_t br;        // radius of corners
+    uint16_t by;        // Y - upper left corner anchor point
+    uint16_t bw;        // width of whole box
+    uint16_t bh;        // height of whole box
+    uint16_t br;        // radius of corners
     uint16_t bs;        // spacing between the VFO numerals
     uint16_t bm;        // marker spacing between VFO letter and digits  (A: 123.456.789)
     uint16_t ol_clr;    // VFO box outline color
@@ -445,8 +446,8 @@ struct Frequency_Display {
     uint16_t txt_clr;   // color of Active VFO numbers
     const ILI9341_t3_font_t txt_Font;    // size of Active VFO Label text
     uint16_t TX_clr;    // Color when active VFO is in transmit
-	  uint16_t padx;      // horizonal padding from left side of box
-	  uint16_t pady;      // vertical padding form top of box
+    uint16_t padx;      // horizonal padding from left side of box
+    uint16_t pady;      // vertical padding form top of box
 };
 
 struct AGC {
@@ -489,8 +490,9 @@ struct TuneSteps {
 };
 
 struct Modes_List {
-    uint8_t  mode_num;
-    char   mode_label[8];
+    uint8_t     mode_num;
+    char        mode_label[8];
+    uint16_t    Width;             // bandwidth in HZ - look up matching width in Filter table when changing modes
 };
 
 enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL};
