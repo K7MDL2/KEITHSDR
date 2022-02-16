@@ -792,6 +792,9 @@ COLD void AFgain(int8_t delta)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
 
     user_settings[user_Profile].afGain = _afLevel;  // was 3 finger swipe down
+    // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
+    // RampVolume hadles the scaling. Must set the LineOutLevel to the desired max though.
+    codec1.lineInLevel(user_settings[user_Profile].lineIn_level); 
     RampVolume((float) _afLevel/100, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     //Serial.print(" Volume set to  "); 
     //Serial.println(_afLevel);
@@ -852,6 +855,7 @@ COLD void RFgain(int8_t delta)
         _rfLevel = 1;    // do not use 0 to prevent divide/0 error
 
     user_settings[user_Profile].rfGain = _rfLevel;  // 
+    // LineIn is 0 to 15 with 15 being ther most sensitive
     codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
     //Serial.print("CodecLine IN level set to "); 
     //Serial.println(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);

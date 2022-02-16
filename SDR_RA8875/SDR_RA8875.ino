@@ -1281,8 +1281,8 @@ COLD void initDSP(void)
     //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
 
     // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
-    //codec1.audioPreProcessorEnable();   // AGC on Line-In level
-    codec1.audioPostProcessorEnable();  // AGC on Line-Out level
+    codec1.audioPreProcessorEnable();   // AVC on Line-In level
+    codec1.audioPostProcessorEnable();  // AVC on Line-Out level
     //codec1.audioProcessorDisable();   // Default 
 
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
