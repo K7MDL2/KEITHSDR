@@ -25,6 +25,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     19. Fixed TX to RX tranmsient audio pop (via 25ms delay).  Reordered some things as well.  Reduced duplicate fucntion calls at init time including using TXAudio(0) (0 is RX, 12 is TX) to do most of the path and level setting.
     20. Fixed the problem with low audio output after TX. Change bands and it woud jump back up. Related to RFGain and LineInlevel changes.
     21. With audio output now much higher again, can convert the AFGain control to "Audio taper" and finish tweaking the AGC and audio gain stage optimizations.
+    22. Udpated AGC and some level functions.  Both Pre and Post Processor enabled seems to be OK.  Decent set of AGC table numbers now.
 
 ## Jan 2022
 
