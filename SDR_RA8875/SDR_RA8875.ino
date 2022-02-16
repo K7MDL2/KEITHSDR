@@ -1308,8 +1308,8 @@ COLD void initDSP(void)
 
     NoiseBlanker.useTwoChannel(true);
 
-    Amp1_L.setGain_dB(6.0f);    // Adjustable fixed output boost in dB.
-    Amp1_R.setGain_dB(6.0f);
+    Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
+    Amp1_R.setGain_dB(AUDIOBOOST);
 
     AudioInterrupts();
 

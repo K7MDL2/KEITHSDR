@@ -116,6 +116,8 @@
 
 #define PTT_OUT1     36     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
+#define AUDIOBOOST   (6.0f)     // Audio output amp gain.  Too high and you can get clipping.  See AudioAmplifer documentation in teh PJRC Audio LIbrary tool.
+
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
