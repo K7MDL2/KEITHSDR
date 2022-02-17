@@ -412,8 +412,8 @@ struct User_Settings {
     uint8_t     spkr_en;            // 0 is disable or mute. 1= mono, 2= stereo. 3= sound effect 1 and so on. 255 is ignore and use current setting
     uint8_t     afGain_en;          // Shows when AF gain setting value is displayed or not on meter face
     uint8_t     afGain;             // 0-100 Last setting for unmute or power on (When we store in EEPROM). scaled to 0.0 to 1.0.
-    uint8_t     lineOut_level;      // (NOT In USE) line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-    uint8_t     lineOut_Vol_last;   // last line out setting used on this band. Intended for data mode line level separate from speaker volume
+    uint8_t     lineOut_level;      // line out off = 0. Level = Range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
+    uint8_t     lineOut_DATA;       // NOT USED - last line out setting used on this band. Intended for data mode line level separate from speaker volume
     uint8_t     enet_enabled;       // Allow initialization and operation of ethernet hardware
     uint8_t     enet_output;        // Allow ethernet data to flow (if enet is enabled)
     uint8_t     nb_en;              // Noise Blanker mode.  0 is off.  1+ is mode
