@@ -155,14 +155,16 @@ uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales
 // Choose any from the MF Knob aware list below.
 uint8_t MF_client;  // Flag for current owner of MF knob services
 bool    MF_default_is_active = true;
+
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
 // Pick the one to run through the whole audio chain and FFT on the display
-#define FFT_SIZE 4096               // 4096 //2048//1024     
+// defined in Spectrum_RA887x.h, included here for FYI.
+//#define FFT_SIZE 4096               // 4096 //2048//1024     
 uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init function.
                                     // Ensure the matching FFT resources are enabled in the lib .h file!
-// These are normally defined in the spectrum_RA887x.h file
+// These next 3 (one or more) are normally defined in the spectrum_RA887x.h file.  Included here for FYI
 // enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
 //#define FFT_4096
 //#define FFT_2048
@@ -1315,13 +1317,9 @@ COLD void initDSP(void)
     NoiseBlanker.useTwoChannel(true);
 
     AudioInterrupts();
-
+  
     TXAudio(0);  // Finish RX audio chain setup
     
-    //AFgain(0);  // Set RX audio level back to last position on RX
-    // Set up TX Audio audio out level
-    codec1.lineOutLevel(user_settings[user_Profile].lineOut_Vol_last); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-  
     // Choose our output type.  Can do dB, RMS or power
     #ifdef FFT_4096
         myFFT_4096.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
@@ -1395,6 +1393,8 @@ void TXAudio(int TX)
 
         Amp1_L.setGain_dB(3.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(3.0f);  
+    
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_level); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
 
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
         codec1.unmuteLineout();           // Audio out to Line-Out and TX board
@@ -1434,6 +1434,8 @@ void TXAudio(int TX)
         
         Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(AUDIOBOOST);  
+        
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_level); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
         
         selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
 
@@ -1486,7 +1488,7 @@ HOT void RF_Limiter(float peak_avg)
         //Serial.print(rf_agc_limit); 
 
         rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;        
-        Serial.print(" RF AGC Limit (0-15) = ");
+        Serial.print("*** RF AGC Limit (0-15) = ");
         Serial.println(rf_agc_limit); 
         
         if (rf_agc_limit !=0)
@@ -1507,7 +1509,7 @@ HOT void RF_Limiter(float peak_avg)
             //Serial.print(rf_agc_limit_last); 
             rf_agc_limit_last = temp;
             codec1.lineInLevel(temp);   // retore to normal level
-            Serial.print("  Restore LineIn Level = ");
+            Serial.print("*** Restore LineIn Level = ");
             Serial.println(temp);             
         }
     }
