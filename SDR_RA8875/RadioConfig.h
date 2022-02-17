@@ -116,7 +116,11 @@
 
 #define PTT_OUT1     36     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
-#define AUDIOBOOST   (0.0f)     // Audio output amp gain.  Too high and you can get clipping.  See AudioAmplifer documentation in teh PJRC Audio LIbrary tool.
+#define AUDIOBOOST   (1.0f) // Audio output amp gain.
+                            // 0/0 - 32767.0.   0.0 shuts off flow so should not be used.  1.0 is pass through (no gain or loss)
+                            // 0 to < 1.0 is attenuation level
+                            // > 1.0 is positive gain.  Too high and you can get clipping.  
+                            // See AudioAmplifer doc at https://www.pjrc.com/teensy/gui/index.html?info=AudioAmplifier
 
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
