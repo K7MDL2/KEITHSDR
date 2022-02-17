@@ -405,7 +405,7 @@ struct User_Settings {
     uint8_t     last_band;          // index into band memory table to recall last settings  - this might get moved out later
     uint8_t     mute;               // Current status of Mute 
     uint8_t     mic_input_en;       // mic on or off
-    float       mic_Gain_last;      // last used mic gain on this band
+    float       mic_Gain_level;     // 0-100 Mic gain level in percent. Applied to LineOut_TX level.
     uint8_t     lineIn_level;       // codec line in max level. Range 0 to 15.  0 => 3.12Vp-p, 15 => 0.24Vp-p sensitivity. Set this to max allowed.
     uint8_t     rfGain_en;          // Shows when RF gain setting value is displayed or not on meter face
     uint8_t     rfGain;             // 0-100 (% of lineIn level). Last used line-in setting on this band.
