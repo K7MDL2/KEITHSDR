@@ -227,8 +227,6 @@ DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
 AudioFilterConvolution_F32  FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
-AudioAnalyzePeak_F32        Q_Peak(audio_settings); 
-AudioAnalyzePeak_F32        I_Peak(audio_settings);
 AudioOutputI2S_F32          Output(audio_settings);
 radioNoiseBlanker_F32       NoiseBlanker(audio_settings);  // DMAMEM on this item breaks stopping RX audio flow.  Would save 10K local variable space
 AudioSynthWaveformSine_F32  Beep_Tone; // for audible alerts like touch beep confirmations
@@ -273,8 +271,6 @@ AudioConnection_F32     patchCord11a(NoiseBlanker,0,                        RX_H
 AudioConnection_F32     patchCord11b(NoiseBlanker,1,                        RX_Hilbert_Minus_45,0);
 
 // Normal Audio Chain - RX audio on Line In to headphone jack
-AudioConnection_F32     patchCord2a(RX_Hilbert_Plus_45,0,                   I_Peak,0);
-AudioConnection_F32     patchCord2b(RX_Hilbert_Minus_45,0,                  Q_Peak,0);
 AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,                   RX_Summer,0);  // phase shift +45 deg
 AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,                  RX_Summer,1);  // phase shift -45 deg
 AudioConnection_F32     patchCord2e(Beep_Tone,0,                            RX_Summer,2);  // For button beep if enabled
@@ -1282,16 +1278,11 @@ COLD void initDSP(void)
     codec1.inputSelect(RxAudioIn);
     codec1.muteLineout(); //mute TX audio 
     codec1.muteHeadphone();
-    codec1.volume(0.0);
+    codec1.volume(0.0f);  // Seems to impact LineOut waveform if not 0
     
     codec1.adcHighPassFilterDisable(); // Turn off DC blocking filter - reduces noise according to forum
     //codec1.adcHighPassFilterEnable();  // Turn on DC blocking filter (default) 
     //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
-
-    // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
-    codec1.audioPreProcessorEnable();   // AVC on Line-In level
-    codec1.audioPostProcessorEnable();  // AVC on Line-Out level
-    //codec1.audioProcessorDisable();   // Default 
 
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
     if (fft_size == 4096)
@@ -1362,17 +1353,22 @@ void TXAudio(int TX)
     
     if (TX)  // Switch to Mic input on TX
     {
-        TxTestTone_Vol = 0.8f;
+        codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
+        
+        TxTestTone_Vol = 0.90f;  // 0.90 is max, clips if higher in single tone
         TxTestTone_A.amplitude(TxTestTone_Vol);
-        TxTestTone_A.frequency(1000.0f); 
+        TxTestTone_A.frequency(1000.0f/2); 
+        user_settings[user_Profile].pitch = 1000;
         TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
-        TxTestTone_B.frequency(2000.0f); 
+        TxTestTone_B.frequency(2000.0f/2); 
         
         Serial.println("Switching to Tx"); 
         codec1.muteHeadphone(); 
 
         AudioNoInterrupts();
         
+        codec1.audioProcessorDisable();   // Default 
+
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)
         RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
 
@@ -1387,19 +1383,21 @@ void TXAudio(int TX)
         OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF (ch 0 to 0.0)
         OutputSwitch_R.gain(0, 0.0f);   // Turn RX OFF  
         OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON (ch 1 to 1.0f)
-        OutputSwitch_R.gain(1,-1.0f);   // Turn TX ON          
+        OutputSwitch_R.gain(1, 1.0f);   // Turn TX ON          
         
         codec1.micGain(30);  // 0 to 63dB
 
-        Amp1_L.setGain_dB(3.0f);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(3.0f);  
+        Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(1.0f);  
     
-        codec1.lineOutLevel(user_settings[user_Profile].lineOut_level); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-
-        codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
+        codec1.lineInLevel(0);
+        RampVolume(1.0f, 0);
+    
         codec1.unmuteLineout();           // Audio out to Line-Out and TX board
         
         AudioInterrupts();
+
+        AFgain(0);  // sets up the Lineout level for TX testing
     }
     else // back to RX
     {
@@ -1434,9 +1432,12 @@ void TXAudio(int TX)
         
         Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(AUDIOBOOST);  
-        
-        codec1.lineOutLevel(user_settings[user_Profile].lineOut_level); // range 13 to 31.  13 => 3.16Vp-p, 31=> 1.16Vp-p
-        
+
+        // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
+        codec1.audioPreProcessorEnable();   // AVC on Line-In level
+        codec1.audioPostProcessorEnable();  // AVC on Line-Out level
+        //codec1.audioProcessorDisable();   // Default 
+
         selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
 
         AudioInterrupts();
@@ -1444,8 +1445,8 @@ void TXAudio(int TX)
         // Restore RX audio in and out levels, squelch large Pop in unmute.
         delay(25);  // let audio chain settle (empty) from transient
         codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
-        RFgain(0);
-        AFgain(0);
+        RFgain(0);  // sets up the LineIn level
+        AFgain(0);  // sets up the Lineout level
     }
 }
 
