@@ -21,12 +21,12 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     15. Reordered the modes list so now CW/CW-REV, USB/LSB, DATA/DATA_REV, AM, FM are more predictable in the rotation.
     16. The last-used filter width is now stored per mode. After a reset/power cycle it will default to the modeList[] table defaults. Some day this and many other parameters will be stored in EEPROM or SD card. 
     17. Moved more user defined parameters out of the spectrum library, now passing them via function arguments.
-    18. Added a audio gain stage in the final output to boost things a bit. The base level can be configured with #define AUDIOBOOST value in RadioConfig.h.  Typically 0 to +6.0f db. For CW modes, the narrower the filter, the more boost is added in additoin to AUDIOBOOST value to keep the signal sounding the same level. 
-    19. Fixed TX to RX tranmsient audio pop (via 25ms delay).  Reordered some things as well.  Reduced duplicate function calls at init time including using TXAudio(0) (0 is RX, 12 is TX) to do most of the path and level setting.
+    18. Added an audio gain stage in the final output to boost things a bit. The base level can be configured with #define AUDIOBOOST value in RadioConfig.h.  Typically 0 to +6.0f db. For CW modes, the narrower the filter, the more boost is added in addition to AUDIOBOOST value to keep the signal sounding the same level. 
+    19. Fixed TX to RX transient audio pop (via 25ms delay).  Reordered some things as well.  Reduced duplicate function calls at init time including using TXAudio(0) (0 is RX, 12 is TX) to do most of the path and level setting.
     20. Fixed the problem with low audio output after TX. Change bands and it would jump back up. Was related to RFGain and LineInlevel changes.
-    21. Udpated AGC and some level functions.  Both Pre and Post Processor enabled seems to be OK.  Decent set of AGC table numbers now. 
+    21. Updated AGC and some level functions.  Both Pre and Post Processor enabled seems to be OK.  Decent set of AGC table numbers now. 
     22. AFGain and RFGain converted from Linear taper to Log taper controls.
-    23. RFGain now also sets gain level (0 to 1.0f) in first stage of input chain (FFT_Switch) to augment LineIn range o gattenuation.
+    23. RFGain now also sets gain level (0 to 1.0f) in first stage of input chain (FFT_Switch) to augment LineIn range of attenuation.
     24. Experimental (crude?) RF AGC added to maybe replace or compliment AVC.  New functions use FFT Peak values to temporarily reduce the LineIn level.  The peak average is used to restore it to the value set by RF_Gain.  Changing bands or RFGain level will also reset it.  Testing with AGC off (which means AVC is off).
 
 ## Jan 2022
