@@ -52,6 +52,10 @@ extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
 extern          void                TXAudio(int TX);
 extern          int32_t 		    ModeOffset;
+extern AudioEffectGain_F32          RFPreAmp1_L;  // Some well placed gain stages
+extern AudioEffectGain_F32          RFPreAmp1_R;  // Some well placed gain stages
+extern AudioMixer4_F32              FFT_Switch_L;
+extern AudioMixer4_F32              FFT_Switch_R;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -781,7 +785,7 @@ COLD void AFgain(int8_t delta)
     _afLevel = user_settings[user_Profile].afGain;   // Get last absolute volume setting as a value 0-100
 
 //Serial.print(" TEST AF Level requested "); Serial.println(_afLevel);
-
+    
     _afLevel += delta;      // convert percentage request to a single digit float
 
 //Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
@@ -791,11 +795,18 @@ COLD void AFgain(int8_t delta)
     if (_afLevel < 1)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
 
-    user_settings[user_Profile].afGain = _afLevel;  // was 3 finger swipe down
+    user_settings[user_Profile].afGain = _afLevel;  // update memory
     // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
+    //codec1.lineInLevel(user_settings[user_Profile].lineIn_level); 
+
+    // Convert linear pot to audio taper pot behavior
+    // Use new afLevel 
+    float val =log10(_afLevel)/2;
+    //Serial.print(" Volume set to  log = "); 
+    //Serial.println(val);
+
     // RampVolume hadles the scaling. Must set the LineOutLevel to the desired max though.
-    codec1.lineInLevel(user_settings[user_Profile].lineIn_level); 
-    RampVolume((float) _afLevel/100, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    RampVolume((float) val, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     //Serial.print(" Volume set to  "); 
     //Serial.println(_afLevel);
     displayAFgain();
@@ -854,7 +865,13 @@ COLD void RFgain(int8_t delta)
     if (_rfLevel < 1)
         _rfLevel = 1;    // do not use 0 to prevent divide/0 error
 
-    user_settings[user_Profile].rfGain = _rfLevel;  // 
+    user_settings[user_Profile].rfGain = _rfLevel;  // 0 to 100 range, ,linear
+ 
+    //Amp1_L.setGain_dB(AUDIOBOOST * _rfLevel/100);    // Adjustable fixed output boost in dB.
+    //Amp1_R.setGain_dB(AUDIOBOOST * _rfLevel/100);
+    FFT_Switch_L.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    FFT_Switch_R.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+
     // LineIn is 0 to 15 with 15 being ther most sensitive
     codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
     //Serial.print("CodecLine IN level set to "); 

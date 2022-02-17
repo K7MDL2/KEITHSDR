@@ -5,7 +5,7 @@
 //
 //
 
-void Peak(void);
+float Peak(void);
 
 #endif // _SMETER_H_
 

@@ -173,44 +173,49 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 COLD void encoder_click(i2cEncoderLibV2* obj) 
 {
 	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
-	{
-		VFO_AB();
-		Serial.println(F("Long MF Knob Push- Swap VFOs "));
+	{	
+		Serial.println(F("Long MF Knob Push- Change Tune Rate "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 62, 127);
 			noteOff(CHANNEL, 62, 0);
+		#else
+			Rate(0);			
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
 	{
-		Rate(0);
-		Serial.println(F("MF Knob Push to change Tune Rate "));
+		Serial.println(F("MF Knob Push to set RF Gain "));
 		obj->writeRGBCode(0xFF0000);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 63, 127);
 			noteOff(CHANNEL, 63, 0);
+		#else			
+			setRFgain(2);
 		#endif
 	}
-  else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
-  {
-    Rate(0);
-    Serial.println(F("Knob #2 Long Push "));
-    obj->writeRGBCode(0x00FF00);
-	#ifdef USE_MIDI
-		noteOn(CHANNEL, 64, 127);
-		noteOff(CHANNEL, 64, 0);
-	#endif
-  }
+	else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
+	{
+		Serial.println(F("Knob #2 Long Push - Change Filter "));
+		obj->writeRGBCode(0x00FF00);
+		#ifdef USE_MIDI
+			noteOn(CHANNEL, 64, 127);
+			noteOff(CHANNEL, 64, 0);
+		#else
+			Filter(0);
+		#endif
+	}
 	else
 	{
-		Serial.println(F("Push: "));
+		Serial.println(F("Knob #2 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
+		#else
+			setMode(1);
 		#endif
-	}
+}
 }
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short

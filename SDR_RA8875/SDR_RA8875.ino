@@ -78,9 +78,10 @@ COLD void digitalClockDisplay(void);
 COLD unsigned long processSyncMessage();
 COLD time_t getTeensy3Time();
 COLD void printDigits(int digits);
-HOT void Check_PTT(void);
+HOT  void Check_PTT(void);
 COLD void initDSP(void);
 COLD void SetFilter(void);
+HOT  void RF_Limiter(float peak_avg);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -117,10 +118,11 @@ int32_t     Freq_Peak = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
 bool        touchBeep_flag = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
-static int  last_PTT_Input = 1;   // track input pin state changes after any debounce timers
-static int  PTT_pin_state = 1;    // current input pin state
-static unsigned long PTT_Input_time = 0;  // Debounce timer
-static int  PTT_Input_debounce = 0;   // Debounce state tracking
+uint8_t     last_PTT_Input = 1;   // track input pin state changes after any debounce timers
+uint8_t     PTT_pin_state = 1;    // current input pin state
+unsigned long PTT_Input_time = 0;  // Debounce timer
+uint8_t     PTT_Input_debounce = 0;   // Debounce state tracking
+float       S_Meter_Peak_Avg;  // For RF AGC Limiter
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -648,9 +650,13 @@ HOT void loop()
 
     if (meter.check() == 1) // update our meters
     {
-        Peak();
+        S_Meter_Peak_Avg = Peak();   // return an average for RF AGC limiter if used
+        //Serial.print("S-Meter Peak Avg = ");
+        //Serial.println(S_Meter_Peak_Avg);
     }
 
+    RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
+    
     #ifdef PANADAPTER
         #ifdef ALL_CAT
             //if (CAT_update.check() == 1) // update our meters
@@ -1308,9 +1314,6 @@ COLD void initDSP(void)
 
     NoiseBlanker.useTwoChannel(true);
 
-    Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
-    Amp1_R.setGain_dB(AUDIOBOOST);
-
     AudioInterrupts();
 
     TXAudio(0);  // Finish RX audio chain setup
@@ -1390,6 +1393,9 @@ void TXAudio(int TX)
         
         codec1.micGain(30);  // 0 to 63dB
 
+        Amp1_L.setGain_dB(3.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(3.0f);  
+
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
         codec1.unmuteLineout();           // Audio out to Line-Out and TX board
         
@@ -1413,8 +1419,9 @@ void TXAudio(int TX)
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
 
         // Typically choose one pair, Ch 0, 1 or 2.
-        FFT_Switch_L.gain(0, 1.0f); //  1 is RX, 0 is TX
-        FFT_Switch_R.gain(0, 1.0f); //  1 is RX, 0 is TX
+        // Use RFGain info to help give more range to adjustment then just LineIn.
+        FFT_Switch_L.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
+        FFT_Switch_R.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
         FFT_Switch_L.gain(1, 0.0f); //  1 is TX, 0 is RX
         FFT_Switch_R.gain(1, 0.0f); //  1 is TX, 0 is RX
         FFT_Switch_L.gain(2, 0.0f); // Ch 2 is test tone, Turn off
@@ -1425,6 +1432,11 @@ void TXAudio(int TX)
         OutputSwitch_L.gain(1, 0.0f); // Turn TX off
         OutputSwitch_R.gain(1, 0.0f); // Turn TX off   
         
+        Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST);  
+        
+        selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
+
         AudioInterrupts();
         
         // Restore RX audio in and out levels, squelch large Pop in unmute.
@@ -1432,5 +1444,74 @@ void TXAudio(int TX)
         codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
         RFgain(0);
         AFgain(0);
+    }
+}
+
+// If peak power exceeds 100% FS, reduce LineIn level, and/or if there is an attenuator, turn it on
+// This is temporary.  It will not change RF or AG Gain levels
+// LineIn level will be restored if RFGain is adjusted manually or during band changes
+// Set an averaging timer to raise (in small steps) LineIn back up to data table setting when there is no longer overload 
+HOT void RF_Limiter(float peak_avg)
+{
+    static float rf_agc_limit;
+    static float rf_agc_limit_last;
+    float s;
+    uint8_t temp = 0;
+    
+    s = S_Peak.read() * 100;   // If > 100 there is LineIn overload
+    //s = peak_avg * 100;  // use average instead of instant values
+
+    if (s > 100.0)  // Anyting over rf gain setting is excess, reduce RFGain
+    {
+        rf_agc_limit = s - 100.0f;
+        Serial.print("Peak Power = ");
+        Serial.print(s);    
+        Serial.print("  RF_AGC_Limit = ");
+        Serial.print(rf_agc_limit);
+        
+        if(rf_agc_limit > 20.0f)
+            rf_agc_limit *= 4; // for large changes speed up gain reduction
+        else if(rf_agc_limit > 10.0f)
+            rf_agc_limit *= 3; // for large changes speed up gain reduction
+        else 
+            rf_agc_limit *= 2; // for large changes speed up gain reduction
+        
+        if (rf_agc_limit >= 100.0f)  // max percent we can adjust anything
+            rf_agc_limit = 99.0f; // limit to 100% change
+        
+        Serial.print(" 2=");
+        Serial.print(rf_agc_limit); 
+
+        rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta
+        
+        Serial.print(" 3=%");
+        Serial.print(rf_agc_limit); 
+
+        rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;
+        
+        Serial.print(" 4=(0-15)");
+        Serial.println(rf_agc_limit); 
+        
+        if (rf_agc_limit !=0)
+            codec1.lineInLevel(rf_agc_limit);
+        
+        rf_agc_limit_last = rf_agc_limit; 
+        
+        //RFgain(rf_agc_limit); 
+    }
+    else // Restore LineIn level to where it started (user setting)
+    {
+        temp = user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100;
+
+        // Time interval is set by the S meter timer multiplied by the number of samples in avg function                                
+        if (peak_avg < 0.10 && rf_agc_limit_last < temp)   // Value os peal_avg is experimentally determined
+        {
+            //Serial.print("RF AGC Limit Last = ");
+            //Serial.print(rf_agc_limit_last); 
+            rf_agc_limit_last = temp;
+            codec1.lineInLevel(temp);   // retore to normal level
+            Serial.print("  Restore LineIn Level = ");
+            Serial.println(temp);             
+        }
     }
 }
