@@ -1464,10 +1464,10 @@ HOT void RF_Limiter(float peak_avg)
     if (s > 100.0)  // Anyting over rf gain setting is excess, reduce RFGain
     {
         rf_agc_limit = s - 100.0f;
-        Serial.print("Peak Power = ");
-        Serial.print(s);    
-        Serial.print("  RF_AGC_Limit = ");
-        Serial.print(rf_agc_limit);
+        //Serial.print("Peak Power = ");
+        //Serial.print(s);    
+        //Serial.print("  RF_AGC_Limit = ");
+        //Serial.print(rf_agc_limit);
         
         if(rf_agc_limit > 20.0f)
             rf_agc_limit *= 4; // for large changes speed up gain reduction
@@ -1478,18 +1478,15 @@ HOT void RF_Limiter(float peak_avg)
         
         if (rf_agc_limit >= 100.0f)  // max percent we can adjust anything
             rf_agc_limit = 99.0f; // limit to 100% change
-        
-        Serial.print(" 2=");
-        Serial.print(rf_agc_limit); 
+        //Serial.print(" 2=");
+        //Serial.print(rf_agc_limit); 
 
-        rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta
-        
-        Serial.print(" 3=%");
-        Serial.print(rf_agc_limit); 
+        rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta        
+        //Serial.print(" 3=%");
+        //Serial.print(rf_agc_limit); 
 
-        rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;
-        
-        Serial.print(" 4=(0-15)");
+        rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;        
+        Serial.print(" RF AGC Limit (0-15) = ");
         Serial.println(rf_agc_limit); 
         
         if (rf_agc_limit !=0)
