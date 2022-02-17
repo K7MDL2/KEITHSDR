@@ -796,16 +796,17 @@ COLD void AFgain(int8_t delta)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
 
     user_settings[user_Profile].afGain = _afLevel;  // update memory
+    
     // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
-    //codec1.lineInLevel(user_settings[user_Profile].lineIn_level); 
-
+    codec1.lineOutLevel(user_settings[user_Profile].lineOut_level); 
+    
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
     float val =log10(_afLevel)/2;
     //Serial.print(" Volume set to  log = "); 
     //Serial.println(val);
 
-    // RampVolume hadles the scaling. Must set the LineOutLevel to the desired max though.
+    // RampVolume handles the scaling. Must set the LineOutLevel to the desired max though.
     RampVolume((float) val, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     //Serial.print(" Volume set to  "); 
     //Serial.println(_afLevel);
