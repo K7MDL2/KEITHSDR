@@ -798,8 +798,11 @@ COLD void AFgain(int8_t delta)
     user_settings[user_Profile].afGain = _afLevel;  // update memory
     
     // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
-    codec1.lineOutLevel(user_settings[user_Profile].lineOut_level); 
-    
+    if(user_settings[user_Profile].xmit == OFF)
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_RX); // skip when in TX to act as Mic Level Adjust control
+    else
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX); // skip when in TX to act as Mic Level Adjust control
+        
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
     float val =log10(_afLevel)/2;
