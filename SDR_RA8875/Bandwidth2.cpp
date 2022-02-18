@@ -46,8 +46,8 @@ COLD void selectBandwidth(uint8_t bndx)
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 250;
         AudioNoInterrupts();
-        Amp1_L.setGain_dB(AUDIOBOOST+6.0f);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(AUDIOBOOST+6.0f);
+        Amp1_L.setGain_dB(AUDIOBOOST+8.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST+8.0f);
         AudioInterrupts();
         SetFilter();               
     }
@@ -63,8 +63,8 @@ COLD void selectBandwidth(uint8_t bndx)
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 500;
         AudioNoInterrupts();
-        Amp1_L.setGain_dB(AUDIOBOOST+5.0f);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(AUDIOBOOST+5.0f);
+        Amp1_L.setGain_dB(AUDIOBOOST+6.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST+6.0f);
         AudioInterrupts();
         SetFilter();
     }
@@ -80,8 +80,8 @@ COLD void selectBandwidth(uint8_t bndx)
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth = 700;
         AudioNoInterrupts();
-        Amp1_L.setGain_dB(AUDIOBOOST+3.0f);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(AUDIOBOOST+3.0f);
+        Amp1_L.setGain_dB(AUDIOBOOST+5.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST+5.0f);
         AudioInterrupts();
         SetFilter();
     }
@@ -97,8 +97,8 @@ COLD void selectBandwidth(uint8_t bndx)
         filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
         filterBandwidth=1000;
         AudioNoInterrupts();
-        Amp1_L.setGain_dB(AUDIOBOOST+2.0f);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(AUDIOBOOST+2.0f);
+        Amp1_L.setGain_dB(AUDIOBOOST+3.0f);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST+3.0f);
         AudioInterrupts();
         SetFilter();
     }
