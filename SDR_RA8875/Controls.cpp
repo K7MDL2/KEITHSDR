@@ -782,11 +782,15 @@ COLD void AFgain(int8_t delta)
     ///if (MF_client == AFGAIN_BTN)
     //    set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
 
-    _afLevel = user_settings[user_Profile].afGain;   // Get last absolute volume setting as a value 0-100
-
+    // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
+    if(user_settings[user_Profile].xmit == OFF)
+        _afLevel = user_settings[user_Profile].afGain;   // Get last absolute volume setting as a value 0-100
+    else
+        _afLevel = user_settings[user_Profile].mic_Gain_level;   // Get last absolute volume setting as a value 0-100 
+        
 //Serial.print(" TEST AF Level requested "); Serial.println(_afLevel);
     
-    _afLevel += delta;      // convert percentage request to a single digit float
+    _afLevel += delta*4;      // convert percentage request to a single digit float
 
 //Serial.print(" TEST AF Level absolute "); Serial.println(_afLevel);
 
@@ -795,14 +799,18 @@ COLD void AFgain(int8_t delta)
     if (_afLevel < 1)
         _afLevel = 1;    // do not use 0 to prevent divide/0 error
 
-    user_settings[user_Profile].afGain = _afLevel;  // update memory
-    
     // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
     if(user_settings[user_Profile].xmit == OFF)
+    {
+        user_settings[user_Profile].afGain = _afLevel;  // update memory
         codec1.lineOutLevel(user_settings[user_Profile].lineOut_RX); // skip when in TX to act as Mic Level Adjust control
+    }
     else
-        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX); // skip when in TX to act as Mic Level Adjust control
-        
+    {
+        user_settings[user_Profile].mic_Gain_level = _afLevel;  // 0 to 100 mic gain range
+        codec1.micGain(user_settings[user_Profile].mic_Gain_level * 0.63);  // adjust for 0 to 63dB
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX); // skip when in TX to act as Mic Level Adjust control    }
+    }
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
     float val =log10(_afLevel)/2;
@@ -860,7 +868,7 @@ COLD void RFgain(int8_t delta)
 
     //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
-    _rfLevel += delta;      // convert percentage request to a single digit float
+    _rfLevel += delta*4;      // convert percentage request to a single digit float
 
     //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
