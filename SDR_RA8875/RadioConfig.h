@@ -165,6 +165,8 @@
       //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
       //#define PANADAPTER_INVERT     // Invert spectrum for inverted IF tuning direction
     #endif
+    #undef AUDIOBOOST
+    #define AUDIOBOOST   (6.0f)
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
@@ -173,8 +175,8 @@
 // 
 // Choose your actual pin assignments for any you may have.
 // VFO Encoder (not I2C)
-#define VFO_ENC_PIN_A 4
-#define VFO_ENC_PIN_B 5
+#define VFO_ENC_PIN_A   4
+#define VFO_ENC_PIN_B   5
 
 #define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 

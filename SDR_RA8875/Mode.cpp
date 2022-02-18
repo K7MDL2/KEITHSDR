@@ -6,8 +6,8 @@
 //#include "Mode.h"
 
 extern AudioMixer4_F32  	RX_Summer; 
-//extern AudioMixer4_F32  	FFT_Switch1;
-//extern AudioMixer4_F32  	FFT_Switch2;
+extern AudioSwitch4_OA_F32  RxTx_InputSwitch_L;
+extern AudioSwitch4_OA_F32  RxTx_InputSwitch_R;
 extern struct Modes_List 	modeList[];
 extern int32_t 				ModeOffset;
 extern struct User_Settings user_settings[];
@@ -20,8 +20,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="CW";
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 3.0f);
-		RX_Summer.gain(1, 3.0f);
+		RX_Summer.gain(0, 1.0f);  // Turn on non-FM
+		RX_Summer.gain(1, 1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//Serial.println("CW");
 		//FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
@@ -35,8 +39,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="CW_REV;
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 3.0f);
-		RX_Summer.gain(1, -3.0f);
+		RX_Summer.gain(0, 1.0f);
+		RX_Summer.gain(1, -1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//Serial.println("CW-R");
 		//FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
@@ -50,8 +58,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="USB";          
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 0.8f);
-		RX_Summer.gain(1, 0.8f);
+		RX_Summer.gain(0, 1.0f);
+		RX_Summer.gain(1, 1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//Serial.println("USB");
 		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
@@ -65,8 +77,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="LSB";
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 0.8f);
-		RX_Summer.gain(1, -0.8f);
+		RX_Summer.gain(0, 1.0f);
+		RX_Summer.gain(1, -1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//Serial.println("LSB");
 		//FFT_Switch1.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT          
@@ -80,8 +96,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="DATA";          
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 0.8f);
-		RX_Summer.gain(1, 0.8f);
+		RX_Summer.gain(0, 1.0f);
+		RX_Summer.gain(1, 1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//Serial.println("DATA");
 		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
@@ -95,8 +115,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="DATA_REV";          
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 0.8f);
-		RX_Summer.gain(1,-0.8f);
+		RX_Summer.gain(0, 1.0f);
+		RX_Summer.gain(1, -1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//Serial.println("DATA-R");
 		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
@@ -110,8 +134,12 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="AM";          
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 0.8f);
-		RX_Summer.gain(1, 0.8f);
+		RX_Summer.gain(0, 1.0f);
+		RX_Summer.gain(1, 1.0f);
+		RX_Summer.gain(3, 0.0f);  // Turn off FM
+		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
+        RxTx_InputSwitch_L.setChannel(0); // Select RX path
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
@@ -124,8 +152,11 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 	{
 		//mode="FM";          
 		AudioNoInterrupts();
-		RX_Summer.gain(0, 0.8f);
-		RX_Summer.gain(1, 0.8f);
+		RX_Summer.gain(0, 0.0f);
+		RX_Summer.gain(1, 0.0f);  // Turn off other modes
+		RX_Summer.gain(3, 1.0f);  // Select FM path
+		RxTx_InputSwitch_L.setChannel(2); // Select FM path
+		RxTx_InputSwitch_R.setChannel(2); // Shut off unused output (in this mode)		
 		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
 		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
