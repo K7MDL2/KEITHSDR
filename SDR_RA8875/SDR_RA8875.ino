@@ -280,7 +280,7 @@ AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     Outp
 AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_R,0);  // route raw input audio to output for TX
 
 // In TX mic is selected as input and is switched to the TX audio path (straight to output for now)
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         TX_Hilbert_Plus_45,0);
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         TX_Hilbert_Plus_45,0);  // different filter object in case the filters are different type or size
 AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         TX_Hilbert_Minus_45,0);
 AudioConnection_F32     patchCord_Tx_Filt_L(TX_Hilbert_Plus_45,0,           OutputSwitch_L,1);  // phase shift +45 deg
 AudioConnection_F32     patchCord_Tx_Filt_R(TX_Hilbert_Minus_45,0,          OutputSwitch_R,1);  // phase shift -45 deg
@@ -653,7 +653,7 @@ HOT void loop()
         //Serial.println(S_Meter_Peak_Avg);
     }
 
-    RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
+    //RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
     
     #ifdef PANADAPTER
         #ifdef ALL_CAT
@@ -1358,7 +1358,6 @@ void TXAudio(int TX)
         TxTestTone_Vol = 0.90f;  // 0.90 is max, clips if higher in single tone
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_A.frequency(1000.0f/2); 
-        user_settings[user_Profile].pitch = 1000;
         TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
         TxTestTone_B.frequency(2000.0f/2); 
         
@@ -1383,20 +1382,20 @@ void TXAudio(int TX)
         OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF (ch 0 to 0.0)
         OutputSwitch_R.gain(0, 0.0f);   // Turn RX OFF  
         OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON (ch 1 to 1.0f)
-        OutputSwitch_R.gain(1, 1.0f);   // Turn TX ON          
+        OutputSwitch_R.gain(1, -1.0f);   // Turn TX ON          
         
-        codec1.micGain(30);  // 0 to 63dB
+        //codec1.micGain(user_settings[user_Profile].mic_Gain_level);  
 
         Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(1.0f);  
     
         codec1.lineInLevel(0);
-        RampVolume(1.0f, 0);
-    
-        codec1.unmuteLineout();           // Audio out to Line-Out and TX board
-        
+     
         AudioInterrupts();
 
+        RampVolume(1.0f, 0);
+        codec1.unmuteLineout();           // Audio out to Line-Out and TX board
+        
         AFgain(0);  // sets up the Lineout level for TX testing
     }
     else // back to RX
@@ -1418,8 +1417,10 @@ void TXAudio(int TX)
 
         // Typically choose one pair, Ch 0, 1 or 2.
         // Use RFGain info to help give more range to adjustment then just LineIn.
-        FFT_Switch_L.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
-        FFT_Switch_R.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
+        //FFT_Switch_L.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
+        //FFT_Switch_R.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
+        FFT_Switch_L.gain(0, 1.0f); //  1 is RX, 0 is TX
+        FFT_Switch_R.gain(0, 1.0f); //  1 is RX, 0 is TX
         FFT_Switch_L.gain(1, 0.0f); //  1 is TX, 0 is RX
         FFT_Switch_R.gain(1, 0.0f); //  1 is TX, 0 is RX
         FFT_Switch_L.gain(2, 0.0f); // Ch 2 is test tone, Turn off
@@ -1438,9 +1439,9 @@ void TXAudio(int TX)
         codec1.audioPostProcessorEnable();  // AVC on Line-Out level
         //codec1.audioProcessorDisable();   // Default 
 
-        selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
-
         AudioInterrupts();
+
+        selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
         
         // Restore RX audio in and out levels, squelch large Pop in unmute.
         delay(25);  // let audio chain settle (empty) from transient
