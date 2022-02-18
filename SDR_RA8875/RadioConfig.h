@@ -166,7 +166,7 @@
       //#define PANADAPTER_INVERT     // Invert spectrum for inverted IF tuning direction
     #endif
     #undef AUDIOBOOST
-    #define AUDIOBOOST   (6.0f)
+    #define AUDIOBOOST   (0.0f)
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
