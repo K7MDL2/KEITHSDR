@@ -15,6 +15,7 @@
 #include "SDR_RA8875.h"
 #include "SDR_Data.h"
 #include "Hilbert.h"            // filter coefficients
+//#include "hilbert251A.h"        // filter coefficients
 #include "AudioFilterConvolution_F32.h"
 #include <AudioSwitch_OA_F32.h>
 
@@ -224,16 +225,20 @@ DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
+//DMAMEM AudioFilter90Deg_F32 RX_Hilbert(audio_settings);
 AudioFilterConvolution_F32  FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
+RadioIQMixer_F32            RX_IQ_Mixer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioOutputI2S_F32          Output(audio_settings);
 radioNoiseBlanker_F32       NoiseBlanker(audio_settings);  // DMAMEM on this item breaks stopping RX audio flow.  Would save 10K local variable space
-AudioSynthWaveformSine_F32  Beep_Tone; // for audible alerts like touch beep confirmations
-AudioSynthSineCosine_F32    TxTestTone_A;  // For TX path test tone
-AudioSynthWaveformSine_F32  TxTestTone_B;  // For TX path test tone
-AudioEffectGain_F32         Amp1_L;
-AudioEffectGain_F32         Amp1_R;  // Some well placed gain stages
+//AudioLMSDenoiseNotch_F32    Notch(audio_settings);
+RadioFMDetector_F32         FM_Detecter(audio_settings);
+AudioSynthWaveformSine_F32  Beep_Tone(audio_settings); // for audible alerts like touch beep confirmations
+AudioSynthSineCosine_F32    TxTestTone_A(audio_settings);  // For TX path test tone
+AudioSynthWaveformSine_F32  TxTestTone_B(audio_settings);  // For TX path test tone
+AudioEffectGain_F32         Amp1_L(audio_settings);
+AudioEffectGain_F32         Amp1_R(audio_settings);  // Some well placed gain stages
 
 // Connections for FINput and FFT - chooses either the input or the output to display in the spectrum plot
 AudioConnection_F32     patchCord_FFT_In_L(Input,0,                         FFT_Switch_L,0);  // route raw input audio to the FFT display
@@ -269,6 +274,16 @@ AudioConnection_F32     patchCord10a(RxTx_InputSwitch_L,0,                  Nois
 AudioConnection_F32     patchCord10b(RxTx_InputSwitch_R,0,                  NoiseBlanker,1);
 AudioConnection_F32     patchCord11a(NoiseBlanker,0,                        RX_Hilbert_Plus_45,0);
 AudioConnection_F32     patchCord11b(NoiseBlanker,1,                        RX_Hilbert_Minus_45,0);
+
+// New RX audio path 
+//AudioConnection_F32     patchCord_IQ_MIX_L(NoiseBlanker,0,                  RX_Hilbert,0);
+//AudioConnection_F32     patchCord_IQ_MIX_R(NoiseBlanker,1,                  RX_Hilbert,1);                                            
+//AudioConnection_F32     patchCord2c(RX_Hilbert,0,                           RX_Summer,0);  // phase shift +45 deg
+//AudioConnection_F32     patchCord2d(RX_Hilbert,1,                           RX_Summer,1);  // phase shift -45 deg
+
+// FM Path
+AudioConnection_F32     patchCord_FM_DET(RxTx_InputSwitch_L,2,              FM_Detecter,0);  // different filter object in case the filters are different type or size
+AudioConnection_F32     patchCord_FM_MIX(FM_Detecter,0,                     RX_Summer,3);
 
 // Normal Audio Chain - RX audio on Line In to headphone jack
 AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,                   RX_Summer,0);  // phase shift +45 deg
@@ -847,6 +862,10 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
         Serial.print(AudioMemoryUsage_F32());
         Serial.print(F("/"));
         Serial.println(AudioMemoryUsageMax_F32());
+        Serial.print(F(" Audio MEM 16-Bit  Cur/Peak: "));
+        Serial.print(AudioMemoryUsage());
+        Serial.print(F("/"));
+        Serial.println(AudioMemoryUsageMax());
         Serial.println(F("*** End of Report ***"));
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
@@ -1267,23 +1286,36 @@ COLD void SetFilter(void)
 
 COLD void initDSP(void)
 {
-    AudioNoInterrupts();    
+    AudioNoInterrupts();  
+    AudioMemory(20);  
     AudioMemory_F32(100, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
-    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
-    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
-    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
-    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
     codec1.inputSelect(RxAudioIn);
     codec1.muteLineout(); //mute TX audio 
     codec1.muteHeadphone();
-    codec1.volume(0.0f);  // Seems to impact LineOut waveform if not 0
-    
+    codec1.volume(0.0f);  // Seems to impact LineOut waveform if not 0    
     codec1.adcHighPassFilterDisable(); // Turn off DC blocking filter - reduces noise according to forum
     //codec1.adcHighPassFilterEnable();  // Turn on DC blocking filter (default) 
     //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
 
+    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
+    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
+    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
+    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
+
+    // Try out new objects
+    //RX_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
+    //RX_Hilbert.begin(hilbert121A, 121); // 2 channel Hilbert - 2 uncoupled paths.
+    //RX_IQ_Mixer.Frequency(15000.0f)      // set Mixer LO frequency in HZ.  Output of Mmixer is 0.5 times the input level.
+    //RX_IQ_Mixer.useTwoChannel(true);    // using I and Q
+    //RX_IQ_Mixer.useSimple(true);        // no hardware balance features if true
+
+    // The FM detector has error checking during object construction
+    // when Serial.print is not available.  See RadioFMDetector_F32.h:
+    Serial.print("FM Initialization errors: ");
+    Serial.println( FM_Detecter.returnInitializeFMError() );
+    
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
     if (fft_size == 4096)
     {
@@ -1304,6 +1336,7 @@ COLD void initDSP(void)
     RX_Summer.gain(0, 0.8f);  // Left Channel into mixer
 	RX_Summer.gain(1, 0.8f);  // Right Channel, intoi Miver
     RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
+    RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
 
     NoiseBlanker.useTwoChannel(true);
 
@@ -1411,10 +1444,6 @@ void TXAudio(int TX)
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_B.amplitude(TxTestTone_Vol);        
 
-        // Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
-        RxTx_InputSwitch_L.setChannel(0); // Select RX path
-        RxTx_InputSwitch_R.setChannel(0); // Select RX path
-
         // Typically choose one pair, Ch 0, 1 or 2.
         // Use RFGain info to help give more range to adjustment then just LineIn.
         //FFT_Switch_L.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
@@ -1441,13 +1470,28 @@ void TXAudio(int TX)
 
         AudioInterrupts();
 
-        selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
+        ///selectBandwidth(bandmem[curr_band].filter); // resets teh correct amp output gain
         
         // Restore RX audio in and out levels, squelch large Pop in unmute.
         delay(25);  // let audio chain settle (empty) from transient
-        codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
+        // get the current mode
+        uint8_t mode_sel;
+        if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
+            mode_sel = bandmem[curr_band].mode_A;
+        else
+            mode_sel = bandmem[curr_band].mode_B;
+            
+        // The following enables error checking inside of the "ubdate()"
+        // Output goes to the Serial (USB) Monitor.  Normally, this is quiet. 
+        if (mode_sel == FM)
+            FM_Detecter.showError(1);
+        
+        // setup rest of mode-specific path
+        selectMode(mode_sel);
+        //setMode(0); // takes care of filter and mode-specific audio path switching            
         RFgain(0);  // sets up the LineIn level
         AFgain(0);  // sets up the Lineout level
+        codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
     }
 }
 
