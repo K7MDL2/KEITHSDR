@@ -16,8 +16,6 @@
 #include "SDR_Data.h"
 #include "Hilbert.h"            // filter coefficients
 //#include "hilbert251A.h"        // filter coefficients
-#include "AudioFilterConvolution_F32.h"
-#include <AudioSwitch_OA_F32.h>
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
@@ -188,8 +186,8 @@ uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init
 //const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
 //const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-//const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
 //
@@ -232,7 +230,7 @@ RadioIQMixer_F32            RX_IQ_Mixer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioOutputI2S_F32          Output(audio_settings);
 radioNoiseBlanker_F32       NoiseBlanker(audio_settings);  // DMAMEM on this item breaks stopping RX audio flow.  Would save 10K local variable space
-//AudioLMSDenoiseNotch_F32    Notch(audio_settings);
+AudioLMSDenoiseNotch_F32    LMS_Notch;
 RadioFMDetector_F32         FM_Detecter(audio_settings);
 AudioSynthWaveformSine_F32  Beep_Tone(audio_settings); // for audible alerts like touch beep confirmations
 AudioSynthSineCosine_F32    TxTestTone_A(audio_settings);  // For TX path test tone
@@ -290,7 +288,8 @@ AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,                   RX_S
 AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,                  RX_Summer,1);  // phase shift -45 deg
 AudioConnection_F32     patchCord2e(Beep_Tone,0,                            RX_Summer,2);  // For button beep if enabled
 AudioConnection_F32     patchCord3a(RX_Summer,0,                            S_Peak,0);  // S meter source
-AudioConnection_F32     patchCord3L(RX_Summer,0,                            FilterConv,0);  // variable Bandwidth filtering
+AudioConnection_F32     patchCord3b(RX_Summer,0,                            LMS_Notch,0);  // variable Bandwidth filtering
+AudioConnection_F32     patchCord_Notch(LMS_Notch,0,                        FilterConv,0);  // route raw input audio to output for TX
 AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     OutputSwitch_L,0);  // route raw input audio to output for TX
 AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_R,0);  // route raw input audio to output for TX
 
@@ -557,7 +556,7 @@ HOT void loop()
     {
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
-            if (!user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
+            if (1)  // !user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
                 Freq_Peak = spectrum_RA887x.spectrum_update(
                     user_settings[user_Profile].sp_preset,
                     (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO
@@ -1303,7 +1302,13 @@ COLD void initDSP(void)
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
     TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
     TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
-
+    
+    // experiment with numbers  ToDo: enable/disable this via the Notch button
+    Serial.print("Initializing Notch/NR Feature = ");
+    Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+    LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
+    LMS_Notch.enable(false);
+    
     // Try out new objects
     //RX_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
     //RX_Hilbert.begin(hilbert121A, 121); // 2 channel Hilbert - 2 uncoupled paths.

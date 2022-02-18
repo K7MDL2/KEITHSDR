@@ -56,6 +56,7 @@ extern AudioEffectGain_F32          RFPreAmp1_L;  // Some well placed gain stage
 extern AudioEffectGain_F32          RFPreAmp1_R;  // Some well placed gain stages
 extern AudioMixer4_F32              FFT_Switch_L;
 extern AudioMixer4_F32              FFT_Switch_R;
+extern AudioLMSDenoiseNotch_F32     LMS_Notch;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -996,12 +997,20 @@ COLD void setNBLevel(int8_t delta)
 COLD void NR()
 {
     if (user_settings[user_Profile].nr_en > NROFF)
+    {
         user_settings[user_Profile].nr_en = NROFF;
+        LMS_Notch.enable(false);
+    }
     else if (user_settings[user_Profile].nr_en == NROFF)
+    {
         user_settings[user_Profile].nr_en = NR1;
+        LMS_Notch.enable(true);
+        Serial.println(LMS_Notch.initializeLMS(1, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+        LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
+    }
     displayNR();
-    //Serial.print("Set NR to ");
-    //Serial.println(user_settings[user_Profile].nr_en);
+    Serial.print("Set NR to ");
+    Serial.println(user_settings[user_Profile].nr_en);
 }
 
 // Enet button
@@ -1090,12 +1099,21 @@ COLD void RefLevel(int8_t newval)
 COLD void Notch()
 {
     if (user_settings[user_Profile].notch== ON)
+    {
         user_settings[user_Profile].notch = OFF;
+        LMS_Notch.enable(false);
+    }
     else if (user_settings[user_Profile].notch == OFF)
+    {
         user_settings[user_Profile].notch = ON;
+        LMS_Notch.enable(true);
+        Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+        LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
+    }    
+
     displayNotch();
-    //Serial.print("Set Notch to ");
-    //Serial.println(user_settings[user_Profile].notch);
+    Serial.print("Set Notch to ");
+    Serial.println(user_settings[user_Profile].notch);
 }
 
 // BAND UP button

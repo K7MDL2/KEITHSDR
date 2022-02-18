@@ -30,6 +30,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     24. Experimental (crude?) RF AGC added to maybe replace or compliment AVC.  New functions use FFT Peak values to temporarily reduce the LineIn level.  The peak average is used to restore it to the value set by RF_Gain.  Changing bands or RFGain level will also reset it.  Testing with AGC off (which means AVC is off).
     25. Added FM demodualtion stage which required more audio path switching.  Moved mode-specific switching into mode.cpp to celan things up better.  FM mode not tested until I can rig up a FM signal source. Also there is no squelch yet.
     26. Commented out are alternate hilbert and iqmixer objects I am trying out. Strategizing how to shift Fc up the FFT display (with VFO adjustments) to get around DC and low frequency noise.
+    27.  Added new AudioLMSDenoiseNotch_F32 function. Existing Notch and NR buttons turns them on and off. Parameters are hard coded while testing how it works.  Only 1 can be on at a time.
 
 ## Jan 2022
 
