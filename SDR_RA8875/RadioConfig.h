@@ -144,7 +144,7 @@
     #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
     #else      
-      #define si5351_CORRECTION 1780  // for standard crystal PLL
+      #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
     #endif
     #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default
     #ifdef VFO_MULT 
