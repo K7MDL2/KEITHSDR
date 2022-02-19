@@ -123,7 +123,7 @@ uint8_t     PTT_pin_state = 1;    // current input pin state
 unsigned long PTT_Input_time = 0;  // Debounce timer
 uint8_t     PTT_Input_debounce = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;  // For RF AGC Limiter
-bool        TwoToneTest = ON;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
+bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object

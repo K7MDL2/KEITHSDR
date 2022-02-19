@@ -28,11 +28,11 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     22. AFGain and RFGain converted from Linear taper to Log taper controls.
     23. RFGain now also sets gain level (0 to 1.0f) in first stage of input chain (FFT_Switch) to augment LineIn range of attenuation.
     24. Experimental (crude?) RF AGC added to maybe replace or compliment AVC.  New functions use FFT Peak values to temporarily reduce the LineIn level.  The peak average is used to restore it to the value set by RF_Gain.  Changing bands or RFGain level will also reset it.  Testing with AGC off (which means AVC is off).
-    25. Added FM demodulation stage which required more audio path switching.  Moved mode-specific switching into mode.cpp to celan things up better.  FM mode not tested until I can rig up a FM signal source. Also there is no squelch yet.
-    26.  Added new AudioLMSDenoiseNotch_F32 function. Existing Notch and NR buttons turns them on and off. Parameters are hard coded while testing how it works.  Only 1 can be on at a time.
-    27. RX chain and TX chains finally working well I think. Can now transmit test tones in either upper or lower sideband on demand at full Teensy audio output level around 3V p-p each channel.  Some weird stuff on the RX side got fixed in the process.  Can select (in the code) mic, Test Tone and Test Tone B in any combo.  You do have to adjust the tone level or mixer gains to prevent clipping if multiple sources are enabled.  RX/TX hardware is a NT7V QSD/QSE so have I and Q for both TX and RX sides. 
-    28. Measured the MDS (by ear and visual on the display) at about -128dBM with no filters or preamp/attenuators on 80M band.
-    29. Restructured Rx/TX function, added TwoToneTest variable (default OFF, Mic ON) for use in TX mode.
+    25. Added FM demodulation stage which required more audio path switching.  Moved mode-specific switching into mode.cpp to clean things up better.  FM mode does not seem to work using my HP sig generator. 
+    26. Added new AudioLMSDenoiseNotch_F32 function. Existing Notch and NR buttons turns them on and off. Parameters are hard coded while testing how it works.  Only 1 can be on at a time.
+    27. RX chain and TX chains finally working well I think. Can now transmit test tones in either upper or lower sideband on demand at full Teensy audio output level around 3V p-p each channel.  Some weird stuff on the RX side got fixed in the process. 
+    28. The Mic is enabled by default. Can switch to Two Tone Test mode using the ATU button (FN3 row, next to the XMIT button). Tones set to 700Hz and 1900Hz. RX/TX hardware is a NT7V QSD/QSE so have I and Q for both TX and RX sides so no IQ mixer object was needed.  Need to atteunaute the tones going into the FFT.
+    28. Measured the MDS (by ear and visual on the display) at about -128dBM with no filters or preamp or attenuators on the 80M band.
 
 ## Jan 2022
 

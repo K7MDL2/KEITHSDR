@@ -672,12 +672,19 @@ COLD void Xvtr()
 COLD void ATU()
 {    
     if (bandmem[curr_band].ATU == ON)
+    {
         bandmem[curr_band].ATU = OFF;
+        TwoToneTest = OFF;   // For test turn Two Tone test on and off.  When off the Mic is enabled.
+    }
     else if (bandmem[curr_band].ATU == OFF)
-        bandmem[curr_band].ATU = ON;    
+     {
+        bandmem[curr_band].ATU = ON;   
+        TwoToneTest = ON; 
+     }
     //
     //   Insert any future ATU hardware setup calls
     //
+     
     displayATU();
     //Serial.print("Set ATU to ");
     //Serial.println(bandmem[curr_band].ATU);
