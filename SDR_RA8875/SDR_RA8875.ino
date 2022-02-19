@@ -186,7 +186,6 @@ uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init
 //const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 //const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
 const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
@@ -228,12 +227,10 @@ DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
 //DMAMEM AudioFilter90Deg_F32 FFT_Hilbert(audio_settings);
 AudioFilterConvolution_F32  FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
-//RadioIQMixer_F32            TX_IQ_Mixer(audio_settings);
-RadioIQMixer_F32            FFT_IQ_Mixer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioOutputI2S_F32          Output(audio_settings);
 radioNoiseBlanker_F32       NoiseBlanker(audio_settings);   // DMAMEM on this item breaks stopping RX audio flow.  Would save 10K local variable space
-AudioLMSDenoiseNotch_F32    LMS_Notch;
+AudioLMSDenoiseNotch_F32    LMS_Notch(audio_settings);
 RadioFMDetector_F32         FM_Detecter(audio_settings);
 AudioSynthWaveformSine_F32  Beep_Tone(audio_settings);      // for audible alerts like touch beep confirmations
 AudioSynthSineCosine_F32    TxTestTone_A(audio_settings);   // For TX path test tone
@@ -251,12 +248,10 @@ AudioConnection_F32     patchCord_FFT_In_R(Input,1,                         FFT_
 AudioConnection_F32     patchCord_Mic_In(Input,0,                           FFT_Mixer,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 FFT_Mixer,1);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 FFT_Mixer,2);    
-AudioConnection_F32     patchCord_Mix_L(FFT_Mixer,0,                        FFT_IQ_Mixer,0);// Convert to I and Q
-AudioConnection_F32     patchCord_Mix_R(FFT_Mixer,0,                        FFT_IQ_Mixer,1); 
-AudioConnection_F32     patchCord_IQ_Mix_L(FFT_IQ_Mixer,0,                  TX_Hilbert_Plus_45,0); // Filter I and Q
-AudioConnection_F32     patchCord_IQ_Mix_R(FFT_IQ_Mixer,1,                  TX_Hilbert_Minus_45,0); 
-AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Plus_45,0,              FFT_Switch_L,1); // Feed into normal chain 
-AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Minus_45,0,             FFT_Switch_R,1); 
+AudioConnection_F32     patchCord_IQ_Mix_L(FFT_Mixer,0,                     TX_Hilbert_Plus_45,0); // Filter I and Q
+AudioConnection_F32     patchCord_IQ_Mix_R(FFT_Mixer,0,                     TX_Hilbert_Minus_45,0); 
+AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             FFT_Switch_L,1); // Feed into normal chain 
+AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              FFT_Switch_R,1); // + and - reversed for TX?
 
 // FFT_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 AudioConnection_F32     patchCord_FFT_OUT_L(FFT_Switch_L,0,                 FFT_OutSwitch_L,0); // Route selected audio source to the selected FFT - should save CPU time
@@ -306,7 +301,7 @@ AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     Outp
 AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_R,0);  
 
 // In TX the mic source is selected in FFT_Mixer and was phase shifted so just passed
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_L,0);  // phase shift mono sourtce 90 degrees
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_L,1);  // phase shift mono sourtce 90 degrees
 AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         OutputSwitch_R,1);  // Using L source twice since mic source is mono
 
 // Selected source goes to output (selected as headphone or lineout in the code) and boosted if needed
@@ -1317,7 +1312,7 @@ COLD void initDSP(void)
     
     TxTestTone_Vol = 0.0f;  // 0.90 is max, clips if higher in single tone
     TxTestTone_A.amplitude(TxTestTone_Vol);
-    TxTestTone_A.frequency(1000.0f); 
+    TxTestTone_A.frequency(500.0f); // for some reason this is doubled but Tonme B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
     TxTestTone_B.frequency(3000.0f); 
 
@@ -1338,14 +1333,6 @@ COLD void initDSP(void)
         FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
     }
     
-    // These only apply to mic and Test Tones.  LineIN (RX) is a parallel path
-    FFT_IQ_Mixer.frequency(0.0f);       // Specify LO frequency.  We are not shifting anything so trying 0Hz.
-    FFT_IQ_Mixer.useTwoChannel(true);   // I and Q
-    FFT_IQ_Mixer.useSimple(true);      // fasdter but no hardware balance corrections
-    //FFT_IQ_Mixer.iqmPhaseS_C(135.0f);   // 128.0F is 90 degrees. 512 is full circle. Nudge 128.0f up or down to correct hardware imbalance
-    //FFT_IQ_Mixer.iqmAmplitude(1.0f);    // Amplitude correction. Raise or lower Q relative to I.  1.0f is equal.
-    FFT_IQ_Mixer.setSampleRate_Hz(sample_rate_Hz);
-
     // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
@@ -1357,14 +1344,13 @@ COLD void initDSP(void)
     Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
     LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     LMS_Notch.enable(false);
+    NoiseBlanker.useTwoChannel(true);
     
     // Will be done in mode function also except for Beep Tone (2)
     //RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
 	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
     RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
     //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-
-    NoiseBlanker.useTwoChannel(true);
 
     AudioInterrupts();
   
@@ -1410,7 +1396,10 @@ void TXAudio(int TX)
     
     if (TX)  // Switch to Mic input on TX
     {
-        TxTestTone_Vol = 0.1f;  // 0.90 is max, clips if higher in single tone        
+        TxTestTone_Vol = 0.9f;  // 0.90 is max, clips if higher in single tone      
+        TxTestTone_A.amplitude(TxTestTone_Vol);
+        TxTestTone_B.amplitude(TxTestTone_Vol);    
+        
         Serial.println("Switching to Tx"); 
 
         AudioNoInterrupts();
@@ -1420,14 +1409,14 @@ void TXAudio(int TX)
 
         // Select Mic (0), Tone A(1), and/or ToneB (2) in any combo.
         FFT_Mixer.gain(0, 0.0f); //  Mono Mic audio
-        FFT_Mixer.gain(1, 1.0f); //  Test Tone A
+        FFT_Mixer.gain(1, 1.0f); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
         FFT_Mixer.gain(2, 0.0f); //  Test Tone B
 
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
         FFT_Switch_L.gain(0, 0.0f); // Ch 0 is LineIn I
         FFT_Switch_R.gain(0, 0.0f); // Ch 0 is LineIn Q
-        FFT_Switch_L.gain(1, 1.0f); // Ch 1 is test tone and Mic I
-        FFT_Switch_R.gain(1, -1.0f); // Ch 1 is test tone and Mic Q
+        FFT_Switch_L.gain(1, 1.0f); // Ch 1 is test tone and Mic I - Use 2.0f or -2.0f (for LSB) since mixer has 50% loss
+        FFT_Switch_R.gain(1, 1.0f); // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert - use 2.0 or -2.0f
 
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)
         RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
@@ -1449,7 +1438,7 @@ void TXAudio(int TX)
         Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(1.0f);   
         codec1.lineInLevel(0);      // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
-     
+
         AudioInterrupts();
 
         RampVolume(1.0f, 0);
@@ -1460,7 +1449,7 @@ void TXAudio(int TX)
     {
         Serial.println("Switching to Rx"); 
         
-        TxTestTone_Vol = 0.1f;   // 0.9 is highest without clipping
+        TxTestTone_Vol = 0.05f;   // 0.9 is highest without clipping
         TxTestTone_A.amplitude(TxTestTone_Vol);
         TxTestTone_B.amplitude(TxTestTone_Vol);        
         
@@ -1477,7 +1466,7 @@ void TXAudio(int TX)
         // Select Mic (0), Tone A(1), and/or ToneB (2) in any combo.
         FFT_Mixer.gain(0, 0.0f); //  Mono Mic audio
         FFT_Mixer.gain(1, 0.0f); //  Test Tone A
-        FFT_Mixer.gain(2, 1.0f); //  Test Tone B
+        FFT_Mixer.gain(2, 0.0f); //  Test Tone B
 
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
         FFT_Switch_L.gain(0, 1.0f); //  1 is LineIn

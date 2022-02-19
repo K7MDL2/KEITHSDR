@@ -806,11 +806,13 @@ COLD void AFgain(int8_t delta)
         user_settings[user_Profile].afGain = _afLevel;  // update memory
         codec1.lineOutLevel(user_settings[user_Profile].lineOut_RX); // skip when in TX to act as Mic Level Adjust control
     }
-    else
+    else // Control Mic Gani and Power out
     {
         user_settings[user_Profile].mic_Gain_level = _afLevel;  // 0 to 100 mic gain range
         codec1.micGain(user_settings[user_Profile].mic_Gain_level * 0.63);  // adjust for 0 to 63dB
-        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX); // skip when in TX to act as Mic Level Adjust control    }
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX * _afLevel/100); // skip when in TX to act as Mic Level Adjust control    }
+        Serial.print("Mic Gain (0-63dB)= "); Serial.println(_afLevel * 0.63);
+        Serial.print("Power Out(0-100%)= "); Serial.println(_afLevel);
     }
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
