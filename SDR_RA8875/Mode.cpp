@@ -26,11 +26,6 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//Serial.println("CW");
-		//FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = (int32_t) user_settings[user_Profile].pitch;  // show shaded filter width on right side of center
   	}
@@ -45,11 +40,6 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//Serial.println("CW-R");
-		//FFT_Switch1.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,0.0f);  // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,1.0f);  // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = -1 * (int32_t) user_settings[user_Profile].pitch; // show shaded filter width on left side of center
   	}
@@ -64,11 +54,6 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//Serial.println("USB");
-		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = 1; // show shaded filter width on right side of center
 	}
@@ -82,12 +67,7 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		RX_Summer.gain(3, 0.0f);  // Turn off FM
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
-        RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//Serial.println("LSB");
-		//FFT_Switch1.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT          
-		//FFT_Switch2.gain(0,1.0f);   // 1  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT       
+        RxTx_InputSwitch_R.setChannel(0); // Select RX path      
 		AudioInterrupts(); 
 		ModeOffset = -1; // show shaded filter width on left side of center
 	}
@@ -102,11 +82,6 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//Serial.println("DATA");
-		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = 1; // show shaded filter width on right side of center
 	}
@@ -121,11 +96,6 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//Serial.println("DATA-R");
-		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = -1; // show shaded filter width on left side of center
 	}
@@ -140,10 +110,6 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		// Select our sources for the FFT.  mode.h will change this so CW uses the output (for now as an experiment)
         RxTx_InputSwitch_L.setChannel(0); // Select RX path
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
-		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = 0; // show shaded filter width on both sides of center
 	}
@@ -157,13 +123,10 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		RX_Summer.gain(3, 1.0f);  // Select FM path
 		RxTx_InputSwitch_L.setChannel(2); // Select FM path
 		RxTx_InputSwitch_R.setChannel(2); // Shut off unused output (in this mode)		
-		//FFT_Switch1.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch1.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
-		//FFT_Switch2.gain(0,1.0f);   // 0  for Filtered FFT,  1 for Unfiltered FFT
-		//FFT_Switch2.gain(1,0.0f);   // 1  for Filtered FFT,  0 for Unfiltered FFT
 		AudioInterrupts();
 		ModeOffset = 0; // show shaded filter width on both sides of center
 	}
+
 	Serial.print("Set ModeOffset ");
 	Serial.println(ModeOffset);
 	Serial.print("Set mode to ");
