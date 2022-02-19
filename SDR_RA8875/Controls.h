@@ -34,7 +34,7 @@ void Rate(int8_t direction);
 void setMode(int8_t dir);
 void AGC();
 void Filter(int dir);
-void ATU();
+void ATU(uint8_t state);
 void Xvtr();
 void Split();
 void XIT();

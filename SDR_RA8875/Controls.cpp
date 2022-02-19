@@ -199,6 +199,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RFgain(0);
     ///AFgain(0);
     setNBLevel(0);   // 0 just updates things to be current value
+    ATU(-1); // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.
     
 #ifndef BYPASS_SPECTRUM_MODULE
     spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
@@ -669,18 +670,23 @@ COLD void Xvtr()
 }
 
 // ATU button
-COLD void ATU()
+// 0 = OFF  1 = ON   2 = Toggle  -1 = update to database state
+COLD void ATU(uint8_t state)
 {    
-    if (bandmem[curr_band].ATU == ON)
-    {
-        bandmem[curr_band].ATU = OFF;
-        TwoToneTest = OFF;   // For test turn Two Tone test on and off.  When off the Mic is enabled.
-    }
-    else if (bandmem[curr_band].ATU == OFF)
-     {
+    if ((bandmem[curr_band].ATU == ON && state == 2) || state == 0)
+        bandmem[curr_band].ATU = OFF;     
+    else if ((bandmem[curr_band].ATU == OFF && state == 2) || state == 1)
         bandmem[curr_band].ATU = ON;   
-        TwoToneTest = ON; 
-     }
+    
+    if (bandmem[curr_band].ATU == ON && state == -1)
+        bandmem[curr_band].ATU = ON;
+    else if (bandmem[curr_band].ATU == OFF && state == -1)
+        bandmem[curr_band].ATU = OFF;   
+
+    if (bandmem[curr_band].ATU == ON)   
+        TwoToneTest = ON;   // For test turn Two Tone test on and off.  When off the Mic is enabled. 
+    else
+        TwoToneTest = OFF;   // For test turn Two Tone test on and off.  When off the Mic is enabled.
     //
     //   Insert any future ATU hardware setup calls
     //
