@@ -81,6 +81,7 @@ HOT  void Check_PTT(void);
 COLD void initDSP(void);
 COLD void SetFilter(void);
 HOT  void RF_Limiter(float peak_avg);
+COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -122,7 +123,7 @@ uint8_t     PTT_pin_state = 1;    // current input pin state
 unsigned long PTT_Input_time = 0;  // Debounce timer
 uint8_t     PTT_Input_debounce = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;  // For RF AGC Limiter
-float       TxTestTone_Vol = 0.5f;
+bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -564,7 +565,7 @@ HOT void loop()
             if (1)  // !user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
                 Freq_Peak = spectrum_RA887x.spectrum_update(
                     user_settings[user_Profile].sp_preset,
-                    (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO
+                    (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO True if VFO_A active
                     VFOA,           // for onscreen freq info
                     VFOB,           // Not really needed today
                     ModeOffset,     // Move spectrum cursor to center or offset it by pitch value when in CW modes
@@ -787,13 +788,13 @@ HOT void Check_PTT(void)
         if (!last_PTT_Input)  // if TX
         {
             //Serial.println("PTT TX Detected");
-            Xmit();  // toggle transmit state
+            Xmit(1);  // transmit state
             last_PTT_Input = 0;
         }
         else // if RX
         {
             //Serial.println("PTT TX Released");
-            Xmit();  // toggle transmit state
+            Xmit(0);  // receive state
             last_PTT_Input = 1;
         }
     }
@@ -1310,12 +1311,6 @@ COLD void initDSP(void)
     Serial.print("FM Initialization errors: ");
     Serial.println( FM_Detecter.returnInitializeFMError() );
     
-    TxTestTone_Vol = 0.0f;  // 0.90 is max, clips if higher in single tone
-    TxTestTone_A.amplitude(TxTestTone_Vol);
-    TxTestTone_A.frequency(500.0f); // for some reason this is doubled but Tonme B is not.   Also getting mirror image.
-    TxTestTone_B.amplitude(TxTestTone_Vol); //TxTestTone_Vol);
-    TxTestTone_B.frequency(3000.0f); 
-
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
     if (fft_size == 4096)
     {
@@ -1353,9 +1348,16 @@ COLD void initDSP(void)
     //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
 
     AudioInterrupts();
-  
-    TXAudio(0);  // Finish RX audio chain setup
     
+    uint8_t mode_idx;
+  	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
+		mode_idx = bandmem[curr_band].mode_A;			
+	else
+		mode_idx = bandmem[curr_band].mode_B;
+
+    // Finish RX audio chain setup
+    TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.1f);  
+
     // Choose our output type.  Can do dB, RMS or power
     #ifdef FFT_4096
         myFFT_4096.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
@@ -1386,54 +1388,89 @@ COLD void initDSP(void)
     #endif
 }
 
-void TXAudio(int TX)
+// initDSP() and startup in RX mode enables our resources.  
+// This function switches input sources between line in and mic in and Test Tones (A and B),
+//   then set levels and retores them on RX.
+// RX sends audio to the headphone only (LineOut muted), and TX audio will go to LineOut (headphone muted). 
+// 100% output results in 3Vp-p at LineOut.  Power control varies 0 to 100% of 3V (LineOutLevel => 31)  
+// Also controls test tone state.  TX often uses two tones at high level, RX single tone at low level.  
+COLD void TX_RX_Switch(
+        bool    TX,           // TX = ON, RX = OFF
+        uint8_t mode_sel,       // Current VFO mode index
+        bool    b_Mic_On,        // Tun Mic source on or off
+        bool    b_ToneA,        // Test Tone A
+        bool    b_ToneB,        // Test Tone B
+        float   TestTone_Vol)   // 0.90 is max, clips if higher. Use 0.45f with 2 tones
 {
-    // initDSP() and startup in RX mode enables our resources.  
-    // This function switches input sources between line in and mic in and Test Tones (A and B),
-    //   then set levels and retores them on RX.
-    // Previously Lineout was the same as the headphone and used for RX audio to speaker.
-    // To add TX support, we will send RX audio to the headphone only, and TX audio will go to Line out. 
+    float   Mic_On;         // 0.0f(OFF) or 1.0f (ON)
+    float   ToneA;          // 0.0f(OFF) or 1.0f (ON)
+    float   ToneB;          // 0.0f(OFF) or 1.0f (ON)
+    float ch_on  = 1.0f;    
+    float ch_off = 0.0f;
+    
+    // Covert bool to floats
+    if (b_Mic_On) Mic_On = ch_on; else Mic_On = ch_off;
+    if (b_ToneA)   ToneA = ch_on; else  ToneA = ch_off;
+    if (b_ToneB)   ToneB = ch_on; else  ToneB = ch_off;
+
+    TxTestTone_A.amplitude(TestTone_Vol);
+    TxTestTone_A.frequency(500.0f); // for some reason this is doubled but Tonme B is not.   Also getting mirror image.
+    TxTestTone_B.amplitude(TestTone_Vol); //
+    TxTestTone_B.frequency(3000.0f); 
+
+    // Select Mic (0), Tone A(1), and/or Tone B (2) in any combo.
+    FFT_Mixer.gain(0, Mic_On); //  Mono Mic audio
+    FFT_Mixer.gain(1, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
+    FFT_Mixer.gain(2, ToneB); //  Test Tone B
+
+    // use mode to control sideband switching
+    float invert;
+    switch (mode_sel)
+    {
+        case CW:
+        case DATA:
+        case AM:
+        case FM:
+        case USB:
+            invert = 1.0f; 
+            break;
+        default: // all other modes flip sideband
+            invert = -1.0f;
+            break;
+    }
     
     if (TX)  // Switch to Mic input on TX
     {
-        TxTestTone_Vol = 0.9f;  // 0.90 is max, clips if higher in single tone      
-        TxTestTone_A.amplitude(TxTestTone_Vol);
-        TxTestTone_B.amplitude(TxTestTone_Vol);    
-        
         Serial.println("Switching to Tx"); 
 
         AudioNoInterrupts();
+
         codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio        
         codec1.muteHeadphone(); 
         codec1.audioProcessorDisable();   // Default 
 
-        // Select Mic (0), Tone A(1), and/or ToneB (2) in any combo.
-        FFT_Mixer.gain(0, 0.0f); //  Mono Mic audio
-        FFT_Mixer.gain(1, 1.0f); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
-        FFT_Mixer.gain(2, 0.0f); //  Test Tone B
-
+        // TX so Turn ON
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
-        FFT_Switch_L.gain(0, 0.0f); // Ch 0 is LineIn I
-        FFT_Switch_R.gain(0, 0.0f); // Ch 0 is LineIn Q
-        FFT_Switch_L.gain(1, 1.0f); // Ch 1 is test tone and Mic I - Use 2.0f or -2.0f (for LSB) since mixer has 50% loss
-        FFT_Switch_R.gain(1, 1.0f); // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert - use 2.0 or -2.0f
+        FFT_Switch_L.gain(0, ch_off);      // Ch 0 is LineIn I  - RX so shut off
+        FFT_Switch_R.gain(0, ch_off);      // Ch 0 is LineIn Q
+        FFT_Switch_L.gain(1, ch_on);     // Ch 1 is test tone and Mic I - 
+        FFT_Switch_R.gain(1, invert);   // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
 
-        RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)
+        // On switch back to RX the setMode() function on RX will restore this to RX path.
+        RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)/
         RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
 
 //  ----------------------------------------------------------------
 //
-//  In this space any modulation specific blocks wil be added
+//  In this space any extra modulation specific blocks will be added
 //
 //  ----------------------------------------------------------------
 
         // Connect modulated TX to Lineout Amplifier
-        OutputSwitch_L.gain(0, 0.0f);   // Turn RX OFF (ch 0 to 0.0)
-        OutputSwitch_R.gain(0, 0.0f);   // Turn RX OFF  
-        OutputSwitch_L.gain(1, 1.0f);   // Turn TX ON (ch 1 to 1.0f)
-        OutputSwitch_R.gain(1, 1.0f);   // Turn TX ON          
-        
-        //codec1.micGain(user_settings[user_Profile].mic_Gain_level);  
+        OutputSwitch_L.gain(0, ch_off);    // Turn RX OFF (ch 0 to 0.0)
+        OutputSwitch_R.gain(0, ch_off);    // Turn RX OFF  
+        OutputSwitch_L.gain(1, ch_on);   // Turn TX ON (ch 1 to 1.0f)
+        OutputSwitch_R.gain(1, ch_on);   // Turn TX ON          
 
         Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(1.0f);   
@@ -1441,17 +1478,13 @@ void TXAudio(int TX)
 
         AudioInterrupts();
 
-        RampVolume(1.0f, 0);
+        RampVolume(ch_on, 0);        // Insant off.  0 to 1.0f for full scale.
         codec1.unmuteLineout();           // Audio out to Line-Out and TX board        
         AFgain(0);  // sets up the Lineout level for TX testing
     }
     else // back to RX
     {
-        Serial.println("Switching to Rx"); 
-        
-        TxTestTone_Vol = 0.05f;   // 0.9 is highest without clipping
-        TxTestTone_A.amplitude(TxTestTone_Vol);
-        TxTestTone_B.amplitude(TxTestTone_Vol);        
+        Serial.println("Switching to Rx");         
         
         AudioNoInterrupts();
 
@@ -1462,26 +1495,23 @@ void TXAudio(int TX)
         // Use RFGain info to help give more range to adjustment then just LineIn.
         //FFT_Switch_L.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
         //FFT_Switch_R.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
-        
-        // Select Mic (0), Tone A(1), and/or ToneB (2) in any combo.
-        FFT_Mixer.gain(0, 0.0f); //  Mono Mic audio
-        FFT_Mixer.gain(1, 0.0f); //  Test Tone A
-        FFT_Mixer.gain(2, 0.0f); //  Test Tone B
 
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
-        FFT_Switch_L.gain(0, 1.0f); //  1 is LineIn
-        FFT_Switch_R.gain(0, 1.0f); //  1 is LineIn
-        FFT_Switch_L.gain(1, 0.0f); // Ch 2 is test tone and Mic
-        FFT_Switch_R.gain(1, 0.0f); // Ch 2 is test tone and Mic
+        FFT_Switch_L.gain(0, ch_on); //  1 is LineIn
+        FFT_Switch_R.gain(0, ch_on); //  1 is LineIn
+        FFT_Switch_L.gain(1, ch_off); // Ch 2 is test tone and Mic
+        FFT_Switch_R.gain(1, ch_off); // Ch 2 is test tone and Mic
 
-        // Demodulation specific blocks will be done at end of this by Mode, and other control functions
-        // This RX/TX is about generic switching and should avoid mode details where possible 
+//-----------------------------------------------------------------------------------------------        
+// Demodulation specific blocks will be done at end of this by setMode, and other control functions
+// This RX/TX is about generic switching and should avoid mode details where possible 
+//-----------------------------------------------------------------------------------------------
 
         // Connect demodulated RX to Lineout Amplifier
-        OutputSwitch_L.gain(0, 1.0f); // Ch 0 is RX, Turn on
-        OutputSwitch_R.gain(0, 1.0f); // Ch 0 is RX, Turn on
-        OutputSwitch_L.gain(1, 0.0f); // Turn TX off
-        OutputSwitch_R.gain(1, 0.0f); // Turn TX off   
+        OutputSwitch_L.gain(0, ch_on); // Ch 0 is RX, Turn on
+        OutputSwitch_R.gain(0, ch_on); // Ch 0 is RX, Turn on
+        OutputSwitch_L.gain(1, ch_off); // Turn TX off
+        OutputSwitch_R.gain(1, ch_off); // Turn TX off   
         
         Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(AUDIOBOOST);  
@@ -1496,13 +1526,6 @@ void TXAudio(int TX)
         // Restore RX audio in and out levels, squelch large Pop in unmute.
         delay(25);  // let audio chain settle (empty) from transient
 
-        // get the current mode
-        uint8_t mode_sel;
-        if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
-            mode_sel = bandmem[curr_band].mode_A;
-        else
-            mode_sel = bandmem[curr_band].mode_B;
-            
         // The following enables error checking inside of the "update()"
         // Output goes to the Serial (USB) Monitor.  Normally, this is quiet. 
         if (mode_sel == FM)

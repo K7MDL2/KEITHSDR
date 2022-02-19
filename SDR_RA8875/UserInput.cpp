@@ -726,7 +726,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case XVTR_BTN:      Xvtr();         break;
                     case ATU_BTN:       ATU();          break;
                     case FINE_BTN:      Fine();         break;
-                    case XMIT_BTN:      Xmit();         break;
+                    case XMIT_BTN:      Xmit(2);        break;
                     case NB_BTN:        NB(2);          break;
                     case NR_BTN:        NR();           break;
                     case ENET_BTN:      Enet();         break;

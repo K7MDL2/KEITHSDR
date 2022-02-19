@@ -50,13 +50,14 @@ extern          void                touchBeep(bool enable);
 extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
-extern          void                TXAudio(int TX);
+extern          void                TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 extern          int32_t 		    ModeOffset;
 extern AudioEffectGain_F32          RFPreAmp1_L;  // Some well placed gain stages
 extern AudioEffectGain_F32          RFPreAmp1_R;  // Some well placed gain stages
 extern AudioMixer4_F32              FFT_Switch_L;
 extern AudioMixer4_F32              FFT_Switch_R;
 extern AudioLMSDenoiseNotch_F32     LMS_Notch;
+extern          bool                TwoToneTest;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -73,7 +74,7 @@ void Spot();
 void Enet();
 void NR();
 void NB(int8_t toggle);
-void Xmit();
+void Xmit(uint8_t state);
 void Ant();
 void Fine();
 void Rate(int8_t direction);
@@ -897,21 +898,37 @@ COLD void RFgain(int8_t delta)
 }
 
 // XMIT button
-COLD void Xmit()
+COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
 {
-    if (user_settings[user_Profile].xmit == ON)
+    uint8_t mode_idx;
+  	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
+		mode_idx = bandmem[curr_band].mode_A;			
+	else
+		mode_idx = bandmem[curr_band].mode_B;
+
+    if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)
     {
         user_settings[user_Profile].xmit = OFF;
         digitalWrite(PTT_OUT1, HIGH);
-        TXAudio(0);  // enable line input to pass to headphone jack on audio card, set audio levels
+        // enable line input to pass to headphone jack on audio card, set audio levels
+        TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.5f);  
+        // int TX,                 // TX == 1, RX == 0
+        // uint8_t mode_sel,       // Current VFO mode index
+        // float   Mic_On,         // 0.0f(OFF) or 1.0f (ON)
+        // float   ToneA,          // 0.0f(OFF) or 1.0f (ON)
+        // float   ToneB,          // 0.0f(OFF) or 1.0f (ON)
+        // float   TestTone_Vol)   // 0.90 is max, clips if higher. Use 0.45f with 2 tones
     }
-    else if (user_settings[user_Profile].xmit == OFF)
+    else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)
     {
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
-        TXAudio(1);  // enable mic input to pass to line out on audio card, set audio levels
+        // enable mic input to pass to line out on audio card, set audio levels
+        if (TwoToneTest == MIC_ON)  // Mic on, turn off test tones
+            TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
+        else  // else do test tones
+            TX_RX_Switch(ON, mode_idx, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
     }
-    
     displayXMIT();
     displayFreq();
     //Serial.print("Set XMIT to ");

@@ -27,7 +27,7 @@ void Spot();
 void Enet();
 void NR();
 void NB(int8_t toggle);
-void Xmit();
+void Xmit(uint8_t state);
 void Ant();
 void Fine();
 void Rate(int8_t direction);
