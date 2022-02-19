@@ -32,7 +32,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     26. Added new AudioLMSDenoiseNotch_F32 function. Existing Notch and NR buttons turns them on and off. Parameters are hard coded while testing how it works.  Only 1 can be on at a time.
     27. RX chain and TX chains finally working well I think. Can now transmit test tones in either upper or lower sideband on demand at full Teensy audio output level around 3V p-p each channel.  Some weird stuff on the RX side got fixed in the process. 
     28. The Mic is enabled by default. Can switch to Two Tone Test mode using the ATU button (FN3 row, next to the XMIT button). Tones set to 700Hz and 1900Hz. RX/TX hardware is a NT7V QSD/QSE so have I and Q for both TX and RX sides so no IQ mixer object was needed.  Need to atteunaute the tones going into the FFT.
-    28. Measured the MDS (by ear and visual on the display) at about -128dBM with no filters or preamp or attenuators on the 80M band.
+    29. Measured the MDS (by ear and visual on the display) at about -128dBM with no filters or preamp or attenuators on the 80M band.
 
 ## Jan 2022
 
