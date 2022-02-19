@@ -123,7 +123,7 @@ uint8_t     PTT_pin_state = 1;    // current input pin state
 unsigned long PTT_Input_time = 0;  // Debounce timer
 uint8_t     PTT_Input_debounce = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;  // For RF AGC Limiter
-bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
+bool        TwoToneTest = ON;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
@@ -1414,9 +1414,9 @@ COLD void TX_RX_Switch(
     if (b_ToneB)   ToneB = ch_on; else  ToneB = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
-    TxTestTone_A.frequency(500.0f); // for some reason this is doubled but Tonme B is not.   Also getting mirror image.
+    TxTestTone_A.frequency(700.0f/2); // for some reason this is doubled but Tonme B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TestTone_Vol); //
-    TxTestTone_B.frequency(3000.0f); 
+    TxTestTone_B.frequency(1900.0f); 
 
     // Select Mic (0), Tone A(1), and/or Tone B (2) in any combo.
     FFT_Mixer.gain(0, Mic_On); //  Mono Mic audio
