@@ -238,6 +238,8 @@ AudioSynthSineCosine_F32    TxTestTone_A(audio_settings);   // For TX path test 
 AudioSynthWaveformSine_F32  TxTestTone_B(audio_settings);   // For TX path test tone
 AudioEffectGain_F32         Amp1_L(audio_settings);
 AudioEffectGain_F32         Amp1_R(audio_settings);         // Some well placed gain stages
+AudioMixer4_F32             FFT_Atten_L(audio_settings);
+AudioMixer4_F32             FFT_Atten_R(audio_settings);         // Some well placed gain stages
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
@@ -255,8 +257,10 @@ AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             FFT_
 AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              FFT_Switch_R,1); // + and - reversed for TX?
 
 // FFT_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
-AudioConnection_F32     patchCord_FFT_OUT_L(FFT_Switch_L,0,                 FFT_OutSwitch_L,0); // Route selected audio source to the selected FFT - should save CPU time
-AudioConnection_F32     patchCord_FFT_OUT_R(FFT_Switch_R,0,                 FFT_OutSwitch_R,0);
+AudioConnection_F32     patchCord_FFT_OUT_L(FFT_Switch_L,0,                 FFT_Atten_L,0);     // Attenuate signals to FFT while in TX mode
+AudioConnection_F32     patchCord_FFT_OUT_R(FFT_Switch_R,0,                 FFT_Atten_R,0);
+AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_L,0,                  FFT_OutSwitch_L,0); // Route selected audio source to the selected FFT - should save CPU time
+AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_R,0,                  FFT_OutSwitch_R,0);
 
 // One or more of these FFT pipelines can be used, most likely for pan and zoom.  Normally just 1 is used.
 #ifdef FFT_4096
@@ -1456,6 +1460,9 @@ COLD void TX_RX_Switch(
         FFT_Switch_L.gain(1, ch_on);     // Ch 1 is test tone and Mic I - 
         FFT_Switch_R.gain(1, invert);   // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
 
+        FFT_Atten_L.gain(0, 0.001f);    // Attenuate signals to FFT while in TX
+        FFT_Atten_R.gain(0, 0.001f);  
+
         // On switch back to RX the setMode() function on RX will restore this to RX path.
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)/
         RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
@@ -1501,6 +1508,9 @@ COLD void TX_RX_Switch(
         FFT_Switch_R.gain(0, ch_on); //  1 is LineIn
         FFT_Switch_L.gain(1, ch_off); // Ch 2 is test tone and Mic
         FFT_Switch_R.gain(1, ch_off); // Ch 2 is test tone and Mic
+
+        FFT_Atten_L.gain(0, ch_on);    // Turn off TX Attenuation to FFT while in RX (pass through)
+        FFT_Atten_R.gain(0, ch_on);  
 
 //-----------------------------------------------------------------------------------------------        
 // Demodulation specific blocks will be done at end of this by setMode, and other control functions
