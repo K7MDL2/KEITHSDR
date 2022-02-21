@@ -14,6 +14,8 @@
 #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
 //#include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
 
+//extern usb_serial_class Serial;
+
 int16_t wf_time_line                = 15000;
 int16_t fftFreq_refresh             = 1000;
 Metro   waterfall_timestamp         = Metro(wf_time_line);  // Used to draw a time stamp line across the waterfall window.  Cha
@@ -119,42 +121,44 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
     int16_t pixelnew[SCREEN_WIDTH+2];           //  Stores current pixel for spectrum portion only
     static int16_t pixelold[SCREEN_WIDTH+2];    //  Stores copy of current pixel so it can be erased in next update
     //int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
-    
     float *pout=NULL;
-    //float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
-    // Only 1 of the FFT outputs can be displayed
-    #ifdef FFT_4096
-        if (fft_size == 4096) pout = myFFT_4096.getData();
-    #endif
-    #ifdef FFT_2048
-        if (fft_size == 2048) pout = myFFT_2048.getData();
-    #endif
-    #ifdef FFT_1024
-        if (fft_size == 1024) pout = myFFT_1024.getData();
-    #endif
-
-    int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
-    int16_t L_EDGE = 0; 
-
-    #ifdef ENET
-     extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
-     extern uint8_t tx_buffer[];
-    #endif
-
+ 
     // While more than 1 FFT may be enabled, only 1 (fft_size) is chosen for display
     uint8_t process_FFT = 0;
     #ifdef FFT_4096
-        if (fft_size == 4096 && myFFT_4096.available()) process_FFT = 1;
+        if (fft_size == 4096 && myFFT_4096.available()) 
+        { 
+            pout = myFFT_4096.getData();
+            process_FFT = 1;
+        }
     #endif
     #ifdef FFT_2048
-        if (fft_size == 2048 && myFFT_2048.available()) process_FFT = 1;
+        if (fft_size == 2048 && myFFT_2048.available()) 
+        {
+            pout = myFFT_2048.getData();
+            process_FFT = 1;
+        }
     #endif
     #ifdef FFT_1024
-        if (fft_size == 1024 && myFFT_1024.available()) process_FFT = 1;
+        if (fft_size == 1024 && myFFT_1024.available()) 
+        {
+            pout = myFFT_1024.getData();
+            process_FFT = 1;
+        }
     #endif
+
     if (process_FFT == 1)
     {     
+        //float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
+        // Only 1 of the FFT outputs can be displayed
+
+        int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
+        int16_t L_EDGE = 0; 
+
         #ifdef ENET
+            extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
+            extern uint8_t tx_buffer[];
+
             if (enet_data_out && enet_ready)
             {
                 for (i = 0; i < fft_size; i++)
