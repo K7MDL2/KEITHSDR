@@ -54,8 +54,8 @@ extern          void                TX_RX_Switch(bool TX,uint8_t mode_sel,bool b
 extern          int32_t 		    ModeOffset;
 extern AudioEffectGain_F32          RFPreAmp1_L;  // Some well placed gain stages
 extern AudioEffectGain_F32          RFPreAmp1_R;  // Some well placed gain stages
-extern AudioMixer4_F32              FFT_Switch_L;
-extern AudioMixer4_F32              FFT_Switch_R;
+extern AudioMixer4_F32              I_Switch;
+extern AudioMixer4_F32              Q_Switch;
 extern AudioLMSDenoiseNotch_F32     LMS_Notch;
 extern          bool                TwoToneTest;
 
@@ -898,8 +898,8 @@ COLD void RFgain(int8_t delta)
  
     //Amp1_L.setGain_dB(AUDIOBOOST * _rfLevel/100);    // Adjustable fixed output boost in dB.
     //Amp1_R.setGain_dB(AUDIOBOOST * _rfLevel/100);
-    FFT_Switch_L.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
-    FFT_Switch_R.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
 
     // LineIn is 0 to 15 with 15 being ther most sensitive
     codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
