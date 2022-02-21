@@ -33,7 +33,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     27. RX chain and TX chains finally working well I think. Can now transmit test tones in either upper or lower sideband on demand at full Teensy audio output level around 3V p-p each channel.  Some weird stuff on the RX side got fixed in the process. 
     28. The Mic is enabled by default. Can switch to Two Tone Test mode using the ATU button (FN3 row, next to the XMIT button). Tones set to 700Hz and 1900Hz. RX/TX hardware is a NT7V QSD/QSE so have I and Q for both TX and RX sides so no IQ mixer object was needed.  Need to atteunaute the tones going into the FFT.
     29. Measured the MDS (by ear and visual on the display) at about -128dBM with no filters or preamp or attenuators on the 80M band.
-    30. Contunued work on FM RX (Not working yet) and added spectrum update timer for perf measurements
+    30. Continued work on FM RX (Not working yet) and added spectrum update timer for perf measurements.
+    31. Added new Zoom button to 5th (last) button row.  Swaps between 4096IQ (for x4 zoom view) and 1024IQ (1x wide view). Both use the same sample rate size for now until I can figure out how to change it if possible today. Lowering the sample rate from 96K to 48K would put up a ~9KHz wide spectrum (on RA8875 800px screen) just right for a close-in signal look. Default is zoomed out at 75KHz viewable spectrum on the 800px RA8875.  Zoomed in gives you a 18KHz wide spectrum.  Teh larger 1024px RA8876 display wil be 20% wider.  The Button text is updated with the active zoom level, 1 or 3. Level 2 is reserved for 2048IQ FFT at some time later. It would be easy to assign a physical button such as an encoder push switch to cycle through the zoom levels just like filter, mode, and rate buttons work today.  
+    32. Can now start work on a pan feature. When on 4096 FFT and a 800px or 1024px screen size, you are only seeing the center 25% of the available spectrum data. It *should* be easy to slide the viewing window left and right.
 
 ## Jan 2022
 
