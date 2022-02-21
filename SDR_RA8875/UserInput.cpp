@@ -16,8 +16,8 @@ extern Metro popup_timer; // used to check for popup screen request
 	extern RA8875 tft;
 #else 
 	extern RA8876_t3    tft;
-  extern FT5206       cts;
-  uint8_t registers[FT5206_REGISTERS];
+    extern FT5206       cts;
+    uint8_t registers[FT5206_REGISTERS];
 #endif
 //extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
 extern void RampVolume(float vol, int16_t rampType);
