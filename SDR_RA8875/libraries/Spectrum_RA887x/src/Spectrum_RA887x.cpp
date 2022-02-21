@@ -221,14 +221,14 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
             // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
             switch (ptr->spect_wf_style)
             { 
-              case 0: if ( i > 1 )  // prevent reading array out fo bound < 1. 
+              case 0: if ( i > 1 )  // prevent reading array out of bounds < 1. 
                 {
                     avg = *(pout+(i*16/10))*0.5 + *(pout+(i-1)*16/10)*0.18 + *(pout+(i-2)*16/10)*0.07 + *(pout+(i+1)*16/10)*0.18 + *(pout+(i+2)*16/10)*0.07;                
                     //line_buffer[i] = (LPFcoeff * 8 * sqrt (100+(abs(avg)*wf_scale)) + (1 - LPFcoeff) * line_buffer[i]);
                     line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrtf(abs(avg)) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);                      
                 }      
                       break;
-              case 1: if ( i > 1 )  // prevent reading array out fo bound < 1.
+              case 1: if ( i > 1 )  // prevent reading array out of bounds < 1.
                 {
                     avg = *(pout+i)*0.5 + *(pout+i-1)*0.18 + *(pout+i-2)*0.07 + *(pout+i+1)*0.18 + *(pout+i+2)*0.07;                
                     line_buffer[i] = ptr->spect_LPFcoeff * 8 * sqrtf(abs(avg)) + (1 - ptr->spect_LPFcoeff);
@@ -642,14 +642,11 @@ FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
 
     // s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params.  Specify the default layout option for spectrum window placement and size.
     //if (s >= PRESETS) s=PRESETS-1;   // Cycle back to 0
-    // Test lines for alignment
-
-    //e
     
-    if (ptr->spect_wf_rate > 40)
+    //if (ptr->spect_wf_rate > 40)
         spectrum_waterfall_update.interval(ptr->spect_wf_rate);
-    else
-        spectrum_waterfall_update.interval(120);   // set to something acceptable in case the stored value does not exist or is too low.
+    //else
+    //    spectrum_waterfall_update.interval(2);   // set to something acceptable in case the stored value does not exist or is too low.
 
     #ifdef PANADAPTER_INVERT
         fft_axis = 3;
