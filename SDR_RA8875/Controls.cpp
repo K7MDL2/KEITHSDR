@@ -58,6 +58,10 @@ extern AudioMixer4_F32              I_Switch;
 extern AudioMixer4_F32              Q_Switch;
 extern AudioLMSDenoiseNotch_F32     LMS_Notch;
 extern          bool                TwoToneTest;
+extern          uint16_t            fft_size;
+extern          void                Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
+extern          float               zoom_in_sample_rate_Hz;
+extern          float               sample_rate_Hz;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -102,6 +106,7 @@ void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
 void clearMeter(void);
 void setMeter(uint8_t id);
+void Zoom(uint8_t state);
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -677,11 +682,6 @@ COLD void ATU(uint8_t state)
         bandmem[curr_band].ATU = OFF;     
     else if ((bandmem[curr_band].ATU == OFF && state == 2) || state == 1)
         bandmem[curr_band].ATU = ON;   
-    
-    if (bandmem[curr_band].ATU == ON && state == -1)
-        bandmem[curr_band].ATU = ON;
-    else if (bandmem[curr_band].ATU == OFF && state == -1)
-        bandmem[curr_band].ATU = OFF;   
 
     if (bandmem[curr_band].ATU == ON)   
         TwoToneTest = ON;   // For test turn Two Tone test on and off.  When off the Mic is enabled. 
@@ -694,6 +694,26 @@ COLD void ATU(uint8_t state)
     displayATU();
     //Serial.print("Set ATU to ");
     //Serial.println(bandmem[curr_band].ATU);
+}
+
+// ZOOM button 
+// Change between 2 states for now.
+// 0 = OFF  1 = ON   2 = Toggle  -1 = update to database state
+COLD void Zoom(uint8_t state)
+{    
+    if ((user_settings[user_Profile].zoom_level == ZOOM3 && state == 2) || state == 0)
+        user_settings[user_Profile].zoom_level = ZOOM1;     
+    else if ((user_settings[user_Profile].zoom_level == ZOOM1 && state == 2) || state == 1)
+        user_settings[user_Profile].zoom_level = ZOOM3;     
+
+    if (user_settings[user_Profile].zoom_level == ZOOM1)    // Zoom farthest in
+        Change_FFT_Size(1024, sample_rate_Hz);   // For test turn Two Tone test on and off.  When off the Mic is enabled. 
+    else
+        Change_FFT_Size(4096, zoom_in_sample_rate_Hz);  // Zoom farthest out
+     
+    displayZoom();
+    //Serial.print("Set Zoom to ");
+    //Serial.println(user_settings[user_Profile].zoom_level);
 }
 
 // Fine button

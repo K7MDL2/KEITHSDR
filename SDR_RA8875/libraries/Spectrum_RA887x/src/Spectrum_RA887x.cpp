@@ -87,7 +87,7 @@ void Spectrum_RA887x::updateActiveWindow(bool full)
 }
 #endif
 
-int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth)
+int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, uint16_t fft_size, float fft_bin_size)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.
@@ -111,6 +111,7 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
     static int16_t fftPower_pk_last   = ptr->spect_floor;
     static int16_t pix_min            = ptr->spect_floor;
     int32_t freq_peak                 = 0;
+    static float old_fft_size         = 0;        // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
 
     //for testing alignments
     //tft.drawRect(spectrum_x, spectrum_y, spectrum_width, spectrum_height, myBLUE);  // x start, y start, width, height, array of colors w x h
@@ -599,7 +600,7 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
 
         static uint32_t old_VFO_ = 0;
 
-        if (old_VFO_ != _VFO_)
+        if (old_VFO_ != _VFO_ || old_fft_size != fft_size)
         {
             tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
             tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
@@ -612,7 +613,8 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
             tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
             tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
             tft.print(_formatFreq(_VFO_ + (ptr->wf_sp_width*fft_bin_size)));  // Write right side of graph Freq
-            old_VFO_ = _VFO_;   // save to minimize updates for no reason.
+            old_VFO_ = _VFO_;           // save to minimize updates for no reason.
+            old_fft_size = fft_size;    // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
         }
     }                
     else      // Clear stale data

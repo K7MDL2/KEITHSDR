@@ -58,13 +58,13 @@ extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should h
 extern struct New_Spectrum_Layout   Custom_Layout[1];
 
 // Choose 1024, 2048, or 4096  for display and audio output- usually defined in the main program
-#define FFT_SIZE            4096   
+#define FFT_SIZE            1024   
 
 // --->>>> Enable one or more FFT pipelines for 2nd window, pan and zoom, if used
 // At least one must match FFT_SIZE
 #define FFT_4096
 //#define FFT_2048
-//#define FFT_1024
+#define FFT_1024
 // --->>>><<<<<---- //
 
 #ifdef FFT_4096
@@ -205,7 +205,7 @@ class Spectrum_RA887x
             fft_bin_size  = sp_fft_bin_size;
         }
         // publish externally avaialble functions
-        int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth);
+        int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, uint16_t zoom_fft_size, float fft_bin_size);
         FLASHMEM void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset);
         FLASHMEM void drawSpectrumFrame(uint8_t s);
         FLASHMEM void initSpectrum(int16_t preset);

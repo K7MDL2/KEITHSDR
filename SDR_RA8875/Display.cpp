@@ -334,6 +334,15 @@ COLD void displayNB()
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }
 
+COLD void displayZoom()
+{
+	sprintf(std_btn[ZOOM_BTN].label, "Zoom:%d", user_settings[user_Profile].zoom_level);
+    sprintf(labels[ZOOM_LBL].label,  "Zoom:%d", user_settings[user_Profile].zoom_level);
+	Serial.print(F("Zoom = ")); Serial.print(user_settings[user_Profile].zoom_level);
+	drawLabel(ZOOM_LBL, &user_settings[user_Profile].zoom_level);
+	draw_2_state_Button(ZOOM_BTN, &user_settings[user_Profile].zoom_level);
+}
+
 COLD void displayRefLevel()
 {
 	char string[80];   // print format stuff
@@ -565,6 +574,7 @@ COLD void displayRefresh(void)
 	displayEnet();
 	displayXVTR();
 	displayRefLevel();
+	displayZoom();
 }
 
 //#ifndef USE_RA8875

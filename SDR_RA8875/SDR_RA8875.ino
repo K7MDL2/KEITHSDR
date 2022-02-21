@@ -82,6 +82,7 @@ COLD void initDSP(void);
 COLD void SetFilter(void);
 HOT  void RF_Limiter(float peak_avg);
 COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
+COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -160,11 +161,38 @@ bool    MF_default_is_active = true;
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
+
+// Audio Library setup stuff
+//float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
+//float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
+//float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+//float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
+float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
+//float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
+float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft size for zoom level
+//
+// ---------------------------- Set some FFT related parameters ------------------------------------
+
 // Pick the one to run through the whole audio chain and FFT on the display
 // defined in Spectrum_RA887x.h, included here for FYI.
 //#define FFT_SIZE 4096               // 4096 //2048//1024     
-uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init function.
-                                    // Ensure the matching FFT resources are enabled in the lib .h file!
+uint16_t    fft_size            = FFT_SIZE;       // This value wil lbe passed to the lib init function.
+                                    // Ensure the matching FFT resources are enabled in the lib .h file!                            
+int16_t     fft_bins            = fft_size;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
+float       fft_bin_size        = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
+const int   audio_block_samples = 128;          // do not change this!
+const int   RxAudioIn = AUDIO_INPUT_LINEIN;
+const int   MicAudioIn = AUDIO_INPUT_MIC;
+uint16_t    filterCenter;
+uint16_t    filterBandwidth;
+                       
+//AudioSettings_F32               *audio_settings=NULL;
+//audio_settings  = new AudioSettings_F32(sample_rate_Hz, audio_block_samples); 
+AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);    
+
 // These next 3 (one or more) are normally defined in the spectrum_RA887x.h file.  Included here for FYI
 // enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
 //#define FFT_4096
@@ -181,36 +209,6 @@ uint16_t fft_size = FFT_SIZE;       // This value wil lbe passed to the lib init
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
-// Audio Library setup stuff
-//const float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
-//const float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-//const float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//const float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
-//const float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-const float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-//const float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-//const float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
-//const float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
-//
-// ---------------------------- Set some FFT related parameters ------------------------------------
-int16_t     fft_bins         = fft_size;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
-float       fft_bin_size     = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
-int16_t     FFT_Source       = 0;            // Used to switch the FFT input source around
-
-#ifndef BYPASS_SPECTRUM_MODULE
-  Spectrum_RA887x spectrum_RA887x(fft_size, fft_bins, fft_bin_size);  // initialize the Spectrum Library
-  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-  extern struct   Spectrum_Parms Sp_Parms_Def[];
-#endif
-
-uint16_t filterCenter;
-uint16_t filterBandwidth;
-
-const int audio_block_samples = 128;          // do not change this!
-const int RxAudioIn = AUDIO_INPUT_LINEIN;
-const int MicAudioIn = AUDIO_INPUT_MIC;
- 
-AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);                           
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
@@ -325,6 +323,12 @@ AudioControlSGTL5000    codec1;
 // 
 tmElements_t tm;
 time_t prevDisplay = 0; // When the digital clock was displayed
+
+#ifndef BYPASS_SPECTRUM_MODULE
+  Spectrum_RA887x spectrum_RA887x(fft_size, fft_bins, fft_bin_size);  // initialize the Spectrum Library
+  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
+  extern struct   Spectrum_Parms Sp_Parms_Def[];
+#endif
 
 COLD void setup()
 {
@@ -548,10 +552,10 @@ COLD void setup()
     #ifdef FT817_CAT
         Serial.println("Starting the CAT port and reading some radio information if available");
         init_CAT_comms();  // initialize the CAT port
-        print_CAT_status();  // Test Line to read daa forfm FT817 if attached.
+        print_CAT_status();  // Test Line to read data from FT-817 if attached.
     #endif
     #ifdef ALL_CAT
-        CAT_setup();   // Setup teh Serial port for cnfigured Radio comm port
+        CAT_setup();   // Setup the Serial port for cnfigured Radio comm port
     #endif
 }
 
@@ -582,7 +586,9 @@ HOT void loop()
                     VFOB,           // Not really needed today
                     ModeOffset,     // Move spectrum cursor to center or offset it by pitch value when in CW modes
                     filterCenter,   // Center the on screen filter shaded area
-                    filterBandwidth // Display the filter width on screen
+                    filterBandwidth, // Display the filter width on screen
+                    fft_size,        // use this size to display for simple zoom effect
+                    fft_bin_size     // pass along the calculated bin size
                     ); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
                 // spectrum_update(6);  // for 2nd window
     }
@@ -1308,8 +1314,11 @@ COLD void initDSP(void)
 {
     AudioNoInterrupts();  
 
-    AudioMemory(20);  // Does not look like we need this anymore when using all F32 functions
-    AudioMemory_F32(100, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+    AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions
+    AudioMemory_F32(160, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+
+    Zoom(0);  // Set initial zoom level for FFT 
+    //Change_FFT_Size(fft_size, sample_rate_Hz);
 
     codec1.enable(); // MUST be before inputSelect()
     delay(5);
@@ -1330,24 +1339,7 @@ COLD void initDSP(void)
     //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
     FM_LO_Mixer.frequency(15000);
     FM_LO_Mixer.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
-    FM_LO_Mixer.useSimple(true);
-
-    // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
-    if (fft_size == 4096)
-    {
-        FFT_OutSwitch_L.setChannel(0); //  1 is 4096, 0 is Off
-        FFT_OutSwitch_R.setChannel(0); //  1 is 4096, 0 is Off
-    }
-    else if (fft_size == 2048)
-    {
-        FFT_OutSwitch_L.setChannel(1); //  1 is 2048, 0 is Off
-        FFT_OutSwitch_R.setChannel(1); //  1 is 2048, 0 is Off
-    }
-    else if(fft_size == 1024)
-    {
-        FFT_OutSwitch_L.setChannel(2); //  1 is 1024, 0 is Off
-        FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
-    }
+    FM_LO_Mixer.useSimple(true);   
     
     // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
@@ -1438,7 +1430,7 @@ COLD void TX_RX_Switch(
     if (b_ToneB)   ToneB = ch_on; else  ToneB = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
-    TxTestTone_A.frequency(700.0f/2); // for some reason this is doubled but Tonme B is not.   Also getting mirror image.
+    TxTestTone_A.frequency(700.0f/2); // for some reason this is doubled but Tone B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TestTone_Vol); //
     TxTestTone_B.frequency(1900.0f); 
 
@@ -1448,8 +1440,7 @@ COLD void TX_RX_Switch(
     TX_Source.gain(1, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
     TX_Source.gain(2, ToneB); //  Test Tone B
     
-    //FM_Detector.setSquelchThreshold(0.7f);
-
+    FM_Detector.setSquelchThreshold(0.7f);
 
     // use mode to control sideband switching
     float invert;
@@ -1586,7 +1577,7 @@ COLD void TX_RX_Switch(
 
         // The following enables error checking inside of the "update()"
         // Output goes to the Serial (USB) Monitor.  Normally, this is quiet. 
-//        if (mode_sel == FM)
+        if (mode_sel == FM)
             FM_Detector.showError(1);
         
         // setup rest of mode-specific path using control fucntions to do the heavy lifting
@@ -1595,6 +1586,31 @@ COLD void TX_RX_Switch(
         RFgain(0);  // sets up the LineIn level
         AFgain(0);  // sets up the Lineout level
         codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
+    }
+}
+
+//  Change FFT data source for zoom effects 
+COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
+{
+    fft_size        = new_size;   //  change global size to use for audio and display
+    sample_rate_Hz  = new_sample_rate_Hz;
+    fft_bin_size    = sample_rate_Hz/(fft_size*2);
+
+    // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
+    if (fft_size == 4096)
+    {
+        FFT_OutSwitch_L.setChannel(0); //  1 is 4096, 0 is Off
+        FFT_OutSwitch_R.setChannel(0); //  1 is 4096, 0 is Off
+    }
+    else if (fft_size == 2048)
+    {
+        FFT_OutSwitch_L.setChannel(1); //  1 is 2048, 0 is Off
+        FFT_OutSwitch_R.setChannel(1); //  1 is 2048, 0 is Off
+    }
+    else if(fft_size == 1024)
+    {
+        FFT_OutSwitch_L.setChannel(2); //  1 is 1024, 0 is Off
+        FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
     }
 }
 

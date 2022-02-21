@@ -140,6 +140,11 @@
 #define BAND11      11
 #define BAND12      12
 
+// Zoom level for UI control
+#define ZOOM1       1       // Zoom out the most (fft1024 @ 48K)
+#define ZOOM2       2       // in between (fft2048)
+#define ZOOM3       3       // Zoom in the most (fft4096 at 96K)
+
 // ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
 //
 //  Most users will not normally mess around in this section but you can edit some of the table data to refine the default to your liking.  
@@ -258,8 +263,8 @@
 #define AGC_SET_NUM 4
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
-#define LABEL_NUM   20      // number of labels in the table
-#define STD_BTN_NUM 33      // number of buttons in the table
+#define LABEL_NUM   21      // number of labels in the table
+#define STD_BTN_NUM 34      // number of buttons in the table
 
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
@@ -302,12 +307,13 @@
 #define XVTR_BTN    26      // not implemented yet
 #define RFGAIN_BTN  27      // Sets digital RF level
 #define REFLVL_BTN  28      // Sets the Spectrum Noise floor.
-#define AFGAIN_BTN  29     // Sets digital AF level
+#define ZOOM_BTN    29      // Sets Zoom level
+#define AFGAIN_BTN  30      // Sets digital AF level
 
 // Not in a Panel
-#define UTCTIME_BTN 30      // NTP UTC time when ethernet (and internet) is available 
-#define SMETER_BTN  31      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
-#define SPECTUNE_BTN 32     // Convertes a touch in the spectrum window to a frequency to tune too.
+#define UTCTIME_BTN 31      // NTP UTC time when ethernet (and internet) is available 
+#define SMETER_BTN  32      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
+#define SPECTUNE_BTN 33     // Converts a touch in the spectrum window to a frequency to tune too.
 
 // The #define button numbers act as the ID of possible owners of MF knob services
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
@@ -430,6 +436,7 @@ struct User_Settings {
     uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
+    uint8_t     zoom_level;         // 1 - 3.  Zoom level memory 
 };
 
 struct Frequency_Display {
@@ -495,7 +502,7 @@ struct Modes_List {
     uint16_t    Width;             // bandwidth in HZ - look up matching width in Filter table when changing modes
 };
 
-enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL};
+enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL, ZOOM_LBL};
 /*
 #define BAND_LBL    0       // Band label (if used)
 #define MODE_LBL    1       // index to button
@@ -518,6 +525,7 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 #define XVTR_LBL    18      // not implemented yet
 #define REFLVL_LBL  19      // not implemented yet
 #define SPOT_LBL    20      // not implemented yet
+#define ZOOM_LBL    21      // not implemented yet
 */
 
 #endif //_SDR_RA8875_H_

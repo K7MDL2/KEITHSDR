@@ -56,5 +56,6 @@ void displayAFgain();
 void displayEnet();
 void displayXVTR();
 void displayRefLevel();
+void displayZoom();
 
 #endif //_DISPLAY_H_
