@@ -995,7 +995,6 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
             TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
     }
     displayXMIT();
-    displayFreq();
     //Serial.print("Set XMIT to ");
     //Serial.println(user_settings[user_Profile].xmit);
 }
