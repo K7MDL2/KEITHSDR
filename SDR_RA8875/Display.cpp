@@ -20,24 +20,25 @@
   	extern uint8_t enet_ready;
 #endif
 
-extern uint8_t display_state;   // something to hold the button state for the display pop-up window later.
-extern uint8_t curr_band;   // global tracks our current band setting.  
+extern uint8_t 	display_state;   // something to hold the button state for the display pop-up window later.
+extern uint8_t 	curr_band;   // global tracks our current band setting.  
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
-extern uint8_t user_Profile;
-extern struct Band_Memory bandmem[];
-extern struct Filter_Settings filter[];
-extern struct Standard_Button std_btn[];
-extern struct Label labels[];
-extern struct Frequency_Display disp_Freq[];
-extern struct User_Settings user_settings[];
-extern struct AGC agc_set[];
-extern struct NB nb[];
-extern struct Modes_List modeList[];
-extern struct TuneSteps tstep[];
-extern bool    MeterInUse;  // S-meter flag to block updates while the MF knob has control
-extern uint8_t MF_client;  // Flag for current owner of MF knob services
-extern int32_t ModeOffset;
+extern uint8_t 	user_Profile;
+extern struct 	Band_Memory bandmem[];
+extern struct 	Filter_Settings filter[];
+extern struct 	Standard_Button std_btn[];
+extern struct 	Label labels[];
+extern struct 	Frequency_Display disp_Freq[];
+extern struct 	User_Settings user_settings[];
+extern struct 	Zoom_Lvl zoom[];
+extern struct 	AGC agc_set[];
+extern struct 	NB nb[];
+extern struct 	Modes_List modeList[];
+extern struct 	TuneSteps tstep[];
+extern bool    	MeterInUse;  // S-meter flag to block updates while the MF knob has control
+extern uint8_t 	MF_client;  // Flag for current owner of MF knob services
+extern int32_t 	ModeOffset;
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -74,7 +75,7 @@ uint8_t _colorIndex = 0;
 	inline void 	Color565ToRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b){r = (((color & 0xF800) >> 11) * 527 + 23) >> 6; g = (((color & 0x07E0) >> 5) * 259 + 33) >> 6; b = ((color & 0x001F) * 527 + 23) >> 6;}
 
 COLD void displayFreq(void)
-{ 
+{
 	// bx					// X - upper left corner anchor point
 	// by					// Y - upper left corner anchor point
 	// bw					// width of whole box
@@ -94,13 +95,15 @@ COLD void displayFreq(void)
 	
 	// Put a box around the VFO section (use BLACK to turn it off)
 	//tft.drawRect(pVAct->bx-1, pVAct->by-1, pVAct->bw+2, pVAct->bh+pVStby->bh+4, pVAct->box_clr);
+
+	// Draw the top orange separator line (under the VFO numbers)
 	#ifdef USE_RA8875
-	tft.drawLine(0, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE); // for 8875
+		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw-10, RA8875_LIGHT_ORANGE); // for 8875
 	#else
-	tft.drawLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+130, pVAct->bh+pVStby->bh+12, RA8875_LIGHT_ORANGE);  // For 8876
+		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+130, RA8875_LIGHT_ORANGE);  // For 8876
 	#endif // USE_RA8875
-	//tft.drawRect(0, 15, 192, 65, RA8875_LIGHT_ORANGE);
-	
+	//tft.drawRect(0, 15, 792, 65, RA8875_LIGHT_ORANGE);  // test box
+
 	// Draw Active VFO box and Label
 	tft.fillRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->bg_clr);
 	tft.drawRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->ol_clr);
@@ -319,14 +322,12 @@ COLD void displayFine()
 
 COLD void displayNB()
 {
-	char string[80];   // print format stuff
 	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
     sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
 	Serial.print(F("NB is ")); Serial.print(user_settings[user_Profile].nb_en);
 	Serial.print(F("   NB Level is ")); Serial.println(user_settings[user_Profile].nb_level);
 	if (MF_client == NB_BTN) 
 	{ 
-		sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
         MeterInUse = true;
     	displayMeter(user_settings[user_Profile].nb_level, labels[NB_LBL].label, 5);   // val, string label, color scheme        
 	}
@@ -336,10 +337,12 @@ COLD void displayNB()
 
 COLD void displayZoom()
 {
-	sprintf(std_btn[ZOOM_BTN].label, "Zoom:%d", user_settings[user_Profile].zoom_level);
-    sprintf(labels[ZOOM_LBL].label,  "Zoom:%d", user_settings[user_Profile].zoom_level);
-	Serial.print(F("Zoom = ")); Serial.print(user_settings[user_Profile].zoom_level);
-	drawLabel(ZOOM_LBL, &user_settings[user_Profile].zoom_level);
+	// Enable the label draw if a screen icon is used
+    //sprintf(labels[ZOOM_LBL].label,  "Zoom:%d", user_settings[user_Profile].zoom_level);
+	//drawLabel(ZOOM_LBL, &user_settings[user_Profile].zoom_level);
+
+	Serial.print(F("Zoom is ")); Serial.println(zoom[user_settings[user_Profile].zoom_level].zoom_name);
+	sprintf(std_btn[ZOOM_BTN].label, "Zoom%s", zoom[user_settings[user_Profile].zoom_level].zoom_name);
 	draw_2_state_Button(ZOOM_BTN, &user_settings[user_Profile].zoom_level);
 }
 
@@ -414,17 +417,17 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 }
 
 // These buttons have no associated labels so are simply button updates
-COLD void displayMenu() 		{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);			}
-COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					}
-COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	}
-COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			}
-COLD void displayBand() 		{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);		}
-COLD void displaySpot() 		{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);	}
-COLD void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			}
-COLD void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						}
-COLD void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		}
-COLD void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		}
-COLD void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			}
+COLD void displayMenu() 	{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				 }
+COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					 }
+COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	 }
+COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			 }
+COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			 }
+COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		 }
+COLD void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			 }
+COLD void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						 }
+COLD void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 }
+COLD void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		 }
+COLD void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			 }
 COLD void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
 
 //

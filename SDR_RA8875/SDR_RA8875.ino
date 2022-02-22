@@ -127,7 +127,7 @@ float       S_Meter_Peak_Avg;  // For RF AGC Limiter
 bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 
 #ifdef USE_RA8875
-    RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initiate the display object
+    RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
 #else
     RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
     FT5206 cts    = FT5206(CTP_INT); 
@@ -166,9 +166,9 @@ bool    MF_default_is_active = true;
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
@@ -188,16 +188,13 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-                       
-//AudioSettings_F32               *audio_settings=NULL;
-//audio_settings  = new AudioSettings_F32(sample_rate_Hz, audio_block_samples); 
-AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);    
 
 // These next 3 (one or more) are normally defined in the spectrum_RA887x.h file.  Included here for FYI
 // enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
 //#define FFT_4096
 //#define FFT_2048
 //#define FFT_1024
+AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);    
 
 #ifdef FFT_4096
     DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
@@ -262,16 +259,16 @@ AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_L,0,                  FFT_
 AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_R,0,                  FFT_OutSwitch_R,0);
 // One or more of these FFT pipelines can be used, most likely for pan and zoom.  Normally just 1 is used.
 #ifdef FFT_4096
-AudioConnection_F32     patchCord_FFT_L_4096(FFT_OutSwitch_L,0,             myFFT_4096,0);   // Route selected audio source to the FFT
-AudioConnection_F32     patchCord_FFT_R_4096(FFT_OutSwitch_R,0,             myFFT_4096,1);
+    AudioConnection_F32     patchCord_FFT_L_4096(FFT_OutSwitch_L,0,             myFFT_4096,0);   // Route selected audio source to the FFT
+    AudioConnection_F32     patchCord_FFT_R_4096(FFT_OutSwitch_R,0,             myFFT_4096,1);
 #endif
 #ifdef FFT_2048
-AudioConnection_F32     patchCord_FFT_L_2048(FFT_OutSwitch_L,1,             myFFT_2048,0);        // Route selected audio source to the FFT
-AudioConnection_F32     patchCord_FFT_R_2048(FFT_OutSwitch_R,1,             myFFT_2048,1);
+    AudioConnection_F32     patchCord_FFT_L_2048(FFT_OutSwitch_L,1,             myFFT_2048,0);        // Route selected audio source to the FFT
+    AudioConnection_F32     patchCord_FFT_R_2048(FFT_OutSwitch_R,1,             myFFT_2048,1);
 #endif
 #ifdef FFT_1024
-AudioConnection_F32     patchCord_FFT_L_1024(FFT_OutSwitch_L,2,             myFFT_1024,0);        // Route selected audio source to the FFT
-AudioConnection_F32     patchCord_FFT_R_1024(FFT_OutSwitch_R,2,             myFFT_1024,1);
+    AudioConnection_F32     patchCord_FFT_L_1024(FFT_OutSwitch_L,2,             myFFT_1024,0);        // Route selected audio source to the FFT
+    AudioConnection_F32     patchCord_FFT_R_1024(FFT_OutSwitch_R,2,             myFFT_1024,1);
 #endif
 
 // Send selected IQ source(s) to the audio processing chain for demodulation
@@ -435,7 +432,7 @@ COLD void setup()
     //--------------------------   Setup our Audio System -------------------------------------
     initDSP();
     //RFgain(0);
-    
+
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
@@ -1315,9 +1312,9 @@ COLD void initDSP(void)
     AudioNoInterrupts();  
 
     AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions
-    AudioMemory_F32(160, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+    AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
 
-    Zoom(0);  // Set initial zoom level for FFT 
+    setZoom(2);  // 2 = no change requested, set to user settting user profile setting
     //Change_FFT_Size(fft_size, sample_rate_Hz);
 
     codec1.enable(); // MUST be before inputSelect()
@@ -1361,17 +1358,7 @@ COLD void initDSP(void)
     //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
 
     AudioInterrupts();
-    
-/*
-    uint8_t mode_idx;
-  	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
-		mode_idx = bandmem[curr_band].mode_A;			
-	else
-		mode_idx = bandmem[curr_band].mode_B;
 
-    // Finish RX audio chain setup
-    TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.1f);  
-*/
     Xmit(0);  // Finish RX audio chain setup
 
     // Choose our output type.  Can do dB, RMS or power
@@ -1434,7 +1421,6 @@ COLD void TX_RX_Switch(
     TxTestTone_B.amplitude(TestTone_Vol); //
     TxTestTone_B.frequency(1900.0f); 
 
-  
     // Select Mic (0), Tone A(1), and/or Tone B (2) in any combo.
     TX_Source.gain(0, Mic_On); //  Mono Mic audio
     TX_Source.gain(1, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
@@ -1519,8 +1505,11 @@ COLD void TX_RX_Switch(
         codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
 
 // FM RX test only
+        if (mode_sel == FM)
+        {
             TxTestTone_B.amplitude(0.2f); //
             TxTestTone_B.frequency(15500.0f);
+        }
 
         // Typically choose one pair, Ch 0, 1 or 2.
         // Use RFGain info to help give more range to adjustment then just LineIn.
@@ -1570,15 +1559,15 @@ COLD void TX_RX_Switch(
         codec1.audioPostProcessorEnable();  // AVC on Line-Out level
         //codec1.audioProcessorDisable();   // Default 
 
-        AudioInterrupts();
-        
-        // Restore RX audio in and out levels, squelch large Pop in unmute.
-        delay(25);  // let audio chain settle (empty) from transient
-
         // The following enables error checking inside of the "update()"
         // Output goes to the Serial (USB) Monitor.  Normally, this is quiet. 
         if (mode_sel == FM)
             FM_Detector.showError(1);
+
+        AudioInterrupts();
+        
+        // Restore RX audio in and out levels, squelch large Pop in unmute.
+        delay(25);  // let audio chain settle (empty) from transient
         
         // setup rest of mode-specific path using control fucntions to do the heavy lifting
         selectMode(mode_sel);
@@ -1596,6 +1585,7 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
     sample_rate_Hz  = new_sample_rate_Hz;
     fft_bin_size    = sample_rate_Hz/(fft_size*2);
 
+    AudioNoInterrupts();
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
     if (fft_size == 4096)
     {
@@ -1612,6 +1602,7 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
         FFT_OutSwitch_L.setChannel(2); //  1 is 1024, 0 is Off
         FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
     }
+    AudioInterrupts();
 }
 
 // If peak power exceeds 100% FS, reduce LineIn level, and/or if there is an attenuator, turn it on

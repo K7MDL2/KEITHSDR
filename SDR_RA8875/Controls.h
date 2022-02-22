@@ -53,6 +53,6 @@ void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
-void Zoom(uint8_t state);
+void setZoom(int8_t dir);
 
 #endif  // _CONTROLS_H_

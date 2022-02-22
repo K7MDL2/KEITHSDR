@@ -57,13 +57,13 @@
 extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 
 extern struct New_Spectrum_Layout   Custom_Layout[1];
 
-// Choose 1024, 2048, or 4096  for display and audio output- usually defined in the main program
-#define FFT_SIZE            1024   
+// Choose 1024, 2048, or 4096  for AUDIO audio output- usually defined in the main program
+#define FFT_SIZE            4096
 
 // --->>>> Enable one or more FFT pipelines for 2nd window, pan and zoom, if used
 // At least one must match FFT_SIZE
 #define FFT_4096
-//#define FFT_2048
+#define FFT_2048
 #define FFT_1024
 // --->>>><<<<<---- //
 

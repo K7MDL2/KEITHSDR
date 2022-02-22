@@ -740,7 +740,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case BAND_BTN:      Band();         break;
                     case DISPLAY_BTN:   Display();      break;
                     case FN_BTN:        setPanel();     break;
-                    case ZOOM_BTN:      Zoom(2);        break;
+                    case ZOOM_BTN:      setZoom(0);     break;
                     case UTCTIME_BTN:   break;        //nothing to do
                     case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
                     default: Serial.print(F("Found a button with SHOW on but has no function to call.  Index = "));

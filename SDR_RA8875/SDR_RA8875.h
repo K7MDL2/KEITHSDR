@@ -88,12 +88,12 @@
         const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
         const uint16_t 	RA8875_MAGENTA          = 0xF81F;
         const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
-        const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
-        const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
-        const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
-        const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
-        const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
-        const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
+        const uint16_t 	RA8875_LIGHT_GREY 		= 0xB5B2; // the experimentalist
+        const uint16_t 	RA8875_LIGHT_ORANGE 	= 0xFC80; // the experimentalist
+        const uint16_t 	RA8875_DARK_ORANGE 		= 0xFB60; // the experimentalist
+        const uint16_t 	RA8875_PINK 		    = 0xFCFF; // M.Sandercock
+        const uint16_t 	RA8875_PURPLE 		    = 0x8017; // M.Sandercock
+        const uint16_t 	RA8875_GRAYSCALE 		= 2113; //grayscale30 = RA8875_GRAYSCALE*30
     #endif // USE_RA8876_t3
 
     #define myLT_GREY               RA8875_LIGHT_GREY 
@@ -103,6 +103,7 @@
     #define myYELLOW                RA8875_YELLOW
     #define myGREEN                 RA8875_GREEN
     #define myRED                   RA8875_RED
+    #define myLIGHT_ORANGE          RA8875_LIGHT_ORANGE
 
     #ifdef USE_RA8875
 	//extern RA8875 tft;
@@ -136,14 +137,15 @@
 #define BAND7       7       
 #define BAND8       8
 #define BAND9       9
-#define BAND10      10
-#define BAND11      11
-#define BAND12      12
+#define BAND10     10
+#define BAND11     11
+#define BAND12     12
 
 // Zoom level for UI control
-#define ZOOM1       1       // Zoom out the most (fft1024 @ 48K)
-#define ZOOM2       2       // in between (fft2048)
-#define ZOOM3       3       // Zoom in the most (fft4096 at 96K)
+#define ZOOMx1      0       // Zoom out the most (fft1024 @ 48K) (aka OFF)  x1 reference
+#define ZOOMx2      1       // in between (fft2048)  is x2 of 1024
+#define ZOOMx4      2       // Zoom in the most (fft4096 at 96K)   is x4 of 1024
+#define ZOOM_NUM    3       // Number of zoom level choiced for menu system
 
 // ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
 //
@@ -189,7 +191,7 @@
 #define AGC_FAST    3
 #define MIC_OFF     0
 #define MIC_ON      1
-#define BW0_25       0
+#define BW0_25      0
 #define BW0_5       1
 #define BW0_7       2
 #define BW1_0       3
@@ -243,15 +245,15 @@
 #define BLUEVIOLET	  0x8010
 #define ORCHID		  0xA145 
 // Other sources of RGB color definitions
-#define NAVY        0x000F
-#define MAROON      0x7800
-#define PURPLE      0x780F
-#define OLIVE       0x7BE0
-#define LIGHTGREY   0xC618
-#define DARKGREY    0x7BEF
-#define ORANGE      0xFD20
-#define GREENYELLOW 0xAFE5
-#define PINK        0xF81F
+#define NAVY          0x000F
+#define MAROON        0x7800
+#define PURPLE        0x780F
+#define OLIVE         0x7BE0
+#define LIGHTGREY     0xC618
+#define DARKGREY      0x7BEF
+#define ORANGE        0xFD20
+#define GREENYELLOW   0xAFE5
+#define PINK          0xF81F
 
 // This group defines the number of records in each structure
 #define MODES_NUM   8
@@ -436,7 +438,7 @@ struct User_Settings {
     uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
-    uint8_t     zoom_level;         // 1 - 3.  Zoom level memory 
+    uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
 };
 
 struct Frequency_Display {
@@ -473,6 +475,12 @@ struct NB {
     float32_t       nb_threshold;       // threshold recommended to be between 1.5 and 20, closer to 3 maybe best.
     uint16_t        nb_nAnticipation;   // nAnticipation is 1 to 125
     uint16_t        nb_decay;           // Decay is 1 to 10.
+};
+
+// Zoom Level Info table
+struct Zoom_Lvl {
+    char            zoom_name[10];        // A friendly name for display  x1, x2 or x4, etc
+    uint8_t         zoom_factor;         // Factor equates to 1, 2 ,or 4
 };
 
 // per-band settings for common user adjustments that are band dependent. The index is the band number.

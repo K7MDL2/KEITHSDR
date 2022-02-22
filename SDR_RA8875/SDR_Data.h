@@ -80,7 +80,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF,   5, 235, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "Xvtr\0"},
     { ON, OFF,   5, 350, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "RF:\0"},
     {OFF, OFF,   5, 467, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
-    { ON, OFF,   5, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Zoom:\0"},
+    { ON, OFF,   5, 583, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  7, 20, "Zoom\0"},
     // Placeholder for display key to eb active here also
     { ON, OFF,   5, 699, 419, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
@@ -126,7 +126,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF,   5, 235, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "Xvtr\0"},
     { ON, OFF,   5, 350, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "RF:\0"},
     {OFF, OFF,   5, 467, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
-    { ON, OFF,   5, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Zoom:\0"},
+    { ON, OFF,   5, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "Zoom\0"},
     // Placeholder for display key to eb active here also
     { ON, OFF,   5, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display    
@@ -173,14 +173,14 @@ struct Label labels[LABEL_NUM] = {
     {OFF, OFF, 467, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
     {OFF, OFF, 583, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
     {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "RefLvl\0"},  // No label on screen for this today
-    {OFF,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Zoom:\0"}
+    {OFF, OFF,   0,   0,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Zoom\0"} // No label on screen for this today
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1         enc2         enc3          Zoom_lvl
-    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,   100,   ON,   OFF,   10,  13,  13,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOM1}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,    60,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB2,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOM1},
-    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0,  14,   OFF,   100,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOM1}
+    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,   100,   ON,   OFF,   10,  13,  13,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOMx4}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,    60,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB2,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOMx4},
+    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0,  14,   OFF,   100,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOMx4}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -226,6 +226,13 @@ PROGMEM struct NB nb[NB_SET_NUM] = {
     {"4",  15.0,  40,  8},    
     {"5",  20.0,  60, 10},  
     {"6",  80.0, 100,  4}
+};
+
+// Zoom Level table
+PROGMEM struct Zoom_Lvl zoom[ZOOM_NUM] = {
+    {":1",   1},  // x1 1024 FFT
+    {":2",   2},  // x2 2048 FFT
+    {":4",   4}   // x4 4096 FFT
 };
 
 PROGMEM struct Filter_Settings filter[FILTER] = {

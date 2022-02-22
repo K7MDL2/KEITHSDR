@@ -33,6 +33,7 @@ extern struct   Filter_Settings     filter[];
 extern struct   AGC                 agc_set[];
 extern struct   NB                  nb[];
 extern struct   Spectrum_Parms      Sp_Parms_Def[];
+extern struct   Zoom_Lvl            zoom[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
 extern AudioControlSGTL5000         codec1;
@@ -106,7 +107,7 @@ void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
 void clearMeter(void);
 void setMeter(uint8_t id);
-void Zoom(uint8_t state);
+void setZoom(int8_t dir);
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -696,24 +697,55 @@ COLD void ATU(uint8_t state)
     //Serial.println(bandmem[curr_band].ATU);
 }
 
-// ZOOM button 
-// Change between 2 states for now.
-// 0 = OFF  1 = ON   2 = Toggle  -1 = update to database state
-COLD void Zoom(uint8_t state)
-{    
-    if ((user_settings[user_Profile].zoom_level == ZOOM3 && state == 2) || state == 0)
-        user_settings[user_Profile].zoom_level = ZOOM1;     
-    else if ((user_settings[user_Profile].zoom_level == ZOOM1 && state == 2) || state == 1)
-        user_settings[user_Profile].zoom_level = ZOOM3;     
+// ---------------------------setZoom() ---------------------------
+//   Input: 0 = step to next based on last direction (starts upwards).  Ramps up then down then up.
+//          1 = step up 1 (zoomed in more)
+//         -1 = step down 1 (zoom out more )
+//          2 = use last zoom level used from user profile
+//   Zoom levels are x1, x2 and x4  Off is same as x1.
+//
+COLD void setZoom(int8_t dir)
+{
+    static int8_t   direction   = -1;  // remember last direction
+    int8_t   _zoom_Level = user_settings[user_Profile].zoom_level;   // Get last known value from user profile
 
-    if (user_settings[user_Profile].zoom_level == ZOOM1)    // Zoom farthest in
-        Change_FFT_Size(1024, sample_rate_Hz);   // For test turn Two Tone test on and off.  When off the Mic is enabled. 
-    else
-        Change_FFT_Size(4096, zoom_in_sample_rate_Hz);  // Zoom farthest out
-     
-    displayZoom();
-    //Serial.print("Set Zoom to ");
-    //Serial.println(user_settings[user_Profile].zoom_level);
+    if (dir != 2)
+    {
+        // 1. Limit to allowed step range
+        // 2. Cycle up and at top, cycle back down, do not roll over.
+        if (_zoom_Level <= 0)
+        {
+            _zoom_Level = 0;
+            direction   =  1;   // cycle upwards
+        }
+        if (_zoom_Level >= ZOOM_NUM-1) 
+        {
+            _zoom_Level = ZOOM_NUM-1;
+            direction   = -1;
+        }  
+        if (dir == 0)
+            _zoom_Level += direction; // Index our step up or down
+        else	
+            _zoom_Level += dir;  // forces a step higher or lower then current
+        // Ensure we have legal values
+        if (_zoom_Level <= 0)
+            _zoom_Level = 0;
+        if (_zoom_Level >= ZOOM_NUM-1) 
+            _zoom_Level = ZOOM_NUM-1;
+        user_settings[user_Profile].zoom_level = (uint8_t) _zoom_Level;  // We have our new table index value
+    }  
+
+    switch (_zoom_Level)
+    {
+        case ZOOMx1: Change_FFT_Size(1024, sample_rate_Hz);  break;  // Zoom farthest in
+        case ZOOMx2: Change_FFT_Size(2048, sample_rate_Hz);  break;  // Zoom farthest in
+        case ZOOMx4: Change_FFT_Size(4096, sample_rate_Hz);  break;  // Zoom farthest in
+        default:     Change_FFT_Size(1024, sample_rate_Hz);  break;  // Zoom farthest in
+    }
+
+    //Serial.print("Zoom level set to  "); 
+    //Serial.println(zoom[_zoom_Level].zoom_name);
+    displayZoom();  
 }
 
 // Fine button
