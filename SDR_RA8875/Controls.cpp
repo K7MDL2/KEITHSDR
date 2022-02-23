@@ -53,16 +53,18 @@ extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
 extern          void                TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 extern          int32_t 		    ModeOffset;
-extern AudioEffectGain_F32          RFPreAmp1_L;  // Some well placed gain stages
-extern AudioEffectGain_F32          RFPreAmp1_R;  // Some well placed gain stages
 extern AudioMixer4_F32              I_Switch;
 extern AudioMixer4_F32              Q_Switch;
 extern AudioLMSDenoiseNotch_F32     LMS_Notch;
 extern          bool                TwoToneTest;
 extern          uint16_t            fft_size;
+extern          int16_t             fft_bins;
 extern          void                Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 extern          float               zoom_in_sample_rate_Hz;
 extern          float               sample_rate_Hz;
+extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_I;
+extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_Q;
+extern          float               pan;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -888,9 +890,44 @@ COLD void AFgain(int8_t delta)
     }
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
-    float val =log10(_afLevel)/2;
+    float val =log10f(_afLevel)/2.0f;
     //Serial.print(" Volume set to  log = "); 
     //Serial.println(val);
+
+//AudioNoInterrupts();
+//FFT_LO_Mixer_I.frequency((_afLevel)*200.0f);
+//FFT_LO_Mixer_Q.frequency((_afLevel)*100.0f);
+/*
+    int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
+    int N_FFT = audio_block_samples * overlap_factor;  
+    Serial.print("    : N_FFT = "); Serial.println(N_FFT);
+    //configure the frequency shifting
+    float shiftFreq_Hz = 750.0; //shift audio upward a bit
+    float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
+    int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
+*/
+/*
+    static int _af_last = 0;
+    int incr_factor = 1;
+    
+    if (_af_last < _afLevel)
+        incr_factor = -1;
+    else 
+        incr_factor = 1;
+    _af_last = _afLevel;
+
+    int cur_shift_bins_I = FFT_LO_Mixer_I.getShift_bins();
+    int cur_shift_bins_Q = FFT_LO_Mixer_I.getShift_bins();
+    FFT_LO_Mixer_I.setShift_bins(cur_shift_bins_I + incr_factor);
+    FFT_LO_Mixer_I.setShift_bins(cur_shift_bins_Q + incr_factor);
+
+    AudioInterrupts();
+    RampVolume(0.7f, 2);
+       // Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
+        //Serial.print(" Hz, which is ");
+         Serial.print(cur_shift_bins_Q); 
+        Serial.println(" bins");
+*/
 
     // RampVolume handles the scaling. Must set the LineOutLevel to the desired max though.
     RampVolume((float) val, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
@@ -943,8 +980,8 @@ COLD void RFgain(int8_t delta)
 
     //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
-    _rfLevel += delta*4;      // convert percentage request to a single digit float
-
+//    _rfLevel += delta*4;      // convert percentage request to a single digit float
+_rfLevel += delta;      // convert percentage request to a single digit float
     //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
     if (_rfLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
@@ -959,8 +996,17 @@ COLD void RFgain(int8_t delta)
     I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
     Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
 
+//AudioNoInterrupts();
+//FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5.0f);
+//FFT_LO_Mixer_Q.iqmPhaseS((float) user_settings[user_Profile].rfGain*5);
+//AudioInterrupts();
+
+// bins that will not fit on the display can be viewed by shiftrin our left edge index.  Assuming 1 px per bin
+pan = (_rfLevel-50)/100.0f;
+
+
     // LineIn is 0 to 15 with 15 being ther most sensitive
-    codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
+//    codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
     //Serial.print("CodecLine IN level set to "); 
     //Serial.println(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);
     //Serial.print("RF Gain level set to  "); 

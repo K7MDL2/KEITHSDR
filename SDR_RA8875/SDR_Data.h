@@ -178,9 +178,9 @@ struct Label labels[LABEL_NUM] = {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1         enc2         enc3          Zoom_lvl
-    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,   100,   ON,   OFF,   10,  13,  13,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOMx4}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,    60,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB2,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOMx4},
-    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0,  14,   OFF,   100,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOMx4}
+    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,    50,   ON,   OFF,   10,  13,  13,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOMx4}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  14,   OFF,    50,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB2,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOMx4},
+    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0,  14,   OFF,    50,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOMx4}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -272,7 +272,7 @@ struct Modes_List modeList[MODES_NUM] = {
 // Just copy and paste from the serial terminal into each record row.
 #define PRESETS 12  // number of parameter records with our preset spectrum window values
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
-//W LE  RE  CG x   y   w  h  c sp st clr sc mode scal reflvl wfrate
+        //W        LE  RE CG                                         x   y   w  h  c sp st clr sc mode      scal reflvl wfrate
     #ifdef USE_RA8875
         {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 8, 0},
         {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 90}, // hal

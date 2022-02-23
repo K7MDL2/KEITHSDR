@@ -125,6 +125,7 @@ unsigned long PTT_Input_time = 0;  // Debounce timer
 uint8_t     PTT_Input_debounce = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;  // For RF AGC Limiter
 bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
+float       pan = 0.0f;
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
@@ -189,6 +190,13 @@ const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
 
+//#define BETATEST
+#ifdef BETATEST
+DMAMEM float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
+DMAMEM float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
+DMAMEM float32_t  fftBuffer[8192];  // Used by FFT, 4096 real, 4096 imag, interleaved
+DMAMEM float32_t  sumsq[4096];      // Required ONLY if power averaging is being done
+#endif
 // These next 3 (one or more) are normally defined in the spectrum_RA887x.h file.  Included here for FYI
 // enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
 //#define FFT_4096
@@ -197,7 +205,12 @@ uint16_t    filterBandwidth;
 AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);    
 
 #ifdef FFT_4096
-    DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+    #ifndef BETATEST
+        DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+    #else
+        //AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer);
+        AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // w/ power ave
+    #endif
 #endif
 #ifdef FFT_2048   
     DMAMEM AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
@@ -212,15 +225,15 @@ AudioMixer4_F32             Q_Switch(audio_settings);
 AudioMixer4_F32             TX_Source(audio_settings);  // Select Mic, ToneA or ToneB or any combo
 AudioSwitch4_OA_F32         RxTx_InputSwitch_L(audio_settings);  // Select among TX or RX sources except FM
 AudioSwitch4_OA_F32         RxTx_InputSwitch_R(audio_settings);
-AudioSwitch4_OA_F32         FFT_OutSwitch_L(audio_settings); // Select a source to send to the FFT engine
-AudioSwitch4_OA_F32         FFT_OutSwitch_R(audio_settings);
-AudioMixer4_F32             OutputSwitch_L(audio_settings); // Processed audio from any mode to boost amp then out
-AudioMixer4_F32             OutputSwitch_R(audio_settings);
+AudioSwitch4_OA_F32         FFT_OutSwitch_I(audio_settings); // Select a source to send to the FFT engine
+AudioSwitch4_OA_F32         FFT_OutSwitch_Q(audio_settings);
+AudioMixer4_F32             OutputSwitch_I(audio_settings); // Processed audio from any mode to boost amp then out
+AudioMixer4_F32             OutputSwitch_Q(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
-//DMAMEM AudioFilter90Deg_F32 FFT_Hilbert(audio_settings);
+//DMAMEM AudioFilter90Deg_F32 FFT_90deg_Hilbert(audio_settings);
 AudioFilterConvolution_F32  FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
@@ -233,9 +246,13 @@ AudioSynthSineCosine_F32    TxTestTone_A(audio_settings);   // For TX path test 
 AudioSynthWaveformSine_F32  TxTestTone_B(audio_settings);   // For TX path test tone
 AudioEffectGain_F32         Amp1_L(audio_settings);
 AudioEffectGain_F32         Amp1_R(audio_settings);         // Some well placed gain stages
-AudioMixer4_F32             FFT_Atten_L(audio_settings);
-AudioMixer4_F32             FFT_Atten_R(audio_settings);         // Some well placed gain stages
+AudioMixer4_F32             FFT_Atten_I(audio_settings);
+AudioMixer4_F32             FFT_Atten_Q(audio_settings);         // Some well placed gain stages
 RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
+//RadioIQMixer_F32            FFT_LO_Mixer_I(audio_settings);
+//RadioIQMixer_F32            FFT_LO_Mixer_Q(audio_settings);
+//AudioEffectFreqShiftFD_OA_F32 FFT_LO_Mixer_I(audio_settings); // the frequency-domain processing block
+//AudioEffectFreqShiftFD_OA_F32 FFT_LO_Mixer_Q(audio_settings); // the frequency-domain processing block
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
@@ -247,28 +264,32 @@ AudioConnection_F32     patchCord_RX_In_R(Input,1,                          Q_Sw
 AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);    
-AudioConnection_F32     patchCord_IQ_Mix_L(TX_Source,0,                     TX_Hilbert_Plus_45,0); // Filter I and Q
+AudioConnection_F32     patchCord_IQ_Mix_L(TX_Source,0,                     TX_Hilbert_Plus_45,0); 
 AudioConnection_F32     patchCord_IQ_Mix_R(TX_Source,0,                     TX_Hilbert_Minus_45,0); 
 AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             I_Switch,1); // Feed into normal chain 
 AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              Q_Switch,1); // + and - reversed for TX?
 
-// FFT_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
-AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_Atten_L,0);     // Attenuate signals to FFT while in TX mode
-AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_R,0);
-AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_L,0,                  FFT_OutSwitch_L,0); // Route selected audio source to the selected FFT - should save CPU time
-AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_R,0,                  FFT_OutSwitch_R,0);
+// I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
+//AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
+//AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_LO_Mixer_Q,0);
+//AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,                FFT_Atten_I,0); // Filter I and Q
+//AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_Q,0,                FFT_Atten_Q,0); 
+AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
+AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);
+AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
+AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_Q,0,                  FFT_OutSwitch_Q,0);
 // One or more of these FFT pipelines can be used, most likely for pan and zoom.  Normally just 1 is used.
 #ifdef FFT_4096
-    AudioConnection_F32     patchCord_FFT_L_4096(FFT_OutSwitch_L,0,             myFFT_4096,0);   // Route selected audio source to the FFT
-    AudioConnection_F32     patchCord_FFT_R_4096(FFT_OutSwitch_R,0,             myFFT_4096,1);
+    AudioConnection_F32     patchCord_FFT_L_4096(FFT_OutSwitch_I,0,             myFFT_4096,0);   // Route selected audio source to the FFT
+    AudioConnection_F32     patchCord_FFT_R_4096(FFT_OutSwitch_Q,0,             myFFT_4096,1);
 #endif
 #ifdef FFT_2048
-    AudioConnection_F32     patchCord_FFT_L_2048(FFT_OutSwitch_L,1,             myFFT_2048,0);        // Route selected audio source to the FFT
-    AudioConnection_F32     patchCord_FFT_R_2048(FFT_OutSwitch_R,1,             myFFT_2048,1);
+    AudioConnection_F32     patchCord_FFT_L_2048(FFT_OutSwitch_I,1,             myFFT_2048,0);        // Route selected audio source to the FFT
+    AudioConnection_F32     patchCord_FFT_R_2048(FFT_OutSwitch_Q,1,             myFFT_2048,1);
 #endif
 #ifdef FFT_1024
-    AudioConnection_F32     patchCord_FFT_L_1024(FFT_OutSwitch_L,2,             myFFT_1024,0);        // Route selected audio source to the FFT
-    AudioConnection_F32     patchCord_FFT_R_1024(FFT_OutSwitch_R,2,             myFFT_1024,1);
+    AudioConnection_F32     patchCord_FFT_L_1024(FFT_OutSwitch_I,2,             myFFT_1024,0);        // Route selected audio source to the FFT
+    AudioConnection_F32     patchCord_FFT_R_1024(FFT_OutSwitch_Q,2,             myFFT_1024,1);
 #endif
 
 // Send selected IQ source(s) to the audio processing chain for demodulation
@@ -294,23 +315,23 @@ AudioConnection_F32     patchCord2e(Beep_Tone,0,                            RX_S
 // FM is 10KHz to 20KHz, LO at 15KHz
 AudioConnection_F32     patchCord_FM_DET(TxTestTone_B,0,                    FM_LO_Mixer,0);  // Shift tone up to 15KHz
 AudioConnection_F32     patchCord_FM_Mix_LO(FM_LO_Mixer,0,                  FM_Detector,0);
-AudioConnection_F32     patchCord_FM_Mix_Det(FM_Detector,0,                 OutputSwitch_L,2);
-AudioConnection_F32     patchCord_FM_Mix_Out(FM_Detector,0,                 OutputSwitch_R,2);
+AudioConnection_F32     patchCord_FM_Mix_Det(FM_Detector,0,                 OutputSwitch_I,2);
+AudioConnection_F32     patchCord_FM_Mix_Out(FM_Detector,0,                 OutputSwitch_Q,2);
 
 // Post mixer processing (now treated as mono audio)
 AudioConnection_F32     patchCord_Summer_Peak(RX_Summer,0,                  S_Peak,0);      // S meter source
 AudioConnection_F32     patchCord_Summer_Notch(RX_Summer,0,                 LMS_Notch,0);   // NR and Notch
 AudioConnection_F32     patchCord_Notch(LMS_Notch,0,                        FilterConv,0);  // variable bandwidth filter
-AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     OutputSwitch_L,0);  // demod and filtering complete
-AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_R,0);  
+AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     OutputSwitch_I,0);  // demod and filtering complete
+AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_Q,0);  
 
 // In TX the mic source is selected in FFT_Mixer and was phase shifted so just passed
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_L,1);  // phase shift mono sourtce 90 degrees
-AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         OutputSwitch_R,1);  // Using L source twice since mic source is mono
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_I,1);  // phase shift mono sourtce 90 degrees
+AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         OutputSwitch_Q,1);  // Using L source twice since mic source is mono
 
 // Selected source goes to output (selected as headphone or lineout in the code) and boosted if needed
-AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_L,0,                  Amp1_L,0);  // output to headphone jack Left
-AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_R,0,                  Amp1_R,0);  // output to headphone jack Right
+AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1_L,0);  // output to headphone jack Left
+AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output to headphone jack Right
 AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
 
@@ -504,7 +525,7 @@ COLD void setup()
     initVfo(); // initialize the si5351 vfo
 
 #ifndef BYPASS_SPECTRUM_MODULE    
-    spectrum_RA887x.Spectrum_Parm_Generator(0, 0); // use this to generate new set of params for the current window size values. 
+    spectrum_RA887x.Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
                                                               // 1st arg is new target layout record - usually 0 unless you create more examples
                                                               // 2nd arg is current empty layout record (preset) value - usually 0
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
@@ -579,13 +600,15 @@ HOT void loop()
                 Freq_Peak = spectrum_RA887x.spectrum_update(
                     user_settings[user_Profile].sp_preset,
                     (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO True if VFO_A active
-                    VFOA,           // for onscreen freq info
-                    VFOB,           // Not really needed today
-                    ModeOffset,     // Move spectrum cursor to center or offset it by pitch value when in CW modes
-                    filterCenter,   // Center the on screen filter shaded area
-                    filterBandwidth, // Display the filter width on screen
-                    fft_size,        // use this size to display for simple zoom effect
-                    fft_bin_size     // pass along the calculated bin size
+                    VFOA,               // for onscreen freq info
+                    VFOB,               // Not really needed today
+                    ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
+                    filterCenter,       // Center the on screen filter shaded area
+                    filterBandwidth,    // Display the filter width on screen
+                    pan,                // Pannng offset from center frequency
+                    fft_size,           // use this size to display for simple zoom effect
+                    fft_bin_size,       // pass along the calculated bin size
+                    fft_bins            // pass along the number of bins.  FOr IQ FFTs, this is fft_size, else fft_size/2
                     ); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
                 // spectrum_update(6);  // for 2nd window
     }
@@ -598,7 +621,7 @@ HOT void loop()
         delta = time_n;
         Serial.print(F("Loop T="));
         Serial.print(delta);
-        Serial.print("  Spectrun T=");
+        Serial.print("  Spectrum T=");
         Serial.println(millis() - time_sp);
     }
     time_old = millis();
@@ -1313,7 +1336,7 @@ COLD void initDSP(void)
 
     AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions
     AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
-
+    
     setZoom(2);  // 2 = no change requested, set to user settting user profile setting
     //Change_FFT_Size(fft_size, sample_rate_Hz);
 
@@ -1323,8 +1346,8 @@ COLD void initDSP(void)
     codec1.muteLineout(); //mute TX audio 
     codec1.muteHeadphone();
     codec1.volume(0.0f);  // Seems to impact LineOut waveform if not 0    
-    codec1.adcHighPassFilterDisable(); // Turn off DC blocking filter - reduces noise according to forum
-    //codec1.adcHighPassFilterEnable();  // Turn on DC blocking filter (default) 
+    //codec1.adcHighPassFilterDisable(); // Turn off DC blocking filter - reduces noise according to forum
+    codec1.adcHighPassFilterEnable();  // Turn on DC blocking filter (default) 
     //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
 
     // The FM detector has error checking during object construction
@@ -1338,6 +1361,41 @@ COLD void initDSP(void)
     FM_LO_Mixer.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
     FM_LO_Mixer.useSimple(true);   
     
+    /*
+    // Configure the FFT parameters algorithm
+    int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
+    int N_FFT = audio_block_samples * overlap_factor;  
+    Serial.print("    : N_FFT = "); Serial.println(N_FFT);
+    FFT_LO_Mixer_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
+    FFT_LO_Mixer_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
+
+    //configure the frequency shifting
+    float shiftFreq_Hz = 1.0; //shift audio upward a bit
+    float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
+    int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
+
+    shiftFreq_Hz = shift_bins * Hz_per_bin;
+    Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
+    Serial.print(" Hz, which is "); Serial.print(shift_bins); 
+    Serial.println(" bins");
+    FFT_LO_Mixer_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
+    FFT_LO_Mixer_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
+    */
+    
+    //FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
+    //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    //FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
+    //FFT_LO_Mixer_I.useTwoChannel(true);  //when using only 1 channel for the FM shift this is the case.
+    //FFT_LO_Mixer_I.useSimple(true); 
+
+    //FFT_90deg_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
+
+    //FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
+    //FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    //FFT_LO_Mixer_Q.frequency(user_settings[user_Profile].afGain*100);
+    //FFT_LO_Mixer_Q.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
+    //FFT_LO_Mixer_Q.useSimple(false); 
+
     // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
@@ -1360,35 +1418,6 @@ COLD void initDSP(void)
     AudioInterrupts();
 
     Xmit(0);  // Finish RX audio chain setup
-
-    // Choose our output type.  Can do dB, RMS or power
-    #ifdef FFT_4096
-        myFFT_4096.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
-        // Uncomment one these to try other window functions
-        //  myFFT.windowFunction(NULL);
-        //  myFFT.windowFunction(AudioWindowBartlett1024);
-        //  myFFT.windowFunction(AudioWindowFlattop1024);
-        myFFT_4096.windowFunction(AudioWindowHanning1024);
-        myFFT_4096.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
-    #endif
-    #ifdef FFT_2048
-        myFFT_2048.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
-        // Uncomment one these to try other window functions
-        //  myFFT.windowFunction(NULL);
-        //  myFFT.windowFunction(AudioWindowBartlett1024);
-        //  myFFT.windowFunction(AudioWindowFlattop1024);
-        myFFT_2048.windowFunction(AudioWindowHanning1024);
-        myFFT_2048.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
-    #endif
-    #ifdef FFT_1024
-        myFFT_1024.setOutputType(FFT_DBFS); // FFT_RMS or FFT_POWER or FFT_DBFS
-        // Uncomment one these to try other window functions
-        //  myFFT.windowFunction(NULL);
-        //  myFFT.windowFunction(AudioWindowBartlett1024);
-        //  myFFT.windowFunction(AudioWindowFlattop1024);
-        myFFT_1024.windowFunction(AudioWindowHanning1024);
-        myFFT_1024.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
-    #endif
 }
 
 // initDSP() and startup in RX mode enables our resources.  
@@ -1461,8 +1490,8 @@ COLD void TX_RX_Switch(
         I_Switch.gain(1, ch_on);        // Ch 1 is test tone and Mic I - 
         Q_Switch.gain(1, invert);       // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
 
-        FFT_Atten_L.gain(0, 0.001f);    // Attenuate signals to FFT while in TX
-        FFT_Atten_R.gain(0, 0.001f);  
+        FFT_Atten_I.gain(0, 0.001f);    // Attenuate signals to FFT while in TX
+        FFT_Atten_Q.gain(0, 0.001f);  
 
         // On switch back to RX the setMode() function on RX will restore this to RX path.
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)/
@@ -1475,12 +1504,12 @@ COLD void TX_RX_Switch(
 //  ----------------------------------------------------------------
 
         // Connect modulated TX to Lineout Amplifier
-        OutputSwitch_L.gain(0, ch_off);     // Turn RX OFF (ch 0 to 0.0)
-        OutputSwitch_R.gain(0, ch_off);     // Turn RX OFF  
-        OutputSwitch_L.gain(1, ch_on);      // Turn TX ON (ch 1 to 1.0f)
-        OutputSwitch_R.gain(1, ch_on);      // Turn TX ON   
-        OutputSwitch_L.gain(2, ch_off);     // Turn ON for FM   ToDO: automate this based on mode
-        OutputSwitch_R.gain(2, ch_off);     // Turn ON for FM       
+        OutputSwitch_I.gain(0, ch_off);     // Turn RX OFF (ch 0 to 0.0)
+        OutputSwitch_Q.gain(0, ch_off);     // Turn RX OFF  
+        OutputSwitch_I.gain(1, ch_on);      // Turn TX ON (ch 1 to 1.0f)
+        OutputSwitch_Q.gain(1, ch_on);      // Turn TX ON   
+        OutputSwitch_I.gain(2, ch_off);     // Turn ON for FM   ToDO: automate this based on mode
+        OutputSwitch_Q.gain(2, ch_off);     // Turn ON for FM       
 
         Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(1.0f);   
@@ -1522,8 +1551,8 @@ COLD void TX_RX_Switch(
         I_Switch.gain(1, ch_off); // Ch 2 is test tone and Mic
         Q_Switch.gain(1, ch_off); // Ch 2 is test tone and Mic
 
-        FFT_Atten_L.gain(0, ch_on);    // Turn off TX Attenuation to FFT while in RX (pass through)
-        FFT_Atten_R.gain(0, ch_on);  
+        FFT_Atten_I.gain(0, ch_on);    // Turn off TX Attenuation to FFT while in RX (pass through)
+        FFT_Atten_Q.gain(0, ch_on);  
 
 //-----------------------------------------------------------------------------------------------        
 // Demodulation specific blocks will be done at end of this by setMode, and other control functions
@@ -1533,22 +1562,22 @@ COLD void TX_RX_Switch(
         // Connect demodulated RX to Lineout Amplifier   Non FM choose Ch 0.  Td is Ch 2
         if (mode_sel != FM)
         {
-            OutputSwitch_L.gain(0, ch_on);  // Ch 0 is RX, Turn on
-            OutputSwitch_R.gain(0, ch_on);  // Ch 0 is RX, Turn on
-            OutputSwitch_L.gain(1, ch_off); // Turn TX off
-            OutputSwitch_R.gain(1, ch_off); // Turn TX off 
-            OutputSwitch_L.gain(2, ch_off); // Turn ON for FM   ToDO: automate this based on mode
-            OutputSwitch_R.gain(2, ch_off); // Turn ON for FM
+            OutputSwitch_I.gain(0, ch_on);  // Ch 0 is RX, Turn on
+            OutputSwitch_Q.gain(0, ch_on);  // Ch 0 is RX, Turn on
+            OutputSwitch_I.gain(1, ch_off); // Turn TX off
+            OutputSwitch_Q.gain(1, ch_off); // Turn TX off 
+            OutputSwitch_I.gain(2, ch_off); // Turn ON for FM   ToDO: automate this based on mode
+            OutputSwitch_Q.gain(2, ch_off); // Turn ON for FM
         }
         else  // FM choose output ch 2
         {
 
-            OutputSwitch_L.gain(0, ch_off);  // Ch 0 is RX, Turn on
-            OutputSwitch_R.gain(0, ch_off);  // Ch 0 is RX, Turn on
-            OutputSwitch_L.gain(1, ch_off); // Turn TX off
-            OutputSwitch_R.gain(1, ch_off); // Turn TX off 
-            OutputSwitch_L.gain(2, ch_on); // Turn ON for FM   ToDo: automate this based on mode
-            OutputSwitch_R.gain(2, ch_on); // Turn ON for FM
+            OutputSwitch_I.gain(0, ch_off);  // Ch 0 is RX, Turn on
+            OutputSwitch_Q.gain(0, ch_off);  // Ch 0 is RX, Turn on
+            OutputSwitch_I.gain(1, ch_off); // Turn TX off
+            OutputSwitch_Q.gain(1, ch_off); // Turn TX off 
+            OutputSwitch_I.gain(2, ch_on); // Turn ON for FM   ToDo: automate this based on mode
+            OutputSwitch_Q.gain(2, ch_on); // Turn ON for FM
         }   
 
         Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
@@ -1589,18 +1618,18 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
     if (fft_size == 4096)
     {
-        FFT_OutSwitch_L.setChannel(0); //  1 is 4096, 0 is Off
-        FFT_OutSwitch_R.setChannel(0); //  1 is 4096, 0 is Off
+        FFT_OutSwitch_I.setChannel(0); //  1 is 4096, 0 is Off
+        FFT_OutSwitch_Q.setChannel(0); //  1 is 4096, 0 is Off
     }
     else if (fft_size == 2048)
     {
-        FFT_OutSwitch_L.setChannel(1); //  1 is 2048, 0 is Off
-        FFT_OutSwitch_R.setChannel(1); //  1 is 2048, 0 is Off
+        FFT_OutSwitch_I.setChannel(1); //  1 is 2048, 0 is Off
+        FFT_OutSwitch_Q.setChannel(1); //  1 is 2048, 0 is Off
     }
     else if(fft_size == 1024)
     {
-        FFT_OutSwitch_L.setChannel(2); //  1 is 1024, 0 is Off
-        FFT_OutSwitch_R.setChannel(2); //  1 is 1024, 0 is Off
+        FFT_OutSwitch_I.setChannel(2); //  1 is 1024, 0 is Off
+        FFT_OutSwitch_Q.setChannel(2); //  1 is 1024, 0 is Off
     }
     AudioInterrupts();
 }
