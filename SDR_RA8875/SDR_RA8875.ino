@@ -83,6 +83,8 @@ COLD void SetFilter(void);
 HOT  void RF_Limiter(float peak_avg);
 COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
+COLD void PhaseChange(uint8_t chg);
+COLD void resetCodec(void);
 
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -220,6 +222,8 @@ AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);
 #endif
 
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
+AudioFilterFIR_F32          PhaseIfir(audio_settings);
+AudioFilterFIR_F32          PhaseQfir(audio_settings);
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
 AudioMixer4_F32             TX_Source(audio_settings);  // Select Mic, ToneA or ToneB or any combo
@@ -256,8 +260,10 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
-AudioConnection_F32     patchCord_RX_In_L(Input,0,                          I_Switch,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_In_R(Input,1,                          Q_Switch,0);
+AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseIfir,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQfir,0);
+AudioConnection_F32     patchCord_RX_Ph_L(PhaseIfir,0,                      I_Switch,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_Ph_R(PhaseQfir,0,                      Q_Switch,0);
 
 // Test tones sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
@@ -336,6 +342,31 @@ AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Outp
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
+
+/* FIR filter designed with http://t-filter.appspot.com
+ * fs = 44100 Hz, < 5kHz ripple 0.29 dB, >9 kHz, -62 dB, 29 taps
+ */
+float32_t fir_IQ29[29] = {
+-0.000970689f, -0.004690292f, -0.008256345f, -0.007565650f,
+ 0.001524420f,  0.015435011f,  0.021920240f,  0.008211937f,
+-0.024286413f, -0.052184700f, -0.040532507f,  0.031248107f,
+ 0.146902412f,  0.255179564f,  0.299445269f,  0.255179564f,
+ 0.146902412f,  0.031248107f, -0.040532507f, -0.052184700f,
+-0.024286413f,  0.008211937f,  0.021920240f,  0.015435011f,
+ 0.001524420f, -0.007565650f, -0.008256345f, -0.004690292f,
+-0.000970689f};
+
+/* FIR filter designed with http://t-filter.appspot.com
+ * fs = 44100 Hz, < 5kHz ripple 0.29 dB, >9 kHz, -62 dB, 29 taps
+ */
+float32_t fir_IQ4_0[4] = {1.0f, 0.0f, 1.0f, 0.0f};
+float32_t fir_IQ4_1[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+float32_t fir_IQ4_2[4] = {0.0f, 1.0f, 1.0f, 0.0f};
+float32_t fir_IQ4_3[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+//float32_t fir_IQ4_0[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+//float32_t fir_IQ4_1[4] = {0.0f, 0.0f, 1.0f, 0.0f};
+//float32_t fir_IQ4_2[4] = {0.0f, 1.0f, 0.0f, 0.0f};
+//float32_t fir_IQ4_3[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 // 
@@ -450,10 +481,6 @@ COLD void setup()
     }
     #endif
 
-    //--------------------------   Setup our Audio System -------------------------------------
-    initDSP();
-    //RFgain(0);
-
     // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
@@ -542,24 +569,12 @@ COLD void setup()
     Serial.print(formatVFO(VFOA));
     Serial.println(F("MHz"));
 
+
+    //--------------------------   Setup our Audio System -------------------------------------
+    initDSP();
+    //RFgain(0);
     // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
-    if (user_settings[user_Profile].spkr_en == ON)
-    {
-        codec1.volume(1.0f); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
-        // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
-        codec1.unmuteHeadphone();
-        codec1.unmuteLineout(); //unmute the audio output
-        user_settings[user_Profile].mute = OFF;
-        displayMute();
-        AFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
-        //RampVolume(user_settings[user_Profile].spkr_Vol_last/100, 1); //0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-    }
-    else
-    {
-        codec1.muteHeadphone();
-        user_settings[user_Profile].mute = ON;
-        displayMute();
-    }
+   
     changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
                         // Call changeBands() here after volume to get proper startup volume
 
@@ -1332,92 +1347,9 @@ COLD void SetFilter(void)
 
 COLD void initDSP(void)
 {
-    AudioNoInterrupts();  
-
     AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions
     AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
-    
-    setZoom(2);  // 2 = no change requested, set to user settting user profile setting
-    //Change_FFT_Size(fft_size, sample_rate_Hz);
-
-    codec1.enable(); // MUST be before inputSelect()
-    delay(5);
-    codec1.inputSelect(RxAudioIn);
-    codec1.muteLineout(); //mute TX audio 
-    codec1.muteHeadphone();
-    codec1.volume(0.0f);  // Seems to impact LineOut waveform if not 0    
-    //codec1.adcHighPassFilterDisable(); // Turn off DC blocking filter - reduces noise according to forum
-    codec1.adcHighPassFilterEnable();  // Turn on DC blocking filter (default) 
-    //codec1.adcHighPassFilterFreeze();  // block DC but do not track anymore
-
-    // The FM detector has error checking during object construction
-    // when Serial.print is not available.  See RadioFMDetector_F32.h:
-    Serial.print("FM Initialization errors: ");
-    Serial.println(FM_Detector.returnInitializeFMError() );
-    
-    //FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
-    //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-    FM_LO_Mixer.frequency(15000);
-    FM_LO_Mixer.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
-    FM_LO_Mixer.useSimple(true);   
-    
-    /*
-    // Configure the FFT parameters algorithm
-    int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
-    int N_FFT = audio_block_samples * overlap_factor;  
-    Serial.print("    : N_FFT = "); Serial.println(N_FFT);
-    FFT_LO_Mixer_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
-    FFT_LO_Mixer_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
-
-    //configure the frequency shifting
-    float shiftFreq_Hz = 1.0; //shift audio upward a bit
-    float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
-    int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
-
-    shiftFreq_Hz = shift_bins * Hz_per_bin;
-    Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
-    Serial.print(" Hz, which is "); Serial.print(shift_bins); 
-    Serial.println(" bins");
-    FFT_LO_Mixer_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
-    FFT_LO_Mixer_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
-    */
-    
-    //FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
-    //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-    //FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
-    //FFT_LO_Mixer_I.useTwoChannel(true);  //when using only 1 channel for the FM shift this is the case.
-    //FFT_LO_Mixer_I.useSimple(true); 
-
-    //FFT_90deg_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
-
-    //FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
-    //FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-    //FFT_LO_Mixer_Q.frequency(user_settings[user_Profile].afGain*100);
-    //FFT_LO_Mixer_Q.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
-    //FFT_LO_Mixer_Q.useSimple(false); 
-
-    // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
-    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
-    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
-    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
-    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
-    
-    // experiment with numbers  ToDo: enable/disable this via the Notch button
-    Serial.print("Initializing Notch/NR Feature = ");
-    Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
-    LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
-    LMS_Notch.enable(false);
-    NoiseBlanker.useTwoChannel(true);
-    
-    // Will be done in mode function also except for Beep Tone (2)
-    //RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
-	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
-    RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
-    //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-
-    AudioInterrupts();
-
-    Xmit(0);  // Finish RX audio chain setup
+    resetCodec();
 }
 
 // initDSP() and startup in RX mode enables our resources.  
@@ -1517,7 +1449,7 @@ COLD void TX_RX_Switch(
 
         AudioInterrupts();
 
-        RampVolume(ch_on, 0);        // Insant off.  0 to 1.0f for full scale.
+        RampVolume(ch_on, 0);        // Instant off.  0 to 1.0f for full scale.
         codec1.unmuteLineout();           // Audio out to Line-Out and TX board        
         AFgain(0);  // sets up the Lineout level for TX testing
     }
@@ -1527,7 +1459,7 @@ COLD void TX_RX_Switch(
     //  *******************************************************************************************
     {
         Serial.println("Switching to Rx");         
-        
+
         AudioNoInterrupts();
 
         codec1.muteLineout(); //mute the TX audio output to transmitter input 
@@ -1599,11 +1531,28 @@ COLD void TX_RX_Switch(
         delay(25);  // let audio chain settle (empty) from transient
         
         // setup rest of mode-specific path using control fucntions to do the heavy lifting
-        selectMode(mode_sel);
-        //setMode(0); // takes care of filter and mode-specific audio path switching            
+        selectMode(mode_sel);// takes care of filter and mode-specific audio path switching         
+  
+        if (user_settings[user_Profile].spkr_en == ON)
+        {
+            codec1.volume(1.0f); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
+            // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
+            codec1.unmuteHeadphone();
+            codec1.unmuteLineout(); //unmute the audio output
+            user_settings[user_Profile].mute = OFF;
+            displayMute();
+            AFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
+            //RampVolume(user_settings[user_Profile].spkr_Vol_last/100, 1); //0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+        }
+        else
+        {
+            codec1.muteHeadphone();
+            user_settings[user_Profile].mute = ON;
+            displayMute();
+        }
+        
         RFgain(0);  // sets up the LineIn level
         AFgain(0);  // sets up the Lineout level
-        codec1.unmuteHeadphone();      // RX Audio out to headphone jack and speakers
     }
 }
 
@@ -1698,4 +1647,125 @@ HOT void RF_Limiter(float peak_avg)
             Serial.println(temp);             
         }
     }
+}
+
+// I2S audio sometimes starts with I and Q out of order
+COLD void PhaseChange(uint8_t chg)
+{
+    static int val;
+
+    if( chg ){
+        if( ++val > 3 ) val = 0;                            // rotate through the settings
+    }
+        // print 
+            Serial.print("Ph:  ");
+
+    //AudioNoInterrupts();
+    switch( val ){
+        case 0:   
+            PhaseIfir.begin(fir_IQ4_0, 4);
+            PhaseQfir.begin(fir_IQ4_0, 4);
+            Serial.println("0001");
+        break;
+        case 1:
+            PhaseIfir.begin(fir_IQ4_1, 4);
+            PhaseQfir.begin(fir_IQ4_1, 4);   // delay Q  ( delay I if fir runs backward )
+            Serial.println("0010");
+        break;
+        case 2:
+            PhaseIfir.begin(fir_IQ4_2, 4);
+            PhaseQfir.begin(fir_IQ4_2, 4);    // delay I
+            Serial.println("0100");
+        break;
+        case 3:
+            PhaseIfir.begin(fir_IQ4_3, 4);
+            PhaseQfir.begin(fir_IQ4_3, 4);    // delay I
+            Serial.println("1000");
+        break;
+    //AudioInterrupts();
+    delay(25);
+    }   
+}
+
+// Attempt to resolve the Twin peaks issue by restarting the codec and related post config actions.
+// Can be used as a major part of initDSP()
+COLD void resetCodec(void)
+{
+    setZoom(2);  // 2 = no change requested, set to user settting user profile setting
+    //Change_FFT_Size(fft_size, sample_rate_Hz);
+
+    codec1.enable(); // MUST be before inputSelect()
+    //PhaseChange(0);  // deal with "twin-peaks problem"
+    //PhaseChange(1);  // deal with "twin-peaks problem"
+    //PhaseChange(2);  // deal with "twin-peaks problem"
+    
+    // The FM detector has error checking during object construction
+    // when Serial.print is not available.  See RadioFMDetector_F32.h:
+    Serial.print("FM Initialization errors: ");
+    Serial.println(FM_Detector.returnInitializeFMError() );
+    
+    //FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
+    //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    FM_LO_Mixer.frequency(15000);
+    FM_LO_Mixer.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
+    FM_LO_Mixer.useSimple(true);   
+/*
+    // Configure the FFT parameters algorithm
+    int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
+    int N_FFT = audio_block_samples * overlap_factor;  
+    Serial.print("    : N_FFT = "); Serial.println(N_FFT);
+    FFT_LO_Mixer_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
+    FFT_LO_Mixer_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
+
+    //configure the frequency shifting
+    float shiftFreq_Hz = 1.0; //shift audio upward a bit
+    float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
+    int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
+
+    shiftFreq_Hz = shift_bins * Hz_per_bin;
+    Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
+    Serial.print(" Hz, which is "); Serial.print(shift_bins); 
+    Serial.println(" bins");
+    FFT_LO_Mixer_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
+    FFT_LO_Mixer_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
+*/
+    
+    //FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
+    //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    //FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
+    //FFT_LO_Mixer_I.useTwoChannel(true);  //when using only 1 channel for the FM shift this is the case.
+    //FFT_LO_Mixer_I.useSimple(true); 
+
+    //FFT_90deg_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
+
+    //FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
+    //FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    //FFT_LO_Mixer_Q.frequency(user_settings[user_Profile].afGain*100);
+    //FFT_LO_Mixer_Q.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
+    //FFT_LO_Mixer_Q.useSimple(false); 
+
+    // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
+    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
+    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
+    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
+    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
+    
+    // experiment with numbers  ToDo: enable/disable this via the Notch button
+    Serial.print("Initializing Notch/NR Feature = ");
+    Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+    LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
+    LMS_Notch.enable(false);
+    NoiseBlanker.useTwoChannel(true);
+    
+    // Will be done in mode function also except for Beep Tone (2)
+    //RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
+	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
+    RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
+    //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
+
+    //AudioInterrupts();
+    
+    Xmit(0);  // Finish RX audio chain setup
+    
+    Serial.println(" Reset Codec ");
 }

@@ -65,6 +65,7 @@ extern          float               sample_rate_Hz;
 extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_I;
 extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_Q;
 extern          float               pan;
+extern          void                resetCodec();
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -1038,6 +1039,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     }
     else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)
     {
+        resetCodec();
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
         // enable mic input to pass to line out on audio card, set audio levels
