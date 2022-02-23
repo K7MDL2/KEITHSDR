@@ -128,18 +128,18 @@
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 #define BAND0       0       // Band slot ID
-#define BAND1       1       
-#define BAND2       2
-#define BAND3       3
-#define BAND4       4
-#define BAND5       5
-#define BAND6       6
-#define BAND7       7       
-#define BAND8       8
-#define BAND9       9
-#define BAND10     10
-#define BAND11     11
-#define BAND12     12
+#define BAND1       1 // 80M       
+#define BAND2       2 // 40M
+#define BAND3       3 // 60M
+#define BAND4       4 // 40M
+#define BAND5       5 // 30M
+#define BAND6       6 // 20M
+#define BAND7       7 // 17M      
+#define BAND8       8 // 15M
+#define BAND9       9 // 12M
+#define BAND10     10 // 10M
+#define BAND11     11 // 6M
+#define BAND12     12 // 2M
 
 // Zoom level for UI control
 #define ZOOMx1      0       // Zoom out the most (fft1024 @ 48K) (aka OFF)  x1 reference
