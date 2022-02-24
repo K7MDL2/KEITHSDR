@@ -1,5 +1,5 @@
 /*------------------------------------------------------------------------------- 
-   AudioSDRpreProcessor.cpp 
+   AudioSDRpreProcessor_F32.cpp 
 
    Function: A input pre-proccessor to "condition"  quadrature (IQ) input signals before passing
               to the AudioSDR software-defined-radio Teensy 3.6 Audio block.
@@ -37,15 +37,14 @@
   SOFTWARE.
 ------------------------------------------------------------------------------- */
 
-#include "AudioSDRpreProcessor.h"
+#include "AudioSDRpreProcessor_F32.h"
 #include "utility/dspinst.h"
-#include "arm_math.h"
-#include "arm_const_structs.h"
+
 // -----
-void AudioSDRpreProcessor::update(void) { 
-  audio_block_t *blockI, *blockQ;
-  blockI = receiveWritable(0);                        // real (quadrature I) data
-  blockQ = receiveWritable(1);                        // imaginary (quadrature Q) data
+void AudioSDRpreProcessor_F32::update(void) { 
+  audio_block_f32_t *blockI, *blockQ;
+  blockI = receiveWritable_f32(0);                        // real (quadrature I) data
+  blockQ = receiveWritable_f32(1);                        // imaginary (quadrature Q) data
   if (!blockI &&  blockQ) {release(blockQ); return;}
   if ( blockI && !blockQ) {release(blockI); return;}
   if (!blockI && !blockQ) return;
@@ -59,12 +58,12 @@ void AudioSDRpreProcessor::update(void) {
   // ---
   if (I2Scorrection == 1){
      int16_t temp = blockI->data[n_block-1];             // save the most recent sample for the next buffer
-     for(int i=n_block-1; i>0; i--) blockI->data[i] = blockI->data[i-1];
+     for(int16_t i=n_block-1; i>0; i--) blockI->data[i] = blockI->data[i-1];
      blockI->data[0] = savedSample;
      savedSample = temp;}
   else if (I2Scorrection == -1){
      int16_t temp = blockQ->data[n_block-1];             // save the most recent sample for the next buffer
-     for(int i=n_block-1; i>0; i--) blockQ->data[i] = blockQ->data[i-1];
+     for(int16_t i=n_block-1; i>0; i--) blockQ->data[i] = blockQ->data[i-1];
      blockI->data[0] = savedSample;
      savedSample = temp;
   }
@@ -82,17 +81,17 @@ void AudioSDRpreProcessor::update(void) {
     const int16_t min   = 5;
     int   maxLine       = 0;
     //                                // At this point the output data block has already been updated
-    for (int i=0; i<128;i++) {        // Take 128 point FFT and compute the magnitude squared
-      buffer[2*i]   = float(blockI->data[i])/32767.0;
-      buffer[2*i+1] = float(blockQ->data[i])/32767.0;
+    for (int16_t i=0; i<128;i++) {        // Take 128 point FFT and compute the magnitude squared
+      buffer[2*i]   = float32_t(blockI->data[i])/16777216;      //32767;
+      buffer[2*i+1] = float32_t(blockQ->data[i])/16777216;      //32767;
     }
     // Take 128 point FFT and compute the magnitude squared
     arm_cfft_f32(&arm_cfft_sR_f32_len128, buffer, 0, 1); 
     arm_cmplx_mag_squared_f32 (buffer, buffer, 128);       // "power" spectrum in elements 0 to 127
     // Find the strongest spectral line and compute the average line power across the whole spectrum.
-    float average_power = 0.0;
-    float maximum_power  = 0.0;
-    for (int i=min; i<(n_FFT-min); i++) {                  // Ignore spectral lines around dc (noise)
+    float32_t average_power = 0.0;
+    float32_t maximum_power  = 0.0;
+    for (int16_t i=min; i<(n_FFT-min); i++) {                  // Ignore spectral lines around dc (noise)
       average_power  += buffer[i];
       if (buffer[i]>maximum_power) {
         maxLine       = i;
@@ -101,7 +100,7 @@ void AudioSDRpreProcessor::update(void) {
     }
     average_power /= (n_FFT-2*min);                         // average power over all spectral lines
     // Find the ratio of the amplitude of the maximum power line to its spectral image
-    float imbalance_ratio = maximum_power/buffer[n_FFT-maxLine];  
+    float32_t imbalance_ratio = maximum_power/buffer[n_FFT-maxLine];  
       //  Make sure the maximum power line is well above the spectral "floor"
     if (maximum_power > spectralAvgMultiplier*average_power) {   // Limit to "strong" spectral lines
       if (imbalance_ratio < minImbalanceRatio) failureCount++;   // Ratio too low, increment failure counter    
@@ -124,8 +123,8 @@ void AudioSDRpreProcessor::update(void) {
   // Swap I and Q channels to I in channel and Q in channel 0 to correct for
   // incorrect quadrature input connections
   if (IQswap){
-    for (int i=0; i<128; i++) {
-      int temp = blockI->data[i];
+    for (int16_t i=0; i<128; i++) {
+      int16_t temp = blockI->data[i];
       blockI->data[i] = blockQ->data[i];
       blockQ->data[i] = temp;
     }
@@ -138,7 +137,7 @@ void AudioSDRpreProcessor::update(void) {
 // -------------------------- Public Functions ----------------------
 // ---
 // --- Enable auto detection and correction of the I2S input error
-void  AudioSDRpreProcessor::startAutoI2SerrorDetection(void) {
+void  AudioSDRpreProcessor_F32::startAutoI2SerrorDetection(void) {
   autoDetectFlag = true;
   I2Scorrection  = 0;
   failureCount   = 0;
@@ -147,22 +146,22 @@ void  AudioSDRpreProcessor::startAutoI2SerrorDetection(void) {
 }
 // ---
 // --- Disable auto detection and correction of the I2S input error
-void  AudioSDRpreProcessor::stopAutoI2SerrorDetection(void) {
+void  AudioSDRpreProcessor_F32::stopAutoI2SerrorDetection(void) {
   autoDetectFlag = false;
-  I2Scorrection  = 0;            // Revert to no compensati9n
+  I2Scorrection  = 0;            // Revert to no compensation
 }
 // --- Return the state of the auto detection
 //     true = auto detection is active, false = auto detection is inactve
-bool AudioSDRpreProcessor::getAutoI2SerrorDetectionStatus(void) {return autoDetectFlag;}
+bool AudioSDRpreProcessor_F32::getAutoI2SerrorDetectionStatus(void) {return autoDetectFlag;}
 //
 // --- Manually set I2S error correction mode 
-void  AudioSDRpreProcessor::setI2SerrorCompensation(int correction) {
+void  AudioSDRpreProcessor_F32::setI2SerrorCompensation(int16_t correction) {
   I2Scorrection   = correction;
   autoDetectFlag  = false;                 // Cancel auto correction if active
 }
 // ---
 // ---  Fetch the current state of the I2S error correction (on or off)
-int16_t AudioSDRpreProcessor::getI2SerrorCompensation(void) {return I2Scorrection;}
+int16_t AudioSDRpreProcessor_F32::getI2SerrorCompensation(void) {return I2Scorrection;}
 // ---
 // --- Swap quadrature inputs from I on channel 0 to I on channel 1
-void  AudioSDRpreProcessor::swapIQ(boolean swap) {IQswap = swap;}
+void  AudioSDRpreProcessor_F32::swapIQ(boolean swap) {IQswap = swap;}

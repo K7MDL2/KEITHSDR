@@ -1,11 +1,12 @@
 /*--------------------------------------------------------------------------------------- 
-  AudioSDRpreprocessor.h 
+  AudioSDRpreProcessor_F32.h 
 
   Function: A input pre-proccessor to "condition"  quadrature (IQ) input signals before passing 
             to the AudioSDR software-defined-radio Teensy 3.6 Audio block.
 
   Author:   Derek Rowell (drowell@mit.edu)
   Date:     April 26, 2019  
+  Modified  Feb 24, 2022 by K7MDL for F32 library use
 
   Notes:    Includes the following functions:
             a) Automatically detect and correct the random Teensy single-sample delay
@@ -39,42 +40,45 @@
 
 #ifndef audio_sdr_preprocessor_h_
 #define audio_sdr_preprocessor_h_
-#include "core_pins.h"
-#include "AudioStream.h"
-#include "arm_math.h"
-#include "arm_const_structs.h"
+
 #include "Arduino.h"
+#include "core_pins.h"
+#include "AudioStream_F32.h"
+#include "arm_math.h"
+#include "mathDSP_F32.h"
+#include "arm_const_structs.h"
+
 //
-#define maxSuccessCount        1000
-#define maxFailureCount        10
-#define minImbalanceRatio      10.0
-#define spectralAvgMultiplier  10.0
+#define maxSuccessCount        1000  //1000
+#define maxFailureCount        10  //10
+#define minImbalanceRatio      70.0f  //10.0f
+#define spectralAvgMultiplier  10.0f  //10.0f
 #define n_block 128
 
-class AudioSDRpreProcessor: public AudioStream {
+class AudioSDRpreProcessor_F32: public AudioStream_F32 {
   public:
-    AudioSDRpreProcessor() : AudioStream(2, inputQueueArray) {}
+    AudioSDRpreProcessor_F32() : AudioStream_F32(2, inputQueueArray) {}
     virtual void update(void);
     // --
     // Public  functions
     void    startAutoI2SerrorDetection(void); 
     void    stopAutoI2SerrorDetection(void); 
     bool    getAutoI2SerrorDetectionStatus(void);
-    void    setI2SerrorCompensation(int correction);
+    void    setI2SerrorCompensation(int16_t correction);
     int16_t getI2SerrorCompensation(void);
     void    swapIQ(boolean swap);
     // -- 
   private:
-    audio_block_t *inputQueueArray[2];
-    float   buffer[256];
-    float   image_ratio   = 1.0;
-    float   avg;
-    int16_t I2Scorrection = 0;
-    int16_t savedSample   = 0;
-    int16_t failureCount  = 0;
-    int16_t successCount  = 0;
-     bool   IQswap = false;
-    bool    I2SerrorCheckEnabled = true;
-    bool    autoDetectFlag  = false;
+    audio_block_f32_t *inputQueueArray[2];
+    float32_t   buffer[256];
+    float32_t   image_ratio   = 1.0f;
+    float32_t   avg;
+    int16_t     I2Scorrection = 0;
+    int16_t     savedSample   = 0;
+    int16_t     failureCount  = 0;
+    int16_t     successCount  = 0;
+    bool        IQswap = false;
+    bool        I2SerrorCheckEnabled = true;
+    bool        autoDetectFlag  = false;
 };
 #endif
