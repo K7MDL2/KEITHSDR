@@ -796,7 +796,7 @@ COLD void Ant()
     //Serial.print("Set Ant Sw to ");
     //Serial.println(bandmem[curr_band].ant_sw);
 
-PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
+//PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
 
 
 #ifdef DIG_STEP_ATT  // for testing only

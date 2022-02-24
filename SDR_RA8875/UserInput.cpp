@@ -43,6 +43,7 @@ extern bool MF_default_is_active;
 extern void MF_Service(int8_t counts, uint8_t knob);
 extern uint8_t MF_client;  // Flag for current owner of MF knob services
 extern struct Spectrum_Parms Sp_Parms_Def[];
+extern void PhaseChange(uint8_t chg);
 
 // Function declarations
 void Button_Handler(int16_t x, uint16_t y); 
@@ -757,6 +758,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case AGC_BTN:       AGC();          break;   
                     case ATTEN_BTN:     Atten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
+                    case ANT_BTN:       PhaseChange(1); break;
                     //case AFGAIN_BTN:    setAFgain(1);   break;
                     //case RFGAIN_BTN:    setRFgain(1);   break;
                     default: Serial.print(F("Found a button with SHOW on WITH LONG PRESS but has no function to call.  Index = "));
