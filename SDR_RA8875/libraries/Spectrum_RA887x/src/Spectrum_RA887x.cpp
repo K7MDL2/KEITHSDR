@@ -136,13 +136,15 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
     //int16_t blanking = 0; //3;  // used to remove the DC line from the graphs at Fc
     int16_t pix_o16;
     int16_t pix_n16;
-    static int16_t spect_scale_last   = 0;
+    static int16_t spect_scale_last     = 0;
     //static int16_t spect_ref_last     = 0;
-    int16_t fft_pk_bin                = 0;
-    static int16_t fftPower_pk_last   = ptr->spect_floor;
-    static int16_t pix_min            = ptr->spect_floor;
-    int32_t freq_peak                 = 0;
-    static float old_fft_sz         = 0;        // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
+    int16_t fft_pk_bin                  = 0;
+    static int16_t fftPower_pk_last     = ptr->spect_floor;
+    static int16_t pix_min              = ptr->spect_floor;
+    int32_t freq_peak                   = 0;
+    static float old_fft_sz             = 0;        // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
+    int32_t L_EDGE_no_pan               = 0;        // internediate calculation used to pan
+    static float old_pan                = 0;        // update screen freq data when pan setting changes
 
     //for testing alignments
     //tft.drawRect(spectrum_x, spectrum_y, spectrum_width, spectrum_height, myBLUE);  // x start, y start, width, height, array of colors w x h
@@ -225,8 +227,9 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
         }              
         else if ( fft_sz > ptr->wf_sp_width-2)  // When FFT data is > available graph area
         {
-            pan *= (fft_sz - SCREEN_WIDTH);  // pan comes in as is -0.50f to +0.50f 
-            L_EDGE = (int16_t) ((fft_sz - ptr->wf_sp_width)/2) + pan;  // shift thr spectrum up to the max that the screen size can handle
+            pan *= (fft_sz - SCREEN_WIDTH);  // pan comes in as is -0.50f to +0.50f ==> calc # of bins to shift
+            L_EDGE_no_pan = (int16_t) ((fft_sz - ptr->wf_sp_width)/2); // left edge calc from reference center
+            L_EDGE = L_EDGE_no_pan + pan;  // shift the spectrum up to the max that the screen size can handle
             pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
         }
 // ToDo: Figure out if this is needed someday.
@@ -581,9 +584,9 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
         tft.print("F: "); 
         tft.setCursor(ptr->l_graph_edge+126,  ptr->sp_txt_row+30);
-        float pk_temp = _VFO_ + (2 * (fft_bin_sz * fft_pk_bin));   // relate the peak bin to the center bin
-        freq_peak = pk_temp;
-        tft.print(_formatFreq(pk_temp));
+        float pk_temp = (2 * (fft_bin_sz * (fft_pk_bin + pan)));   // relate the peak bin to the center bin
+        freq_peak = _VFO_ + pk_temp;
+        tft.print(_formatFreq(freq_peak));
         
         // Write the Scale value 
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);
@@ -645,21 +648,25 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
 
         static uint32_t old_VFO_ = 0;
 
-        if (old_VFO_ != _VFO_ || old_fft_sz != fft_sz)
+        if (old_VFO_ != _VFO_ || old_fft_sz != fft_sz || old_pan != pan)
         {
+            float pan_freq = pan*fft_bin_sz*2;
             tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
             tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_ - (ptr->wf_sp_width*fft_bin_sz)));       // Write left side of graph Freq
+            tft.print(_formatFreq((uint32_t) _VFO_ - pan_freq -(ptr->wf_sp_width*fft_bin_sz)));       // Write left side of graph Freq
             
             tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
             tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_));   // Write center of graph Freq   
+            tft.print(_formatFreq((uint32_t) _VFO_ + pan_freq));   // Write center of graph Freq   
             
             tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, RA8875_BLACK);
             tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_ + (ptr->wf_sp_width*fft_bin_sz)));  // Write right side of graph Freq
+            tft.print(_formatFreq((uint32_t) _VFO_ + pan_freq + (ptr->wf_sp_width*fft_bin_sz)));  // Write right side of graph Freq
+            
+            // Update our change detector vars
             old_VFO_ = _VFO_;           // save to minimize updates for no reason.
             old_fft_sz = fft_sz;    // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
+            old_pan = pan;          // update when the pan control changes
         }
     }                
     else      // Clear stale data
@@ -671,7 +678,7 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
             //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
         }
     }
-    return freq_peak;  // for use by the main program for more accurate touch tuning
+    return freq_peak;  // freq_peak;  // for use by the main program for more accurate touch tuning
 }
 //
 //--------------------------------------------------------------------------------------------------------------------------------------------
