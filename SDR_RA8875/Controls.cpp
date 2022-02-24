@@ -1308,23 +1308,37 @@ COLD void Display()
 
 COLD void TouchTune(int16_t touch_Freq)
 {
+    
+
 #ifndef BYPASS_SPECTRUM_MODULE
-    touch_Freq -= Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_width/2;     // adjust coordinate relative to center 
+    int32_t pk;
+
+    pk = pan * (fft_size - SCREEN_WIDTH);  // pan offset in fft_bin count
+    touch_Freq -= Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_width/2 - pk;// adjust coordinate relative to center accounting for pan offset
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
+    // We have our new target frequency from touch
+    //Serial.print(F("\npan offset (bins from center)     =")); Serial.println(pk);
+    //Serial.print(F("touch_Freq (bins from center)     =")); Serial.println(touch_Freq);
+    //Serial.print(F("Touch target change in Hz         =")); Serial.println(_newfreq);
+    //Serial.print(F("New target touch VFO (Hz)         =")); Serial.println(formatVFO(VFOA+_newfreq));
+    // Suggested frequency from the Peak Frequency function in the spectrum library - may not be the one we want! It is just the strongest.
+    //Serial.print(F("\nFreq_Peak (Hz)                  =")); Serial.println(formatVFO(Freq_Peak)); 
+    //Serial.print(F("Target VFOA - VFO_peak (Hz)       =")); Serial.println((int32_t) VFOA+_newfreq-Freq_Peak);
     
-    //Serial.print("TouchTune(r) frequency is ");
-    
+    Serial.print(F("Touch-Tune frequency is "));
     if (bandmem[curr_band].VFO_AB_Active == VFO_A)
     {
         VFOA += _newfreq;
-        if (abs((int32_t) VFOA - (int32_t) Freq_Peak) < 800)
+    
+        // If the Peak happens to be close to the touch target frequency then we can use that to fine tune the new VFO
+        if (abs(VFOA - (uint32_t) Freq_Peak < 1000))
         {
             if (bandmem[curr_band].mode_A == CW || bandmem[curr_band].mode_A == CW_REV)
                 VFOA = Freq_Peak - ModeOffset;  //user_settings[user_Profile].pitch;
             else
-                VFOA = Freq_Peak;
+                 VFOA = Freq_Peak;  // bin number from spectrum            
         }
-        //Serial.println(formatVFO(VFOA));
+        Serial.println(formatVFO(VFOA));
     }
     else
     {
@@ -1336,7 +1350,7 @@ COLD void TouchTune(int16_t touch_Freq)
             else
                 VFOB = Freq_Peak;
         }
-        //Serial.println(formatVFO(VFOB));
+        Serial.println(formatVFO(VFOB));
     }
 #endif    
     selectFrequency(0);
