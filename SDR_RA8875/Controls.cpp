@@ -1002,8 +1002,8 @@ _rfLevel += delta;      // convert percentage request to a single digit float
  
     //Amp1_L.setGain_dB(AUDIOBOOST * _rfLevel/100);    // Adjustable fixed output boost in dB.
     //Amp1_R.setGain_dB(AUDIOBOOST * _rfLevel/100);
-    I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
-    Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    ///I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    ///Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
 
 //AudioNoInterrupts();
 //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5.0f);
