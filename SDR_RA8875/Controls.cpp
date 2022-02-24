@@ -795,9 +795,9 @@ COLD void Ant()
     displayANT();
     //Serial.print("Set Ant Sw to ");
     //Serial.println(bandmem[curr_band].ant_sw);
-
-//PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
-
+#ifdef PHASE_CHANGE_ON
+    PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
+#endif
 
 #ifdef DIG_STEP_ATT  // for testing only
 // FOR TEST of Attenuator settings
@@ -948,6 +948,16 @@ COLD void AFgain(int8_t delta)
 // RF GAIN button activate control
 COLD void setRFgain(int8_t toggle)
 {
+    // Toggle = 3 is special case for a PAN on/off control with long press on RFGain button until a new one is made later.
+    if (toggle == 3)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (user_settings[user_Profile].pan_state == ON)  // toggle the PAN tracking state
+            user_settings[user_Profile].pan_state = OFF;
+        else 
+            user_settings[user_Profile].pan_state = ON;
+        toggle = 2;  // continue with normal RF gain operation 
+    }
+
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (user_settings[user_Profile].rfGain_en)  // toggle the attenuator tracking state
@@ -989,8 +999,8 @@ COLD void RFgain(int8_t delta)
 
     //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
-//    _rfLevel += delta*4;      // convert percentage request to a single digit float
-_rfLevel += delta;      // convert percentage request to a single digit float
+    //    _rfLevel += delta*4;      // convert percentage request to a single digit float
+    _rfLevel += delta;      // convert percentage request to a single digit float
     //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
 
     if (_rfLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
@@ -1002,20 +1012,23 @@ _rfLevel += delta;      // convert percentage request to a single digit float
  
     //Amp1_L.setGain_dB(AUDIOBOOST * _rfLevel/100);    // Adjustable fixed output boost in dB.
     //Amp1_R.setGain_dB(AUDIOBOOST * _rfLevel/100);
-    ///I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
-    ///Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
-
+    
 //AudioNoInterrupts();
 //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5.0f);
 //FFT_LO_Mixer_Q.iqmPhaseS((float) user_settings[user_Profile].rfGain*5);
 //AudioInterrupts();
 
-// bins that will not fit on the display can be viewed by shiftrin our left edge index.  Assuming 1 px per bin
-pan = (_rfLevel-50)/100.0f;
-
-
     // LineIn is 0 to 15 with 15 being ther most sensitive
-//    codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
+    if (user_settings[user_Profile].pan_state == OFF)
+    {   codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
+        I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+        Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    }
+    else
+    {   // bins that will not fit on the display can be viewed by shiftrin our left edge index.  Assuming 1 px per bin
+        pan = (_rfLevel-50)/100.0f;
+        user_settings[user_Profile].pan_level = pan;
+    }
     //Serial.print("CodecLine IN level set to "); 
     //Serial.println(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);
     //Serial.print("RF Gain level set to  "); 

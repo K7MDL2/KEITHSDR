@@ -16,7 +16,8 @@
 #include "SDR_Data.h"
 #include "Hilbert.h"            // filter coefficients
 //#include "hilbert251A.h"        // filter coefficients
-#include "AudioSDRpreProcessor.h" // From https://github.com/DerekRowell/AudioSDR.  Copies of the 2 needed files included in this dist.
+#include "AudioSDRpreProcessor_F32.h" // From https://github.com/DerekRowell/AudioSDR.  
+//  Local copies of the 2 needed files are included in this distributon modified for F32 compatibility.
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
@@ -153,6 +154,7 @@ Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout        = Metro(4000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80); // Feedback beep for button touches
+Metro Auto_I2S_Timer    = Metro(5000); // Feedback beep for button touches
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -222,17 +224,20 @@ AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
-//.............................
-// phase correction FIRs. Apparently sometimes the I2s audio samples are 1 step out of phase
-// and waterfall shows very little opposite sideband suppression
-float32_t  PhaseIfir[2] = { 1.0f, 0 };    // swap constants to change phasing
-float32_t  PhaseQfir[2] = { 1.0f, 0 };
-//.............................
+#ifdef PHASE_CHANGE_ON
+    //.............................
+    // phase correction FIRs. Apparently sometimes the I2s audio samples are 1 step out of phase
+    // and waterfall shows very little opposite sideband suppression
+    float32_t  PhaseIfir[2] = { 1.0f, 0 };    // swap constants to change phasing
+    float32_t  PhaseQfir[2] = { 1.0f, 0 };
+    //.............................
+    AudioFilterFIR_F32          PhaseI(audio_settings);
+    AudioFilterFIR_F32          PhaseQ(audio_settings);
+#else
+    AudioSDRpreProcessor_F32    preProcessor;
+#endif
 
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
-//AudioSDRpreProcessor        preProcessor;
-AudioFilterFIR_F32          PhaseI(audio_settings);
-AudioFilterFIR_F32          PhaseQ(audio_settings);
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
 AudioMixer4_F32             TX_Source(audio_settings);  // Select Mic, ToneA or ToneB or any combo
@@ -269,14 +274,17 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
+#ifdef PHASE_CHANGE_ON   // use one of 2 I2S input phase correction tools
 AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseI,0);  // route raw input audio to the FFT display
 AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
 AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
 AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
-//AudioConnection_F32     patchCord_RX_In_L(Input,0,                          preProcessor,0);  // route raw input audio to the FFT display
-//AudioConnection_F32     patchCord_RX_In_R(Input,1,                          preProcessor,1);
-//AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                   I_Switch,0);  // route raw input audio to the FFT display
-//AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                   Q_Switch,0);
+#else
+AudioConnection_F32     patchCord_RX_In_L(Input,0,                          preProcessor,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_In_R(Input,1,                          preProcessor,1);
+AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                   I_Switch,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                   Q_Switch,0);
+#endif
 
 // Test tones sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
@@ -500,6 +508,12 @@ COLD void setup()
     }
     digitalClockDisplay(); // print time to terminal
     Serial.println("Clock Update");
+    
+    // Recall last PAN level if enabled
+    if (user_settings[user_Profile].pan_state == ON)
+        user_settings[user_Profile].pan_level = pan;  
+    else 
+        pan = 0.0f;
 
 #ifndef BYPASS_SPECTRUM_MODULE
     spectrum_RA887x.initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
@@ -753,6 +767,12 @@ HOT void loop()
         touchBeep(false);    
     }
 
+    #ifndef PHASE_CHANGE_ON
+    // Should not need this on continuously, switch to manual using current correction
+    if (Auto_I2S_Timer.check() == 1)
+        preProcessor.setI2SerrorCompensation(preProcessor.getI2SerrorCompensation()); // Stop I2S error detection
+    #endif
+
     //respond to Serial commands
     while (Serial.available())
     {
@@ -813,6 +833,9 @@ HOT void loop()
             displayTime();
         }
     }
+    //if (preProcessor.getAutoI2SerrorDetectionStatus());
+    //    Serial.println("getAutoI2SerrorDetectionStatus = ON");
+    //Serial.println(preProcessor.getI2SerrorCompensation());
 }
 //
 //-------------------------------------  Check_PTT() ------------------------------------------------------
@@ -1660,12 +1683,20 @@ COLD void resetCodec(void)
     //Change_FFT_Size(fft_size, sample_rate_Hz);
 
     codec1.enable(); // MUST be before inputSelect()
-    //preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
-    //preProcessor.swapIQ(false);
-    PhaseI.begin(PhaseIfir, 2);
-    PhaseQ.begin(PhaseQfir, 2);
-    //PhaseChange(1);  // deal with "twin-peaks problem"
-    
+    codec1.lineInLevel(0); // Set to minimum, maybe prevent false Auto-iI2S detection
+    delay(50);
+
+    #ifdef PHASE_CHANGE_ON
+        // Manual approach
+        PhaseI.begin(PhaseIfir, 2);
+        PhaseQ.begin(PhaseQfir, 2);
+        //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ANT button (long press)
+    #else
+        // automatic phase correction 
+        preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
+        preProcessor.swapIQ(false);
+    #endif
+
     // The FM detector has error checking during object construction
     // when Serial.print is not available.  See RadioFMDetector_F32.h:
     Serial.print("FM Initialization errors: ");
@@ -1773,7 +1804,7 @@ COLD void resetCodec(void)
     }
     #endif
 
-#ifndef PHASECHANGE
+#ifdef PHASE_CHANGE_ON
 
 // I2S audio sometimes starts with I and Q out of order
 void PhaseChange(uint8_t chg)

@@ -125,6 +125,11 @@
 
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
+//#define PHASE_CHANGE_ON     // Switch manual methos fo I2S inut phase correction.  
+                            // When enabled use long press on ANT button to cycle thorugh 3 possible
+                            // solutons to remove mirror image aka Twin Peaks problem
+                            // When commented out use AutoSDRpreProcessor auto correction 
+
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 //#define K7MDL_BUILD
 
