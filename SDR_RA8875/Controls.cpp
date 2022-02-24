@@ -65,7 +65,7 @@ extern          float               sample_rate_Hz;
 extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_I;
 extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_Q;
 extern          float               pan;
-extern          void                resetCodec();
+extern          void                PhaseChange(uint8_t chg);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -784,12 +784,20 @@ COLD void Fine()
 COLD void Ant()
 {
     if (bandmem[curr_band].ant_sw== 1)
+    {
         bandmem[curr_band].ant_sw = 2;
+    }
     else if (bandmem[curr_band].ant_sw == 2)
+    {
         bandmem[curr_band].ant_sw = 1;
+    }
+    
     displayANT();
     //Serial.print("Set Ant Sw to ");
     //Serial.println(bandmem[curr_band].ant_sw);
+
+PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
+
 
 #ifdef DIG_STEP_ATT  // for testing only
 // FOR TEST of Attenuator settings
@@ -1039,7 +1047,6 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     }
     else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)
     {
-        resetCodec();
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
         // enable mic input to pass to line out on audio card, set audio levels

@@ -16,6 +16,7 @@
 #include "SDR_Data.h"
 #include "Hilbert.h"            // filter coefficients
 //#include "hilbert251A.h"        // filter coefficients
+#include "AudioSDRpreProcessor.h" // From https://github.com/DerekRowell/AudioSDR.  Copies of the 2 needed files included in this dist.
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
@@ -115,19 +116,19 @@ int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 //control display and serial interaction
 bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
 void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
-uint8_t     popup = 0;                          // experimental flag for pop up windows
+uint8_t     popup                   = 0;                          // experimental flag for pop up windows
 int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
-int32_t     Freq_Peak = 0;
+int32_t     Freq_Peak               = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
-bool        touchBeep_flag = false;
+bool        touchBeep_flag          = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
-uint8_t     last_PTT_Input = 1;   // track input pin state changes after any debounce timers
-uint8_t     PTT_pin_state = 1;    // current input pin state
-unsigned long PTT_Input_time = 0;  // Debounce timer
-uint8_t     PTT_Input_debounce = 0;   // Debounce state tracking
+uint8_t     last_PTT_Input          = 1;   // track input pin state changes after any debounce timers
+uint8_t     PTT_pin_state           = 1;    // current input pin state
+unsigned long PTT_Input_time        = 0;  // Debounce timer
+uint8_t     PTT_Input_debounce      = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;  // For RF AGC Limiter
 bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
-float       pan = 0.0f;
+float       pan                     = 0.0f;
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
@@ -221,9 +222,17 @@ AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
+//.............................
+// phase correction FIRs. Apparently sometimes the I2s audio samples are 1 step out of phase
+// and waterfall shows very little opposite sideband suppression
+float32_t  PhaseIfir[2] = { 1.0f, 0 };    // swap constants to change phasing
+float32_t  PhaseQfir[2] = { 1.0f, 0 };
+//.............................
+
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
-AudioFilterFIR_F32          PhaseIfir(audio_settings);
-AudioFilterFIR_F32          PhaseQfir(audio_settings);
+//AudioSDRpreProcessor        preProcessor;
+AudioFilterFIR_F32          PhaseI(audio_settings);
+AudioFilterFIR_F32          PhaseQ(audio_settings);
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
 AudioMixer4_F32             TX_Source(audio_settings);  // Select Mic, ToneA or ToneB or any combo
@@ -260,14 +269,18 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
-AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseIfir,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQfir,0);
-AudioConnection_F32     patchCord_RX_Ph_L(PhaseIfir,0,                      I_Switch,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_Ph_R(PhaseQfir,0,                      Q_Switch,0);
+AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseI,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
+AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
+//AudioConnection_F32     patchCord_RX_In_L(Input,0,                          preProcessor,0);  // route raw input audio to the FFT display
+//AudioConnection_F32     patchCord_RX_In_R(Input,1,                          preProcessor,1);
+//AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                   I_Switch,0);  // route raw input audio to the FFT display
+//AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                   Q_Switch,0);
 
 // Test tones sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
-AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
+//AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);    
 AudioConnection_F32     patchCord_IQ_Mix_L(TX_Source,0,                     TX_Hilbert_Plus_45,0); 
@@ -355,18 +368,6 @@ float32_t fir_IQ29[29] = {
 -0.024286413f,  0.008211937f,  0.021920240f,  0.015435011f,
  0.001524420f, -0.007565650f, -0.008256345f, -0.004690292f,
 -0.000970689f};
-
-/* FIR filter designed with http://t-filter.appspot.com
- * fs = 44100 Hz, < 5kHz ripple 0.29 dB, >9 kHz, -62 dB, 29 taps
- */
-float32_t fir_IQ4_0[4] = {1.0f, 0.0f, 1.0f, 0.0f};
-float32_t fir_IQ4_1[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-float32_t fir_IQ4_2[4] = {0.0f, 1.0f, 1.0f, 0.0f};
-float32_t fir_IQ4_3[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-//float32_t fir_IQ4_0[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-//float32_t fir_IQ4_1[4] = {0.0f, 0.0f, 1.0f, 0.0f};
-//float32_t fir_IQ4_2[4] = {0.0f, 1.0f, 0.0f, 0.0f};
-//float32_t fir_IQ4_3[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 // 
@@ -1650,43 +1651,6 @@ HOT void RF_Limiter(float peak_avg)
     }
 }
 
-// I2S audio sometimes starts with I and Q out of order
-COLD void PhaseChange(uint8_t chg)
-{
-    static int val;
-
-    if( chg ){
-        if( ++val > 3 ) val = 0;                            // rotate through the settings
-    }
-        // print 
-            Serial.print("Ph:  ");
-
-    //AudioNoInterrupts();
-    switch( val ){
-        case 0:   
-            PhaseIfir.begin(fir_IQ4_0, 4);
-            PhaseQfir.begin(fir_IQ4_0, 4);
-            Serial.println("0001");
-        break;
-        case 1:
-            PhaseIfir.begin(fir_IQ4_1, 4);
-            PhaseQfir.begin(fir_IQ4_1, 4);   // delay Q  ( delay I if fir runs backward )
-            Serial.println("0010");
-        break;
-        case 2:
-            PhaseIfir.begin(fir_IQ4_2, 4);
-            PhaseQfir.begin(fir_IQ4_2, 4);    // delay I
-            Serial.println("0100");
-        break;
-        case 3:
-            PhaseIfir.begin(fir_IQ4_3, 4);
-            PhaseQfir.begin(fir_IQ4_3, 4);    // delay I
-            Serial.println("1000");
-        break;
-    //AudioInterrupts();
-    delay(25);
-    }   
-}
 
 // Attempt to resolve the Twin peaks issue by restarting the codec and related post config actions.
 // Can be used as a major part of initDSP()
@@ -1696,9 +1660,11 @@ COLD void resetCodec(void)
     //Change_FFT_Size(fft_size, sample_rate_Hz);
 
     codec1.enable(); // MUST be before inputSelect()
-    //PhaseChange(0);  // deal with "twin-peaks problem"
+    //preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
+    //preProcessor.swapIQ(false);
+    PhaseI.begin(PhaseIfir, 2);
+    PhaseQ.begin(PhaseQfir, 2);
     //PhaseChange(1);  // deal with "twin-peaks problem"
-    //PhaseChange(2);  // deal with "twin-peaks problem"
     
     // The FM detector has error checking during object construction
     // when Serial.print is not available.  See RadioFMDetector_F32.h:
@@ -1770,3 +1736,72 @@ COLD void resetCodec(void)
 
     Serial.println(" Reset Codec ");
 }
+
+#ifdef TEST1
+    /*---------------------------------------------------------------*
+                        --- FREQUENCY SHIFTER ---
+        Performs a complex frequency shift by complex multiplication
+        of a time domain signal by a complex exonential.
+        From Fourier theory a spectral shift:
+           F(j(w + w0)) = Fourier[f(t) * e^(j(w_0*t))]
+                        = Fourier[f(t) * cos(w_0]*t) * jsin(w_0*t)]
+           where f(t) is complex, and j is the sqrt(-1),
+                                                                    
+           Note:  In the discrete-time case this results in a
+           spectral ROTATION, ie spectral components at either end
+           of the complex spectrum (near the Nyquist frequency)
+           will appear at the other end!
+    ---------------------------------------------------------------*/
+    float32_t freq_shifter(float32_t * _Idata, float32_t * _Qdata, float32_t freq_shift,  float32_t initial_phase) {
+      const float32_t twoPI = 2.0*PI;
+      float32_t phase_inc   = freq_shift*(twoPI/AUDIO_SAMPLE_RATE_EXACT);
+      float32_t phase       = initial_phase;
+      // Frequency shifting is a complex multiplication in the time domain:
+      for (int i = 0; i < n_block; i++) {
+        float32_t cosine = cos_f32(phase);
+        float32_t sine   = sin_f32(phase);
+        float32_t tempI  = _Idata[i];
+        float32_t tempQ  = _Qdata[i];
+        _Idata[i]     = tempI*cosine - tempQ*sine;
+        _Qdata[i]     = tempQ*cosine + tempI*sine;
+        phase        += phase_inc;
+        if (phase > twoPI)    phase -= twoPI;
+        else if (phase < 0.0) phase += twoPI;
+      }
+      // Return the updated phase for the next iteration
+      return phase;
+    }
+    #endif
+
+#ifndef PHASECHANGE
+
+// I2S audio sometimes starts with I and Q out of order
+void PhaseChange(uint8_t chg)
+{
+    static int val;
+
+   if( chg ){
+      if( ++val > 2 ) val = 0;                            // rotate through the settings
+   }
+      // print 
+   Serial.print("Ph:  ");
+
+   switch( val ){
+      case 0:  
+         PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;        // normal in phase
+         PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
+         Serial.println("1010");
+      break;
+      case 1:
+         PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;    
+         PhaseQfir[0] = 0;      PhaseQfir[1] = 1.0f;    // delay Q  ( delay I if fir runs backward )
+         Serial.println("1001");
+      break;
+      case 2:
+         PhaseIfir[0] = 0;      PhaseIfir[1] = 1.0f;    // delay I
+         PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
+         Serial.println("0110");
+      break;
+    }  
+}
+#endif
