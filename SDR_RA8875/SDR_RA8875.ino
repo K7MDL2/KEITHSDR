@@ -1350,6 +1350,7 @@ COLD void initDSP(void)
     AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions
     AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     resetCodec();
+    delay(50);  // Sometimes a delay avoids a Twin Peaks problem.
 }
 
 // initDSP() and startup in RX mode enables our resources.  
@@ -1766,6 +1767,6 @@ COLD void resetCodec(void)
     //AudioInterrupts();
     
     Xmit(0);  // Finish RX audio chain setup
-    
+
     Serial.println(" Reset Codec ");
 }
