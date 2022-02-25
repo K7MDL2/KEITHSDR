@@ -32,7 +32,7 @@ static int16_t fftMaxPower          = 0;    // Used to hold the FFT peak power f
 struct Spectrum_Parms Sp_Parms_Custom[1]    = {};      // Temp storage for generating new layouts    
 struct Spectrum_Parms *ptr                  = &Sp_Parms_Def[0];
 
-//#define BETATEST
+#define BETATEST
 #ifdef BETATEST
 extern float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
 extern float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
@@ -712,8 +712,8 @@ FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
         //  myFFT.windowFunction(NULL);
         //  myFFT.windowFunction(AudioWindowBartlett4096);
         //  myFFT.windowFunction(AudioWindowFlattop4096);
-        //myFFT_4096.windowFunction(AudioWindowHanning4096);
-        myFFT_4096.windowFunction(AudioWindowBlackmanHarris4096);
+        myFFT_4096.windowFunction(AudioWindowHanning4096);
+        // myFFT_4096.windowFunction(AudioWindowBlackmanHarris4096);
         myFFT_4096.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     #endif
     #ifdef FFT_2048
@@ -723,8 +723,8 @@ FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
         //  myFFT.windowFunction(NULL);
         //  myFFT.windowFunction(AudioWindowBartlett2048);
         //  myFFT.windowFunction(AudioWindowFlattop2048);
-        //  myFFT_2048.windowFunction(AudioWindowHanning2048);
-        myFFT_4096.windowFunction(AudioWindowBlackmanHarris2048);
+        myFFT_2048.windowFunction(AudioWindowHanning2048);
+        //  myFFT_4096.windowFunction(AudioWindowBlackmanHarris2048);
         myFFT_2048.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     #endif
     #ifdef FFT_1024
@@ -734,8 +734,8 @@ FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
         //  myFFT.windowFunction(NULL);
         //  myFFT.windowFunction(AudioWindowBartlett1024);
         //  myFFT.windowFunction(AudioWindowFlattop1024);
-        //  myFFT_1024.windowFunction(AudioWindowHanning1024);
-        myFFT_4096.windowFunction(AudioWindowBlackmanHarris1024);
+        myFFT_1024.windowFunction(AudioWindowHanning1024);
+        //  myFFT_4096.windowFunction(AudioWindowBlackmanHarris1024);
         myFFT_1024.setNAverage(3); // experiment with this value.  Too much causes a large time penalty
     #endif
 

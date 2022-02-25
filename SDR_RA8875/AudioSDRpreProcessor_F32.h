@@ -49,9 +49,9 @@
 #include "arm_const_structs.h"
 
 //
-#define maxSuccessCount        1000  //1000
+#define maxSuccessCount        20  //1000
 #define maxFailureCount        10  //10
-#define minImbalanceRatio      70.0f  //10.0f
+#define minImbalanceRatio      10000.0f  //10.0f
 #define spectralAvgMultiplier  10.0f  //10.0f
 #define n_block 128
 

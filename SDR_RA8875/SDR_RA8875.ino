@@ -29,9 +29,9 @@
 Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
 
 #ifdef I2C_ENCODERS              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
-    // This is a basic example for using the I2C Encoder V2
+    //  This is a basic example for using the I2C Encoder V2
     //  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
-    //  It's also printet when the push button is released.
+    //  It's also printed when the push button is released.
     //  When the encoder is turned the led turn green
     //  When the encoder reach the max or min the led turn red
     //  When the encoder is pushed, the led turn blue
@@ -153,8 +153,8 @@ Metro popup_timer       = Metro(500);   // used to check for popup screen reques
 Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout        = Metro(4000);  // MultiFunction Knob and Switch 
-Metro touchBeep_timer   = Metro(80); // Feedback beep for button touches
-Metro Auto_I2S_Timer    = Metro(5000); // Feedback beep for button touches
+Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
+Metro Auto_I2S_Timer    = Metro(5000);  // Escape timer for AutoI2S correction process
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -195,7 +195,7 @@ const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
 
-//#define BETATEST
+#define BETATEST
 #ifdef BETATEST
 DMAMEM float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
 DMAMEM float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
@@ -213,7 +213,6 @@ AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);
     #ifndef BETATEST
         DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
     #else
-        //AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer);
         AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // w/ power ave
     #endif
 #endif
@@ -767,12 +766,6 @@ HOT void loop()
         touchBeep(false);    
     }
 
-    #ifndef PHASE_CHANGE_ON
-    // Should not need this on continuously, switch to manual using current correction
-    if (Auto_I2S_Timer.check() == 1)
-        preProcessor.setI2SerrorCompensation(preProcessor.getI2SerrorCompensation()); // Stop I2S error detection
-    #endif
-
     //respond to Serial commands
     while (Serial.available())
     {
@@ -833,9 +826,6 @@ HOT void loop()
             displayTime();
         }
     }
-    //if (preProcessor.getAutoI2SerrorDetectionStatus());
-    //    Serial.println("getAutoI2SerrorDetectionStatus = ON");
-    //Serial.println(preProcessor.getI2SerrorCompensation());
 }
 //
 //-------------------------------------  Check_PTT() ------------------------------------------------------
@@ -1684,6 +1674,7 @@ COLD void resetCodec(void)
 
     codec1.enable(); // MUST be before inputSelect()
     codec1.lineInLevel(0); // Set to minimum, maybe prevent false Auto-iI2S detection
+    codec1.adcHighPassFilterEnable();
     delay(50);
 
     #ifdef PHASE_CHANGE_ON
@@ -1692,9 +1683,23 @@ COLD void resetCodec(void)
         PhaseQ.begin(PhaseQfir, 2);
         //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ANT button (long press)
     #else
-        // automatic phase correction 
+        // automatic I2S phase correction 
         preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
         preProcessor.swapIQ(false);
+        // Wait for a successful I2S correction before changing anything else affecting the process
+        Serial.println("AutoI2S Error Correction Loop Started");
+        time_t loop_time = now(); 
+        tft.setFont(Arial_14);
+        tft.setTextColor(myWHITE);
+        tft.setCursor(20, SCREEN_HEIGHT/2);
+        tft.print("AutoI2S Error Correction Loop Started");
+        while (Auto_I2S_Timer.check() != 1 && preProcessor.getAutoI2SerrorDetectionStatus())        
+        {   // Debug Stuff
+            //Serial.print("*");
+            //Serial.print("*** AutoI2S Correction Status = "); Serial.println(preProcessor.getAutoI2SerrorDetectionStatus());            
+            //Serial.print("*** AutoI2S Error Comp        = "); Serial.println(preProcessor.getI2SerrorCompensation());
+        }
+        Serial.print("AutoI2S Error Correction Loop Completed or Timed Out at "); Serial.print(now()-loop_time); Serial.println(" Seconds");
     #endif
 
     // The FM detector has error checking during object construction
