@@ -80,12 +80,12 @@ void AudioSDRpreProcessor_F32::update(void)
     if (autoDetectFlag)
     {
         const   int16_t n_FFT = 128;
-        const   int16_t min   = 10; 
+        const   int16_t min   = 5; 
         int     maxLine       = 0;
         //                                // At this point the output data block has already been updated
         for (int16_t i=0; i<128;i++) {        // Take 128 point FFT and compute the magnitude squared
-            buffer[2*i]   = abs(blockI->data[i]);  // data is +1.0f to -1.0f for f32.  
-            buffer[2*i+1] = abs(blockQ->data[i]);
+            buffer[2*i]   = blockI->data[i];  // data is +1.0f to -1.0f for f32.  
+            buffer[2*i+1] = blockQ->data[i];
         }
         // Take 128 point FFT and compute the magnitude squared
         arm_cfft_f32(&arm_cfft_sR_f32_len128, buffer, 0, 1);
@@ -94,7 +94,6 @@ void AudioSDRpreProcessor_F32::update(void)
         float32_t average_power = 0.0f;
         float32_t maximum_power = 0.0f;
         for (int16_t i=min; i<(n_FFT-min); i++) {                  // Ignore spectral lines around dc (noise)
-            //Serial.print(i); Serial.print(" v="); Serial.println(buffer[i]);
             average_power  += buffer[i];
             if (buffer[i]>maximum_power) {
             maxLine       = i;
@@ -109,12 +108,12 @@ void AudioSDRpreProcessor_F32::update(void)
             //Serial.print("max="); Serial.print(maximum_power); Serial.print("> avg="); Serial.println(spectralAvgMultiplier*average_power);
             if (imbalance_ratio < minImbalanceRatio) 
             {
-                //Serial.print("Fail -- balratio=");Serial.println(imbalance_ratio);
+                //Serial.print("Fail    ");Serial.println(imbalance_ratio);
                 failureCount++;   // Ratio too low, increment failure counter    
             }
             else 
             {
-                //Serial.print("Success -- balratio=");Serial.println(imbalance_ratio);
+                //Serial.print("Success ");Serial.println(imbalance_ratio);
                 failureCount = 0;                                   // Success - start the count over
             }
             if (failureCount > maxFailureCount) {                   // Too many failures (low ratios)in a row...
@@ -123,13 +122,13 @@ void AudioSDRpreProcessor_F32::update(void)
                     I2Scorrection = -1;                             // Try a new correction factor (-1, 0, or 1)...
                 failureCount  = 0;                                       // and start over...
                 successCount  = 0;
-                //Serial.print(">>>>>>>>>>>>>>Correction Attempted="); Serial.println(I2Scorrection);
+                Serial.print(">>>>>>>Correction Attempted="); Serial.print(I2Scorrection); Serial.print("    ratio="); Serial.println(imbalance_ratio);
             }
             successCount++;
             //Serial.println("**************Success");
         }
         if (successCount > maxSuccessCount) {
-            Serial.println("\n!!!! AutoCorrect turned OFF\n");
+            Serial.println("\n AutoCorrect turned OFF\n");
             autoDetectFlag = false;                    // Turn autoCorrection off and accept the current correction
         }
     }

@@ -49,10 +49,10 @@
 #include "arm_const_structs.h"
 
 //
-#define maxSuccessCount        10  //1000
-#define maxFailureCount        10  //10
-#define minImbalanceRatio      10.0f //10
-#define spectralAvgMultiplier  10.0f //10
+#define maxSuccessCount        1000  //1000
+#define maxFailureCount          10  //10
+#define minImbalanceRatio       100.0f //10
+#define spectralAvgMultiplier    10.0f //10
 #define n_block 128
 
 class AudioSDRpreProcessor_F32: public AudioStream_F32 {
