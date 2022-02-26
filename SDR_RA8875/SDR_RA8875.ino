@@ -17,7 +17,10 @@
 #include "Hilbert.h"            // filter coefficients
 //#include "hilbert251A.h"        // filter coefficients
 #include "AudioSDRpreProcessor_F32.h" // From https://github.com/DerekRowell/AudioSDR.  
+//#include "AudioSDRpreProcessor.h" // From https://github.com/DerekRowell/AudioSDR.  
 //  Local copies of the 2 needed files are included in this distributon modified for F32 compatibility.
+
+//#define USE_FREQ_SHIFTER
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
  #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
@@ -154,7 +157,7 @@ Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout        = Metro(4000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
-Metro Auto_I2S_Timer    = Metro(5000);  // Escape timer for AutoI2S correction process
+Metro Auto_I2S_Timer    = Metro(80000);  // Escape timer for AutoI2S correction process
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -207,7 +210,7 @@ DMAMEM float32_t  sumsq[4096];      // Required ONLY if power averaging is being
 //#define FFT_4096
 //#define FFT_2048
 //#define FFT_1024
-AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);    
+AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);    
 
 #ifdef FFT_4096
     #ifndef BETATEST
@@ -234,9 +237,11 @@ AudioSettings_F32           audio_settings(sample_rate_Hz, audio_block_samples);
     AudioFilterFIR_F32          PhaseQ(audio_settings);
 #else
     AudioSDRpreProcessor_F32    preProcessor;
+    //AudioSDRpreProcessor    preProcessor;
 #endif
-
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
+//AudioInputI2S               Input;  // Input from Line In jack (RX board)
+//AudioConvert_I16toF32       i16tof32_I, i16tof32_Q;
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
 AudioMixer4_F32             TX_Source(audio_settings);  // Select Mic, ToneA or ToneB or any combo
@@ -268,8 +273,10 @@ AudioMixer4_F32             FFT_Atten_Q(audio_settings);         // Some well pl
 RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 //RadioIQMixer_F32            FFT_LO_Mixer_I(audio_settings);
 //RadioIQMixer_F32            FFT_LO_Mixer_Q(audio_settings);
-//AudioEffectFreqShiftFD_OA_F32 FFT_LO_Mixer_I(audio_settings); // the frequency-domain processing block
-//AudioEffectFreqShiftFD_OA_F32 FFT_LO_Mixer_Q(audio_settings); // the frequency-domain processing block
+#ifdef USE_FREQ_SHIFTER
+    AudioEffectFreqShiftFD_OA_F32 FFT_LO_Mixer_I(audio_settings); // the frequency-domain processing block
+    AudioEffectFreqShiftFD_OA_F32 FFT_LO_Mixer_Q(audio_settings); // the frequency-domain processing block
+#endif
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
@@ -279,15 +286,24 @@ AudioConnection_F32     patchCord_RX_In_R(Input,1,                          Phas
 AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
 AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
 #else
-AudioConnection_F32     patchCord_RX_In_L(Input,0,                          preProcessor,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_In_R(Input,1,                          preProcessor,1);
-AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                   I_Switch,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                   Q_Switch,0);
+// Original 16 bit I2S correction version
+//AudioConnection         patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
+//AudioConnection         patchCord_RX_In_R(Input,1,                           preProcessor,1);
+//AudioConnection     patchCord_RX_32_L(preProcessor,0,                   i16tof32_I,0);  // route raw input audio to the FFT display
+//AudioConnection     patchCord_RX_32_R(preProcessor,1,                   i16tof32_Q,0);
+//AudioConnection_F32     patchCord_RX_Ph_L(i16tof32_I,0,                     I_Switch,0);  // route raw input audio to the FFT display
+//AudioConnection_F32     patchCord_RX_Ph_R(i16tof32_Q,0,                     Q_Switch,0);
+
+// F32 converted I2S correction version
+AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
+AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
+AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
+AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
 #endif
 
 // Test tones sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
-//AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
+//AudioConnection     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);    
 AudioConnection_F32     patchCord_IQ_Mix_L(TX_Source,0,                     TX_Hilbert_Plus_45,0); 
@@ -296,14 +312,18 @@ AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             I_Sw
 AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              Q_Switch,1); // + and - reversed for TX?
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
-//AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
-//AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_LO_Mixer_Q,0);
-//AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,                FFT_Atten_I,0); // Filter I and Q
-//AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_Q,0,                FFT_Atten_Q,0); 
-AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
-AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);
+#ifdef USE_FREQ_SHIFTER
+    AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_LO_Mixer_Q,0);
+    AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,                FFT_Atten_I,0); // Filter I and Q
+    AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_Q,0,                FFT_Atten_Q,0); 
+#else
+    AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);
+#endif
 AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
 AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_Q,0,                  FFT_OutSwitch_Q,0);
+
 // One or more of these FFT pipelines can be used, most likely for pan and zoom.  Normally just 1 is used.
 #ifdef FFT_4096
     AudioConnection_F32     patchCord_FFT_L_4096(FFT_OutSwitch_I,0,             myFFT_4096,0);   // Route selected audio source to the FFT
@@ -563,7 +583,7 @@ COLD void setup()
     VFOB = bandmem[curr_band].vfo_B_last;
     #endif
 
-    initVfo(); // initialize the si5351 vfo
+    //initVfo(); // initialize the si5351 vfo
 
 #ifndef BYPASS_SPECTRUM_MODULE    
     spectrum_RA887x.Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
@@ -585,10 +605,9 @@ COLD void setup()
 
 
     //--------------------------   Setup our Audio System -------------------------------------
+    initVfo(); // initialize the si5351 vfo
     initDSP();
     //RFgain(0);
-    // ---------------------------- Setup speaker on or off and unmute outputs --------------------------------
-   
     changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
                         // Call changeBands() here after volume to get proper startup volume
 
@@ -1674,9 +1693,11 @@ COLD void resetCodec(void)
 
     codec1.enable(); // MUST be before inputSelect()
     codec1.lineInLevel(0); // Set to minimum, maybe prevent false Auto-iI2S detection
+    codec1.muteHeadphone(); //mute the TX audio output to transmitter input 
     codec1.adcHighPassFilterEnable();
+    //codec1.adcHighPassFilterDisable();
     delay(50);
-
+    
     #ifdef PHASE_CHANGE_ON
         // Manual approach
         PhaseI.begin(PhaseIfir, 2);
@@ -1687,17 +1708,20 @@ COLD void resetCodec(void)
         preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
         preProcessor.swapIQ(false);
         // Wait for a successful I2S correction before changing anything else affecting the process
-        Serial.println("AutoI2S Error Correction Loop Started");
         time_t loop_time = now(); 
         tft.setFont(Arial_14);
         tft.setTextColor(myWHITE);
         tft.setCursor(20, SCREEN_HEIGHT/2);
         tft.print("AutoI2S Error Correction Loop Started");
+        Serial.println("AutoI2S Error Correction Loop Started");
+        // Timeout in case the correction process never ends
         while (Auto_I2S_Timer.check() != 1 && preProcessor.getAutoI2SerrorDetectionStatus())        
+        //while (preProcessor.getAutoI2SerrorDetectionStatus())        
         {   // Debug Stuff
             //Serial.print("*");
             //Serial.print("*** AutoI2S Correction Status = "); Serial.println(preProcessor.getAutoI2SerrorDetectionStatus());            
             //Serial.print("*** AutoI2S Error Comp        = "); Serial.println(preProcessor.getI2SerrorCompensation());
+            delay(3);
         }
         Serial.print("AutoI2S Error Correction Loop Completed or Timed Out at "); Serial.print(now()-loop_time); Serial.println(" Seconds");
     #endif
@@ -1706,33 +1730,33 @@ COLD void resetCodec(void)
     // when Serial.print is not available.  See RadioFMDetector_F32.h:
     Serial.print("FM Initialization errors: ");
     Serial.println(FM_Detector.returnInitializeFMError() );
-    
     //FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
     //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
     FM_LO_Mixer.frequency(15000);
     FM_LO_Mixer.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
     FM_LO_Mixer.useSimple(true);   
-/*
-    // Configure the FFT parameters algorithm
-    int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
-    int N_FFT = audio_block_samples * overlap_factor;  
-    Serial.print("    : N_FFT = "); Serial.println(N_FFT);
-    FFT_LO_Mixer_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
-    FFT_LO_Mixer_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
 
-    //configure the frequency shifting
-    float shiftFreq_Hz = 1.0; //shift audio upward a bit
-    float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
-    int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
+    #ifdef USE_FREQ_SHIFTER
+        // Configure the FFT parameters algorithm
+        int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
+        int N_FFT = audio_block_samples * overlap_factor;  
+        Serial.print("    : N_FFT = "); Serial.println(N_FFT);
+        FFT_LO_Mixer_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
+        FFT_LO_Mixer_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
 
-    shiftFreq_Hz = shift_bins * Hz_per_bin;
-    Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
-    Serial.print(" Hz, which is "); Serial.print(shift_bins); 
-    Serial.println(" bins");
-    FFT_LO_Mixer_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
-    FFT_LO_Mixer_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
-*/
-    
+        //configure the frequency shifting
+        float shiftFreq_Hz = 10000.0; //shift audio upward a bit
+        float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
+        int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
+
+        shiftFreq_Hz = shift_bins * Hz_per_bin;
+        Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
+        Serial.print(" Hz, which is "); Serial.print(shift_bins); 
+        Serial.println(" bins");
+        FFT_LO_Mixer_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
+        FFT_LO_Mixer_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
+    #endif
+    // Mixer using LO to shift signal up the FFT spectrum  Experimental, not working yet
     //FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
     //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
     //FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
