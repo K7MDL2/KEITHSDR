@@ -17,7 +17,6 @@
 #include "Hilbert.h"            // filter coefficients
 //#include "hilbert251A.h"        // filter coefficients
 #include "AudioSDRpreProcessor_F32.h" // From https://github.com/DerekRowell/AudioSDR.  
-//#include "AudioSDRpreProcessor.h" // From https://github.com/DerekRowell/AudioSDR.  
 //  Local copies of the 2 needed files are included in this distributon modified for F32 compatibility.
 
 //#define USE_FREQ_SHIFTER
@@ -237,11 +236,8 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     AudioFilterFIR_F32          PhaseQ(audio_settings);
 #else
     AudioSDRpreProcessor_F32    preProcessor;
-    //AudioSDRpreProcessor    preProcessor;
 #endif
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
-//AudioInputI2S               Input;  // Input from Line In jack (RX board)
-//AudioConvert_I16toF32       i16tof32_I, i16tof32_Q;
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
 AudioMixer4_F32             TX_Source(audio_settings);  // Select Mic, ToneA or ToneB or any combo
@@ -286,14 +282,6 @@ AudioConnection_F32     patchCord_RX_In_R(Input,1,                          Phas
 AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
 AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
 #else
-// Original 16 bit I2S correction version
-//AudioConnection         patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
-//AudioConnection         patchCord_RX_In_R(Input,1,                           preProcessor,1);
-//AudioConnection     patchCord_RX_32_L(preProcessor,0,                   i16tof32_I,0);  // route raw input audio to the FFT display
-//AudioConnection     patchCord_RX_32_R(preProcessor,1,                   i16tof32_Q,0);
-//AudioConnection_F32     patchCord_RX_Ph_L(i16tof32_I,0,                     I_Switch,0);  // route raw input audio to the FFT display
-//AudioConnection_F32     patchCord_RX_Ph_R(i16tof32_Q,0,                     Q_Switch,0);
-
 // F32 converted I2S correction version
 AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
 AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
