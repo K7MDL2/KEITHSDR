@@ -5,7 +5,8 @@
               to the AudioSDR software-defined-radio Teensy 3.6 Audio block.
 
    Author:   Derek Rowell (drowell@mit.edu)
-   Date:     April 26, 2019  
+   Date:     April 26, 2019 
+   Modified  Feb 26, 2022 by K7MDL for F32 library use 
   
    Notes:    Includes the following functions:
              a) Automatically detect and correct the random Teensy single-sample delay
@@ -58,14 +59,14 @@ void AudioSDRpreProcessor_F32::update(void)
     //     the channels are synchronized again.
     // ---
     if (I2Scorrection == 1){
-        int16_t temp = blockI->data[n_block-1];             // save the most recent sample for the next buffer
+        float32_t temp = blockI->data[n_block-1];             // save the most recent sample for the next buffer
         for(int16_t i=n_block-1; i>0; i--) blockI->data[i] = blockI->data[i-1];
         blockI->data[0] = savedSample;
         savedSample = temp;}
     else if (I2Scorrection == -1){
-        int16_t temp = blockQ->data[n_block-1];             // save the most recent sample for the next buffer
+        float32_t temp = blockQ->data[n_block-1];             // save the most recent sample for the next buffer
         for(int16_t i=n_block-1; i>0; i--) blockQ->data[i] = blockQ->data[i-1];
-        blockI->data[0] = savedSample;
+        blockQ->data[0] = savedSample;
         savedSample = temp;}
     //
     //---------------------------------------------------------------------------------------------
@@ -79,12 +80,12 @@ void AudioSDRpreProcessor_F32::update(void)
     if (autoDetectFlag)
     {
         const   int16_t n_FFT = 128;
-        const   int16_t min   = 8;  //5;
+        const   int16_t min   = 10; 
         int     maxLine       = 0;
         //                                // At this point the output data block has already been updated
         for (int16_t i=0; i<128;i++) {        // Take 128 point FFT and compute the magnitude squared
-            buffer[2*i]   = float32_t(blockI->data[i]);
-            buffer[2*i+1] = float32_t(blockQ->data[i]);
+            buffer[2*i]   = abs(blockI->data[i]);  // data is +1.0f to -1.0f for f32.  
+            buffer[2*i+1] = abs(blockQ->data[i]);
         }
         // Take 128 point FFT and compute the magnitude squared
         arm_cfft_f32(&arm_cfft_sR_f32_len128, buffer, 0, 1);
@@ -93,6 +94,7 @@ void AudioSDRpreProcessor_F32::update(void)
         float32_t average_power = 0.0f;
         float32_t maximum_power = 0.0f;
         for (int16_t i=min; i<(n_FFT-min); i++) {                  // Ignore spectral lines around dc (noise)
+            //Serial.print(i); Serial.print(" v="); Serial.println(buffer[i]);
             average_power  += buffer[i];
             if (buffer[i]>maximum_power) {
             maxLine       = i;
@@ -138,7 +140,7 @@ void AudioSDRpreProcessor_F32::update(void)
     // incorrect quadrature input connections
     if (IQswap){
         for (int16_t i=0; i<128; i++) {
-        int16_t temp = blockI->data[i];
+        float32_t temp = blockI->data[i];
         blockI->data[i] = blockQ->data[i];
         blockQ->data[i] = temp;
         }

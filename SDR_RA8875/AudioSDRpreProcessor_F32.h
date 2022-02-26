@@ -6,7 +6,7 @@
 
   Author:   Derek Rowell (drowell@mit.edu)
   Date:     April 26, 2019  
-  Modified  Feb 24, 2022 by K7MDL for F32 library use
+  Modified  Feb 26, 2022 by K7MDL for F32 library use
 
   Notes:    Includes the following functions:
             a) Automatically detect and correct the random Teensy single-sample delay
@@ -49,15 +49,15 @@
 #include "arm_const_structs.h"
 
 //
-#define maxSuccessCount        20  //1000
+#define maxSuccessCount        10  //1000
 #define maxFailureCount        10  //10
-#define minImbalanceRatio      10000.0f  //10.0f
-#define spectralAvgMultiplier  10.0f  //10.0f
+#define minImbalanceRatio      10.0f //10
+#define spectralAvgMultiplier  10.0f //10
 #define n_block 128
 
 class AudioSDRpreProcessor_F32: public AudioStream_F32 {
   public:
-    AudioSDRpreProcessor_F32() : AudioStream_F32(2, inputQueueArray) {}
+    AudioSDRpreProcessor_F32() : AudioStream_F32(2, inputQueueArray_f32) {}
     virtual void update(void);
     // --
     // Public  functions
@@ -69,12 +69,12 @@ class AudioSDRpreProcessor_F32: public AudioStream_F32 {
     void    swapIQ(boolean swap);
     // -- 
   private:
-    audio_block_f32_t *inputQueueArray[2];
+    audio_block_f32_t *inputQueueArray_f32[2];
     float32_t   buffer[256];
     float32_t   image_ratio   = 1.0f;
     float32_t   avg;
     int16_t     I2Scorrection = 0;
-    int16_t     savedSample   = 0;
+    float32_t   savedSample   = 0;
     int16_t     failureCount  = 0;
     int16_t     successCount  = 0;
     bool        IQswap = false;
