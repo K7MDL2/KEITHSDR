@@ -490,8 +490,9 @@ COLD void Mute()
         }
         else    
         {    //codec1.muteHeadphone();
-            RampVolume(_afLevel, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
+            //RampVolume(_afLevel, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
             user_settings[user_Profile].mute = OFF;        
+            AFgain(0);
         }
         displayMute();
     }        
