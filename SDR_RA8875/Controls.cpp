@@ -806,9 +806,6 @@ COLD void Ant()
     displayANT();
     //Serial.print("Set Ant Sw to ");
     //Serial.println(bandmem[curr_band].ant_sw);
-#ifdef PHASE_CHANGE_ON
-    PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
-#endif
 
 #ifdef DIG_STEP_ATT  // for testing only
 // FOR TEST of Attenuator settings
@@ -1261,6 +1258,12 @@ COLD void Enet()
         user_settings[user_Profile].enet_output = OFF;
     else if (user_settings[user_Profile].enet_output == OFF)
         user_settings[user_Profile].enet_output = ON;
+
+#ifdef PHASE_CHANGE_ON
+    PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
+#endif
+
+        
     displayEnet();
     //Serial.print("Set Ethernet to ");
     //Serial.println(user_settings[user_Profile].enet_output);
