@@ -54,5 +54,7 @@ void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
 void setZoom(int8_t dir);
+void setPAN(int8_t toggle);
+void PAN(int8_t delta);
 
 #endif  // _CONTROLS_H_
