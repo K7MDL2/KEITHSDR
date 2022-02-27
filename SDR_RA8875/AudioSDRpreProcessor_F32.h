@@ -51,7 +51,10 @@
 //
 #define maxSuccessCount        1000  //1000
 #define maxFailureCount          10  //10
-#define minImbalanceRatio       100.0f //10
+#define minImbalanceRatio       100.0f  //10   100 on noise band.  
+                                      // 2 to 10 range with disconnected or attenuatoed antenna or high quiet bamd
+                                      // 100 on noisy band with antenna on and no attenuator
+                                      // can select mic if no mic element connected (not live) in RX.
 #define spectralAvgMultiplier    10.0f //10
 #define n_block 128
 
