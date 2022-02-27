@@ -760,9 +760,6 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case ATTEN_BTN:     Atten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
-                    #ifdef PHASE_CHANGE_ON
-                    case ANT_BTN:       PhaseChange(1); break;
-                    #endif
                     //case AFGAIN_BTN:    setAFgain(1);   break;
                     case RFGAIN_BTN:    setRFgain(3);   break;  // same as 2 but toggle PAN ON state
                     default: Serial.print(F("Found a button with SHOW on WITH LONG PRESS but has no function to call.  Index = "));
