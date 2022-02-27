@@ -43,8 +43,6 @@ struct Transverter xvtr[XVTRS] = {
     {"47100",   OFF, XVTR12, 47100, 1296, 0.50, 0.0, XVTR12}
 };
 
-#ifdef USE_RA8875
-
 // Button Position variables for easy bulk size, place and move.
 const uint16_t x_0 = 1; // reserved for Menu row select button (Fucntion button)
 const uint16_t x_1 = 118;
@@ -59,7 +57,7 @@ const uint16_t w_1 = 100;
 const uint16_t h_1 = 60;
 const uint16_t r_1 = 20;
 
-
+// Shared button placement for both RA8875 800x480 and RA8876 1024x600 displays
 struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show  pnl   x   y    w    h    r   outline_color      txtcolor           on_color     off_color     padx pady  label
     {  2,  ON,   0, x_0, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
@@ -98,6 +96,8 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     {OFF, OFF,   5, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
     { ON, OFF,   5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     { ON, OFF,   5, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
+    
+#ifdef USE_RA8875   // These rows differ between display sizes.
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON,   0, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
     { ON,  ON,   0, 645,  40, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
@@ -107,46 +107,6 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 //    { ON, OFF,   2, 467, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
 
 #else
-
-struct Standard_Button std_btn[STD_BTN_NUM] = {
-  //  en  show  pnl   x   y    w    h   r   outline_color      txtcolor           on_color     off_color  padx pady    label
-    {  2,  ON,   0,   1, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
-    { ON,  ON,   1, 118, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Mode\0"},
-    { ON,  ON,   1, 235, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Filter\0"},
-    { ON,  ON,   1, 467, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  6, 20, "Atten\0"},
-    { ON,  ON,   1, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Preamp\0"},
-    { ON,  ON,   1, 350, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
-    { ON,  ON,   1, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
-    //Panel 2
-    { ON, OFF,   2, 118, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "NB\0"},
-    { ON, OFF,   2, 235, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
-    { ON, OFF,   2, 467, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
-    { ON, OFF,   2, 350, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 18, 20, "Notch\0"},
-    { ON, OFF,   2, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
-    { ON, OFF,   2, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
-    //Panel 3
-    { ON, OFF,   3, 118, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Menu\0"},
-    { ON, OFF,   3, 235, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "ANT  \0"},
-    { ON, OFF,   3, 350, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 25, 20, "ATU\0"},
-    { ON, OFF,   3, 467, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "XMIT\0"},
-    { ON, OFF,   3, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band -\0"},
-    { ON, OFF,   3, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
-    //Panel 4
-    { ON, OFF,   4, 118, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
-    { ON, OFF,   4, 235, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},   
-    { ON, OFF,   4, 350, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
-    { ON, OFF,   4, 467, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
-    { ON, OFF,   4, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
-    { ON, OFF,   4, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
-    //Panel 5
-    { ON, OFF,   5, 118, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
-    { ON, OFF,   5, 235, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "Xvtr\0"},
-    { ON, OFF,   5, 350, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "RF:\0"},
-    {OFF, OFF,   5, 467, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
-    { ON, OFF,   5, 583, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "Zoom\0"},
-    // Placeholder for display key to eb active here also
-    { ON, OFF,   5, 699, 539, 100, 60, 20, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
-    //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display    
     { ON,  ON,   0, 865,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
     { ON,  ON,   0, 880,  41, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
     { ON, OFF,   0,   0, 190,1023,320, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune hotspot area definition.
