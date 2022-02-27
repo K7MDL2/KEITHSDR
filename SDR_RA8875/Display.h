@@ -26,16 +26,16 @@ void displayTime();
 void displayMode();
 void displayFilter();
 void displayAttn();
-void displayPreamp();
 void displayRate();
+void displayPreamp();
 void displayBand();
 //Panel 2 buttons
 void displayNB();
 void displayNR();
-void displaySpot();
 void displayNotch();
 void displayAgc();
-void displayMute();
+void displayZoom();
+void displayPan();
 //Panel 3 buttons
 void displayMenu();
 void displayANT();
@@ -46,16 +46,18 @@ void displayBandDn();
 //Panel 4 buttons
 void displayRIT();
 void displayXIT();
-void displayVFO_AB();
 void displayFine();
-void displayDisplay();
 void displaySplit();
+void displayDisplay();
+void displayVFO_AB();
 //Panel 5 buttons
-void displayRFgain();
-void displayAFgain();
 void displayEnet();
 void displayXVTR();
+void displayRFgain();
 void displayRefLevel();
-void displayZoom();
+void displayAFgain();
+void displayMute();
+
+//void displaySpot();  // spare
 
 #endif //_DISPLAY_H_

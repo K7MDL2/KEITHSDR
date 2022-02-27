@@ -733,6 +733,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case ENET_BTN:      Enet();         break;
                     case AFGAIN_BTN:    setAFgain(2);   break;
                     case RFGAIN_BTN:    setRFgain(2);   break;
+                    case PAN_BTN:       setPAN(2);      break;
                     case SPOT_BTN:      Spot();         break;
                     case REFLVL_BTN:    setRefLevel(2); break;
                     case NOTCH_BTN:     Notch();        break;
@@ -758,6 +759,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case AGC_BTN:       AGC();          break;   
                     case ATTEN_BTN:     Atten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
+                    case PAN_BTN:       setPAN(3);      break;  // set pan to center
                     #ifdef PHASE_CHANGE_ON
                     case ANT_BTN:       PhaseChange(1); break;
                     #endif

@@ -229,6 +229,27 @@ COLD void displayANT(void)
 	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
 
+void displayPan(void)
+{	
+	char string[80];   // print format stuff
+	sprintf(std_btn[PAN_BTN].label, "%s%3d", "Pan:", user_settings[user_Profile].pan_level-50);
+	//sprintf(labels[PAN_BTN].label, "%s%3d", "PN:", user_settings[user_Profile].pan_level);
+	//drawLabel(PAN_BTN, &user_settings[user_Profile].pan_level);
+    if (MF_client == PAN_BTN) 
+	{ 
+		//MF_default_is_active = false;
+		sprintf(string, "Pan:%3d", user_settings[user_Profile].pan_level-50);
+		MeterInUse = true;
+		displayMeter(user_settings[user_Profile].pan_level/10, string, 5);   // val, string label, color scheme
+	}
+	Serial.print(F("Pan set to ")); Serial.println(std_btn[PAN_BTN].label);
+	draw_2_state_Button(PAN_BTN, &user_settings[user_Profile].pan_state);
+  #ifdef I2C_LCD
+    lcd.setCursor(10,1);
+    lcd.print(std_btn[PAN_BTN].label);
+  #endif
+}
+
 COLD void displayRFgain(void)
 {	
 	char string[80];   // print format stuff
@@ -546,38 +567,40 @@ COLD void displayRefresh(void)
 	// Panel 1 buttons
 	displayMode();
 	displayFilter();
+	displayRate();
 	displayAttn();
 	displayPreamp();
-	displayRate();
 	displayBand();
 	//Panel 2 buttons
 	displayNB();
 	displayNR();
-	displaySpot();
 	displayNotch();
 	displayAgc();
-	displayMute();
+	displayZoom();
+	displayPan();
 	//Panel 3 buttons
 	displayMenu();
 	displayANT();
 	displayATU();
 	displayXMIT();
-	displayBandUp();
 	displayBandDn();
+	displayBandUp();
 	//Panel 4 buttons
 	displayRIT();
 	displayXIT();
-	displayVFO_AB();
 	displayFine();
-	displayDisplay();
 	displaySplit();
+	displayDisplay();
+	displayVFO_AB();
 	//Panel 5 buttons
-	displayRFgain();
-	displayAFgain();
 	displayEnet();
 	displayXVTR();
+	displayRFgain();
 	displayRefLevel();
-	displayZoom();
+	displayAFgain();
+	displayMute();
+	
+	//displaySpot(); // spare
 }
 
 //#ifndef USE_RA8875

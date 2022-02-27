@@ -173,6 +173,9 @@
     #endif
     #undef AUDIOBOOST
     #define AUDIOBOOST   (1.0f)
+    // Experimental features - use only one or none!
+    //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
+    //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
 #endif  // K7MDL_BUILD
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------

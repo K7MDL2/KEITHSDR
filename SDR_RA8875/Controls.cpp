@@ -62,8 +62,14 @@ extern          int16_t             fft_bins;
 extern          void                Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 extern          float               zoom_in_sample_rate_Hz;
 extern          float               sample_rate_Hz;
-extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_I;
-extern          AudioEffectFreqShiftFD_OA_F32    FFT_LO_Mixer_Q;
+#ifdef USE_FREQ_SHIFTER
+extern AudioEffectFreqShiftFD_OA_F32    FFT_SHIFT_I;
+extern AudioEffectFreqShiftFD_OA_F32    FFT_SHIFT_Q;
+#endif
+#ifdef USE_FFT_LO_MIXER 
+extern RadioIQMixer_F32             FFT_LO_Mixer_I;
+extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
+#endif
 extern          float               pan;
 extern          void                PhaseChange(uint8_t chg);
 
@@ -111,6 +117,8 @@ void selectAgc(uint8_t andx);
 void clearMeter(void);
 void setMeter(uint8_t id);
 void setZoom(int8_t dir);
+void PAN(int8_t delta);
+void setPAN(int8_t toggle);
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -471,6 +479,8 @@ COLD void AGC()
 // MUTE
 COLD void Mute()
 {  
+    float _afLevel = (float) user_settings[user_Profile].afGain/100;
+    
     if (user_settings[user_Profile].spkr_en)
     {
         if (!user_settings[user_Profile].mute)
@@ -480,7 +490,7 @@ COLD void Mute()
         }
         else    
         {    //codec1.muteHeadphone();
-            RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
+            RampVolume(_afLevel, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"                        
             user_settings[user_Profile].mute = OFF;        
         }
         displayMute();
@@ -889,7 +899,7 @@ COLD void AFgain(int8_t delta)
         user_settings[user_Profile].afGain = _afLevel;  // update memory
         codec1.lineOutLevel(user_settings[user_Profile].lineOut_RX); // skip when in TX to act as Mic Level Adjust control
     }
-    else // Control Mic Gani and Power out
+    else // Control Mic Gain and Power out
     {
         user_settings[user_Profile].mic_Gain_level = _afLevel;  // 0 to 100 mic gain range
         codec1.micGain(user_settings[user_Profile].mic_Gain_level * 0.63);  // adjust for 0 to 63dB
@@ -903,9 +913,12 @@ COLD void AFgain(int8_t delta)
     //Serial.print(" Volume set to  log = "); 
     //Serial.println(val);
 
-//AudioNoInterrupts();
-//FFT_LO_Mixer_I.frequency((_afLevel)*200.0f);
-//FFT_LO_Mixer_Q.frequency((_afLevel)*100.0f);
+#ifdef USE_FFT_LO_MIXER
+    AudioNoInterrupts();
+    FFT_LO_Mixer_I.frequency((_afLevel)*200.0f);
+    FFT_LO_Mixer_Q.frequency((_afLevel)*200.0f);
+    AudioInterrupts();
+#endif
 /*
     int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
     int N_FFT = audio_block_samples * overlap_factor;  
@@ -948,16 +961,6 @@ COLD void AFgain(int8_t delta)
 // RF GAIN button activate control
 COLD void setRFgain(int8_t toggle)
 {
-    // Toggle = 3 is special case for a PAN on/off control with long press on RFGain button until a new one is made later.
-    if (toggle == 3)    // toggle if ordered, else just set to current state such as for startup.
-    {
-        if (user_settings[user_Profile].pan_state == ON)  // toggle the PAN tracking state
-            user_settings[user_Profile].pan_state = OFF;
-        else 
-            user_settings[user_Profile].pan_state = ON;
-        toggle = 2;  // continue with normal RF gain operation 
-    }
-
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (user_settings[user_Profile].rfGain_en)  // toggle the attenuator tracking state
@@ -1007,33 +1010,113 @@ COLD void RFgain(int8_t delta)
         _rfLevel = 100;
     if (_rfLevel < 1)
         _rfLevel = 1;    // do not use 0 to prevent divide/0 error
-
-    user_settings[user_Profile].rfGain = _rfLevel;  // 0 to 100 range, ,linear
- 
+    
+    // Store new value as 0 to 100%
+    user_settings[user_Profile].rfGain = _rfLevel;  // 0 to 100 range, ,linear 
     //Amp1_L.setGain_dB(AUDIOBOOST * _rfLevel/100);    // Adjustable fixed output boost in dB.
     //Amp1_R.setGain_dB(AUDIOBOOST * _rfLevel/100);
-    
-//AudioNoInterrupts();
-//FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5.0f);
-//FFT_LO_Mixer_Q.iqmPhaseS((float) user_settings[user_Profile].rfGain*5);
-//AudioInterrupts();
 
-    // LineIn is 0 to 15 with 15 being ther most sensitive
-    if (user_settings[user_Profile].pan_state == OFF)
-    {   codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
-        I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
-        Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
-    }
-    else
-    {   // bins that will not fit on the display can be viewed by shiftrin our left edge index.  Assuming 1 px per bin
-        pan = (_rfLevel-50)/100.0f;
-        user_settings[user_Profile].pan_level = pan;
-    }
+    // LineIn is 0 to 15 with 15 being the most sensitive
+    codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
+    
+    // Attennuating a gain stage is fast and helps give more RFgain effectivness
+    I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+    Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
+
     //Serial.print("CodecLine IN level set to "); 
     //Serial.println(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);
     //Serial.print("RF Gain level set to  "); 
     //Serial.println(_rfLevel);
     displayRFgain();
+}
+
+// PAN ON/OFF button activate control
+// -1 is clear meter- used by MF knob and S-meter box   leave pan window alone.  
+//  0 is OFF - turn off button highlight and center pan window
+//  1 is ON
+//  2 is toggle ON/OFF state
+// 3  is center the pan window
+COLD void setPAN(int8_t toggle)
+{
+    Serial.print("PAN toggle = "); Serial.println(toggle);
+
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (user_settings[user_Profile].pan_state == ON)  // toggle the attenuator tracking state
+            toggle = 0;
+        else 
+            toggle = 1;
+    }
+
+    if (toggle == 1)      // Set button to on to track as active 
+    {
+        user_settings[user_Profile].pan_state = ON;        
+        setMeter(PAN_BTN);
+        PAN(0);
+    }
+    
+    if (toggle == 0 || toggle == -1 || toggle ==3)
+    {
+        user_settings[user_Profile].pan_state = OFF;
+        MeterInUse = false;
+        if (toggle != -1)
+            clearMeter();
+        if (toggle == 3)  // Zero the pan window and turn off on long button press
+        {
+            pan = 0.0f;
+            user_settings[user_Profile].pan_level = 50;
+        }
+    }
+
+    if (toggle == 3)
+
+    //Serial.print(" PAN state is  "); 
+    //Serial.println(user_settings[user_Profile].pan_state);
+    displayPan();
+}
+
+// PAN Adjust
+//
+//  Input:   0 no change
+//          -X Reduce by X%
+//          +X Increase by X%
+//
+COLD void PAN(int8_t delta)
+{
+    int8_t _panLevel;
+
+    _panLevel = user_settings[user_Profile].pan_level;   // Get last absolute volume setting as a value 0-100
+    _panLevel += delta;      // convert percentage request to a single digit float
+
+    if (_panLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
+        _panLevel = 100;
+    if (_panLevel < 0)
+        _panLevel = 0;
+ 
+    if (user_settings[user_Profile].pan_state == OFF && delta ==0)
+    {   
+        pan = 0.0f;   
+        _panLevel = 50;  // 50 is halfway or 0
+        user_settings[user_Profile].pan_level = _panLevel;
+        //use for testing frequency shift methods  
+        #ifdef USE_FFT_LO_MIXER   
+            AudioNoInterrupts();
+            FFT_LO_Mixer_I.iqmPhaseS_C(_rfLevel*5.0f);
+            //FFT_LO_Mixer_Q.iqmPhaseS((float) user_settings[user_Profile].rfGain*5);
+            AudioInterrupts();
+        #endif
+    }
+    else
+    {   // bins that will not fit on the display can be viewed by shifting our left edge index.  Assuming 1 px per bin
+        pan = float (_panLevel-50)/100.0f;  // 0 is 0.0.  50 is +0.5, -50 is -0.5.
+        user_settings[user_Profile].pan_level = _panLevel;
+    }
+
+    Serial.print("Control Change: PAN set to  "); 
+    Serial.print(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
+    Serial.print("  delta=");
+    Serial.println(delta);
+    displayPan();
 }
 
 // XMIT button
@@ -1189,7 +1272,7 @@ COLD void Spot()
         user_settings[user_Profile].spot = ON;
     else
         user_settings[user_Profile].spot = OFF;
-    displaySpot();
+    //displaySpot();
     //Serial.print("Set Spot to ");
     //Serial.println(user_settings[user_Profile].spot);
 }

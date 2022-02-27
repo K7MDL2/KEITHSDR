@@ -220,7 +220,7 @@
 #define NTCH2       2
 
 // Some defines for ease of use 
-#define myDARKGREY  31727u
+#define myDARKGREY    31727u
 // From RA8876_t3/RA8876Registers.h
 #define BLACK		  0x0000
 #define WHITE		  0xffff
@@ -265,8 +265,8 @@
 #define AGC_SET_NUM 4
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
-#define LABEL_NUM   21      // number of labels in the table
-#define STD_BTN_NUM 34      // number of buttons in the table
+#define LABEL_NUM   22      // number of labels in the table
+#define STD_BTN_NUM 35      // number of buttons in the table
 
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
@@ -279,17 +279,17 @@
 #define FN_BTN      0       // Swaps out buttons in bottom row.  This stays for each row.
 #define MODE_BTN    1       // index to button
 #define FILTER_BTN  2       // will display the current FILTER value in the button
-#define ATTEN_BTN   3       // invoke a pop up (ON) for atten slider or MF knob adjustment
-#define PREAMP_BTN  4       // On off
-#define RATE_BTN    5       // will display the RATE (step) value in the button
+#define RATE_BTN    3       // will display the RATE (step) value in the button
+#define ATTEN_BTN   4       // invoke a pop up (ON) for atten slider or MF knob adjustment
+#define PREAMP_BTN  5       // On off
 #define BAND_BTN    6       // Pops up Band Window.  Touch or MF can change bands
 //Panel 2  These swap out
 #define NB_BTN      7       // not implemented yet
 #define NR_BTN      8       // will display the NR value in the button
-#define SPOT_BTN    9       // will display the NR value in the button
-#define NOTCH_BTN   10      // will display the NR value in the button
-#define AGC_BTN     11      // will display the AGC value in the button
-#define MUTE_BTN    12      // On off
+#define NOTCH_BTN   9       // will display the NR value in the button
+#define AGC_BTN     10      // will display the AGC value in the button
+#define ZOOM_BTN    11      // Sets Zoom level
+#define PAN_BTN     12      // Enables PAN spectrum shift
 //Panel 3
 #define MENU_BTN    13      // invoke a pop up (ON) for atten slider or MF knob adjustment
 #define ANT_BTN     14      // Antenna switch
@@ -309,19 +309,20 @@
 #define XVTR_BTN    26      // not implemented yet
 #define RFGAIN_BTN  27      // Sets digital RF level
 #define REFLVL_BTN  28      // Sets the Spectrum Noise floor.
-#define ZOOM_BTN    29      // Sets Zoom level
-#define AFGAIN_BTN  30      // Sets digital AF level
+#define AFGAIN_BTN  29      // Sets digital AF level
+#define MUTE_BTN    30      // Audio headphone jack output on/off
 
 // Not in a Panel
 #define UTCTIME_BTN 31      // NTP UTC time when ethernet (and internet) is available 
 #define SMETER_BTN  32      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
 #define SPECTUNE_BTN 33     // Converts a touch in the spectrum window to a frequency to tune too.
+#define SPOT_BTN    34       // will display the NR value in the button
 
 // The #define button numbers act as the ID of possible owners of MF knob services
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
                             // Make sure this does have the same value as any buttom #defne value. 50 is safe.
 #define MFNONE      0       // No active MF knob client.  0 is safe.
-#define myDARKGREY  31727u
+
 // Our Database of settings. This is the "factory default".  A user copy will be stored in EEPROM with user changes
 struct Band_Memory {
     char        band_name[20];  // Freindly name or label.  Default here but can be changed by user.
@@ -440,7 +441,7 @@ struct User_Settings {
     uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
     uint8_t     pan_state;          // 0 = OFF, 1 = ON
-    float       pan_level;          // -0.50 to 0.50 pan setting memory
+    uint8_t     pan_level;          // 0-100 converts to pan range of -0.50 to 0.50 for the pan memory.  0  is centered.
 };
 
 struct Frequency_Display {
