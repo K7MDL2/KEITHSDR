@@ -203,6 +203,7 @@
 #define VFO_A       1
 #define VFO_B       0
 
+#define NBOFF       0
 #define NB1         1
 #define NB2         2
 #define NB3         3

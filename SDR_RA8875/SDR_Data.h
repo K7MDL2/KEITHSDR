@@ -64,7 +64,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON,  ON,   1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Mode\0"},
     { ON,  ON,   1, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Filter\0"},
     { ON,  ON,   1, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
-    { ON,  ON,   1, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  6, 20, "Atten\0"},
+    { ON,  ON,   1, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  4, 20, "ATT\0"},
     { ON,  ON,   1, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Preamp\0"},
     { ON,  ON,   1, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
     //Panel 2
@@ -138,7 +138,7 @@ struct Label labels[LABEL_NUM] = {
     {OFF,  ON,  10,  40,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "RIT\0"},
     {OFF,  ON,  70,  40,  48, 22, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 4, "XIT\0"},
     {OFF,  ON, 130,  40,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "Fine\0"},
-    {OFF,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "NB-\0"},
+    {OFF,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 4, "NB\0"},
     {OFF,  ON,  70,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NR\0"},
     {OFF,  ON, 130,  65,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Notch\0"},
     #ifdef USE_RA8875
@@ -155,10 +155,10 @@ struct Label labels[LABEL_NUM] = {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-//Profile name    sp_preset mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben  nblvl nren  spot rbeep pitch  notch  xmit fine VFO-AB  DefMFknob   enc1         enc2         enc3         Zoom_lvl   pEn plvl
-    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  15,   OFF,    80,   ON,   OFF,   10,  13,  13,   ON,  OFF,  OFF,  NB5,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND4,  OFF, MIC_ON,  30.0,  15,   OFF,    80,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB2,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOMx1, OFF, 50},
-    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0,  15,   OFF,    80,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NB1,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOMx1, OFF, 50}
+//Profile name    sp_preset mn  pop uc1 uc2 uc3 lastB  mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB  DefMFknob    enc1         enc2         enc3      Zoom_lvl panEn panlvl
+    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND2,  OFF, MIC_ON,  30.0,  15,   OFF,    80,   ON,   OFF,   10,  13,  13,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND4,  OFF, MIC_ON,  30.0,  15,   OFF,    80,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOMx1, OFF, 50},
+    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, BAND0,  OFF, MIC_OFF, 30.0,  15,   OFF,    80,   ON,   OFF,   10,  13,  13,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOMx1, OFF, 50}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -197,13 +197,13 @@ PROGMEM struct AGC agc_set[AGC_SET_NUM] = {
 // nAnticipation is 1 to 125
 // Decay is 1 to 10
 PROGMEM struct NB nb[NB_SET_NUM] = {
-    {"",    1.0,   1,  1},  // use "" to leave the number blank like AGC, suggesting it is off.
-    {"1",   2.0,   5,  2},  // values suggested for test in the source code   
-    {"2",   4.0,   5,  8},  
-    {"3",   7.0,   2,  4},
-    {"4",  15.0,  40,  8},    
-    {"5",  20.0,  60, 10},  
-    {"6",  80.0, 100,  4}
+    {"-0",   1.0,   1,  1},  // use "" to leave the number blank like AGC, suggesting it is off.
+    {"-1",   2.0,   5,  2},  // values suggested for test in the source code   
+    {"-2",   4.0,   5,  8},  
+    {"-3",   7.0,   2,  4},
+    {"-4",  15.0,  40,  8},    
+    {"-5",  20.0,  60, 10},  
+    {"-6",  80.0, 100,  4}
 };
 
 // Zoom Level table

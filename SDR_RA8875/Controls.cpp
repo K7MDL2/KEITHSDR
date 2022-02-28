@@ -86,8 +86,8 @@ void BandUp();
 void Notch();
 void Spot();
 void Enet();
-void NR();
-void NB(int8_t toggle);
+void setNR();
+void setNB(int8_t toggle);
 void Xmit(uint8_t state);
 void Ant();
 void Fine();
@@ -109,7 +109,7 @@ void AFgain(int8_t delta);
 void setRFgain(int8_t toggle);
 void RFgain(int8_t delta);
 void setRefLevel(int8_t toggle);
-void setNBLevel(int8_t delta);
+void NBLevel(int8_t delta);
 void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);
@@ -119,6 +119,8 @@ void setMeter(uint8_t id);
 void setZoom(int8_t dir);
 void PAN(int8_t delta);
 void setPAN(int8_t toggle);
+void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
+
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -215,7 +217,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     RefLevel(0);    // 0 just updates things to be current value
     RFgain(0);
     ///AFgain(0);
-    setNBLevel(0);   // 0 just updates things to be current value
+    NBLevel(0);   // 0 just updates things to be current value
     ATU(-1); // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.
     
 #ifndef BYPASS_SPECTRUM_MODULE
@@ -544,8 +546,6 @@ COLD void VFO_AB()
 //   toogle = 0 sets attenuator state off
 //   toogle = 1 sets attenuator state on
 //   toogle = 2 toggles attenuator state
-//   dB = 1-31.  Set att relay on and set attenuattion level.  0-31 is a valid range to set but we will only use 1-31
-//
 COLD void setAtten(int8_t toggle)
 {
     //Serial.print("toggle = "); Serial.println(toggle);
@@ -561,6 +561,7 @@ COLD void setAtten(int8_t toggle)
     if (toggle == 1)    // toggle is 1, turn on Atten
     {
         bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
+        MeterInUse=true;
         setMeter(ATTEN_BTN);
     }
 
@@ -573,9 +574,7 @@ COLD void setAtten(int8_t toggle)
     }
 
     // Set the attenuation level from the value in the database
-    //#ifdef DIG_STEP_ATT 
-      //Atten(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band 0 to 100%
-    //#endif   
+    //Atten(0);  // 0 = no change to set attenuator level to value in database for this band
 
     #ifdef SV1AFN_BPF
       //if (bandmem[curr_band].attenuator == ATTEN_OFF)
@@ -617,9 +616,8 @@ COLD void Atten(int8_t delta)
 {
     float _atten = bandmem[curr_band].attenuator_dB;
 
-    _atten += delta;      // convert percentage request to a single digit float
+    _atten += delta*3;      // convert percentage request to a single digit float
 
-    Serial.print("Requested new attenuator value is "); Serial.println(_atten);
     if(_atten > 100) 
         _atten = 100;
     if(_atten <= 0 )
@@ -629,49 +627,9 @@ COLD void Atten(int8_t delta)
     Serial.print("Setting attenuator value to "); Serial.println(bandmem[curr_band].attenuator_dB);
     displayAttn();  // update the button value
     
-    #ifdef DIG_STEP_ATT
-    char    atten_str[8] = {'\0'};
-    char    atten_data[8] = {'\0'};
-    uint8_t   i;
-
-    int16_t atten;
-    // scale 0 to 100% to size of attenuator hardware.  Assuming 0 to 31dB here.
-    atten = round((_atten * (31/100))+0.5);
-    atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
-    /* Convert to 8 bits of  0 and 1 format */
-    itoa(atten, atten_str, 2);
-    
-    // pad with leading 0s as needed.  6 bits for the PE4302
-    for(i=0;(i<6-strlen(atten_str));i++)
-    {
-        atten_data[i]='0';
-    }
-    strncat(atten_data, atten_str, strlen(atten_str));
-
-    //  LE = 0 to allow writing data into shift register
-    digitalWrite(Atten_LE,   (uint8_t) OFF);
-    digitalWrite(Atten_DATA, (uint8_t) OFF);
-    digitalWrite(Atten_CLK,  (uint8_t) OFF);
-    delayMicroseconds(10);
-    //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
-    //    Start with the MSB first so start at the left end of the string   
-    for(i=0;i<6;i++)
-    {
-        // convert ascii 0 or 1 to a decimal 0 or 1 
-        digitalWrite(Atten_DATA, (uint8_t) atten_data[i]-48);
-        delayMicroseconds(10);
-        digitalWrite(Atten_CLK,  (uint8_t) ON);
-        delayMicroseconds(10);
-        digitalWrite(Atten_CLK,  (uint8_t) OFF); 
-        delayMicroseconds(10);
-    }
-    //  Toggle LE pin to latch the data and set the new attenuation value in the hardware
-    digitalWrite(Atten_LE, (uint8_t) ON);
-    delayMicroseconds(10);
-    digitalWrite(Atten_LE, (uint8_t) OFF);
-
-    return;    
-#endif  // DIG_STEP_ATT
+    // CALL HARDWARE SPECIFIC ATENUATOR or FIXED ATTEN HERE
+    // This is for the PE4302 only. 
+    digital_step_attenuator_PE4302(_atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
 }
 
 // PREAMP button
@@ -902,6 +860,7 @@ COLD void setAFgain(int8_t toggle)
         else
         {
             user_settings[user_Profile].afGain_en = ON;  // set the af tracking state to ON
+            MeterInUse = true;
             setMeter(AFGAIN_BTN);
         }
     }
@@ -1031,7 +990,8 @@ COLD void setRFgain(int8_t toggle)
     
     if (toggle == 1)      // Set button to on to track as active 
     {
-        user_settings[user_Profile].rfGain_en = ON;        
+        user_settings[user_Profile].rfGain_en = ON;
+        MeterInUse = true;        
         setMeter(RFGAIN_BTN);
     }
     
@@ -1060,11 +1020,7 @@ COLD void RFgain(int8_t delta)
 
     _rfLevel = user_settings[user_Profile].rfGain;   // Get last absolute volume setting as a value 0-100
 
-    //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
-
-    //    _rfLevel += delta*4;      // convert percentage request to a single digit float
-    _rfLevel += delta;      // convert percentage request to a single digit float
-    //Serial.print(" TEST RF Level "); Serial.println(_rfLevel);
+    _rfLevel += delta*4;      // convert percentage request to a single digit float
 
     if (_rfLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
         _rfLevel = 100;
@@ -1073,8 +1029,6 @@ COLD void RFgain(int8_t delta)
     
     // Store new value as 0 to 100%
     user_settings[user_Profile].rfGain = _rfLevel;  // 0 to 100 range, ,linear 
-    //Amp1_L.setGain_dB(AUDIOBOOST * _rfLevel/100);    // Adjustable fixed output boost in dB.
-    //Amp1_R.setGain_dB(AUDIOBOOST * _rfLevel/100);
 
     // LineIn is 0 to 15 with 15 being the most sensitive
     codec1.lineInLevel(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100); 
@@ -1110,7 +1064,8 @@ COLD void setPAN(int8_t toggle)
 
     if (toggle == 1)      // Set button to on to track as active 
     {
-        user_settings[user_Profile].pan_state = ON;        
+        user_settings[user_Profile].pan_state = ON; 
+        MeterInUse = true;       
         setMeter(PAN_BTN);
         PAN(0);
     }
@@ -1172,10 +1127,8 @@ COLD void PAN(int8_t delta)
         user_settings[user_Profile].pan_level = _panLevel;
     }
 
-    Serial.print("Control Change: PAN set to  "); 
-    Serial.print(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
-    Serial.print("  delta=");
-    Serial.println(delta);
+    //Serial.print("Control Change: PAN set to  "); 
+    //Serial.print(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
     displayPan();
 }
 
@@ -1217,7 +1170,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
 }
 
 // NB button
-COLD void NB(int8_t toggle)
+COLD void setNB(int8_t toggle)
 {
     //char string[80];   // print format stuff
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
@@ -1229,48 +1182,57 @@ COLD void NB(int8_t toggle)
     }
     if (toggle == 1)
     {   
-        if (user_settings[user_Profile].nb_en == ON && MeterInUse)  // if already on, assume this was called by a log press and we want to turn off the meter and but not the feature.
-            clearMeter();
-        else
-        {
-            user_settings[user_Profile].nb_en = ON;
-            setMeter(NB_BTN);
-        }
+        user_settings[user_Profile].nb_en = ON;
+        MeterInUse = true;
+        setMeter(NB_BTN);
     }
     
-    if (toggle == 0) 
+    if (toggle == 0 || toggle == -1) 
     {
         user_settings[user_Profile].nb_en = OFF;
+        MeterInUse = false;
         if (toggle != -1)
             clearMeter();
-        setNBLevel(0);     // update to current setting but setNBLevel will see it is turned off and bypass the NB component
     }
+
     //Serial.print("Set NB to ");
     //Serial.println(user_settings[user_Profile].nb_en);
     displayNB();
 }
 
 // Adjust the NB level. NB() turn on and off only calling this to initiialize the current level with delta = 0    
-COLD void setNBLevel(int8_t delta)
+COLD void NBLevel(int8_t delta)
 {
     float _nbLevel;
 
+    Serial.print(" TEST NB delta "); Serial.println(delta);
+
     _nbLevel = user_settings[user_Profile].nb_level;   // Get last known value
 
-//Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
+    Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
 
     _nbLevel += delta;      // increment up or down
 
-//Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
+    /*if (_nbLevel > 100)         // Limit the value
+        _nbLevel = 100;
+    if (_nbLevel < 0)
+        _nbLevel = 0;
+    
+    Serial.print(" TEST NB New Level "); Serial.println(_nbLevel);
+    user_settings[user_Profile].nb_level = _nbLevel;  // We have our new table index value 
 
-    if (_nbLevel >= NB_SET_NUM-1)         // Limit the value
+    // Convert from 0 to 100% to number of valid steps
+    _nbLevel *= round(NB_SET_NUM-1 +0.5)/100;
+    Serial.print(" TEST NB Converted Level "); Serial.println(_nbLevel);
+*/
+    if (_nbLevel > NB_SET_NUM-1)         // Limit the value
         _nbLevel = NB_SET_NUM-1;
-    if (_nbLevel <= 1)
-        _nbLevel = 1;
+    if (_nbLevel < 0)
+        _nbLevel = 0;
 
-    user_settings[user_Profile].nb_level = _nbLevel;  // We have our new table index value
+    user_settings[user_Profile].nb_level = _nbLevel;  // We have our new table index value 
 
-    if (user_settings[user_Profile].nb_en > OFF)   // Adjust the value if on
+    if (user_settings[user_Profile].nb_level != OFF)   // Adjust the value if on
     {
         NoiseBlanker.showError(1);
         NoiseBlanker.useTwoChannel(true);  // true enables a path through the "I"  or left side for I and Q
@@ -1294,7 +1256,7 @@ COLD void setNBLevel(int8_t delta)
 }
 
 // NR button
-COLD void NR()
+COLD void setNR()
 {
     if (user_settings[user_Profile].nr_en > NROFF)
     {
@@ -1359,8 +1321,8 @@ COLD void setRefLevel(int8_t toggle)
         std_btn[REFLVL_BTN].enabled = ON;
         if (MF_client != REFLVL_BTN) 
         {
-            set_MF_Service(REFLVL_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-            MF_default_is_active = false;
+            MeterInUse = true;
+            setMeter(REFLVL_BTN);
         }
         //Serial.print("Set REFLVL to ON ");
         //Serial.print(std_btn[REFLVL_BTN].enabled);
@@ -1371,10 +1333,7 @@ COLD void setRefLevel(int8_t toggle)
         std_btn[REFLVL_BTN].enabled = OFF;
         MeterInUse = false; 
         if (toggle != -1)
-        {       
-            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
-            MF_default_is_active = true;
-        }
+            clearMeter();
         //Serial.print("Set REFLVL to OFF ");
         //Serial.print(std_btn[REFLVL_BTN].enabled);
     }
@@ -1388,7 +1347,7 @@ COLD void setRefLevel(int8_t toggle)
 // Pass the desired new absolute value.  It will be limited to allowable range of -110 to -220
 COLD void RefLevel(int8_t newval)
 {
-    bandmem[curr_band].sp_ref_lvl += newval;
+    bandmem[curr_band].sp_ref_lvl += newval*5;
     if (bandmem[curr_band].sp_ref_lvl > 50)
         bandmem[curr_band].sp_ref_lvl = 50; 
     if (bandmem[curr_band].sp_ref_lvl < -50)
@@ -1599,4 +1558,66 @@ void setMeter(uint8_t id)
         set_MF_Service(id);  // reset encoder counter and set up for next read if any until another functionm takes ownership
         MF_default_is_active = false;  
     }
+}
+
+// Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
+// Code is for the PE4302 digital step attenuator
+// Can clone and modify this for other hardware, call it from teh ATTEN() function
+COLD void digital_step_attenuator_PE4302(int16_t _atten)
+{
+    #ifndef PE4302
+        Serial.println(F("Error: PE4302 digital step attenuator not configured, exiting"));
+        return;   // Wrong hardware if not PE4302
+    #else
+
+        const uint8_t atten_size_31 = 31;
+    
+        char    atten_str[8] = {'\0'};
+        char    atten_data[8] = {'\0'};
+        uint8_t   i;
+        int16_t atten;
+        
+        // scale 0 to 100% to size of attenuator hardware.  Assuming 0 to 31dB here.
+        atten = round(((_atten * atten_size_31/100) - 0.5)); // round down to get 0-31 range
+
+        if (atten >= atten_size_31)  // will crash is exceed 0 to 31!
+            atten = atten_size_31;
+        if (atten <0)
+            atten = 0;
+        
+        Serial.print("digital step converted = "); Serial.println(atten);
+
+        atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
+        /* Convert to 8 bits of  0 and 1 format */
+        itoa(atten, atten_str, 2);
+
+        // pad with leading 0s as needed.  6 bits for the PE4302
+        for(i=0;(i<6-strlen(atten_str));i++)
+        {
+            atten_data[i]='0';
+        }
+        strncat(atten_data, atten_str, strlen(atten_str));
+
+        //  LE = 0 to allow writing data into shift register
+        digitalWrite(Atten_LE,   (uint8_t) OFF);
+        digitalWrite(Atten_DATA, (uint8_t) OFF);
+        digitalWrite(Atten_CLK,  (uint8_t) OFF);
+        delayMicroseconds(10);
+        //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
+        //    Start with the MSB first so start at the left end of the string   
+        for(i=0;i<6;i++)
+        {
+            // convert ascii 0 or 1 to a decimal 0 or 1 
+            digitalWrite(Atten_DATA, (uint8_t) atten_data[i]-48);
+            delayMicroseconds(10);
+            digitalWrite(Atten_CLK,  (uint8_t) ON);
+            delayMicroseconds(10);
+            digitalWrite(Atten_CLK,  (uint8_t) OFF); 
+            delayMicroseconds(10);
+        }
+        //  Toggle LE pin to latch the data and set the new attenuation value in the hardware
+        digitalWrite(Atten_LE, (uint8_t) ON);
+        delayMicroseconds(10);
+        digitalWrite(Atten_LE, (uint8_t) OFF);
+    #endif
 }

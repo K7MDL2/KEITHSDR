@@ -37,10 +37,16 @@
 //#define si5351_CORRECTION  0  // frequency correction for the si5351A PLL board crystal or TXCO.
                             // The 5351mcu library uses Hz offset, etherkit and others use ppb.
 
-//#define DIG_STEP_ATT        // PE4302 Digital step attenuator. Harmless to leave this defined as long as it is not in the I2C port expander
+//#define PE4302            // PE4302 Digital step attenuator. 31.5dB in 0.5 steps, only using 1dB steps today
+                            // Harmless to leave this defined as long as it is not connected via an I2C port expander
                             // DEPENDS on a PE4302 connected for variable attenuation
                             // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
-                            //   You can use this without relays or the BPF board
+                            //   You can use this without relays or the BPF board 
+                            // The RF attenuator bypass relay is turned on and off.  Does not matter if there is a real relay connected or not. 
+
+#define FIXED_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99
+                            // This is used to correct the dBm scale on the spectrum 
+                            // Can also fudge it to calibrate the spectrum until a more elegant solution is built
 
 //#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
                             // DEPENDS on SV1AFN BPF board connected via a MCP23017 I2C port expander.
@@ -164,7 +170,7 @@
     #endif
     //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
     //#define SV1AFN_BPF              // Use the BPF board
-    //#define DIG_STEP_ATT            // Use the step atten usually the PE4302 board
+    //#define PE4302                    // Use the step atten usually the PE4302 board
     //#define PANADAPTER              // Enable panadapter mode
     #ifdef PANADAPTER
       #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
@@ -207,7 +213,7 @@
 //      Could use the 3 left over pins on the MCP23017 I2C port expander servicing the SV1AFN preselector module.
 //      For now using Teensy 4.1 pins 30-32.
 //      
-#ifdef DIG_STEP_ATT
+#ifdef PE4302
   #define Atten_CLK       31
   #define Atten_DATA      32
   #define Atten_LE        30

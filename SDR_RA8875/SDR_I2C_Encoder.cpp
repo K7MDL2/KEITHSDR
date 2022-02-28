@@ -124,38 +124,25 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	//{
 		switch(knob_assigned)
 		{
-			char string[80];   // print format stuff
-			case RFGAIN_BTN:    sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
-								MeterInUse = true;
-								displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme							
-								if (user_settings[user_Profile].rfGain >= 97 || user_settings[user_Profile].rfGain <=3)								
+			case RFGAIN_BTN:    if (user_settings[user_Profile].rfGain < 2 || user_settings[user_Profile].rfGain >99)								
 									tval = 0xFF0000;  // Change to red
 								break;
-			case AFGAIN_BTN:    sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
-								MeterInUse = true;
-								displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
-								if (user_settings[user_Profile].afGain >= 97 || user_settings[user_Profile].afGain <=3)
+			case AFGAIN_BTN:    if (user_settings[user_Profile].afGain < 2 || user_settings[user_Profile].afGain >99)
 									tval = 0xFF0000;  // Change to red
 									#ifdef USE_MIDI
                   						note(CHANNEL, 52, (user_settings[user_Profile].afGain * 1.27));  // scale 100% to 127 for MIDI max of 127.
 									#endif  
 								break;
-			case ATTEN_BTN:     sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
-								MeterInUse = true;
-								displayMeter(bandmem[curr_band].attenuator_dB/3, string, 5);   // val, string label, color scheme
-								if (bandmem[curr_band].attenuator_dB > 30 || bandmem[curr_band].attenuator_dB < 2)
+			case ATTEN_BTN:     if (bandmem[curr_band].attenuator_dB < 1  || bandmem[curr_band].attenuator_dB > 99)
 									tval = 0xFF0000;  // Change to red
 								break;
-			case REFLVL_BTN:    sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
-								MeterInUse = true; 
-								displayMeter((abs(bandmem[curr_band].sp_ref_lvl)-110)/10, string, 5);   // val, string label, color scheme
-								if (bandmem[curr_band].sp_ref_lvl > -120 || bandmem[curr_band].sp_ref_lvl < -200)
+			case REFLVL_BTN:    if (bandmem[curr_band].sp_ref_lvl < -48 || bandmem[curr_band].sp_ref_lvl > 48)
 									tval = 0xFF0000;  // Change to red
 								break;
-			case NB_BTN:        sprintf(string, "  NB:%d", user_settings[user_Profile].nb_level);
-								MeterInUse = true;
-								displayMeter(user_settings[user_Profile].nb_level, string, 5);   // val, string label, color scheme
-								if (user_settings[user_Profile].nb_level >= 5 || user_settings[user_Profile].nb_level <=1)
+			case NB_BTN:        if (user_settings[user_Profile].nb_level >= 6 || user_settings[user_Profile].nb_level <=0)
+									tval = 0xFF0000;  // Change to red
+								break;
+			case PAN_BTN:       if (user_settings[user_Profile].pan_level < 1 || user_settings[user_Profile].pan_level > 99)
 									tval = 0xFF0000;  // Change to red
 								break;
 			default:  

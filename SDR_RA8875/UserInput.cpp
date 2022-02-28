@@ -489,13 +489,14 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             
             //Serial.println(F("Drag RIGHT")); 
             switch (MF_client) {
-                case NB_BTN:        x /= 100;           break;  //ToDO: convert to 0-100% like the rest
-                case ATTEN_BTN:     x /=  delta;        break;
+                case NB_BTN:        x /= SCREEN_WIDTH/NB_SET_NUM/2;  break; // scale for 7 steps
+                case ATTEN_BTN: 
                 case AFGAIN_BTN:
-                case RFGAIN_BTN:    x /=  delta;        break;                         
-                case MFTUNE:        x /= -delta*zoom;   break;
-                case REFLVL_BTN:    x /=  delta;        break;
-                case PAN_BTN:       x /= -delta;        break;
+                case REFLVL_BTN:
+                case RFGAIN_BTN:    x /=  delta;            break;  // normal direction                       
+                case PAN_BTN:       x /= -delta;            break;  // Invert the direction
+                case MFTUNE:        x /= -delta*zoom;       break;  // scale for zoom
+                
                 default: break; 
             }
             MF_Service(x, MF_client);
@@ -708,7 +709,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case MUTE_BTN:      Mute();         break;
                     case MENU_BTN:      Menu();         break;
                     case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
-                    case ATTEN_BTN:     setAtten(2);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+                    case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
                     case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
                     case RIT_BTN:       RIT();          break;
                     case XIT_BTN:       XIT();          break;
@@ -717,8 +718,8 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case ATU_BTN:       ATU(2);         break;
                     case FINE_BTN:      Fine();         break;
                     case XMIT_BTN:      Xmit(2);        break;
-                    case NB_BTN:        NB(2);          break;
-                    case NR_BTN:        NR();           break;
+                    case NB_BTN:        setNB(2);       break;
+                    case NR_BTN:        setNR();        break;
                     case ENET_BTN:      Enet();         break;
                     case AFGAIN_BTN:    setAFgain(2);   break;
                     case RFGAIN_BTN:    setRFgain(2);   break;
@@ -744,9 +745,9 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 touchBeep(true);  // a timer will shut it off.
                 switch (i)
                 {
-                    case NB_BTN:        NB(1);          break; //Increment the mode from current value           
+                    case NB_BTN:        setNB(1);       break; //Increment the mode from current value           
                     case AGC_BTN:       AGC();          break;   
-                    case ATTEN_BTN:     setAtten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
+                    case ATTEN_BTN:     setAtten(1);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
                     //case AFGAIN_BTN:    setAFgain(1);   break;

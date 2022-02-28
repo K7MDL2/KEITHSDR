@@ -155,7 +155,7 @@ Metro meter             = Metro(400);   // used to update the meters
 Metro popup_timer       = Metro(500);   // used to check for popup screen request
 Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
-Metro MF_Timeout        = Metro(4000);  // MultiFunction Knob and Switch 
+Metro MF_Timeout        = Metro(2000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
 Metro Auto_I2S_Timer    = Metro(80000);  // Escape timer for AutoI2S correction process
 
@@ -532,7 +532,7 @@ COLD void setup()
     spectrum_RA887x.initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 #endif
 
-    #ifdef DIG_STEP_ATT
+    #ifdef PE4302
         // Initialize the I/O for digital step attenuator if used.
         pinMode(Atten_DATA, OUTPUT);
         pinMode(Atten_CLK, OUTPUT);
@@ -1055,31 +1055,17 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
     // Some buttons can be left on such as Atten or other non-button MF users.  Just leave them off this list.
     switch (old_client_name)
     {
-        case MFNONE: {
-            // no current owner, return
-        } break;
-        case RFGAIN_BTN: {         
-            setRFgain(-1);   //since it was active toggle the output off
-        } break;
-        case AFGAIN_BTN: {         
-            setAFgain(-1);
-        } break;
-        case  REFLVL_BTN: {
-            setRefLevel(-1);
-        } break;
-        case PAN_BTN: {
-            setPAN(-1);
-        } break;
-        case ATTEN_BTN: {
-            setAtten(-1);
-        }
-        case NB_BTN:
+        case MFNONE:                            break;  // no current owner, return
+        case RFGAIN_BTN:    setRFgain(-1);      break;  // since it was active toggle the output off
+        case AFGAIN_BTN:    setAFgain(-1);      break;
+        case REFLVL_BTN:    setRefLevel(-1);    break;
+        case PAN_BTN:       setPAN(-1);         break;
+        case ATTEN_BTN:     setAtten(-1);       break;
+        case NB_BTN:        setNB(-1);          break;
         case MFTUNE:
-        default     : {          
-        // No button for VFO tune, atten button stays on
-            //MF_client = user_settings[user_Profile].default_MF_client;
-        } break;         
-    } 
+        default     :                           break;  // No button for VFO tune, atten button stays on
+                                                        //MF_client = user_settings[user_Profile].default_MF_client;
+    }
 }
 // ---------------------------------- set_MF_Service -----------------------------------
 // Register the owner for the MF services.  Called by a client like RF Gain button.  Last caller wins.
@@ -1096,10 +1082,6 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
     #endif //  I2C_ENCODERS
     unset_MF_Service(MF_client);    //  turn off current button if on
     MF_client = new_client_name;        // Now assign new owner
-    //if (MF_client == user_settings[user_Profile].default_MF_client)
-    //    MF_default_is_active = true;
-    //else 
-    //    MF_default_is_active = false;
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
                          // When it expires it will be switched to default
     //Serial.print("New MF Knob Client ID is ");
@@ -1125,27 +1107,13 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
 
     switch (knob)      // Give this owner control until timeout
     {
-        case MFNONE: {
-            // no current owner, return
-        } break;
-        case RFGAIN_BTN: {           
-            RFgain(counts);
-        } break;
-        case AFGAIN_BTN: {   
-            AFgain(counts);
-        } break;
-        case  REFLVL_BTN: {
-            RefLevel(counts*-1);
-        } break;
-        case PAN_BTN: {
-            PAN(counts);
-        }
-        case  ATTEN_BTN: {
-            Atten(counts);  // set attenuator level to value in database for this band
-        } break;
-        case  NB_BTN: {
-            setNBLevel(counts);
-        } break;
+        case MFNONE:                                break; // no current owner, return
+        case RFGAIN_BTN:    RFgain(counts);         break;
+        case AFGAIN_BTN:    AFgain(counts);         break;
+        case REFLVL_BTN:    RefLevel(counts*-1);    break;
+        case PAN_BTN:       PAN(counts);            break;
+        case ATTEN_BTN:     Atten(counts);          break;  // set attenuator level to value in database for this band
+        case NB_BTN:        NBLevel(counts);        break;
         case MFTUNE :
         default     : {   
             //old_ts = bandmem[curr_band].tune_step;

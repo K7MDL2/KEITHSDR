@@ -298,11 +298,11 @@ COLD void displayAttn()
 	Serial.print(F("Atten is ")); Serial.println(bandmem[curr_band].attenuator);
 	if (MF_client == ATTEN_BTN) 
 	{ 
-		sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
+		sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
         MeterInUse = true;
-    	displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme        
+    	displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme               
 	}
-	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
+	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator_dB);
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
 }
 
@@ -343,16 +343,18 @@ COLD void displayFine()
 
 COLD void displayNB()
 {
-	sprintf(std_btn[NB_BTN].label, "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
-    sprintf(labels[NB_LBL].label,  "NB-%s", nb[user_settings[user_Profile].nb_level].nb_name);
-	Serial.print(F("NB is ")); Serial.print(user_settings[user_Profile].nb_en);
-	Serial.print(F("   NB Level is ")); Serial.println(user_settings[user_Profile].nb_level);
+	char string[80];   // print format stuff
+	sprintf(std_btn[NB_BTN].label, "NB:%1d", user_settings[user_Profile].nb_level);
+    //sprintf(labels[NB_LBL].label,  "NB%s", nb[user_settings[user_Profile].nb_level].nb_name);
+	//Serial.print(F("NB is ")); Serial.print(user_settings[user_Profile].nb_en);
+	//Serial.print(F("   NB Level is ")); Serial.println(user_settings[user_Profile].nb_level);
 	if (MF_client == NB_BTN) 
 	{ 
+		sprintf(string, "  NB:%1d", user_settings[user_Profile].nb_level);
         MeterInUse = true;
-    	displayMeter(user_settings[user_Profile].nb_level, labels[NB_LBL].label, 5);   // val, string label, color scheme        
+    	displayMeter((int) user_settings[user_Profile].nb_level*1.7, string, 5);   // val, string label, color scheme        
 	}
-	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
+	drawLabel(NB_LBL, &user_settings[user_Profile].nb_level);
 	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }
 
@@ -374,7 +376,7 @@ COLD void displayRefLevel()
 	{ 
 		sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
 		MeterInUse = true; 
-		displayMeter((abs(bandmem[curr_band].sp_ref_lvl)-110)/10, string, 5);   // val, string label, color scheme
+		displayMeter((bandmem[curr_band].sp_ref_lvl+50)/10, string, 5);   // val, string label, color scheme
 	}
 	draw_2_state_Button(REFLVL_BTN, &std_btn[REFLVL_BTN].enabled); 
 }
@@ -422,6 +424,7 @@ COLD void displayTime(void)
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
 }
 
+// val = bar graph value (0 to 10 range), string is the meter text, color set
 COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 {
 	#ifdef USE_RA8875
