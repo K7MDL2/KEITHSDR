@@ -346,14 +346,14 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
         else  // Draw the new line at the top
             tft.writeRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, (uint16_t*) &line_buffer);  // x start, y start, width, height, array of colors w x h
 
-        //--------------------------------  Spectrum Window ------------------------------------------
-        //
-        //      UPDATE SPECTRUM
-        //      Done with waterfall, now UPDATE SPECTRUM section
-        //      start at 2 to prevent reading out of bounds during averaging formula
-        //      Draw our image on canvas 2 which is not visible
-        //
-        // -------------------------------------------------------------------------------------------
+//--------------------------------  Spectrum Window ------------------------------------------
+//
+//      UPDATE SPECTRUM
+//      Done with waterfall, now UPDATE SPECTRUM section
+//      start at 2 to prevent reading out of bounds during averaging formula
+//      Draw our image on canvas 2 which is not visible
+//
+// -------------------------------------------------------------------------------------------
         #ifdef USE_RA8875
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2); 
             tft.writeTo(L2);         //L1, L2, CGRAM, PATTERN, CURSOR     
@@ -381,11 +381,16 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
             if (Offset > 1) filt_side = 1;
             else filt_side = -1;
         }
+
         // Draw the filter width shaded box.  Translucent would be better.  Correct for pan offset
-        tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_sz/2)*filt_side)-(filterBandwidth/fft_bin_sz/2/2)-pan, ptr->sp_top_line+1, filterBandwidth/fft_bin_sz/2, ptr->sp_height-2, myBLUE);
-              
+        tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_sz/2)*filt_side)-(filterBandwidth/fft_bin_sz/2/2)-pan, ptr->sp_top_line+1, filterBandwidth/fft_bin_sz/2, ptr->sp_height-2, myVERY_DARK_GREEN);
+
+        //---------------------------------------------------------------------------------------------------
+        // Now draw the spectrum lines
+        // --------------------------------------------------------------------------------------------------
+                
         // Average a few values to smooth the line a bit
-        // Can possible repace this by trying diffednr FFT.setNAverage values
+        // Can likely replace this by trying different FFT.setNAverage values
         float avg_pix2 = (pixelnew[i]+pixelnew[i+1])/2;     // avg of 2 bins            
         float avg_pix5 = (pixelnew[i-2]+pixelnew[i-1]+pixelnew[i]+pixelnew[i+1]+pixelnew[i+2])/5; //avg of 5 bins
         if (fabsf(pixelnew[i]) > fabsf(avg_pix2) * 1.6f)    // compare to a small average to toss out wild spikes
@@ -480,10 +485,10 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
             pix_n16 = pixelnew[i];  // convert float to uint16_t to match the draw functions type
             pix_o16 = pixelold[i];
 
-            //
-            //------------------------ Code below is writing only in the active spectrum window ----------------------
-            //                Limit access to the spectrum box to control misbehaved pixel and bar draws
-            //
+//
+//------------------------ Code below is writing only in the active spectrum window ----------------------
+//                Limit access to the spectrum box to control misbehaved pixel and bar draws
+//
 
 // TEMP commented out for fixed offset coding tests
 //            if (i < (ptr->wf_sp_width/2)-5 || i > (ptr->wf_sp_width/2) + 5)   // blank the DC carrier noise at Fc
@@ -544,7 +549,11 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
                 tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+3-pan, ptr->sp_top_line+1, ptr->sp_height, myRED);
             }
         //}
-
+//--------------------------------------------------------------------------------------------------------------------
+//
+//      Drawing work is done, now update the information text
+//
+//--------------------------------------------------------------------------------------------------------------------
         // Update graph scale, ref level, power and freq
         tft.setTextColor(myLT_GREY, myBLACK);
         tft.setFont(Arial_12);
@@ -622,16 +631,10 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
         // Reset spectrum screen blanking timeout
         spectrum_clear.reset();
 
-        //
-        //------------------------ Code above is writing only in the active spectrum window ----------------------
-        //
-        //-----------------------   This part onward is outside the active window ------------------------------
-        //
-
         #ifdef USE_RA8875
-            // Insert RA8875 BTE_move
+            // Use BTE_Move to copy our fresh drawn spectrum form layer 2 to Layer 1
             tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
-            tft.BTE_move(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_height-2, ptr->l_graph_edge+1, ptr->sp_top_line+1, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.
+            tft.BTE_move(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_height-2, ptr->l_graph_edge+1, ptr->sp_top_line+1, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.            
             while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.
             tft.setActiveWindow();
         #else
@@ -641,7 +644,11 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
             tft.canvasImageStartAddress(PAGE1_START_ADDR);
             setActiveWindow_default();
         #endif
-
+//
+//------------------------ Code above is writing only in the active spectrum window ----------------------
+//
+//-----------------------   This part onward is outside the active spectrum window and al ------------------------------
+//
         // Update the span labels with current VFO frequencies    
         tft.setTextColor(myLT_GREY, myBLACK);
         tft.setFont(Arial_12);

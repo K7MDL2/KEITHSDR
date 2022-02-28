@@ -216,29 +216,33 @@ class Spectrum_RA887x
       #endif
 
       // From RA8875/_settings/RA8875ColorPresets.h
-      // Colors preset (RGB565)
-      const uint16_t	RA8875_BLACK            = 0x0000;
-      const uint16_t 	RA8875_WHITE            = 0xFFFF;
-      const uint16_t	RA8875_RED              = 0xF800;
-      const uint16_t	RA8875_GREEN            = 0x07E0;
-      const uint16_t	RA8875_BLUE             = 0x001F;
-      const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
-      const uint16_t 	RA8875_MAGENTA          = 0xF81F;
-      const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
-      const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
-      const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
-      const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
-      const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
-      const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
-      const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
+    // Colors preset (RGB565)
+    const uint16_t	RA8875_BLACK            = 0x0000;
+    const uint16_t 	RA8875_WHITE            = 0xFFFF;
+    const uint16_t	RA8875_RED              = 0xF800;
+    const uint16_t	RA8875_GREEN            = 0x07E0;
+    const uint16_t	RA8875_BLUE             = 0x001F;
+    const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
+    const uint16_t 	RA8875_MAGENTA          = 0xF81F;
+    const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
+    const uint16_t 	RA8875_LIGHT_GREY 		  = 0xB5B2; // the experimentalist
+    const uint16_t 	RA8875_LIGHT_ORANGE 	  = 0xFC80; // the experimentalist
+    const uint16_t 	RA8875_DARK_ORANGE 		  = 0xFB60; // the experimentalist
+    const uint16_t 	RA8875_PINK 			      = 0xFCFF; // M.Sandercock
+    const uint16_t 	RA8875_PURPLE 			    = 0x8017; // M.Sandercock
+    const uint16_t 	RA8875_GRAYSCALE 		    = 2113; //grayscale30 = RA8875_GRAYSCALE*30
 
-      const uint16_t myLT_GREY  = RA8875_LIGHT_GREY;
-      const uint16_t myBLUE     = RA8875_BLUE;
-      const uint16_t myBLACK    = RA8875_BLACK;
-      const uint16_t myWHITE    = RA8875_WHITE;
-      const uint16_t myYELLOW   = RA8875_YELLOW;
-      const uint16_t myGREEN    = RA8875_GREEN;
-      const uint16_t myRED      = RA8875_RED;
+    const uint16_t myLT_GREY  = RA8875_LIGHT_GREY;
+    const uint16_t myBLUE     = RA8875_BLUE;
+    const uint16_t myBLACK    = RA8875_BLACK;
+    const uint16_t myWHITE    = RA8875_WHITE;
+    const uint16_t myYELLOW   = RA8875_YELLOW;
+    const uint16_t myGREEN    = RA8875_GREEN;
+    const uint16_t myRED      = RA8875_RED;
+    const uint16_t myDARK_GREEN         = 0x03C0;   // These are mixed to give a darker shaded transparent look for the spectrum filter width box
+    const uint16_t myVERY_DARK_GREEN    = 0x02C0;
+    const uint16_t myDARK_BLUE          = 0x02B0;
+    const uint16_t myVERY_DARK_BLUE     = 0x01B0;
       
     #ifdef PANADAPTER_INVERT
         const uint16_t FFT_AXIS  = 3;  // 2 is typical, 3 for panadapter mode (upside down tuning) 0 for the beta shared memory FFT.

@@ -104,6 +104,11 @@
     #define myGREEN                 RA8875_GREEN
     #define myRED                   RA8875_RED
     #define myLIGHT_ORANGE          RA8875_LIGHT_ORANGE
+    
+    const uint16_t myDARK_GREEN         = 0x03C0;
+    const uint16_t myVERY_DARK_GREEN    = 0x02C0;
+    const uint16_t myDARK_BLUE          = 0x02B0;
+    const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 
     #ifdef USE_RA8875
 	//extern RA8875 tft;
