@@ -84,6 +84,7 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		AudioInterrupts();
 		ModeOffset = 1; // show shaded filter width on right side of center
+		NBLevel(-100);	// Turn off NB for data modes
 	}
 
 	if(mndx == DATA_REV)
@@ -98,6 +99,7 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
         RxTx_InputSwitch_R.setChannel(0); // Select RX path
 		AudioInterrupts();
 		ModeOffset = -1; // show shaded filter width on left side of center
+		NBLevel(-100);	// Turn off NB for data modes
 	}
 
 	if(mndx == AM)
@@ -125,6 +127,7 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		RxTx_InputSwitch_R.setChannel(2); // Shut off unused output (in this mode)		
 		AudioInterrupts();
 		ModeOffset = 0; // show shaded filter width on both sides of center
+		NBLevel(-100);	// Turn off NB for FM mode
 	}
 
 	Serial.print("Set ModeOffset ");
