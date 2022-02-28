@@ -101,9 +101,9 @@ void Split();
 void XIT();
 void RIT();
 void Preamp(int8_t toggle);
-void Atten(int8_t toggle);
+void setAtten(int8_t toggle);
 void VFO_AB();
-void setAtten_dB(int8_t atten);
+void Atten(int8_t delta);
 void setAFgain(int8_t toggle);
 void AFgain(int8_t delta);
 void setRFgain(int8_t toggle);
@@ -206,7 +206,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
     // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
-    Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
+    setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     selectBandwidth(bandmem[curr_band].filter);
      //dB level is set elsewhere and uses value in the dB in this function.
     Preamp(-1);     // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
@@ -230,7 +230,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh();
     ///RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-    Atten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
+    //setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     //AFgain(0);  // Set RX audio level back to last position on RX
 }
 
@@ -479,7 +479,7 @@ COLD void AGC()
 // MUTE
 COLD void Mute()
 {  
-    float _afLevel = (float) user_settings[user_Profile].afGain/100;
+    //float _afLevel = (float) user_settings[user_Profile].afGain/100;
     
     if (user_settings[user_Profile].spkr_en)
     {
@@ -546,17 +546,13 @@ COLD void VFO_AB()
 //   toogle = 2 toggles attenuator state
 //   dB = 1-31.  Set att relay on and set attenuattion level.  0-31 is a valid range to set but we will only use 1-31
 //
-COLD void Atten(int8_t toggle)
+COLD void setAtten(int8_t toggle)
 {
     //Serial.print("toggle = "); Serial.println(toggle);
-    // Set the attenuation level from the value in the database
-    #ifdef DIG_STEP_ATT 
-      setAtten_dB(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band
-    #endif   
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        if (bandmem[curr_band].attenuator)  // toggle the attenuator tracking state
+        if (bandmem[curr_band].attenuator == ATTEN_ON)  // toggle the attenuator tracking state
             toggle = 0;
         else 
             toggle = 1;
@@ -564,21 +560,23 @@ COLD void Atten(int8_t toggle)
     
     if (toggle == 1)    // toggle is 1, turn on Atten
     {
-        if (bandmem[curr_band].attenuator == ATTEN_ON && MeterInUse)  // if already on, assume this was called by a log press and we want to turn off the meter and but not the feature.
-            clearMeter();
-        else
-        {
-            bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
-            setMeter(ATTEN_BTN);
-        }
+        bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
+        setMeter(ATTEN_BTN);
     }
 
-    if (toggle == 0) // || toggle == -1)
+    if (toggle == 0 || toggle == -1)
     {   
         bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
-        clearMeter(); 
+        MeterInUse = false;
+        if (toggle != -1)
+            clearMeter();
     }
-    
+
+    // Set the attenuation level from the value in the database
+    //#ifdef DIG_STEP_ATT 
+      //Atten(bandmem[curr_band].attenuator_dB);  // set attenuator level to value in database for this band 0 to 100%
+    //#endif   
+
     #ifdef SV1AFN_BPF
       //if (bandmem[curr_band].attenuator == ATTEN_OFF)
         //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
@@ -587,7 +585,7 @@ COLD void Atten(int8_t toggle)
 
       RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
-      RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+      RampVolume(user_settings[user_Profile].afgain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #endif
 
     displayAttn();
@@ -597,6 +595,83 @@ COLD void Atten(int8_t toggle)
     //Serial.print(bandmem[curr_band].attenuator_dB);
     //Serial.print(" and Ref Level is ");
     //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+}
+
+/*******************************************************************************
+* Function Name: Atten()
+********************************************************************************
+*
+* Summary:
+* Main function performs following functions:
+* 1: Configures the solid state attenuator by shifting 16 bits of address and
+*    atten level in LSB first.
+* 
+* Parameters:
+*  atten = attenuation level to set in range of 0 to 100% (0 to 31 (in dB))
+*
+* Return:
+*  None.
+*
+*******************************************************************************/
+COLD void Atten(int8_t delta)
+{
+    float _atten = bandmem[curr_band].attenuator_dB;
+
+    _atten += delta;      // convert percentage request to a single digit float
+
+    Serial.print("Requested new attenuator value is "); Serial.println(_atten);
+    if(_atten > 100) 
+        _atten = 100;
+    if(_atten <= 0 )
+        _atten = 0;
+    bandmem[curr_band].attenuator_dB = (uint8_t) _atten;  // Assign new value
+    
+    Serial.print("Setting attenuator value to "); Serial.println(bandmem[curr_band].attenuator_dB);
+    displayAttn();  // update the button value
+    
+    #ifdef DIG_STEP_ATT
+    char    atten_str[8] = {'\0'};
+    char    atten_data[8] = {'\0'};
+    uint8_t   i;
+
+    int16_t atten;
+    // scale 0 to 100% to size of attenuator hardware.  Assuming 0 to 31dB here.
+    atten = round((_atten * (31/100))+0.5);
+    atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
+    /* Convert to 8 bits of  0 and 1 format */
+    itoa(atten, atten_str, 2);
+    
+    // pad with leading 0s as needed.  6 bits for the PE4302
+    for(i=0;(i<6-strlen(atten_str));i++)
+    {
+        atten_data[i]='0';
+    }
+    strncat(atten_data, atten_str, strlen(atten_str));
+
+    //  LE = 0 to allow writing data into shift register
+    digitalWrite(Atten_LE,   (uint8_t) OFF);
+    digitalWrite(Atten_DATA, (uint8_t) OFF);
+    digitalWrite(Atten_CLK,  (uint8_t) OFF);
+    delayMicroseconds(10);
+    //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
+    //    Start with the MSB first so start at the left end of the string   
+    for(i=0;i<6;i++)
+    {
+        // convert ascii 0 or 1 to a decimal 0 or 1 
+        digitalWrite(Atten_DATA, (uint8_t) atten_data[i]-48);
+        delayMicroseconds(10);
+        digitalWrite(Atten_CLK,  (uint8_t) ON);
+        delayMicroseconds(10);
+        digitalWrite(Atten_CLK,  (uint8_t) OFF); 
+        delayMicroseconds(10);
+    }
+    //  Toggle LE pin to latch the data and set the new attenuation value in the hardware
+    digitalWrite(Atten_LE, (uint8_t) ON);
+    delayMicroseconds(10);
+    digitalWrite(Atten_LE, (uint8_t) OFF);
+
+    return;    
+#endif  // DIG_STEP_ATT
 }
 
 // PREAMP button
@@ -806,19 +881,6 @@ COLD void Ant()
     displayANT();
     //Serial.print("Set Ant Sw to ");
     //Serial.println(bandmem[curr_band].ant_sw);
-
-#ifdef DIG_STEP_ATT  // for testing only
-// FOR TEST of Attenuator settings
-static int i=1;
-i = bandmem[curr_band].attenuator_dB +1;
-if (i> 31)
-    i=1;
-if (i< 1)
-    i= 31;
-setAtten_dB(i);
-bandmem[curr_band].attenuator_dB = i;
-//Serial.print("TEST: Manually Set Atten value to "); Serial.println(i);
-#endif
 
 }
 
@@ -1040,7 +1102,7 @@ COLD void setPAN(int8_t toggle)
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        if (user_settings[user_Profile].pan_state == ON)  // toggle the attenuator tracking state
+        if (user_settings[user_Profile].pan_state == ON)  // toggle the tracking state
             toggle = 0;
         else 
             toggle = 1;
@@ -1160,7 +1222,7 @@ COLD void NB(int8_t toggle)
     //char string[80];   // print format stuff
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        if (user_settings[user_Profile].nb_en)  // toggle the attenuator tracking state
+        if (user_settings[user_Profile].nb_en)  // toggle the tracking state
             toggle = 0;
         else 
             toggle = 1;
@@ -1286,7 +1348,7 @@ COLD void setRefLevel(int8_t toggle)
 {
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        if (std_btn[REFLVL_BTN].enabled)  // toggle the attenuator tracking state
+        if (std_btn[REFLVL_BTN].enabled)  // toggle the tracking state
             toggle = 0;
         else 
             toggle = 1;
@@ -1462,76 +1524,6 @@ COLD void TouchTune(int16_t touch_Freq)
 #endif    
     selectFrequency(0);
     displayFreq();
-}
-
-/*******************************************************************************
-* Function Name: setAtten_dB()
-********************************************************************************
-*
-* Summary:
-* Main function performs following functions:
-* 1: Configures the solid state attenuator by shifting 16 bits of address and
-*    atten level in LSB first.
-* 
-* Parameters:
-*  atten = attenuation level to set in range of 0 to 31 (in dB)
-*
-* Return:
-*  None.
-*
-*******************************************************************************/
-COLD void setAtten_dB(int8_t atten)
-{
-    //Serial.print("Requested new attenuator value is "); Serial.println(atten);
-    if(atten > 31) 
-        atten = 31;
-    if(atten <=0 )
-        atten = 0;
-    bandmem[curr_band].attenuator_dB = atten;
-    
-    //Serial.print("Setting attenuator value to "); Serial.println(bandmem[curr_band].attenuator_dB);
-    displayAttn();  // update the button value
-    
-    #ifdef DIG_STEP_ATT
-    char    atten_str[8] = {'\0'};
-    char    atten_data[8] = {'\0'};
-    uint8_t   i;
-
-    atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
-    /* Convert to 8 bits of  0 and 1 format */
-    itoa(atten, atten_str, 2);
-    
-    // pad with leading 0s as needed.  6 bits for the PE4302
-    for(i=0;(i<6-strlen(atten_str));i++)
-    {
-        atten_data[i]='0';
-    }
-    strncat(atten_data, atten_str, strlen(atten_str));
-
-    //  LE = 0 to allow writing data into shift register
-    digitalWrite(Atten_LE,   (uint8_t) OFF);
-    digitalWrite(Atten_DATA, (uint8_t) OFF);
-    digitalWrite(Atten_CLK,  (uint8_t) OFF);
-    delayMicroseconds(10);
-    //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
-    //    Start with the MSB first so start at the left end of the string   
-    for(i=0;i<6;i++)
-    {
-        // convert ascii 0 or 1 to a decimal 0 or 1 
-        digitalWrite(Atten_DATA, (uint8_t) atten_data[i]-48);
-        delayMicroseconds(10);
-        digitalWrite(Atten_CLK,  (uint8_t) ON);
-        delayMicroseconds(10);
-        digitalWrite(Atten_CLK,  (uint8_t) OFF); 
-        delayMicroseconds(10);
-    }
-    //  Toggle LE pin to latch the data and set the new attenuation value in the hardware
-    digitalWrite(Atten_LE, (uint8_t) ON);
-    delayMicroseconds(10);
-    digitalWrite(Atten_LE, (uint8_t) OFF);
-
-    return;    
-#endif  // DIG_STEP_ATT
 }
 
 COLD void selectStep(uint8_t fndx)

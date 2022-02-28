@@ -476,47 +476,36 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
     if (gesture == 1 && dragEvent)   // must be a 1 finger drag       
     {    
         int x = T1_X;
-        if (T1_X > 0 && abs(T1_X) > abs(T1_Y))  // x is smaller so must be drag in the right direction
+        if ((T1_X > 0 && abs(T1_X) > abs(T1_Y)) || (T1_X < 0 && abs(T1_X) > abs(T1_Y))) // x is smaller so must be drag in the right direction 
         {               
+            int16_t delta = ((SCREEN_WIDTH/100)-1);
+            int16_t zoom = 2;
+            
+            // Account for zoom level 
+            if (user_settings[user_Profile].zoom_level == 1)
+                zoom = 2;
+            if (user_settings[user_Profile].zoom_level == 2)
+                zoom = 4;
+            
             //Serial.println(F("Drag RIGHT")); 
             switch (MF_client) {
-                case NB_BTN:        x /= 100; break;
-                case ATTEN_BTN:     x /= 30;  break;
+                case NB_BTN:        x /= 100;           break;  //ToDO: convert to 0-100% like the rest
+                case ATTEN_BTN:     x /=  delta;        break;
                 case AFGAIN_BTN:
-                case RFGAIN_BTN:    x /= 10;  break;                         
-                case MFTUNE:        x /= -5;   break;
-                case REFLVL_BTN:    x /= 8;  break;
+                case RFGAIN_BTN:    x /=  delta;        break;                         
+                case MFTUNE:        x /= -delta*zoom;   break;
+                case REFLVL_BTN:    x /=  delta;        break;
+                case PAN_BTN:       x /= -delta;        break;
                 default: break; 
             }
             MF_Service(x, MF_client);
         }
-        else if (T1_X < 0 && abs(T1_X) > abs(T1_Y))  // no, must be the wrong direction !
-        {
-            //Serial.println(F("Drag LEFT")); 
-            switch (MF_client) {
-                case NB_BTN:        x /= 100; break;
-                case ATTEN_BTN:     x /= 30;  break;
-                case AFGAIN_BTN:
-                case RFGAIN_BTN:    x /= 10;  break;                         
-                case MFTUNE:        x /= -5;   break;
-                case REFLVL_BTN:    x /= 8;  break;
-                default: break; 
-            }
-            MF_Service(x, MF_client);
-        }  
-        else if (T1_Y > 0)  // y is smaller so must be drag in UP direction
+        else if (T1_Y > 0 || T1_Y < 0)  // y is smaller so must be drag in UP direction
         {
             //Serial.println(F("Drag DOWN"));
             MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
             //AFgain(T1_Y/10);
             //RefLevel(T1_Y/5);
-        }
-        else if (T1_Y < 0)  // no, maybe down !
-        {
-            //Serial.println(F("Drag UP")); 
-            MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
-            //AFgain(T1_Y/10);
-            //RefLevel(T1_Y/5);            
         }
 
         //Serial.print(F("Start Drag X="));Serial.print(T1_X);Serial.print(F("  Drag Y="));Serial.println(T1_Y);
@@ -719,7 +708,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case MUTE_BTN:      Mute();         break;
                     case MENU_BTN:      Menu();         break;
                     case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
-                    case ATTEN_BTN:     Atten(2);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+                    case ATTEN_BTN:     setAtten(2);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
                     case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
                     case RIT_BTN:       RIT();          break;
                     case XIT_BTN:       XIT();          break;
@@ -757,7 +746,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 {
                     case NB_BTN:        NB(1);          break; //Increment the mode from current value           
                     case AGC_BTN:       AGC();          break;   
-                    case ATTEN_BTN:     Atten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
+                    case ATTEN_BTN:     setAtten(1);       break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
                     //case AFGAIN_BTN:    setAFgain(1);   break;

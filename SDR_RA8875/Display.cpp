@@ -300,7 +300,7 @@ COLD void displayAttn()
 	{ 
 		sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
         MeterInUse = true;
-    	displayMeter(bandmem[curr_band].attenuator_dB/3, string, 5);   // val, string label, color scheme        
+    	displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme        
 	}
 	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
 	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);

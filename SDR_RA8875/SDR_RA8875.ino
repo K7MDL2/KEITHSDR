@@ -1070,7 +1070,9 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
         case PAN_BTN: {
             setPAN(-1);
         } break;
-        case ATTEN_BTN:
+        case ATTEN_BTN: {
+            setAtten(-1);
+        }
         case NB_BTN:
         case MFTUNE:
         default     : {          
@@ -1139,14 +1141,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
             PAN(counts);
         }
         case  ATTEN_BTN: {
-            if (counts> 31)
-                counts = 31;
-            if (counts <= 0)
-                counts = -1;
-            int8_t att_tmp = bandmem[curr_band].attenuator_dB + counts;
-            if (att_tmp <=0)
-                att_tmp = 0;
-              setAtten_dB(att_tmp);  // set attenuator level to value in database for this band
+            Atten(counts);  // set attenuator level to value in database for this band
         } break;
         case  NB_BTN: {
             setNBLevel(counts);
