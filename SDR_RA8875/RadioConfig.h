@@ -41,10 +41,10 @@
                             // Harmless to leave this defined as long as it is not connected via an I2C port expander
                             // DEPENDS on a PE4302 connected for variable attenuation
                             // MAY DEPEND on the Attenuation relay on a SV1AFN BPF board being turned on.
-                            //   You can use this without relays or the BPF board 
+                            // You can use this without relays or the BPF board 
                             // The RF attenuator bypass relay is turned on and off.  Does not matter if there is a real relay connected or not. 
 
-#define FIXED_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99
+#define FIXED_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99 (Future use!)
                             // This is used to correct the dBm scale on the spectrum 
                             // Can also fudge it to calibrate the spectrum until a more elegant solution is built
 
