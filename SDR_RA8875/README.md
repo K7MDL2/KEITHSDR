@@ -2,7 +2,11 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
-## Feb 2022
+## March 2022
+
+    1. Fixed missing buttons on RA8876 and fixed issue where AF gain jumps to max on band change.
+
+## February 2022
 
     1. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks more.  RF output is flowing though.
     2. Moved ENET startup code earlier in startup before time sync.  Was causing a deadlock resulting in CPU reboots at enet init time. Now there is no more long startup delay when ENET is enabled.

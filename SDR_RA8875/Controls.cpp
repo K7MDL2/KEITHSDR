@@ -198,7 +198,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //Serial.print("Corrected Target Band is "); Serial.println(target_band);    
   
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
-    ///RampVolume(0.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    codec1.muteHeadphone();  // remove audio thumps during hardware transients
     #ifndef PANADAPTER    
         curr_band = target_band;    // Set out new band
     #endif
@@ -206,7 +206,6 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     VFOB = bandmem[curr_band].vfo_B_last;
    
     //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
-    // delay(20);  // small delay for audio ramp to work
     selectFrequency(0);  // change band and preselector
     setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     selectBandwidth(bandmem[curr_band].filter);
@@ -216,7 +215,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     setMode(0);     // 0 is set value in database for both VFOs
     RefLevel(0);    // 0 just updates things to be current value
     RFgain(0);
-    ///AFgain(0);
+    AFgain(0);
     NBLevel(0);   // 0 just updates things to be current value
     ATU(-1); // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.
     
@@ -231,9 +230,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh();
-    ///RampVolume(1.0f, 1);  //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp" 
-    //setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
-    //AFgain(0);  // Set RX audio level back to last position on RX
+    codec1.unmuteHeadphone();  // reduce audio thump from hardware transitions
 }
 
 COLD void pop_win(uint8_t init)
@@ -582,9 +579,9 @@ COLD void setAtten(int8_t toggle)
       //else 
         //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
-      RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+      //RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
       bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
-      RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+      //RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #endif
 
     displayAttn();
@@ -892,9 +889,6 @@ COLD void AFgain(int8_t delta)
 {
     float _afLevel;
 
-    ///if (MF_client == AFGAIN_BTN)
-    //    set_MF_Service(AFGAIN_BTN);  // reset encoder counter and set up for next read if any until another functionm takes ownership
-
     // LineOutLevel is 0 to 31 with 0-12 clipping.  So 13-31 is usable range.  This scale is inverted.  13 is loudest, 31 lowest output.
     if(user_settings[user_Profile].xmit == OFF)
         _afLevel = user_settings[user_Profile].afGain;   // Get last absolute volume setting as a value 0-100
@@ -916,7 +910,7 @@ COLD void AFgain(int8_t delta)
     if(user_settings[user_Profile].xmit == OFF)
     {
         user_settings[user_Profile].afGain = _afLevel;  // update memory
-        codec1.lineOutLevel(user_settings[user_Profile].lineOut_RX); // skip when in TX to act as Mic Level Adjust control
+        //codec1.lineOutLevel(user_settings[user_Profile].lineOut_RX * _afLevel/100); // skip when in TX to act as Mic Level Adjust control
     }
     else // Control Mic Gain and Power out
     {
@@ -938,37 +932,6 @@ COLD void AFgain(int8_t delta)
     FFT_LO_Mixer_Q.frequency((_afLevel)*200.0f);
     AudioInterrupts();
 #endif
-/*
-    int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
-    int N_FFT = audio_block_samples * overlap_factor;  
-    Serial.print("    : N_FFT = "); Serial.println(N_FFT);
-    //configure the frequency shifting
-    float shiftFreq_Hz = 750.0; //shift audio upward a bit
-    float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
-    int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
-*/
-/*
-    static int _af_last = 0;
-    int incr_factor = 1;
-    
-    if (_af_last < _afLevel)
-        incr_factor = -1;
-    else 
-        incr_factor = 1;
-    _af_last = _afLevel;
-
-    int cur_shift_bins_I = FFT_LO_Mixer_I.getShift_bins();
-    int cur_shift_bins_Q = FFT_LO_Mixer_I.getShift_bins();
-    FFT_LO_Mixer_I.setShift_bins(cur_shift_bins_I + incr_factor);
-    FFT_LO_Mixer_I.setShift_bins(cur_shift_bins_Q + incr_factor);
-
-    AudioInterrupts();
-    RampVolume(0.7f, 2);
-       // Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
-        //Serial.print(" Hz, which is ");
-         Serial.print(cur_shift_bins_Q); 
-        Serial.println(" bins");
-*/
 
     // RampVolume handles the scaling. Must set the LineOutLevel to the desired max though.
     RampVolume((float) val, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
@@ -1018,7 +981,7 @@ COLD void RFgain(int8_t delta)
 {
     float _rfLevel;
 
-    _rfLevel = user_settings[user_Profile].rfGain;   // Get last absolute volume setting as a value 0-100
+    _rfLevel = user_settings[user_Profile].rfGain;   // Get last absolute  setting as a value 0-100
 
     _rfLevel += delta*4;      // convert percentage request to a single digit float
 
@@ -1100,7 +1063,7 @@ COLD void PAN(int8_t delta)
 {
     int8_t _panLevel;
 
-    _panLevel = user_settings[user_Profile].pan_level;   // Get last absolute volume setting as a value 0-100
+    _panLevel = user_settings[user_Profile].pan_level;   // Get last absolute setting as a value 0-100
     _panLevel += delta;      // convert percentage request to a single digit float
 
     if (_panLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)

@@ -1527,17 +1527,15 @@ COLD void TX_RX_Switch(
         
         // setup rest of mode-specific path using control fucntions to do the heavy lifting
         selectMode(mode_sel);// takes care of filter and mode-specific audio path switching         
-  
+        float vol_temp =  map( (float) user_settings[user_Profile].lineOut_RX, 31.0f, 13.0f, 0.0f, 1.0f);
+        codec1.volume(vol_temp); //set max full scale volume
+
         if (user_settings[user_Profile].spkr_en == ON)
         {
-            codec1.volume(1.0f); // Set to full scale.  RampVolume will then scale it up or down 0-100, scaled down to 0.0 to 1.0
-            // 0.7 seemed optimal for K7MDL with QRP_Labs RX board with 15 on line input and 20 on line output
             codec1.unmuteHeadphone();
-            codec1.unmuteLineout(); //unmute the audio output
+            //codec1.unmuteLineout(); //unmute the audio output
             user_settings[user_Profile].mute = OFF;
             displayMute();
-            AFgain(0);   // 0 is no change, set to stored last value.  range -100 to +100 percent change of full scale.
-            //RampVolume(user_settings[user_Profile].spkr_Vol_last/100, 1); //0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
         }
         else
         {
