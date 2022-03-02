@@ -52,7 +52,11 @@ const uint16_t x_4 = 467;
 const uint16_t x_5 = 583;
 const uint16_t x_6 = 699;
 // rest of standard button dimensions
-const uint16_t y_1 = 419;
+#ifdef USE_RA8875 
+    const uint16_t y_1 = 419;
+#else
+    const uint16_t y_1 = 539;
+#endif
 const uint16_t w_1 = 100;
 const uint16_t h_1 = 60;
 const uint16_t r_1 = 20;
@@ -74,7 +78,6 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF,   2, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
     { ON, OFF,   2, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  7, 20, "Zoom\0"},
     { ON, OFF,   2, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Pan\0"},
-
     //Panel 3
     { ON, OFF,   3, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Menu\0"},
     { ON, OFF,   3, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "ANT  \0"},
@@ -97,7 +100,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON, OFF,   5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     { ON, OFF,   5, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
     
-#ifdef USE_RA8875   // These rows differ between display sizes.
+#ifdef USE_RA8875   // These rows differ between display sizes. 
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON,   0, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
     { ON,  ON,   0, 645,  40, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
@@ -105,15 +108,13 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 };
 // Spare
 //    { ON, OFF,   2, 467, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
-
 #else
+    
     { ON,  ON,   0, 865,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
     { ON,  ON,   0, 880,  41, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
     { ON, OFF,   0,   0, 190,1023,320, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune hotspot area definition.
-
     // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
 };
-
 #endif  // USE_RA8875
 
 // Labels are screen display objects that are used mostly to show status.
