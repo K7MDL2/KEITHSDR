@@ -504,7 +504,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         else if (T1_Y > 0 || T1_Y < 0)  // y is smaller so must be drag in UP direction
         {
             //Serial.println(F("Drag DOWN"));
-            MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
+            //MF_Service(-T1_Y/5, user_settings[user_Profile].encoder2_client);
             //AFgain(T1_Y/10);
             //RefLevel(T1_Y/5);
         }
@@ -626,13 +626,13 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             ////------------------ 3 FINGER SWIPE DOWN  -------------------------------------------
             if (T1_Y > 0)  // y is negative so must be vertical swipe do
             {                
-                AFgain(-1);   //  Increment by +1 for 0-100
-                Serial.print(F("3-point Volume DOWN  ")); Serial.println(user_settings[user_Profile].afGain);
+                //AFgain(-1);   //  Increment by +1 for 0-100
+                //Serial.print(F("3-point Volume DOWN  ")); Serial.println(user_settings[user_Profile].afGain);
             }
             else //---------------- 3 FINGER SWIPE UP  -----------------------------------
             {
-                AFgain(1);   //  Range 0 to 100, this is a request to change level by 1 step
-                Serial.print(F("3-point Volume UP  ")); Serial.println(user_settings[user_Profile].afGain);
+                //AFgain(1);   //  Range 0 to 100, this is a request to change level by 1 step
+                //Serial.print(F("3-point Volume UP  ")); Serial.println(user_settings[user_Profile].afGain);
             }                
             break;
         }        

@@ -19,7 +19,7 @@
 #define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
-                            // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
+                            // UN-comment this line to use RA8876  ******** AND in the Spectrum_RA887x.h **********
 
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
@@ -44,7 +44,7 @@
                             // You can use this without relays or the BPF board 
                             // The RF attenuator bypass relay is turned on and off.  Does not matter if there is a real relay connected or not. 
 
-#define FIXED_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99 (Future use!)
+//#define HARDWARE_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99 (Future use!)
                             // This is used to correct the dBm scale on the spectrum 
                             // Can also fudge it to calibrate the spectrum until a more elegant solution is built
 
@@ -137,31 +137,55 @@
                             // When commented out use AutoSDRpreProcessor auto correction 
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
-//#define K7MDL_BUILD
 
-#ifdef K7MDL_BUILD 
-    #ifdef USE_RA8875 
-      //#undef USE_RA8875            // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
-    #endif
-    #ifndef USE_RA8875
+//#define K7MDL_BUILD  // This section overrides genral lsettngs above to permitfast switching between my current 2 SDR config, RA8875 and RA8876
+
+#ifdef K7MDL_BUILD     
+    #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
+    #ifdef RA8876_ON      // Config for my particular RA8876 build
+      #undef USE_RA8875               // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
+      #undef VFO_MULT                 // undefine so we can redefine it without error msg
+      #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
       #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
-    #endif
-    #define I2C_ENCODERS            // Use I2C connected encoders.
-    //#define MECH_ENCODERS            // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
-                                      // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
-    //#define OCXO_10MHZ              // Switch to etherkits library and set to use ext ref input at 10MHz
-    //#define K7MDL_OCXO              // use the si5351 C board with 10Mhz OCXO
-    //#define si5351_TCXO               // Set load cap to 0pF for TCXO
-    #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
-      #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
-    #else      
-      #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-    #endif
-    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default
-    #ifdef VFO_MULT 
+      #define SV1AFN_BPF              // Use the BPF board
+      #define PE4302                  // Use the step atten usually the PE4302 board
+      #undef I2C_ENCODERS
+      #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
+      #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
+      #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
+        #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
+      #else      
+        #define si5351_CORRECTION 0 // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
+      #endif
+    #else   // My RA8875 specifc build items
+      #define USE_RA8875
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
-    #endif
+      #undef TOUCH_ROTATION           // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
+      #undef SV1AFN_BPF               // Use the BPF board
+      #undef PE4302                   // Use the step atten usually the PE4302 board
+      #define I2C_ENCODERS            // Use I2C connected encoders.
+      #define HARDWARE_ATT_SIZE   0 
+      //#define PANADAPTER            // Enable panadapter mode
+      #ifdef PANADAPTER
+        #define ALL_CAT               // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
+        //#define FT817_CAT           // FT-817 control library - does full control and monitor for the FT-817
+        //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
+      #endif
+      //#define si5351_TCXO             // Set load cap to 0pF for TCXO
+      #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
+        #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
+      #else      
+        #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
+      #endif  //si5351_TCXO
+    #endif // RA8876_ON
+    // Config items common or NA to both builds
+    //#define MECH_ENCODERS           // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
+                                      // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
+                                      // This does not include the main VFO encoder, it is always enabled if connected or not.
+    //#define OCXO_10MHZ              // Switch to etherkits library and set to use ext ref input at 10MHz
+    //#define K7MDL_OCXO              // use the si5351 C board with 10Mhz OCXO
+    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default    
     #undef USE_DHCP                
     #define USE_DHCP                  // UNCOMMENT this for static IP  
     //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET
@@ -169,20 +193,13 @@
       #define ENET
     #endif
     //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
-    //#define SV1AFN_BPF              // Use the BPF board
-    //#define PE4302                    // Use the step atten usually the PE4302 board
-    //#define PANADAPTER              // Enable panadapter mode
-    #ifdef PANADAPTER
-      #define ALL_CAT                 // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
-      //#define FT817_CAT             // FT-817 control library - does full control and monitor for the FT-817
-      //#define PANADAPTER_INVERT     // Invert spectrum for inverted IF tuning direction
-    #endif
     #undef AUDIOBOOST
-    #define AUDIOBOOST   (1.0f)
+    #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation.  1.0f is pass through.
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
 #endif  // K7MDL_BUILD
+
 //
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
 //

@@ -1525,7 +1525,7 @@ COLD void TX_RX_Switch(
         // Restore RX audio in and out levels, squelch large Pop in unmute.
         delay(25);  // let audio chain settle (empty) from transient
         
-        // setup rest of mode-specific path using control fucntions to do the heavy lifting
+        // setup rest of mode-specific path using control functions to do the heavy lifting
         selectMode(mode_sel);// takes care of filter and mode-specific audio path switching         
         float vol_temp =  map( (float) user_settings[user_Profile].lineOut_RX, 31.0f, 13.0f, 0.0f, 1.0f);
         codec1.volume(vol_temp); //set max full scale volume

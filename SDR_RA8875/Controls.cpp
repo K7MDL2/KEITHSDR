@@ -550,9 +550,15 @@ COLD void setAtten(int8_t toggle)
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (bandmem[curr_band].attenuator == ATTEN_ON)  // toggle the attenuator tracking state
+        {
             toggle = 0;
-        else 
+            bandmem[curr_band].attenuator_byp = 0;   //Turn relay off bypassing hardware attenuator
+        }
+        else
+        { 
             toggle = 1;
+            bandmem[curr_band].attenuator_byp = 1;    //Turn relay ON for hardware attenuator
+        }
     }
     
     if (toggle == 1)    // toggle is 1, turn on Atten
@@ -574,14 +580,17 @@ COLD void setAtten(int8_t toggle)
     //Atten(0);  // 0 = no change to set attenuator level to value in database for this band
 
     #ifdef SV1AFN_BPF
-      //if (bandmem[curr_band].attenuator == ATTEN_OFF)
-        //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
-      //else 
-        //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
+        //if (bandmem[curr_band].attenuator == ATTEN_OFF)
+            //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
+        //else 
+            //Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
-      //RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-      bpf.setAttenuator((bool) bandmem[curr_band].attenuator);  // Turn attenuator relay on or off
-      //RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+        //RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+        if (bandmem[curr_band].attenuator_byp)
+            bpf.setAttenuator(true);  // Turn attenuator relay and status icon on or off
+        else
+            bpf.setAttenuator(false);  // Turn attenuator relay and status icon on or off
+        //RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     #endif
 
     displayAttn();
@@ -656,9 +665,16 @@ COLD void Preamp(int8_t toggle)
       //else 
       //  Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
  
-      RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+      //RampVolume(0.0, 1);   //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+      codec1.muteHeadphone();
+      delay(5);
+      uint8_t rfg_temp =  user_settings[user_Profile].rfGain;
+      RFgain(-1);
       bpf.setPreamp((bool) bandmem[curr_band].preamp);
-      RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+      delay(5);
+      RFgain(rfg_temp);
+      AFgain(0);            //   Reset afGain to last used to bypass thumps
+      codec1.unmuteHeadphone();
     #endif
     
     displayPreamp();

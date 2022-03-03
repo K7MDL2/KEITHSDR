@@ -302,8 +302,8 @@ COLD void displayAttn()
         MeterInUse = true;
     	displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme               
 	}
-	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator_dB);
-	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
+	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator_byp);
+	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator_byp);
 }
 
 COLD void displayPreamp()

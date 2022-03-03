@@ -351,7 +351,8 @@ struct Band_Memory {
     uint8_t     ATU;            // enable ATU or not.
     uint8_t     ant_sw;         // antenna selector switch.
     uint8_t     preselector;    // preselector band set value.
-    uint8_t     attenuator;     // 0 = bypass, >0 is attenuation value to set.
+    uint8_t     attenuator;     // 0 = button ON/OFF
+    uint8_t     attenuator_byp; // 0 = bypass, 1 is attenuation hardware active
     uint8_t     attenuator_dB;  // 0 is attenuation value to set.
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2
     uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.

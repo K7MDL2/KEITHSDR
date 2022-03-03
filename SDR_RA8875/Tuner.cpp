@@ -79,10 +79,10 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 		#ifdef SV1AFN_BPF
 		if (Freq < bandmem[curr_band].edge_lower || Freq > bandmem[curr_band].edge_upper)
 		{
-			RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+			//RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 			//Serial.print("BPF Set to "); Serial.println("Bypassed");  
 			bpf.setBand(HFBand(HFBypass));
-			RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+			//RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 		}
 		else
 		{
