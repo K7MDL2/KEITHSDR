@@ -5,6 +5,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 ## March 2022
 
     1. Fixed missing buttons on RA8876 and fixed issue where AF gain jumps to max on band change.
+    2. Fixed more Audio jumps to max on several condition such as band change and touch tune.
+    3. Fixed Attenuator shutting off on MF knob timeout.  Leaving the button on while atten is active.
 
 ## February 2022
 
