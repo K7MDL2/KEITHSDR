@@ -1,6 +1,6 @@
 //***************************************************************************************************
 //
-//    SDR_RSHFIQ.cpp 
+//    SDR_RSHFIQ.INO 
 //    TEST program
 //    USB host for RS-HFIQ transciever board
 //
