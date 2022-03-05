@@ -44,6 +44,9 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
+#ifdef RS_HFIQ
+    #include "SDR_RSHFIQ.h"
+#endif
 
 // Simple ways to designate functions to run out of fast or slower memory to help save RAM
 #define HOT FASTRUN    __attribute__((hot))
