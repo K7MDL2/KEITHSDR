@@ -1,16 +1,41 @@
 //***************************************************************************************************
 //
-//    SDR_RSHFIQ.INO 
+//    SDR_RSHFIQ.INO
 //    TEST program
-//    USB host for RS-HFIQ transciever board
+//    USB host test program for RS-HFIQ transciever board
+//    March 5, 2022 by K7MDL
+//    Based on the Teensy 3.6/4.x USBHost.ino example, adds commands to
+//    test set and query for the RS-HFIQ transceiver via the USB Host serial port.
 //
 //***************************************************************************************************
+#include "USBHost_t36.h"
+#define USBBAUD 57600   // RS-HFIQ uses 7600 baud
+uint32_t baud = USBBAUD;
+uint32_t format = USBHOST_SERIAL_8N1;
+USBHost RSHFIQ;
+USBHub hub1(RSHFIQ);
+USBHub hub2(RSHFIQ);
+USBHIDParser hid1(RSHFIQ);
+USBHIDParser hid2(RSHFIQ);
+USBHIDParser hid3(RSHFIQ);
 
-#include "SDR_RSHFIQ.h"
+// There is now two versions of the USBSerial class, that are both derived from a common Base class
+// The difference is on how large of transfers that it can handle.  This is controlled by
+// the device descriptor, where up to now we handled those up to 64 byte USB transfers.
+// But there are now new devices that support larger transfer like 512 bytes.  This for example
+// includes the Teensy 4.x boards.  For these we need the big buffer version. 
+// uncomment one of the following defines for userial
+USBSerial userial(RSHFIQ);  // works only for those Serial devices who transfer <=64 bytes (like T3.x, FTDI...)
+//USBSerial_BigBuffer userial(myusb, 1); // Handles anything up to 512 bytes
+//USBSerial_BigBuffer userial(myusb); // Handles up to 512 but by default only for those > 64 bytes
+
+USBDriver *drivers[] = {&hub1, &hub2, &hid1, &hid2, &hid3, &userial};
+#define CNT_DEVICES (sizeof(drivers)/sizeof(drivers[0]))
+const char * driver_names[CNT_DEVICES] = {"Hub1", "Hub2",  "HID1", "HID2", "HID3", "USERIAL1" };
+bool driver_active[CNT_DEVICES] = {false, false, false, false};
 
 bool Proceed  = false; 
 int   counter = 0;
-
 char freq[12] = "7074000";  // *Fxxxx command to set LO freq
 char * s_initPLL    = "*OF2\r"; // turns on LO clock0 output and sets drive current level to 4ma.
 char * q_freq       = "*F?\r";  // returns current LO frequency
@@ -25,7 +50,6 @@ char * q_EXT_freq   = "*E?\r";
 char * q_F_Offset   = "*D?\r";   // Offset to add to LO freq
 char * q_clip_on    = "*C\r";  // clipping occuring, add external attenuation
 char * q_BIT_freq   = "*B?\r";  // Built In Test.  Uses PLL clock 2
-
 
 // ************************************************* Setup *****************************************
 void setup()
@@ -48,9 +72,10 @@ void setup()
   init_PLL();  // has a long delay
   counter = 0;
   new_freq("5000000");   // Set a frequency for test.
+  delay(500);
   userial.print(q_freq);  // query the current frequency.  First time after startup it will report 00.
   print_RSHFIQ();
-  delay(1000);  // wait for device to get ready and respond
+  delay(2000);  // wait for device to get ready and respond
 }
 
 // ********************************************Loop ******************************************
