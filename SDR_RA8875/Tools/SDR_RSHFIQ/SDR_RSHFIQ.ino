@@ -7,6 +7,9 @@
 //    Based on the Teensy 3.6/4.x USBHost.ino example and RS-HFIQ.ino code
 //    Adds commands to test set and query for the RS-HFIQ transceiver via the Teensy 4.x USB Host serial port.
 //
+//    NOTE: Configure your terminal to send CR at end of line.  
+//
+//
 //***************************************************************************************************
 #include "USBHost_t36.h"
 #define USBBAUD 57600   // RS-HFIQ uses 7600 baud
@@ -60,9 +63,9 @@ char * q_BIT_freq   = "*B?";    // Built In Test. Uses PLL clock 2
 // *************************************************************************************************
 void setup()
 {
-    Serial.println("Start of Setup");
+    
     while (!Serial && (millis() < 5000)) ; // wait for Arduino Serial Monitor
-    Serial.println("\n\nUSB Host Testing - Serial");
+    Serial.println("\n\nUSB Host Testing - Serial V0.1");
     RSHFIQ.begin();
     Serial.println("Waiting for RS-HFIQ device to register on USB Host port");
     while (!Proceed)  // observed about 500ms required.
@@ -72,6 +75,7 @@ void setup()
         delay (500);
     }
     delay(1000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
+    Serial.println("Start of RS-HFIQ Setup");
     send_fixed_cmd_to_RSHFIQ(q_dev_name); // get our device ID name
     Serial.print("Device Name: ");print_RSHFIQ(1);  // waits for serial available (BLOCKING call);
     
@@ -196,7 +200,12 @@ void cmd_Console(void)
     // If a complete command is received, process it
     if (Ser_Flag == 3) 
     {
-        Serial.print("Send Cmd String : ");Serial.println(S_Input);
+        Serial.print("Send Cmd String : *");Serial.println(S_Input);
+        if (S_Input[0] == 'F' && S_Input[1] != '?')
+        {
+            // convert string to number  
+            freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number
+        }
         send_fixed_cmd_to_RSHFIQ(S_Input);
         Ser_Flag = 0;
         print_RSHFIQ(0);
@@ -250,9 +259,10 @@ int read_RSHFIQ(void)
         //Serial.println("USerial Available");
         return userial.read();
     }
+    return 0;
 }
 
-int wait_reply(void)
+void wait_reply(void)
 {
     while (!userial.available());
 }
