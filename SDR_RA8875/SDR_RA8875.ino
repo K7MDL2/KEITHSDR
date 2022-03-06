@@ -18,6 +18,9 @@
 #include "AudioSDRpreProcessor_F32.h" // From https://github.com/DerekRowell/AudioSDR.  
 //  Local copies of the 2 needed files are included in this distributon modified for F32 compatibility.
 
+#include "SDR_RSHFIQ.h"
+
+
 #ifdef USE_FFT_LO_MIXER
     #include "hilbert251A.h"        // filter coefficients
 #endif
@@ -90,7 +93,9 @@ COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool 
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void PhaseChange(uint8_t chg);
 COLD void resetCodec(void);
-
+//#ifdef RS_HFIQ
+    extern void cmd_console(void);
+//#endif
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
@@ -425,7 +430,7 @@ COLD void setup()
     MF_client = user_settings[user_Profile].default_MF_client;
     MF_default_is_active = true;
     MeterInUse = false;    
-     
+
     #ifdef  I2C_ENCODERS  
         set_I2CEncoders();
     #endif // I2C_ENCODERS
@@ -615,6 +620,10 @@ COLD void setup()
     #ifdef ALL_CAT
         CAT_setup();   // Setup the Serial port for cnfigured Radio comm port
     #endif
+    
+    #ifdef RS_HFIQ
+        //setup_RSHFIQ();
+    #endif
 }
 
 static uint32_t delta = 0;
@@ -780,21 +789,33 @@ HOT void loop()
     //respond to Serial commands
     while (Serial.available())
     {
-        if (Serial.peek() == 'T')
-        {
-            time_t t = processSyncMessage();
-            if (t != 0) 
-            {
-                Serial.println(F("Time Update"));
-                Teensy3Clock.set(t); // set the RTC
-                setTime(t);
-                digitalClockDisplay();
-            }
-        }
-        else
-            respondToByte((char)Serial.read());
-    }
+        char ch = (Serial.peek());
+        ch = toupper(ch);
 
+        switch (ch)
+        {
+            case 'M':
+            case 'C':
+            case 'H':   respondToByte((char)Serial.read()); 
+                        break;
+            case 'T':   {
+                            time_t t = processSyncMessage();
+                            if (t != 0) 
+                            {
+                                Serial.println(F("Time Update"));
+                                Teensy3Clock.set(t); // set the RTC
+                                setTime(t);
+                                digitalClockDisplay();
+                            }
+                        }
+                        break;
+            default:   
+                        #ifdef RS_HFIQ   //  Check the serial ports for manual inputs.       
+                            cmd_console();
+                        #endif  // RS_HFIQ
+                        break;
+        }
+    }
     //check to see whether to print the CPU and Memory Usage
     if (enable_printCPUandMemory)
         printCPUandMemory(millis(), 3000); //print every 3000 msec
@@ -971,7 +992,7 @@ COLD void respondToByte(char c)
     char s[2];
     s[0] = c;
     s[1] = 0;
-    if (!isalpha((int)c) && c != '?')
+    if (!isalpha((int)c) && c != '?' && c != '*')
         return;
     switch (c)
     {
@@ -1007,6 +1028,9 @@ COLD void printHelp(void)
     Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
     Serial.println(F("   M: Print Detailed Memory Region Usage Report"));
     Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
+    #ifdef RS_HFIQ
+    Serial.println(F("   R to display the RS-HFIQ Menu"));
+    #endif
 }
 #ifndef I2C_ENCODERS
     //#ifdef MECH_ENCODERS

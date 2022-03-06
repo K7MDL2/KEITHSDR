@@ -19,7 +19,7 @@
 
 extern tmElements_t tm;
 
-#define BUFFER_SIZE         4100    
+#define TX_BUFFER_SIZE         4100    
 #define RX_BUFFER_SIZE		255
 // Choose or create your desired time zone offset or use 0 for UTC.
 //const int timeZone = 1;     // Central European Time
@@ -84,7 +84,7 @@ char ReplyBuffer[] = "Random Reply";        // a string to send back
 uint8_t enet_ready = 0;
 unsigned long enet_start_fail_time = 0;
 uint8_t rx_buffer[RX_BUFFER_SIZE];
-uint8_t tx_buffer[BUFFER_SIZE];
+uint8_t tx_buffer[TX_BUFFER_SIZE];
 uint8_t rx_count = 0;
 uint8_t tx_count = 0;
 uint8_t enet_data_out = 0;
