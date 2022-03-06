@@ -6,13 +6,14 @@
 //
 //***************************************************************************************************
 
+#include "RadioConfig.h"
 #ifdef RS_HFIQ
 
 #include "SDR_RA8875.h"
-#include "RadioConfig.h"
 #include <Arduino.h>
 #include "USBHost_t36.h"
-#define USBBAUD 57600
+#include "SDR_RSHFIQ.h"
+#define USBBAUD 57600   // RS-HFIQ uses 57600 baud
 uint32_t baud = USBBAUD;
 uint32_t format = USBHOST_SERIAL_8N1;
 USBHost RSHFIQ;
@@ -37,115 +38,274 @@ USBDriver *drivers[] = {&hub1, &hub2, &hid1, &hid2, &hid3, &userial};
 const char * driver_names[CNT_DEVICES] = {"Hub1", "Hub2",  "HID1", "HID2", "HID3", "USERIAL1" };
 bool driver_active[CNT_DEVICES] = {false, false, false, false};
 
-void refresh_RSHFIQ(void);
-void write_RSHFIQ(int ch);  // write 1 char to the usb host connected to the RS-HFIQ
-int  read_RSHFIQ(void);     // read 1 char from the usb host connected to the RS-HFIQ
-void new_freq(char * freq);
-void print_RSHFIQ(void);   // Print our query results
-void init_PLL(void);
-
-bool Proceed  = false; 
 int   counter = 0;
+uint32_t freq = 5000000;
+char freq_str[15] = "7074000";  // *Fxxxx command to set LO freq, PLL Clock 0
+const char s_initPLL[5]       = "*OF1";   // turns on LO clock0 output and sets drive current level to 4ma.
+const char q_freq[4]          = "*F?";    // returns current LO frequency
+const char s_freq[3]          = "*F";     // set LO frequency template.  3 to 30Mhz range
+const char q_dev_name[3]      = "*?";     // example "RSHFIQ"
+const char q_ver_num[3]       = "*W";     // example "RS-HFIQ FW 2.4a"
+const char s_TX_OFF[4]        = "*X0";    // Transmit OFF 
+const char s_TX_ON[4]         = "*X1";    // Transmit ON - power is controlled via audio input level
+const char q_Temp[3]          = "*T";     // Temp on board in degrees C
+const char q_Analog_Read[3]   = "*L";    // analog read
+const char q_EXT_freq[4]      = "*E?";    // query the setting for PLL Clock 1 frequency presented on EX-RF jack or used for CW
+//const char s_EXT_freq[15]   = "*EXXXXX";// sets PLL Clock 1.  4KHz to 225Mhz range
+const char q_F_Offset[4]      = "*D?";    // Query Offset added to LO, BIT, or EXT frequency
+//const char s_F_Offset[15]   = "*DXXXXX";// Sets Offset to add to LO, BIT, or EXT frequency
+const char q_clip_on[3]       = "*C";     // clipping occuring, add external attenuation
+const char q_BIT_freq[4]      = "*B?";    // Built In Test. Uses PLL clock 2
 
-char freq[12] = "7074000";  // *Fxxxx command to set LO freq
-const char * s_initPLL    = "*OF2\r"; // turns on LO clock0 output and sets drive current level to 4ma.
-const char * q_freq       = "*F?\r";  // returns current LO frequency
-const char * q_dev_name   = "*?\r";   // example "RSHFIQ"
-const char * q_ver_num    = "*W\r";   // example "RS-HFIQ FW 2.4a"
-const char * s_TX_OFF     = "*X0\r";
-const char * s_TX_ON      = "*X1\r";
-const char * q_Temp       = "*T\r";
-const char * q_Analog_Read = "*L\r";
-const char * q_EXT_freq   = "*E?\r";
-//const /char * s_EXT_freq = "*EXXXXX\r";  // sets PLL Clock1
-const char * q_F_Offset   = "*D?\r";   // Offset to add to LO freq
-const char * q_clip_on    = "*C\r";  // clipping occuring, add external attenuation
-const char * q_BIT_freq   = "*B?\r";  // Built In Test.  Uses PLL clock 2
+void cmd_console(void);
+void print_RSHFIQ(int flag);
+bool refresh_RSHFIQ(void);
+void send_fixed_cmd_to_RSHFIQ(const char * str);
+void disp_Menu(void);
+void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
+void init_PLL(void);
+void wait_reply(void); // BLOCKING CALL!  Use with care
+char * convert_freq_to_Str(uint32_t freq);
+
 
 // ************************************************* Setup *****************************************
-void RSHFIQ_setup()
+//
+// *************************************************************************************************
+COLD void setup_RSHFIQ()
 {
-  while (!Serial && (millis() < 5000)) ; // wait for Arduino Serial Monitor
-  Serial.println("\n\nUSB Host Testing - Serial");
-  RSHFIQ.begin();
-  Serial.println("Waiting for RS-HFIQ device to register on USB Host port");
-  while (!Proceed)  // observed about 500ms required.
-  {
-    refresh_RSHFIQ();   // wait until we have a valid USB 
-    //Serial.print("Retry (500ms) = "); Serial.println(counter++);
-    delay (500);
-  }
-  delay(1000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
-  userial.print(q_dev_name, DEC); // get our device ID name
-  print_RSHFIQ();
-  userial.print(q_ver_num);
-  print_RSHFIQ();
-  init_PLL();  // has a long delay
-  counter = 0;
-  new_freq((const char *) "5000000");   // Set a frequency for test.
-  userial.print(q_freq);  // query the current frequency.  First time after startup it will report 00.
-  print_RSHFIQ();
-  delay(1000);  // wait for device to get ready and respond
+    Serial.println("Start of RS-HFIQ Setup");
+    while (!Serial && (millis() < 5000)) ; // wait for Arduino Serial Monitor
+    Serial.println("\n\nUSB Host Testing - Serial");
+    RSHFIQ.begin();
+    Serial.println("Waiting for RS-HFIQ device to register on USB Host port");
+    while (!refresh_RSHFIQ())  // observed about 500ms required.
+    {
+        // wait until we have a valid USB 
+        //Serial.print("Retry (500ms) = "); Serial.println(counter++);
+    }
+    delay(1000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
+    send_fixed_cmd_to_RSHFIQ(q_dev_name); // get our device ID name
+    Serial.print("Device Name: ");print_RSHFIQ(1);  // waits for serial available (BLOCKING call);
+    
+    send_fixed_cmd_to_RSHFIQ(q_ver_num);
+    Serial.print("Version: ");print_RSHFIQ(1);  // waits for serial available (BLOCKING call);
+    
+    send_fixed_cmd_to_RSHFIQ(q_F_Offset);
+    wait_reply();  // extra wait for serial data step at startup.
+    Serial.print("F_Offset (Hz): "); print_RSHFIQ(1);   // Print our query results
+
+    send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));  //Inserted here to help reliably set up PLL
+    
+    send_fixed_cmd_to_RSHFIQ(q_Analog_Read);
+    Serial.print("Analog Read: "); print_RSHFIQ(1);   // Print our query results
+    
+    send_fixed_cmd_to_RSHFIQ(q_Temp);
+    Serial.print("Temp: "); print_RSHFIQ(1);   // Print our query results
+    
+    send_fixed_cmd_to_RSHFIQ(q_BIT_freq);
+    Serial.print("Built-in Test Frequency: "); print_RSHFIQ(1);   // Print our query results
+    
+    send_fixed_cmd_to_RSHFIQ(q_clip_on);
+    Serial.print("Clipping (0 No Clipping, 1 Clipping): "); print_RSHFIQ(1);   // Print our query results
+    
+    send_fixed_cmd_to_RSHFIQ(s_initPLL);  // Turn on the LO clock source  
+    Serial.println("Initializing PLL");
+    
+    send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));
+    Serial.print("Starting Frequency (Hz): "); Serial.println(freq);
+
+    send_fixed_cmd_to_RSHFIQ(q_freq);  // query the current frequency.
+    Serial.print("Reported Frequency (Hz): "); print_RSHFIQ(1);   // Print our query results
+    delay(1000);
+    
+    send_fixed_cmd_to_RSHFIQ(s_initPLL);  // Extra one to deal with occasional init fails
+    Serial.println("End of RS-HFIQ Setup");
+    
+    counter = 0;
+    disp_Menu();
 }
 
-// ********************************************Loop ******************************************
-
-void RSHFIQ_Service()
-{  
-  new_freq(freq);   // Set a frequency for test.
-  userial.print(q_freq);  // query the current frequency
-  print_RSHFIQ();   // Print our query results
-  userial.print(q_F_Offset);
-  print_RSHFIQ();   // Print our query results
-  userial.print(q_Analog_Read);
-  print_RSHFIQ();   // Print our query results
-  userial.print(q_Temp);
-  print_RSHFIQ();   // Print our query results
-  userial.print(q_BIT_freq);
-  print_RSHFIQ();   // Print our query results
-  userial.print(q_clip_on);
-  print_RSHFIQ();   // Print our query results
-  //Serial.print("loop counter = "); Serial.println(counter++);
-  delay(1);
-}
-
-void init_PLL(void)
+void cmd_console(void)
 {
-  userial.print(s_initPLL);
-  delay(3000);   // delay needed to turn on PLL clock0
+    char c;
+    unsigned char Ser_Flag = 0, Ser_NDX = 0;
+    char S_Input[16];
+
+    while (Serial.available() > 0)    // Process any and all characters in the buffer
+    {
+        c = Serial.read(); 
+        c = toupper(c);
+        if (c == '*')                   // No matter where we are in the state machine, a '*' say clear the buffer and start over.
+        {
+            Ser_NDX = 0;                   // character index = 0
+            Ser_Flag = 1;                  // State 1 means the '*' has been received and we are collecting characters for processing
+            for (int z = 0; z < 16; z++)  // Fill the buffer with spaces
+            {
+                S_Input[z] = ' ';
+            }
+            Serial.println("Start cmd string");
+        }
+        else 
+        {
+          if (Ser_Flag == 1 && c != 13) S_Input[Ser_NDX++] = c;  // If we are in state 1 and the character isn't a <CR>, put it in the buffer
+          if (Ser_Flag == 1 && c == 13)                         // If it is a <CR> ...
+          {
+              S_Input[Ser_NDX] = 0;                                // terminate the input string with a null (0)
+              Ser_Flag = 3;                                        // Set state to 3 to indicate a command is ready for processing
+              Serial.println("Cmd string complete");
+          }
+          if (Ser_NDX > 15) Ser_NDX = 15;   // If we've received more than 15 characters without a <CR> just keep overwriting the last character
+        }
+        if (S_Input[0] != '*' and  Ser_Flag == 0 && Ser_NDX < 2)  // process menu pick list
+        {
+            int32_t fr_adj = 0;     
+
+            Ser_NDX = 0;
+
+            switch (c)
+            {
+                case '1': Serial.println(F("TX OFF")); send_fixed_cmd_to_RSHFIQ(s_TX_OFF); break; 
+                case '2': Serial.println(F("TX ON")); send_fixed_cmd_to_RSHFIQ(s_TX_ON); break; 
+                case '3': Serial.println(F("Query Frequency")); send_fixed_cmd_to_RSHFIQ(q_freq); print_RSHFIQ(1); break;
+                case '4': Serial.println(F("Query Frequency Offset")); send_fixed_cmd_to_RSHFIQ(q_F_Offset); print_RSHFIQ(1); break;
+                case '5': Serial.println(F("Query Built-in Test Frequency")); send_fixed_cmd_to_RSHFIQ(q_BIT_freq); print_RSHFIQ(1); break;
+                case '6': Serial.println(F("Query Analog Read")); send_fixed_cmd_to_RSHFIQ(q_Analog_Read); print_RSHFIQ(1); break;
+                case '7': Serial.println(F("Query Ext Frequency or CW")); send_fixed_cmd_to_RSHFIQ(q_EXT_freq); print_RSHFIQ(1); break;
+                case '8': Serial.println(F("Query Temp")); send_fixed_cmd_to_RSHFIQ(q_Temp); print_RSHFIQ(1); break;
+                case '9': Serial.println(F("Initialize PLL Clock0 (LO)")); send_fixed_cmd_to_RSHFIQ(s_initPLL); break;
+                case '0': Serial.println(F("Query Clipping")); send_fixed_cmd_to_RSHFIQ(q_clip_on); print_RSHFIQ(1); break;
+                case 'K': Serial.println(F("Move Down 1000Hz ")); fr_adj = -1000; break;
+                case 'L': Serial.println(F("Move Up 1000Hz ")); fr_adj = 1000; break;
+                case '<': Serial.println(F("Move Down 100Hz ")); fr_adj = -100; break;
+                case '>': Serial.println(F("Move Up 100Hz ")); fr_adj = 100; break;  
+                case ',': Serial.println(F("Move Down 10Hz ")); fr_adj = -100; break;
+                case '.': Serial.println(F("Move Up 10Hz ")); fr_adj = 100; break; 
+                case 'R': disp_Menu(); break;
+                default: Serial.write(c); userial.write(c); break;
+                break;  
+            }
+            if (fr_adj != 0)  // Move up or down
+            {
+                freq += fr_adj;
+                Serial.print("Target Freq = "); Serial.println(freq);
+                send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));
+                fr_adj = 0;
+            } 
+        }
+    }
+
+    // If a complete command is received, process it
+    if (Ser_Flag == 3) 
+    {
+        Serial.print("Send Cmd String : *");Serial.println(S_Input);
+        if (S_Input[0] == 'F' && S_Input[1] != '?')
+        {
+            // convert string to number  anfd update the freq variable
+            freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number
+        }
+        send_fixed_cmd_to_RSHFIQ(S_Input);
+        Ser_Flag = 0;
+        print_RSHFIQ(0);
+    }
 }
 
-void new_freq(char * freq)
+COLD void send_fixed_cmd_to_RSHFIQ(const char * str)
 {
-  userial.printf("*F%s\r", freq);
+    userial.printf("*%s\r", str);
 }
 
-void write_RSHFIQ(int ch)
+COLD void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str)
+{
+    userial.printf("%s%s\r", str, cmd_str);
+}
+
+COLD void init_PLL(void)
+{
+  Serial.println("init_PLL: Begin");
+  send_fixed_cmd_to_RSHFIQ(s_initPLL);
+  delay(2000);   // delay needed to turn on PLL clock0
+  Serial.println("init_PLL: End");
+}
+
+COLD char * convert_freq_to_Str(uint32_t freq)
+{
+  sprintf(freq_str, "%lu", freq);
+  send_fixed_cmd_to_RSHFIQ(freq_str);
+  return freq_str;
+}
+
+COLD void write_RSHFIQ(int ch)
 {   
     userial.write(ch);
 } 
 
-int read_RSHFIQ(void)
+COLD int read_RSHFIQ(void)
 {
     while (userial.available()) 
     {
         //Serial.println("USerial Available");
         return userial.read();
     }
+    return 0;
 }
 
-void print_RSHFIQ()
+COLD void wait_reply(void)
 {
- while ( int c = read_RSHFIQ())
+    while (!userial.available());
+}
+
+// flag = 0 do not Block
+// flag = 1, block while waiting for a serial char
+COLD void print_RSHFIQ(int flag)
+{
+  if (flag) wait_reply();  // we are waiting for a reply (BLOCKING)
+  //Serial.print("print_RSHFIQ: ");
+  while ( int c = read_RSHFIQ())
   {
     Serial.write(c);
   }
 }
 
-
-void refresh_RSHFIQ(void)
+COLD void disp_Menu(void)
 {
+    Serial.println(F("\n\n ***** Control Menu *****\n"));
+    Serial.println(F(" H - Main Menu"));
+    Serial.println(F(" 1 - TX OFF"));
+    Serial.println(F(" 2 - TX ON"));
+    Serial.println(F(" 3 - Query Frequency"));
+    Serial.println(F(" 4 - Query Frequency Offset"));
+    Serial.println(F(" 5 - Query Built-in Test Frequency"));
+    Serial.println(F(" 6 - Query Analog Read"));
+    Serial.println(F(" 7 - Query External Frequency or CW"));
+    Serial.println(F(" 8 - Query Temp"));
+    Serial.println(F(" 9 - Initialize PLL Clock0 (LO)"));
+    Serial.println(F(" 0 - Query Clipping"));
+    
+    Serial.println(F("\n Can use upper or lower case letters"));
+    Serial.println(F(" Can use multiple frequency shift actions such as "));
+    Serial.println(F("   <<<< for 4*100Hz  to move down 400Hz"));
+    Serial.println(F(" K - Move Down 1000Hz "));
+    Serial.println(F(" L - Move Up 1000Hz "));
+    Serial.println(F(" < - Move Down 100Hz "));
+    Serial.println(F(" > - Move Up 100Hz "));
+    Serial.println(F(" , - Move Down 10Hz "));
+    Serial.println(F(" . - Move Up 10Hz "));
+
+    Serial.println(F("\n Enter any native command string"));
+    Serial.println(F("    Example: *F5000000 will change frequency to WWV at 5MHz"));
+    Serial.println(F("    Minimum is 3.0MHz or *F3000000, max is 30.0MHz or *F30000000"));
+    Serial.println(F("    Band filters and attenuation are automatically set"));
+    Serial.println(F("\n ***** End of Menu *****"));
+}
+
+bool refresh_RSHFIQ(void)
+{
+    bool Proceed;
+
+    Proceed = false;
+    
     RSHFIQ.Task();
+    
     // Print out information about different devices.
     for (uint8_t i = 0; i < CNT_DEVICES; i++) 
     {
@@ -179,6 +339,8 @@ void refresh_RSHFIQ(void)
             }
         }
     }
+    delay (500);
+    return Proceed;
 }
 
 #endif // RS_HFIQ
