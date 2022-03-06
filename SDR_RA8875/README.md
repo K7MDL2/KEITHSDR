@@ -7,7 +7,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     1. Fixed missing buttons on RA8876 and fixed issue where AF gain jumps to max on band change.
     2. Fixed more Audio jumps to max on several condition such as band change and touch tune.
     3. Fixed Attenuator shutting off on MF knob timeout.  Leaving the button on while atten is active.
-    4. Added SDR_RSHFIQ.ino into a new Tools folder. This is a very basic tool to manually control the RS-HFIQ using the Teensy 4.x USB Host Serial port.
+    4. Added SDR_RSHFIQ.ino into a new Tools folder. This is test tool to manually control the RS-HFIQ using the Teensy 4.x onboard USB Host Serial port. Permits a direct USB connection to a RS-HFIQ transciever.  Can send any valid command free-form, or choose from a menu of queries and TX/RX.  This was develped to facilitate creaton of a Teensy API for the SDR program integration.
 
 ## February 2022
 
