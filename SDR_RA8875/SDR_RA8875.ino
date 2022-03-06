@@ -93,9 +93,7 @@ COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool 
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void PhaseChange(uint8_t chg);
 COLD void resetCodec(void);
-//#ifdef RS_HFIQ
-    extern void cmd_console(void);
-//#endif
+
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
@@ -622,7 +620,7 @@ COLD void setup()
     #endif
     
     #ifdef RS_HFIQ
-        //setup_RSHFIQ();
+        setup_RSHFIQ(0);  // 0 is non blocking wait, 1 is blocking wait
     #endif
 }
 

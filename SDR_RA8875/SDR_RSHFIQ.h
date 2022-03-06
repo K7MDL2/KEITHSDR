@@ -9,7 +9,7 @@
 #ifdef RS_HFIQ
     /// Stuff here
     void cmd_console(void);
-    void setup_RSHFIQ(void);
+    void setup_RSHFIQ(int blocking);
 #endif
 
 #endif   // _RS_HFIQ_SERIAL_H_
