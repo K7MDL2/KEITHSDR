@@ -135,13 +135,15 @@
                             // When enabled use long press on ANT button to cycle thorugh 3 possible
                             // solutons to remove mirror image aka Twin Peaks problem
                             // When commented out use AutoSDRpreProcessor auto correction 
+                            
+//#define RS_HFIQ             // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
 //#define K7MDL_BUILD  // This section overrides genral lsettngs above to permitfast switching between my current 2 SDR config, RA8875 and RA8876
 
 #ifdef K7MDL_BUILD     
-    #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
+    //#define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
     #ifdef RA8876_ON      // Config for my particular RA8876 build
       #undef USE_RA8875               // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
@@ -152,11 +154,7 @@
       #undef I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
       #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
-      #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
-        #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
-      #else      
-        #define si5351_CORRECTION 0 // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-      #endif
+      #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
     #else   // My RA8875 specifc build items
       #define USE_RA8875
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
@@ -171,22 +169,17 @@
         #define ALL_CAT               // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
         //#define FT817_CAT           // FT-817 control library - does full control and monitor for the FT-817
         //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
-      #endif
-      //#define si5351_TCXO             // Set load cap to 0pF for TCXO
-      #ifdef si5351_TCXO                // etherkits TCXO Si5351A board (25MHz)
-        #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
-      #else      
-        #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-      #endif  //si5351_TCXO
+      #endif    
+      #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
     #endif // RA8876_ON
+
     // Config items common or NA to both builds
     //#define MECH_ENCODERS           // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
                                       // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
                                       // This does not include the main VFO encoder, it is always enabled if connected or not.
     //#define OCXO_10MHZ              // Switch to etherkits library and set to use ext ref input at 10MHz
     //#define K7MDL_OCXO              // use the si5351 C board with 10Mhz OCXO
-    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default    
-    #undef USE_DHCP                
+    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default                 
     #define USE_DHCP                  // UNCOMMENT this for static IP  
     //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET
     #ifdef USE_ENET_PROFILE
@@ -198,6 +191,7 @@
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
+    #define RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 #endif  // K7MDL_BUILD
 
 //
