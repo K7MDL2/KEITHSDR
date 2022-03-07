@@ -87,6 +87,7 @@ COLD void setup_RSHFIQ(int _blocking)  // 0 non block, 1 blocking
     blocking = _blocking;
     Serial.println("\n\nUSB Host Testing - Serial");
     RSHFIQ.begin();
+    delay(50);
     Serial.println("Waiting for RS-HFIQ device to register on USB Host port");
     while (!refresh_RSHFIQ())  // observed about 500ms required.
     {        
@@ -94,42 +95,39 @@ COLD void setup_RSHFIQ(int _blocking)  // 0 non block, 1 blocking
         // wait until we have a valid USB 
         Serial.print("Retry (500ms) = "); Serial.println(counter++);
     }
-    delay(1000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
+    delay(1500);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
+    
     send_fixed_cmd_to_RSHFIQ(q_dev_name); // get our device ID name
     Serial.print("Device Name: ");print_RSHFIQ(blocking);  // waits for serial available (BLOCKING call);
     
     send_fixed_cmd_to_RSHFIQ(q_ver_num);
     Serial.print("Version: ");print_RSHFIQ(blocking);  // waits for serial available (BLOCKING call);
 
-    send_fixed_cmd_to_RSHFIQ(q_F_Offset);
-    wait_reply(blocking);  // extra wait for serial data step at startup.
-    Serial.print("F_Offset (Hz): "); print_RSHFIQ(blocking);   // Print our query results
-
-    send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));  //Inserted here to help reliably set up PLL
+    send_fixed_cmd_to_RSHFIQ(q_Temp);
+    Serial.print("Temp: "); print_RSHFIQ(blocking);   // Print our query results
+    
+    send_fixed_cmd_to_RSHFIQ(s_initPLL);  // Turn on the LO clock source  
+    Serial.println("Initializing PLL");
     
     send_fixed_cmd_to_RSHFIQ(q_Analog_Read);
     Serial.print("Analog Read: "); print_RSHFIQ(blocking);   // Print our query results
-    
-    send_fixed_cmd_to_RSHFIQ(q_Temp);
-    Serial.print("Temp: "); print_RSHFIQ(blocking);   // Print our query results
     
     send_fixed_cmd_to_RSHFIQ(q_BIT_freq);
     Serial.print("Built-in Test Frequency: "); print_RSHFIQ(blocking);   // Print our query results
     
     send_fixed_cmd_to_RSHFIQ(q_clip_on);
     Serial.print("Clipping (0 No Clipping, 1 Clipping): "); print_RSHFIQ(blocking);   // Print our query results
-    
-    send_fixed_cmd_to_RSHFIQ(s_initPLL);  // Turn on the LO clock source  
-    Serial.println("Initializing PLL");
-    
+
     send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));
-    Serial.print("Starting Frequency (Hz): "); Serial.println(s_freq);
+    Serial.print("Starting Frequency (Hz): "); Serial.println(convert_freq_to_Str(freq));
+    delay(25);
+
+    send_fixed_cmd_to_RSHFIQ(q_F_Offset);
+    Serial.print("F_Offset (Hz): "); print_RSHFIQ(blocking);   // Print our query result
 
     send_fixed_cmd_to_RSHFIQ(q_freq);  // query the current frequency.
     Serial.print("Reported Frequency (Hz): "); print_RSHFIQ(blocking);   // Print our query results
-    delay(1000);
     
-    send_fixed_cmd_to_RSHFIQ(s_initPLL);  // Extra one to deal with occasional init fails
     Serial.println("End of RS-HFIQ Setup");
     
     counter = 0;
@@ -239,11 +237,13 @@ COLD void update_VFOs(uint32_t newfreq)
 COLD void send_fixed_cmd_to_RSHFIQ(const char * str)
 {
     userial.printf("*%s\r", str);
+    delay(5);
 }
 
 COLD void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str)
 {
     userial.printf("%s%s\r", str, cmd_str);
+    delay(5);
 }
 
 COLD void init_PLL(void)
