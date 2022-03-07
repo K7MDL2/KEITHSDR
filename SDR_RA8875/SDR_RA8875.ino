@@ -620,7 +620,7 @@ COLD void setup()
     #endif
     
     #ifdef RS_HFIQ
-        setup_RSHFIQ(0);  // 0 is non blocking wait, 1 is blocking wait
+        setup_RSHFIQ(1);  // 0 is non blocking wait, 1 is blocking wait
     #endif
 }
 
