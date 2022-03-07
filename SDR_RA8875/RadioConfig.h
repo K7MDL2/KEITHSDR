@@ -140,7 +140,7 @@
 
 // K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-#define K7MDL_BUILD  // This section overrides genral lsettngs above to permitfast switching between my current 2 SDR config, RA8875 and RA8876
+//#define K7MDL_BUILD  // This section overrides genral lsettngs above to permitfast switching between my current 2 SDR config, RA8875 and RA8876
 
 #ifdef K7MDL_BUILD     
     //#define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
