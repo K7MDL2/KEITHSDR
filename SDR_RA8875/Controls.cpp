@@ -72,6 +72,7 @@ extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
 #endif
 extern          float               pan;
 extern          void                PhaseChange(uint8_t chg);
+extern          void                send_fixed_cmd_to_RSHFIQ(const char * str);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -1120,10 +1121,13 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
 	else
 		mode_idx = bandmem[curr_band].mode_B;
 
-    if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)
+    if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)  // Transmit OFF
     {
         user_settings[user_Profile].xmit = OFF;
         digitalWrite(PTT_OUT1, HIGH);
+        #ifdef RS_HFIQ  
+            send_fixed_cmd_to_RSHFIQ("*X0");  //RS-HFIQ TX OFF
+        #endif
         // enable line input to pass to headphone jack on audio card, set audio levels
         TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.5f);  
         // int TX,                 // TX == 1, RX == 0
@@ -1133,10 +1137,13 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
         // float   ToneB,          // 0.0f(OFF) or 1.0f (ON)
         // float   TestTone_Vol)   // 0.90 is max, clips if higher. Use 0.45f with 2 tones
     }
-    else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)
+    else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)  // Transmit ON
     {
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
+        #ifdef RS_HFIQ  
+            send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
+        #endif
         // enable mic input to pass to line out on audio card, set audio levels
         if (TwoToneTest)  // Mic on, turn off test tones
             TX_RX_Switch(ON, mode_idx, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones            
