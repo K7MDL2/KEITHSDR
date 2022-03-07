@@ -1184,11 +1184,11 @@ COLD void NBLevel(int8_t delta)
 {
     float _nbLevel;
 
-    Serial.print(" TEST NB delta "); Serial.println(delta);
+    //Serial.print(" TEST NB delta "); Serial.println(delta);
 
     _nbLevel = user_settings[user_Profile].nb_level;   // Get last known value
 
-    Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
+    //Serial.print(" TEST NB Level "); Serial.println(_nbLevel);
 
     _nbLevel += delta;      // increment up or down
 
@@ -1443,7 +1443,7 @@ COLD void TouchTune(int16_t touch_Freq)
             if (bandmem[curr_band].mode_A == CW || bandmem[curr_band].mode_A == CW_REV)
                 VFOA = Freq_Peak - ModeOffset;  //user_settings[user_Profile].pitch;
             else
-                 VFOA = Freq_Peak;  // bin number from spectrum            
+                VFOA = Freq_Peak;  // bin number from spectrum
         }
         Serial.println(formatVFO(VFOA));
     }
