@@ -22,6 +22,11 @@ extern int32_t Fc;
 //////////////////////////Initialize VFO/DDS//////////////////////////////////////////////////////
 COLD void initVfo(void)
 {
+
+    #ifdef RS_HFIQ
+        return;
+    #endif
+    
     delay(100);
     
     //#define OCXO_10MHZ in main header file - Uncomment it there for external reference on the si5351C board version
@@ -114,7 +119,11 @@ COLD void initVfo(void)
 }
 
 COLD void SetFreq(uint32_t Freq)
-{
+{ 
+    #ifdef RS_HFIQ
+        return;
+    #endif
+
     #ifdef OCXO_10MHZ
         si5351.set_freq((Freq+Fc) * VFO_MULT * 100ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
     #else

@@ -18,6 +18,9 @@ extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern const struct TuneSteps tstep[];
 extern void RampVolume(float vol, int16_t rampType);
+extern char * convert_freq_to_Str(uint32_t freq);
+extern void send_fixed_cmd_to_RSHFIQ(const char * str);
+extern void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
 
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
@@ -82,18 +85,22 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 			//RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 			//Serial.print("BPF Set to "); Serial.println("Bypassed");  
 			bpf.setBand(HFBand(HFBypass));
-			//RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+			//RampVolume(xx, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 		}
 		else
 		{
 			//RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 			//Serial.print("BPF Set to "); Serial.println(bandmem[curr_band].preselector);  
 			bpf.setBand(HFBand(bandmem[curr_band].preselector));
-			//RampVolume(1.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+			//RampVolume(xx, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 		}
 		#endif
 	#endif
   
     displayFreq(); // show freq on display
-    SetFreq(Freq); // send freq to SI5351
+	#ifdef RS_HFIQ    
+		send_variable_cmd_to_RSHFIQ("*F", convert_freq_to_Str(Freq));
+	#else
+    	SetFreq(Freq); // send freq to SI5351
+	#endif
 }

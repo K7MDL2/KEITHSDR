@@ -38,9 +38,15 @@ USBDriver *drivers[] = {&hub1, &hub2, &hid1, &hid2, &hid3, &userial};
 const char * driver_names[CNT_DEVICES] = {"Hub1", "Hub2",  "HID1", "HID2", "HID3", "USERIAL1" };
 bool driver_active[CNT_DEVICES] = {false, false, false, false};
 
-int   counter  = 0;
-static int   blocking = 1;
-uint32_t freq = 5000000;
+extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern uint32_t VFOB;
+extern uint8_t curr_band;   // global tracks our current band setting.
+extern struct Band_Memory bandmem[];
+extern void displayFreq();
+
+int         counter  = 0;
+static int  blocking = 1;  // )0 means do not wait for serial response from RS-HFIQ - for testing only.  1 is normal
+static uint32_t freq = 5000000;
 char freq_str[15] = "7074000";  // *Fxxxx command to set LO freq, PLL Clock 0
 const char s_initPLL[5]       = "*OF1";   // turns on LO clock0 output and sets drive current level to 4ma.
 const char q_freq[4]          = "*F?";    // returns current LO frequency
@@ -68,23 +74,23 @@ void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
 void init_PLL(void);
 void wait_reply(int blocking); // BLOCKING CALL!  Use with care
 char * convert_freq_to_Str(uint32_t freq);
+void update_VFOs(uint32_t newfreq);
 
 
 // ************************************************* Setup *****************************************
 //
 // *************************************************************************************************
 COLD void setup_RSHFIQ(int _blocking)  // 0 non block, 1 blocking
-{
-    blocking = _blocking;
+{   
     Serial.println("Start of RS-HFIQ Setup");
-    while (!Serial && (millis() < 5000)) ; // wait for Arduino Serial Monitor
+    freq = VFOA;
+    blocking = _blocking;
     Serial.println("\n\nUSB Host Testing - Serial");
     RSHFIQ.begin();
     Serial.println("Waiting for RS-HFIQ device to register on USB Host port");
     while (!refresh_RSHFIQ())  // observed about 500ms required.
-    {
-        if (!blocking) 
-            break;
+    {        
+        if (!blocking) break;
         // wait until we have a valid USB 
         Serial.print("Retry (500ms) = "); Serial.println(counter++);
     }
@@ -94,7 +100,7 @@ COLD void setup_RSHFIQ(int _blocking)  // 0 non block, 1 blocking
     
     send_fixed_cmd_to_RSHFIQ(q_ver_num);
     Serial.print("Version: ");print_RSHFIQ(blocking);  // waits for serial available (BLOCKING call);
-    
+
     send_fixed_cmd_to_RSHFIQ(q_F_Offset);
     wait_reply(blocking);  // extra wait for serial data step at startup.
     Serial.print("F_Offset (Hz): "); print_RSHFIQ(blocking);   // Print our query results
@@ -117,7 +123,7 @@ COLD void setup_RSHFIQ(int _blocking)  // 0 non block, 1 blocking
     Serial.println("Initializing PLL");
     
     send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));
-    Serial.print("Starting Frequency (Hz): "); Serial.println(freq);
+    Serial.print("Starting Frequency (Hz): "); Serial.println(s_freq);
 
     send_fixed_cmd_to_RSHFIQ(q_freq);  // query the current frequency.
     Serial.print("Reported Frequency (Hz): "); print_RSHFIQ(blocking);   // Print our query results
@@ -192,9 +198,11 @@ void cmd_console(void)
             if (fr_adj != 0)  // Move up or down
             {
                 freq += fr_adj;
+                update_VFOs(freq);
                 Serial.print("Target Freq = "); Serial.println(freq);
                 send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));
                 fr_adj = 0;
+                return;
             } 
         }
     }
@@ -205,13 +213,27 @@ void cmd_console(void)
         Serial.print("Send Cmd String : *");Serial.println(S_Input);
         if (S_Input[0] == 'F' && S_Input[1] != '?')
         {
-            // convert string to number  anfd update the freq variable
-            freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number
+            // convert string to number and update the freq variable
+            freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number            
+            update_VFOs(freq);
+            Serial.print("RS_HFIQ Frequency Change: "); Serial.println(freq);
         }
         send_fixed_cmd_to_RSHFIQ(S_Input);
         Ser_Flag = 0;
         print_RSHFIQ(blocking);
     }
+}
+
+COLD void update_VFOs(uint32_t newfreq)
+{
+    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+        VFOA = newfreq;
+    else
+        VFOB = newfreq;
+    bandmem[curr_band].vfo_A_last = VFOA;
+    bandmem[curr_band].vfo_B_last = VFOB;
+    selectFrequency(0);
+    displayFreq();
 }
 
 COLD void send_fixed_cmd_to_RSHFIQ(const char * str)
