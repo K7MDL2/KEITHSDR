@@ -643,7 +643,7 @@ HOT void loop()
 
         if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
                                               // a popup must call drawSpectrumFrame when it is done and clear this flag.
-            if (1)  // !user_settings[user_Profile].notch)  // TEST:  added to test CPU impact
+            if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
                 Freq_Peak = spectrum_RA887x.spectrum_update(
                     user_settings[user_Profile].sp_preset,
                     (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO True if VFO_A active
@@ -702,8 +702,8 @@ HOT void loop()
         //if (MF_client != user_settings[user_Profile].default_MF_client)
         if (!MF_default_is_active)
         {
-            Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
-            Serial.println(MF_client);
+            //Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
+            //Serial.println(MF_client);
             set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
             MF_default_is_active = true;
         }
@@ -756,6 +756,7 @@ HOT void loop()
 
     if (meter.check() == 1) // update our meters
     {
+if(!bandmem[curr_band].XIT_en)
         S_Meter_Peak_Avg = Peak();   // return an average for RF AGC limiter if used
         //Serial.print("S-Meter Peak Avg = ");
         //Serial.println(S_Meter_Peak_Avg);
@@ -853,6 +854,7 @@ HOT void loop()
         {
             //update the display only if time has changed
             prevDisplay = now();
+if(!bandmem[curr_band].XIT_en)
             displayTime();
         }
     }
