@@ -7,7 +7,15 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     1. Fixed missing buttons on RA8876 and fixed issue where AF gain jumps to max on band change.
     2. Fixed more Audio jumps to max on several condition such as band change and touch tune.
     3. Fixed Attenuator shutting off on MF knob timeout.  Leaving the button on while atten is active.
-    4. Added SDR_RSHFIQ.ino into a new Tools folder. This is test tool to manually control the RS-HFIQ using the Teensy 4.x onboard USB Host Serial port. Permits a direct USB connection to a RS-HFIQ transciever.  Can send any valid command free-form, or choose from a menu of queries and TX/RX.  This was develped to facilitate creaton of a Teensy API for the SDR program integration.
+    4. 3-5-2022: Added SDR_RSHFIQ.ino into a new Tools folder. This is test tool to manually control the RS-HFIQ using the Teensy 4.x onboard USB Host Serial port. Permits a direct USB connection to a RS-HFIQ transciever.  Can send any valid command free-form, or choose from a menu of queries and TX/RX.  This was developed to facilitate creation of a Teensy API for the SDR program integration.
+    5. 3-6-2022: Basic RS-HFIQ support added.  
+        a. Can now tune, change bands as normal. 
+        b. A new sub menu added to the main (R) menu permitting all possible commands to be directly issued to the RS-HFIQ. Use the menu items or use free-form  (*F7074000 to change to 7.074MHz for example).
+        c. There is a bug with free-form frequency entry which results in a program hang. I need to add some band change logic. Works fine in the standalone test program.  
+        d. No extended features yet offsets, test signals, CW.  
+        e. The transmit audio chain on the program side is new and mostly untested but TR switching does work and the RS-HFIQ switches to TX OK with carrier easily heard on an external RX. 
+        f. On program startup there is an occasional hang trying to initialize the RS-HFIQ rig I am tracking down.
+        g. A freeby benefit to the Serial free-form command support is that Serial CAT control can now be used via OmniRig. Use the RS-HFIQ ini file and the commands will be passed through (in theory - untested for now).
 
 ## February 2022
 
