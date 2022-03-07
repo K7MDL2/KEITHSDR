@@ -16,6 +16,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
         e. The transmit audio chain on the program side is new and mostly untested but TR switching does work and the RS-HFIQ switches to TX OK with carrier easily heard on an external RX. 
         f. On program startup there is an occasional hang trying to initialize the RS-HFIQ rig I am tracking down.
         g. A freeby benefit to the Serial free-form command support is that Serial CAT control can now be used via OmniRig. Use the RS-HFIQ ini file and the commands will be passed through (in theory - untested for now).
+    6. A 5ms delay after each command sent to the RS-HFIQ seems to have solved the init hangs. 
+    7. For testing when XIT is ON, periodic screen update sources are stopped. This lowers background noise considerably. There are regular screen updates for clock, meter, spectrum, and also for changes when tuning or touch drags.  Lower bands like 40M have high enough atmospheric noise it drowns this noise out. The noise is obvious on the upper bands.  The question now is if shielding the display is enough to solve it. Not using a ribbon cable on this rig, the Teensy is stacked directly on the back of the display connector.  Noise is form SPI mostly, possibly i2c also.
 
 ## February 2022
 
