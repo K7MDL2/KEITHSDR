@@ -191,10 +191,16 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     
     //Serial.print("Target Band is "); Serial.println(target_band);
 
-    if (target_band > BAND11)    // go to bottom band
-        target_band = BAND11;    // 0 is not used
-    if (target_band < BAND0)    // go to top most band  -  
-        target_band = BAND0;    // 0 is not used so do not have to adjsut with a -1 here
+    if (target_band > BAND10)    // Stop at top
+        target_band = BAND10;    
+
+    #ifdef RS_HFIQ
+        if (target_band < BAND2)    // Stop at bottom
+            target_band = BAND2;     
+    #else
+        if (target_band < BAND0)    // stop at bottom 
+            target_band = BAND0;    
+    #endif
 
     //Serial.print("Corrected Target Band is "); Serial.println(target_band);    
   
