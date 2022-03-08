@@ -212,13 +212,20 @@ void cmd_console(void)
         if (S_Input[0] == 'F' && S_Input[1] != '?')
         {
             // convert string to number and update the freq variable
-            freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number            
+            freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number   
             update_VFOs(freq);
             Serial.print("RS_HFIQ Frequency Change: "); Serial.println(freq);
+            send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));         
         }
-        send_fixed_cmd_to_RSHFIQ(S_Input);
+        else
+        {
+          Serial.print("RS_HFIQ Command: "); Serial.println(S_Input);
+          send_fixed_cmd_to_RSHFIQ(S_Input);
+          delay(5);
+          print_RSHFIQ(0);  // do not print this for freq changes, causes a hang since there is no response and this is a blocking call 
+                            // Use non blocking since user input could be in error and a response may not be returned
+        }
         Ser_Flag = 0;
-        print_RSHFIQ(blocking);
     }
 }
 
