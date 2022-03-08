@@ -418,7 +418,11 @@ COLD void displaySplit()
 
 COLD void displayTime(void)
 {
+	#ifdef ENET
 	sprintf(std_btn[UTCTIME_BTN].label, "UTC:%02d:%02d:%02d", hour(), minute(), second());
+	#else
+	sprintf(std_btn[UTCTIME_BTN].label, "Local:%02d:%02d:%02d", hour(), minute(), second());
+	#endif
 	//tft.print(std_btn[UTCTIME_BTN].label);
 	//Serial.println("UTC Time = "); Serial.println(std_btn[UTCTIME_BTN].label);
 	draw_2_state_Button(UTCTIME_BTN, &std_btn[UTCTIME_BTN].show);	
