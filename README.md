@@ -15,6 +15,7 @@ The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 
   4. Custom gesture code replaces the poorly working internal FT5206 Gesture detection.  Found in UserInput.h
   5. Table driven UI configuration, per-band settings, and User Profile settings with centralized control functions.
   6. Supports both RA8875 and RA8876 based displays with capacitive touch controllers
+  7. Supports USB Host connection to a RS-HFIQ 5W SDR transceiver.
 
 See the README file in each project for specifics about that build.
 
