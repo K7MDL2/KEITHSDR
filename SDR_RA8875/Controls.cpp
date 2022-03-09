@@ -121,6 +121,8 @@ void setZoom(int8_t dir);
 void PAN(int8_t delta);
 void setPAN(int8_t toggle);
 void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
+uint32_t find_new_band(uint32_t new_frequency);
+
 
 
 #ifndef BYPASS_SPECTRUM_MODULE
@@ -1612,4 +1614,33 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
         delayMicroseconds(10);
         digitalWrite(Atten_LE, (uint8_t) OFF);
     #endif
+}
+
+// For RS-HFIQ free-form frequency entry validation but can be useful for others
+// Changes to teh correct band settings for the new target frequency.  
+// VFOA will become the new frequency, VFOB will come from the database last used frequency
+// If the new frequency is below or above the band limits correct it to stay within the band limits.
+uint32_t find_new_band(uint32_t new_frequency)
+{
+    int i;
+
+    for (i=BAND10; i> BAND1; i--)    // start at the top and look for first band that VFOA fits under bandmem[i].edge_upper
+    {
+        if (new_frequency >= bandmem[i].edge_lower && new_frequency <= bandmem[i].edge_upper)  // found a band lower than new_frequency so search has ended
+        {
+            //Serial.print("Edge_Lower = "); Serial.println(bandmem[i].edge_lower);
+            curr_band = bandmem[i].band_num;
+            if (new_frequency < bandmem[curr_band].edge_lower) // keep the target in bounds
+                new_frequency = bandmem[curr_band].edge_lower;
+            if (new_frequency > bandmem[curr_band].edge_upper)
+                new_frequency = bandmem[curr_band].edge_upper;
+            VFOA = bandmem[curr_band].vfo_A_last = new_frequency;  // up the last used frequencies
+            VFOB = bandmem[curr_band].vfo_B_last;
+            //Serial.print("New Band = "); Serial.println(curr_band);
+            changeBands(0);
+            return new_frequency;
+        }
+    }
+    //Serial.println("Invalid Frequency Requested");
+    return 0;
 }

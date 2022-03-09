@@ -43,6 +43,7 @@ extern uint32_t VFOB;
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern struct Band_Memory bandmem[];
 extern void displayFreq();
+extern uint32_t find_new_band(uint32_t new_frequency);
 
 int         counter  = 0;
 static int  blocking = 1;  // )0 means do not wait for serial response from RS-HFIQ - for testing only.  1 is normal
@@ -75,7 +76,6 @@ void init_PLL(void);
 void wait_reply(int blocking); // BLOCKING CALL!  Use with care
 char * convert_freq_to_Str(uint32_t freq);
 void update_VFOs(uint32_t newfreq);
-
 
 // ************************************************* Setup *****************************************
 //
@@ -208,14 +208,24 @@ void cmd_console(void)
     // If a complete command is received, process it
     if (Ser_Flag == 3) 
     {
-        Serial.print("Send Cmd String : *");Serial.println(S_Input);
-        if (S_Input[0] == 'F' && S_Input[1] != '?')
+        Serial.print("Send Cmd String : *");Serial.println(S_Input);  
+        if ((S_Input[0] == 'F' || S_Input[0] == 'D' || S_Input[0] == 'E') && S_Input[1] != '?') // Some commands do not issue a response
+                                                                                                // so do not do a blocking print that waits
+                                                                                                // for a response that will never come.
         {
             // convert string to number and update the freq variable
             freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number   
-            update_VFOs(freq);
+            if (S_Input[0] == 'F')
+                freq = find_new_band(freq);  // set the correct index and changeBands() to match for possible band change
+            if (freq == 0)
+                {
+                    Serial.print("RS-HFIQ: Invalid Frequency = "); Serial.println(S_Input);
+                    Ser_Flag = 0;
+                    return;
+                }
+            //update_VFOs(freq);
             Serial.print("RS_HFIQ Frequency Change: "); Serial.println(freq);
-            send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));         
+            send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(freq));    
         }
         else
         {
