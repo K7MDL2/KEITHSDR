@@ -304,7 +304,7 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
 
         for (i = 2; i < (ptr->wf_sp_width-1); i++)
         {
-            if (i == 2)   // start with 2 becauee the end values contain special purpose or used for averaging
+            if (i == 2)   // start with 2 because the end values contain special purpose or used for averaging
             {
                 pix_min = pixelnew[2];  // start off each set with a sample value to compare others with
             }
@@ -502,7 +502,7 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
                             if (pix_n16 > ptr->sp_top_line && pix_n16 < ptr->sp_bottom_line-1)
                             {
                                 //common way: draw bars                                                                        
-                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16,    myYELLOW); //BLACK);                             
+                                tft.drawFastVLine(ptr->l_graph_edge+i, pix_n16, ptr->sp_bottom_line-pix_n16, myYELLOW); //BLACK);                             
                                 pixelold[i] = pixelnew[i];
                             }
                         }
@@ -510,7 +510,7 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
                     else  // was DOT mode, now LINE mode
                     {   
                         // This will be drawn on Canvas 2 if this is a RA8876, layer 2 if a RA8875                               
-                        tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i],  myYELLOW);
+                        tft.drawLine(ptr->l_graph_edge+i, pixelnew[i-1], ptr->l_graph_edge+i, pixelnew[i], myYELLOW);
                         pixelold[i] = pixelnew[i]; 
                     }
                 }
