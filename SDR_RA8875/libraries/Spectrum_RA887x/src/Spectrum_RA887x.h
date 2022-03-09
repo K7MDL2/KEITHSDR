@@ -51,8 +51,11 @@
 
 // USER DEFINED SECTION --------------------------------------------------------------------//
 
-#define USE_RA8875                 // Uncomment for RA8876 AND in your main program
 
+//#define USE_RA8875  // ********** Uncomment for RA8876 AND in your main program **************
+
+
+// -----------------------------------------------------------------------------------------//
 // Vars from main program.  Eventually pass these into function at run time.
 extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 
 extern struct New_Spectrum_Layout   Custom_Layout[1];
