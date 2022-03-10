@@ -178,9 +178,9 @@ bool    MF_default_is_active = true;
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //float sample_rate_Hz = 51200.0f;  // 50Hz/bin for 1024, 200Hz/bin for 256 FFT. 20Khz span at 800 pixels 2048 FFT
-//float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 102400.0f; // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 //float sample_rate_Hz = 204800.0f; // 200/bin at 1024 FFT
@@ -219,7 +219,7 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     #ifndef BETATEST
         DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
     #else
-        AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // w/ power ave
+        AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // with power averaging array 
     #endif
 #endif
 #ifdef FFT_2048   
@@ -845,7 +845,7 @@ if(!bandmem[curr_band].XIT_en)
             Ethernet.maintain();          // keep our connection fresh
         }
     }
-#endif // End of Ethenet related functions here
+#endif // End of Ethernet related functions here
 
     // Check if the time has updated (1 second) and update the clock display
     if (timeStatus() != timeNotSet) // && enet_ready) // Only display if ethernet is active and have a valid time source
