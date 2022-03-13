@@ -813,7 +813,6 @@ if(!bandmem[curr_band].XIT_en)
 
         switch (ch)
         {
-            case 'M':
             case 'C':
             case 'H':   respondToByte((char)Serial.read()); 
                         break;
@@ -1026,12 +1025,6 @@ COLD void respondToByte(char c)
         Serial.println(F("Toggle printing of memory and CPU usage."));
         togglePrintMemoryAndCPU();
         break;
-    case 'M':
-    case 'm':
-        Serial.println(F("\nMemory Usage (FlexInfo)"));
-        //flexRamInfo();
-        Serial.println(F("*** End of Report ***"));
-        break;
     default:
         Serial.print(F("You typed "));
         Serial.print(s);
@@ -1047,7 +1040,6 @@ COLD void printHelp(void)
     Serial.println(F("Help: Available Commands:"));
     Serial.println(F("   h: Print this help"));
     Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
-    Serial.println(F("   M: Print Detailed Memory Region Usage Report"));
     Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
     #ifdef USE_RS_HFIQ
     Serial.println(F("   R to display the RS-HFIQ Menu"));
