@@ -827,7 +827,7 @@ COLD  void setPanel()
         std_btn[FN_BTN].enabled = 2;                // Start at 2. 0 and 1 are used for on/off visible status. So 2 == panel 1.
 
     uint16_t panel = std_btn[FN_BTN].enabled - 1;    // The panel field uses 1  to X so adjust our index down
-    Serial.print(F("Fn Pressed, Show Panel "));  Serial.println(panel);
+    //Serial.print(F("Fn Pressed, Show Panel "));  Serial.println(panel);
     sprintf(std_btn[FN_BTN].label, "Fn %d", panel);   // Update our button label
 
     // Turn ON or OFF Panel X buttons

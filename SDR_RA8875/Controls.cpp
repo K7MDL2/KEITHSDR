@@ -1550,7 +1550,7 @@ void setMeter(uint8_t id)
 {
     if (MF_client != id) 
     {
-        Serial.println("Turn ON meter");
+        //Serial.println("Turn ON meter");
         set_MF_Service(id);  // reset encoder counter and set up for next read if any until another functionm takes ownership
         MF_default_is_active = false;  
     }
