@@ -195,7 +195,7 @@ COLD void displayFilter(void)
 	#else
 		sprintf(str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
 	#endif
-	Serial.print(F("Filter is ")); Serial.println(str);
+	//Serial.print(F("Filter is ")); Serial.println(str);
 	sprintf(labels[FILTER_LBL].label, "%s", str);
 	drawLabel(FILTER_LBL, &bandmem[curr_band].filter);
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
@@ -206,7 +206,7 @@ COLD void displayRate(void)
 	if (bandmem[curr_band].tune_step >= TS_STEPS)
 		bandmem[curr_band].tune_step = TS_STEPS-1;
 	sprintf(labels[RATE_LBL].label, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
-	Serial.print(F("Tune Rate is ")); Serial.println(labels[RATE_LBL].label);
+	//Serial.print(F("Tune Rate is ")); Serial.println(labels[RATE_LBL].label);
 	drawLabel(RATE_LBL, &bandmem[curr_band].tune_step);
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);
 }
@@ -215,7 +215,7 @@ COLD void displayAgc(void)
 {	
 	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
 	sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
-	Serial.print("AGC ="); Serial.println(std_btn[AGC_BTN].label);
+	//Serial.print("AGC ="); Serial.println(std_btn[AGC_BTN].label);
 	drawLabel(AGC_LBL, &bandmem[curr_band].agc_mode);
 	draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
 }
@@ -224,7 +224,7 @@ COLD void displayANT(void)
 {	
 	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
 	sprintf(labels[ANT_LBL].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
-	Serial.print(F("Antenna Switch set to ")); Serial.println(std_btn[ANT_BTN].label);
+	//Serial.print(F("Antenna Switch set to ")); Serial.println(std_btn[ANT_BTN].label);
 	drawLabel(ANT_LBL, &bandmem[curr_band].ant_sw);
 	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
 }
@@ -242,7 +242,7 @@ void displayPan(void)
 		MeterInUse = true;
 		displayMeter(user_settings[user_Profile].pan_level/10, string, 5);   // val, string label, color scheme
 	}
-	Serial.print(F("Pan set to ")); Serial.println(std_btn[PAN_BTN].label);
+	//Serial.print(F("Pan set to ")); Serial.println(std_btn[PAN_BTN].label);
 	draw_2_state_Button(PAN_BTN, &user_settings[user_Profile].pan_state);
   #ifdef I2C_LCD
     lcd.setCursor(10,1);
@@ -263,7 +263,7 @@ COLD void displayRFgain(void)
 		MeterInUse = true;
 		displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
 	}
-	Serial.print(F("RF Gain set to ")); Serial.println(std_btn[RFGAIN_BTN].label);
+	//Serial.print(F("RF Gain set to ")); Serial.println(std_btn[RFGAIN_BTN].label);
 	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain_en);
   #ifdef I2C_LCD
     lcd.setCursor(10,1);
@@ -283,7 +283,7 @@ COLD void displayAFgain(void)
         MeterInUse = true;
     	displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme        
 	}
-	Serial.print(F("AF Gain set to ")); Serial.println(std_btn[AFGAIN_BTN].label);
+	//Serial.print(F("AF Gain set to ")); Serial.println(std_btn[AFGAIN_BTN].label);
 	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain_en);
   #ifdef I2C_LCD  
     lcd.setCursor(0,1);
@@ -295,7 +295,7 @@ COLD void displayAttn()
 {
 	char string[80];   // print format stuff
 	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
-	Serial.print(F("Atten is ")); Serial.println(bandmem[curr_band].attenuator);
+	//Serial.print(F("Atten is ")); Serial.println(bandmem[curr_band].attenuator);
 	if (MF_client == ATTEN_BTN) 
 	{ 
 		sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
@@ -308,35 +308,35 @@ COLD void displayAttn()
 
 COLD void displayPreamp()
 {
-	Serial.print(F("Preamp is ")); Serial.println(bandmem[curr_band].preamp);
+	//Serial.print(F("Preamp is ")); Serial.println(bandmem[curr_band].preamp);
 	drawLabel(PREAMP_LBL, &bandmem[curr_band].preamp);
 	draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
 }
 
 COLD void displayATU()
 {
-	Serial.print(F("ATU is ")); Serial.println(bandmem[curr_band].ATU);
+	//Serial.print(F("ATU is ")); Serial.println(bandmem[curr_band].ATU);
 	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
 }
 
 COLD void displayRIT()
 {
-	Serial.print(F("RIT is ")); Serial.println(bandmem[curr_band].RIT_en);
+	//Serial.print(F("RIT is ")); Serial.println(bandmem[curr_band].RIT_en);
 	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
 }
 
 COLD void displayXIT()
 {
-	Serial.print(F("XIT is ")); Serial.println(bandmem[curr_band].XIT_en);
+	//Serial.print(F("XIT is ")); Serial.println(bandmem[curr_band].XIT_en);
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
 }
 
 COLD void displayFine()
 {
-	Serial.print(F("Fine Tune is ")); Serial.println(user_settings[user_Profile].fine);
+	//Serial.print(F("Fine Tune is ")); Serial.println(user_settings[user_Profile].fine);
 	drawLabel(FINE_LBL, &user_settings[user_Profile].fine);
 	draw_2_state_Button(FINE_BTN,  &user_settings[user_Profile].fine);
 }
@@ -364,7 +364,7 @@ COLD void displayZoom()
     //sprintf(labels[ZOOM_LBL].label,  "Zoom:%d", user_settings[user_Profile].zoom_level);
 	//drawLabel(ZOOM_LBL, &user_settings[user_Profile].zoom_level);
 
-	Serial.print(F("Zoom is ")); Serial.println(zoom[user_settings[user_Profile].zoom_level].zoom_name);
+	//Serial.print(F("Zoom is ")); Serial.println(zoom[user_settings[user_Profile].zoom_level].zoom_name);
 	sprintf(std_btn[ZOOM_BTN].label, "Zoom%s", zoom[user_settings[user_Profile].zoom_level].zoom_name);
 	draw_2_state_Button(ZOOM_BTN, &user_settings[user_Profile].zoom_level);
 }
@@ -383,14 +383,14 @@ COLD void displayRefLevel()
 
 COLD void displayNR()
 {
-	Serial.print(F("NR is ")); Serial.println(user_settings[user_Profile].nr_en);
+	//Serial.print(F("NR is ")); Serial.println(user_settings[user_Profile].nr_en);
 	drawLabel(NR_LBL, &user_settings[user_Profile].nr_en);
 	draw_2_state_Button(NR_BTN, &user_settings[user_Profile].nr_en);
 }
 
 COLD void displayNotch()
 {
-	Serial.print(F("Notch is ")); Serial.println(std_btn[NOTCH_BTN].label);
+	//Serial.print(F("Notch is ")); Serial.println(std_btn[NOTCH_BTN].label);
 	drawLabel(NOTCH_LBL, &user_settings[user_Profile].notch);
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
 }
@@ -411,7 +411,7 @@ COLD void displaySplit()
 		sprintf(sp_label, "%s %s", std_btn[SPLIT_BTN].label, "Off");
 		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
 	}
-	Serial.print(F("Split is ")); Serial.println(bandmem[curr_band].split);
+	//Serial.print(F("Split is ")); Serial.println(bandmem[curr_band].split);
 	drawLabel(SPLIT_LBL, &bandmem[curr_band].split);
 	draw_2_state_Button(SPLIT_BTN, &bandmem[curr_band].split);
 }

@@ -532,9 +532,9 @@ COLD void setup()
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
     if(timeStatus()!= timeSet) // try this other way
-        Serial.println("Unable to sync with the RTC");
+        Serial.println(F("Unable to sync with the RTC"));
     else
-        Serial.println("RTC has set the system time"); 
+        Serial.println(F("RTC has set the system time")); 
     if (Serial.available()) 
     {
         time_t t = processSyncMessage();
@@ -545,7 +545,7 @@ COLD void setup()
         }
     }
     digitalClockDisplay(); // print time to terminal
-    Serial.println("Clock Update");
+    Serial.println(F("Clock Update"));
     
 
 #ifndef BYPASS_SPECTRUM_MODULE
@@ -635,7 +635,7 @@ COLD void setup()
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
    
     #ifdef FT817_CAT
-        Serial.println("Starting the CAT port and reading some radio information if available");
+        Serial.println(F("Starting the CAT port and reading some radio information if available"));
         init_CAT_comms();  // initialize the CAT port
         print_CAT_status();  // Test Line to read data from FT-817 if attached.
     #endif
@@ -688,7 +688,7 @@ HOT void loop()
         delta = time_n;
         Serial.print(F("Loop T="));
         Serial.print(delta);
-        Serial.print("  Spectrum T=");
+        Serial.print(F("  Spectrum T="));
         Serial.println(millis() - time_sp);
     }
     time_old = millis();
@@ -756,7 +756,7 @@ HOT void loop()
         if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client)
         {
             mfg = ENC3.readStatus();
-            if (mfg) {Serial.print("****Checked Encoder #3 status = "); Serial.println(mfg); }
+            if (mfg) {Serial.print(F("****Checked Encoder #3 status = ")); Serial.println(mfg); }
         }
         #endif
     }
@@ -1447,7 +1447,7 @@ COLD void TX_RX_Switch(
     
     if (TX)  // Switch to Mic input on TX
     {
-        Serial.println("Switching to Tx"); 
+        Serial.println(F("Switching to Tx")); 
 
         AudioNoInterrupts();
 
@@ -1498,7 +1498,7 @@ COLD void TX_RX_Switch(
     //   Back to RX
     //  *******************************************************************************************
     {
-        Serial.println("Switching to Rx");         
+        Serial.println(F("Switching to Rx"));
 
         AudioNoInterrupts();
 
@@ -1660,7 +1660,7 @@ HOT void RF_Limiter(float peak_avg)
         //Serial.print(rf_agc_limit); 
 
         rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;        
-        Serial.print("*** RF AGC Limit (0-15) = ");
+        Serial.print(F("*** RF AGC Limit (0-15) = "));
         Serial.println(rf_agc_limit); 
         
         if (rf_agc_limit !=0)
@@ -1681,7 +1681,7 @@ HOT void RF_Limiter(float peak_avg)
             //Serial.print(rf_agc_limit_last); 
             rf_agc_limit_last = temp;
             codec1.lineInLevel(temp);   // retore to normal level
-            Serial.print("*** Restore LineIn Level = ");
+            Serial.print(F("*** Restore LineIn Level = "));
             Serial.println(temp);             
         }
     }
@@ -1718,8 +1718,8 @@ COLD void resetCodec(void)
         tft.setFont(Arial_14);
         tft.setTextColor(myWHITE);
         tft.setCursor(20, SCREEN_HEIGHT/2);
-        tft.print("AutoI2S Error Correction Loop Started");
-        Serial.println("AutoI2S Error Correction Loop Started");
+        tft.print(F("AutoI2S Error Correction Loop Started"));
+        Serial.println(F("AutoI2S Error Correction Loop Started"));
         // Timeout in case the correction process never ends
         while (Auto_I2S_Timer.check() != 1 && preProcessor.getAutoI2SerrorDetectionStatus())        
         //while (preProcessor.getAutoI2SerrorDetectionStatus())        
@@ -1729,16 +1729,16 @@ COLD void resetCodec(void)
             //Serial.print("*** AutoI2S Error Comp        = "); Serial.println(preProcessor.getI2SerrorCompensation());
             delay(3);
         }
-        Serial.print("AutoI2S Error Correction Loop Completed or Timed Out at "); Serial.print(now()-loop_time); Serial.println(" Seconds");
+        Serial.print(F("AutoI2S Error Correction Loop Completed or Timed Out at ")); Serial.print(now()-loop_time); Serial.println(" Seconds");
     #endif
     #ifdef W7PUA_I2S_CORRECTION 
-        Serial.println("Start W7PUA AutoI2S Error Correction");
+        Serial.println(F("Start W7PUA AutoI2S Error Correction"));
         TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin       
     #endif
 
     // The FM detector has error checking during object construction
     // when Serial.print is not available.  See RadioFMDetector_F32.h:
-    Serial.print("FM Initialization errors: ");
+    Serial.print(F("FM Initialization errors: "));
     Serial.println(FM_Detector.returnInitializeFMError() );
     //FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
     //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
@@ -1750,7 +1750,7 @@ COLD void resetCodec(void)
         // Configure the FFT parameters algorithm
         int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
         int N_FFT = audio_block_samples * overlap_factor;  
-        Serial.print("    : N_FFT = "); Serial.println(N_FFT);
+        Serial.print(F("    : N_FFT = ")); Serial.println(N_FFT);
         FFT_SHIFT_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
         FFT_SHIFT_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
 
@@ -1760,9 +1760,9 @@ COLD void resetCodec(void)
         int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
 
         //shiftFreq_Hz = shift_bins * Hz_per_bin;
-        Serial.print("Setting shift to "); Serial.print(shiftFreq_Hz);
-        Serial.print(" Hz, which is "); Serial.print(shift_bins); 
-        Serial.println(" bins");
+        Serial.print(F("Setting shift to ")); Serial.print(shiftFreq_Hz);
+        Serial.print(F(" Hz, which is ")); Serial.print(shift_bins); 
+        Serial.println(F(" bins"));
         FFT_SHIFT_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
         FFT_SHIFT_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
     #endif
@@ -1791,7 +1791,7 @@ COLD void resetCodec(void)
     TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
     
     // experiment with numbers  ToDo: enable/disable this via the Notch button
-    Serial.print("Initializing Notch/NR Feature = ");
+    Serial.print(F("Initializing Notch/NR Feature = "));
     Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
     LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     LMS_Notch.enable(false);
@@ -1807,7 +1807,7 @@ COLD void resetCodec(void)
     
     Xmit(0);  // Finish RX audio chain setup
 
-    Serial.println(" Reset Codec ");
+    Serial.println(F(" Reset Codec "));
 }
 
 #ifdef TEST1
@@ -1860,23 +1860,23 @@ void PhaseChange(uint8_t chg)
       if( ++val > 2 ) val = 0;                            // rotate through the settings
     }
     // print 
-    Serial.print("Ph:  ");
+    Serial.print(F("Ph:  "));
 
     switch( val ){
         case 0:  
             PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;        // normal in phase
             PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
-            Serial.println("1010");
+            Serial.println(F("1010"));
         break;
         case 1:
             PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;    
             PhaseQfir[0] = 0;      PhaseQfir[1] = 1.0f;    // delay Q  ( delay I if fir runs backward )
-            Serial.println("1001");
+            Serial.println(F("1001"));
         break;
         case 2:
             PhaseIfir[0] = 0;      PhaseIfir[1] = 1.0f;    // delay I
             PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
-            Serial.println("0110");
+            Serial.println(F("0110"));
         break;
     }  
 }
@@ -1891,11 +1891,11 @@ void PhaseChange(uint8_t chg)
         uint32_t twoPeriods;
         uint32_t tMillis = millis();
         #if SIGNAL_HARDWARE==TP_SIGNAL_CODEC
-            Serial.println("Using SGTL5000 Codec output for cross-correlation test signal.");
+            Serial.println(F("Using SGTL5000 Codec output for cross-correlation test signal."));
         #endif
         #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
             pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
-            Serial.println("Using I/O pin for cross-correlation test signal.");
+            Serial.println(F("Using I/O pin for cross-correlation test signal."));
         #endif
 
         //TwinPeak.setThreshold(TP_THRESHOLD);   Not used
@@ -1921,8 +1921,8 @@ void PhaseChange(uint8_t chg)
             digitalWrite(PIN_FOR_TP, 0);    // Set pin to zero
 
             Serial.println("");
-            Serial.println("Update  ------------ Outputs  ------------");
-            Serial.println("Number  xNorm     -1        0         1   Shift Error State");// Column headings
+            Serial.println(F("Update  ------------ Outputs  ------------"));
+            Serial.println(F("Number  xNorm     -1        0         1   Shift Error State"));// Column headings
             Serial.print(pData->nMeas); Serial.print(",  ");
             Serial.print(pData->xNorm, 6); Serial.print(", ");
             Serial.print(pData->xcVal[3], 6); Serial.print(", ");
@@ -1968,7 +1968,7 @@ void RS_HFIQ_Service(void)
             {
                 changeBands(0);
                 last_curr_band = curr_band;
-                Serial.print("New Band = "); Serial.println(curr_band);  
+                Serial.print(F("New Band = ")); Serial.println(curr_band);  
             }   
         }
     }
@@ -1994,7 +1994,7 @@ void RS_HFIQ_Service(void)
         {
             changeBands(0);
             last_curr_band = curr_band;
-            Serial.print("New Band = "); Serial.println(curr_band);  
+            Serial.print(F("New Band = ")); Serial.println(curr_band);  
         }  
     }
     if (temp_freq != 0)
