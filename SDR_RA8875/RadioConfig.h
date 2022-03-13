@@ -133,11 +133,11 @@
 
 //------------------------------------------
 // Choose ONLY 1 of these 3 methods
-//#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
+#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
                             // When enabled use long press on ANT button to cycle thorugh 3 possible
                             // solutons to remove mirror image aka Twin Peaks problem
 //#define AUDIO_SDR         // When uncommented, use AutoSDRpreProcessor auto correction 
-#define W7PUA_I2S_CORRECTION  // Requires 100K resistors on each SGTL5000 codec LineIn pin to a common GPIO pin    
+//#define W7PUA_I2S_CORRECTION  // Requires 100K resistors on each SGTL5000 codec LineIn pin to a common GPIO pin    
 /// ---------------------------------------
 
 #ifdef W7PUA_I2S_CORRECTION
