@@ -1965,19 +1965,50 @@ void RS_HFIQ_Service(void)
     {
         if ((temp_freq = RS_HFIQ.cmd_console(VFOA, &curr_band)) != 0)
         {
-            //Serial.println(curr_band);
-            VFOA = bandmem[curr_band].vfo_A_last = temp_freq; 
-            VFOB = bandmem[curr_band].vfo_B_last; 
+            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+            {     
+                //Serial.println(curr_band);
+                VFOA = bandmem[curr_band].vfo_A_last = temp_freq; 
+                VFOB = bandmem[curr_band].vfo_B_last; 
+            }
+            else                
+            {     
+                //Serial.println(curr_band);
+                VFOA = bandmem[curr_band].vfo_A_last; 
+                VFOB = bandmem[curr_band].vfo_B_last = temp_freq; 
+            }
+            if (last_curr_band != curr_band)
+            {
+                changeBands(0);
+                last_curr_band = curr_band;
+                Serial.print("New Band = "); Serial.println(curr_band);  
+            }   
         }
     }
     else
     {
         if ((temp_freq = RS_HFIQ.cmd_console(VFOB, &curr_band)) != 0)
         {
-            //Serial.println(curr_band);
-            VFOA = bandmem[curr_band].vfo_A_last; 
-            VFOB = bandmem[curr_band].vfo_B_last = temp_freq;
+            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+            {     
+                //Serial.println(curr_band);
+                VFOA = bandmem[curr_band].vfo_A_last = temp_freq; 
+                VFOB = bandmem[curr_band].vfo_B_last; 
+            }
+            else                
+            {     
+                //Serial.println(curr_band);
+                VFOA = bandmem[curr_band].vfo_A_last; 
+                VFOB = bandmem[curr_band].vfo_B_last = temp_freq; 
+            }
+ 
         }
+        if (last_curr_band != curr_band)
+        {
+            changeBands(0);
+            last_curr_band = curr_band;
+            Serial.print("New Band = "); Serial.println(curr_band);  
+        }  
     }
     if (temp_freq != 0)
     {
@@ -1987,12 +2018,6 @@ void RS_HFIQ_Service(void)
             displayFreq();
             last_VFOA = VFOA;
             last_VFOB = VFOB;
-        }
-        if (last_curr_band != curr_band)
-        {
-            Serial.print("New Band = "); Serial.println(curr_band);    
-            changeBands(0);
-            last_curr_band = curr_band;
         }
     }
 }
