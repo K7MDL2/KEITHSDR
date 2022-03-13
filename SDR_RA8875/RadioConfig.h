@@ -131,11 +131,20 @@
 
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
-#define PHASE_CHANGE_ON     // Switch manual methos fo I2S inut phase correction.  
+//------------------------------------------
+// Choose ONLY 1 of these 3 methods
+//#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
                             // When enabled use long press on ANT button to cycle thorugh 3 possible
                             // solutons to remove mirror image aka Twin Peaks problem
-                            // When commented out use AutoSDRpreProcessor auto correction 
-                            
+//#define AUDIO_SDR         // When uncommented, use AutoSDRpreProcessor auto correction 
+#define W7PUA_I2S_CORRECTION  // Requires 100K resistors on each SGTL5000 codec LineIn pin to a common GPIO pin    
+/// ---------------------------------------
+
+#ifdef W7PUA_I2S_CORRECTION
+  #define PIN_FOR_TP 22       // Show the Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
+  #define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN
+#endif
+
 //#define USE_RS_HFIQ             // Use the RSD-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
 // *****************************************************************************************

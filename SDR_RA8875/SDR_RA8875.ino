@@ -235,36 +235,20 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
-//         *******    MINI CONTROL PANEL     *******
-//
-// Pick one, based on the analog signal source harware being used:
-#define SIGNAL_HARDWARE TP_SIGNAL_CODEC
-//#define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN
-//
-// Show the Teensy pin used for both Codec and I/O pin signal source methods
-#define PIN_FOR_TP 41
-//
-// Set threshold as needed. Examine 3 output data around update #15
-// and use about half of maximum positive value.
-#define  TP_THRESHOLD 11.0f
-//
-// Un-comment the next to print samples of the phase-adjusted L&R data
-// #define PRINT_OUTPUT_DATA
-//
-//                      End Control Panel
-
 #ifdef PHASE_CHANGE_ON
     //.............................
-    // phase correction FIRs. Apparently sometimes the I2s audio samples are 1 step out of phase
+    // Phase correction FIRs. Sometimes the I2s audio samples are 1 step out of phase
     // and waterfall shows very little opposite sideband suppression
     float32_t  PhaseIfir[2] = { 1.0f, 0 };    // swap constants to change phasing
     float32_t  PhaseQfir[2] = { 1.0f, 0 };
     //.............................
     AudioFilterFIR_F32          PhaseI(audio_settings);
     AudioFilterFIR_F32          PhaseQ(audio_settings);
-#elif AUDIO_SDR
+#endif
+#ifdef AUDIO_SDR
     AudioSDRpreProcessor_F32    preProcessor;
-#else
+#endif
+#ifdef W7PUA_I2S_CORRECTION
     AudioAlignLR_F32            TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
@@ -313,13 +297,15 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
     AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
-#elif AudioSDR
+#endif
+#ifdef AudioSDR
 // F32 converted I2S correction version
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
     AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
-#else
+#endif
+#ifdef W7PUA_I2S_CORRECTION
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           TwinPeak,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
@@ -519,7 +505,7 @@ COLD void setup()
             //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
         #endif  // USE_RA8875
     #endif // USE_FT5206_TOUCH
- 
+
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
     #ifdef ENET
     if (user_settings[user_Profile].enet_enabled)
@@ -668,12 +654,6 @@ HOT void loop()
     static uint32_t time_old = 0;
     static uint32_t time_n  = 0;
     static uint32_t time_sp;
-
-#ifndef PHASE_CHANGE_ON
-    #ifndef AUDIO_SDR
-        TwinPeaks();
-    #endif
-#endif
 
 #ifndef BYPASS_SPECTRUM_MODULE
     // Update spectrum and waterfall based on timer
@@ -1717,7 +1697,7 @@ COLD void resetCodec(void)
 
     codec1.enable(); // MUST be before inputSelect()
     //codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
-    codec1.lineInLevel(0); // Set to minimum, maybe prevent false Auto-iI2S detection
+    codec1.lineInLevel(15); // Set to minimum, maybe prevent false Auto-iI2S detection
     codec1.muteHeadphone(); //mute the TX audio output to transmitter input 
     codec1.adcHighPassFilterEnable();
     //codec1.adcHighPassFilterDisable();
@@ -1728,7 +1708,8 @@ COLD void resetCodec(void)
         PhaseI.begin(PhaseIfir, 2);
         PhaseQ.begin(PhaseQfir, 2);
         //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ANT button (long press)
-    #elif AUDIO_SDR
+    #endif    
+    #ifdef AUDIO_SDR
         // automatic I2S phase correction 
         preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
         preProcessor.swapIQ(false);
@@ -1749,18 +1730,10 @@ COLD void resetCodec(void)
             delay(3);
         }
         Serial.print("AutoI2S Error Correction Loop Completed or Timed Out at "); Serial.print(now()-loop_time); Serial.println(" Seconds");
-    #else
-        #if SIGNAL_HARDWARE==TP_SIGNAL_CODEC
-            Serial.println("Using SGTL5000 Codec output for cross-correlation test signal.");
-        #endif
-        
-        #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
-            pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
-            Serial.println("Using I/O pin for cross-correlation test signal.");
-        #endif
-        
-        TwinPeak.setThreshold(TP_THRESHOLD);
-        TwinPeak.stateAlignLR(TP_MEASURE);  // Comes up TP_IDLE
+    #endif
+    #ifdef W7PUA_I2S_CORRECTION 
+        Serial.println("Start W7PUA AutoI2S Error Correction");
+        TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin       
     #endif
 
     // The FM detector has error checking during object construction
@@ -1909,48 +1882,62 @@ void PhaseChange(uint8_t chg)
 }
 #endif
 
-#ifndef AUDIO_SDR
-    #ifndef PHASE_CHANGE_ON
-        uint16_t nMeasLast = 0;
-        uint32_t timeSquareWave = 0;   // Switch every 45 microseconds
+#ifdef W7PUA_I2S_CORRECTION
 
-        void TwinPeaks(void)
-        {
-            // uint32_t tt=micros();
-            TPinfo* pData = TwinPeak.read();
-            if(pData->nMeas > nMeasLast && pData->nMeas<20)
+    void TwinPeaks(void)
+    {    
+        TPinfo* pData;
+        uint32_t timeSquareWave = 0;   // Switch every twoPeriods microseconds
+        uint32_t twoPeriods;
+        uint32_t tMillis = millis();
+        #if SIGNAL_HARDWARE==TP_SIGNAL_CODEC
+            Serial.println("Using SGTL5000 Codec output for cross-correlation test signal.");
+        #endif
+        #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+            pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
+            Serial.println("Using I/O pin for cross-correlation test signal.");
+        #endif
+
+        //TwinPeak.setThreshold(TP_THRESHOLD);   Not used
+        TwinPeak.stateAlignLR(TP_MEASURE);  // Comes up TP_IDLE
+
+        #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+            twoPeriods = (uint32_t)(0.5f + (2000000.0f / sample_rate_Hz));
+            // Note that for this hardware, the INO is 100% in charge of the PIN_FOR_TP
+            pData = TwinPeak.read();       // Base data to check error
+            while (pData->TPerror < 0  &&  millis()-tMillis < 2000)  // with timeout
             {
-                nMeasLast = pData->nMeas;     // This print takes about 6 microseconds
-                Serial.print(pData->nMeas); Serial.print(", ");
-                Serial.print(pData->xcVal[3], 6); Serial.print(", ");
-                Serial.print(pData->xcVal[0], 6); Serial.print(", ");
-                Serial.print(pData->xcVal[1], 6); Serial.print(", ");
-                Serial.print(pData->neededShift); Serial.print(",   ");
-                Serial.println(pData->TPerror);
-                //Serial.println(pData->TPstate);
-                #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
-                    if(pData->TPerror == 0)
-                    {
-                        TwinPeak.stateAlignLR(TP_RUN);  // TP is done
-                        digitalWrite(PIN_FOR_TP, 0);
-                    }
-                #endif
-                // Serial.println(micros()-tt);
-            }
-
-            #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
-                // Generate 11.11 kHz square wave
-                // For other sample rates, set to roughly 2 sample periods, in microseconds
-                if(micros()-timeSquareWave >= 45 && pData->TPstate==TP_MEASURE)
+                if(micros()-timeSquareWave >= twoPeriods && pData->TPstate==TP_MEASURE)
                 {
                     static uint16_t squareWave = 0;
                     timeSquareWave = micros();
                     squareWave = squareWave^1;
                     digitalWrite(PIN_FOR_TP, squareWave);
                 }
-            #endif
-        }
-    #endif 
+                pData = TwinPeak.read();
+            }
+            // The update has moved from Measure to Run. Ground the PIN_FOR_TP
+            //TwinPeak.stateAlignLR(TP_RUN);  // TP is done, not TP_MEASURE
+            digitalWrite(PIN_FOR_TP, 0);    // Set pin to zero
+
+            Serial.println("");
+            Serial.println("Update  ------------ Outputs  ------------");
+            Serial.println("Number  xNorm     -1        0         1   Shift Error State");// Column headings
+            Serial.print(pData->nMeas); Serial.print(",  ");
+            Serial.print(pData->xNorm, 6); Serial.print(", ");
+            Serial.print(pData->xcVal[3], 6); Serial.print(", ");
+            Serial.print(pData->xcVal[0], 6); Serial.print(", ");
+            Serial.print(pData->xcVal[1], 6); Serial.print(", ");
+            Serial.print(pData->neededShift); Serial.print(",   ");
+            Serial.print(pData->TPerror); Serial.print(",    ");
+            Serial.println(pData->TPstate);
+
+            // You can see the injected signal level by the printed variable, pData->xNorm
+            // It is the sum of the 4 cross-correlation numbers and if it is below 0.0001 the
+            // measurement is getting noisy and un-reliable.  Raise the injected signal level
+            // to solve the problem.
+        #endif        
+    }
 #endif
 
 #ifdef USE_RS_HFIQ   //  Check the serial ports for manual inputs.
