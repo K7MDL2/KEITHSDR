@@ -5,6 +5,11 @@
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 
+#ifdef USE_RS_HFIQ
+    // init the RS-HFIQ library
+    extern SDR_RS_HFIQ RS_HFIQ;
+#endif
+
 // Using the SV1AFN Band Pass Filter board with modified I2C library for Premp, Attenuator, and for 10 HF bands of BPFs
 //#include "SVN1AFN_BandpassFilters.h>""
 #ifdef SV1AFN_BPF
@@ -121,9 +126,6 @@ void setZoom(int8_t dir);
 void PAN(int8_t delta);
 void setPAN(int8_t toggle);
 void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
-uint32_t find_new_band(uint32_t new_frequency);
-
-
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -193,15 +195,15 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     
     //Serial.print("Target Band is "); Serial.println(target_band);
 
-    if (target_band > BAND10)    // Stop at top
-        target_band = BAND10;    
+    if (target_band > BAND10M)    // Stop at top
+        target_band = BAND10M;    
 
-    #ifdef RS_HFIQ
-        if (target_band < BAND2)    // Stop at bottom
-            target_band = BAND2;     
+    #ifdef USE_RS_HFIQ
+        if (target_band < BAND80M)    // Stop at bottom
+            target_band = BAND80M;     
     #else
-        if (target_band < BAND0)    // stop at bottom 
-            target_band = BAND0;    
+        if (target_band < BAND160M)    // stop at bottom 
+            target_band = BAND160M;    
     #endif
 
     //Serial.print("Corrected Target Band is "); Serial.println(target_band);    
@@ -1133,8 +1135,8 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     {
         user_settings[user_Profile].xmit = OFF;
         digitalWrite(PTT_OUT1, HIGH);
-        #ifdef RS_HFIQ  
-            send_fixed_cmd_to_RSHFIQ("*X0");  //RS-HFIQ TX OFF
+        #ifdef USE_RS_HFIQ  
+            RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X0");  //RS-HFIQ TX OFF
         #endif
         // enable line input to pass to headphone jack on audio card, set audio levels
         TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.5f);  
@@ -1149,8 +1151,8 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     {
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
-        #ifdef RS_HFIQ  
-            send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
+        #ifdef USE_RS_HFIQ  
+            RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
         #endif
         // enable mic input to pass to line out on audio card, set audio levels
         if (TwoToneTest)  // Mic on, turn off test tones
@@ -1616,10 +1618,19 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
     #endif
 }
 
-// For RS-HFIQ free-form frequency entry validation but can be useful for others
-// Changes to teh correct band settings for the new target frequency.  
-// VFOA will become the new frequency, VFOB will come from the database last used frequency
-// If the new frequency is below or above the band limits correct it to stay within the band limits.
+/*
+#ifdef USE_RS_HFIQ
+//  By default an internal table is used that matches the RS-HFIQ hardware intent. 
+//  You can replace that internal lookup with an external one such as this working example.
+//  Uses a bandmem table which includes upper and lower frequencies for each band.  
+//  If a band change is detected it calls changeBands(0) to apply the newly set VFO freqency (A or B which ever is active).
+//  If any other serial command is supplied from the terminal it is skipped.
+//  If the VFO is changed but the band remains the same, the changeBands(0) is skipped but the VFOs are updates and displayed.
+//  For RS-HFIQ free-form frequency entry validation but can be useful for external program CAT control such as a logger program.
+//  Changes to the correct band settings for the new target frequency.  
+//  The active VFO will become the new frequency, the other VFO will come from the database last used frequency for that band.
+//  If the new frequency is below or above the band limits it returns a value of 0 and skips any updates.
+//
 uint32_t find_new_band(uint32_t new_frequency)
 {
     int i;
@@ -1630,17 +1641,23 @@ uint32_t find_new_band(uint32_t new_frequency)
         {
             //Serial.print("Edge_Lower = "); Serial.println(bandmem[i].edge_lower);
             curr_band = bandmem[i].band_num;
-            if (new_frequency < bandmem[curr_band].edge_lower) // keep the target in bounds
-                new_frequency = bandmem[curr_band].edge_lower;
-            if (new_frequency > bandmem[curr_band].edge_upper)
-                new_frequency = bandmem[curr_band].edge_upper;
-            VFOA = bandmem[curr_band].vfo_A_last = new_frequency;  // up the last used frequencies
-            VFOB = bandmem[curr_band].vfo_B_last;
+            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+            {
+                VFOA = bandmem[curr_band].vfo_A_last = new_frequency;  // up the last used frequencies
+                VFOB = bandmem[curr_band].vfo_B_last;
+            }
+            else
+            {
+                VFOA = bandmem[curr_band].vfo_A_last;
+                VFOB = bandmem[curr_band].vfo_B_last = new_frequency;
+            }
             //Serial.print("New Band = "); Serial.println(curr_band);
-            changeBands(0);
+            //changeBands(0);
             return new_frequency;
         }
     }
-    //Serial.println("Invalid Frequency Requested");
+    Serial.println("Invalid Frequency Requested");
     return 0;
 }
+#endif   // end of USE_RS_HFIQ
+*/

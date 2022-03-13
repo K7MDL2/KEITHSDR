@@ -136,11 +136,14 @@
                             // solutons to remove mirror image aka Twin Peaks problem
                             // When commented out use AutoSDRpreProcessor auto correction 
                             
-//#define RS_HFIQ             // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+//#define USE_RS_HFIQ             // Use the RSD-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
-// K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
+// *****************************************************************************************
+//    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides genral lsettngs above to permitfast switching between my current 2 SDR config, RA8875 and RA8876
+//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
+
+//******************************************************************************************
 
 #ifdef K7MDL_BUILD     
     //#define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
@@ -149,13 +152,13 @@
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
       #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
-      #define SV1AFN_BPF              // Use the BPF board
-      #define PE4302                  // Use the step atten usually the PE4302 board
+      //#define SV1AFN_BPF              // Use the BPF board
+      //#define PE4302                  // Use the step atten usually the PE4302 board
       #undef I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
       #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
-    #else   // My RA8875 specifc build items
+    #else   // My RA8875 specific build items
       #define USE_RA8875
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
@@ -191,7 +194,7 @@
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
-    #define RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+    #define USE_RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 #endif  // K7MDL_BUILD
 
 //

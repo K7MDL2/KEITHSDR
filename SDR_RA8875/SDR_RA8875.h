@@ -44,8 +44,8 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
-#ifdef RS_HFIQ
-    #include "SDR_RSHFIQ.h"
+#ifdef USE_RS_HFIQ
+    #include <SDR_RS_HFIQ.h>   // https://github.com/K7MDL2/Teensy4_USB_Host_RS-HFIQ_Library
 #endif
 
 // Simple ways to designate functions to run out of fast or slower memory to help save RAM
@@ -135,19 +135,21 @@
 
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
-#define BAND0       0       // Band slot ID
-#define BAND1       1 // 80M       
-#define BAND2       2 // 40M
-#define BAND3       3 // 60M
-#define BAND4       4 // 40M
-#define BAND5       5 // 30M
-#define BAND6       6 // 20M
-#define BAND7       7 // 17M      
-#define BAND8       8 // 15M
-#define BAND9       9 // 12M
-#define BAND10     10 // 10M
-#define BAND11     11 // 6M
-#define BAND12     12 // 2M
+// Index to bandmem table rows.  Use BANDX since rows can be in any order
+                    // Band slot index into data table
+#define BAND160M      0 // 160M 
+#define BAND80M       1 // 80M
+#define BAND60M       2 // 60M
+#define BAND40M       3 // 40M
+#define BAND30M       4 // 30M
+#define BAND20M       5 // 20M
+#define BAND17M       6 // 17M      
+#define BAND15M       7 // 15M
+#define BAND12M       8 // 12M
+#define BAND10M       9 // 10M
+#define BAND6M       10 // 6M
+#define BAND2M       11 // 2M
+#define PAN_ADAPT    12 // Panadapter IF band
 
 // Zoom level for UI control
 #define ZOOMx1      0       // Zoom out the most (fft1024 @ 48K) (aka OFF)  x1 reference
@@ -155,7 +157,7 @@
 #define ZOOMx4      2       // Zoom in the most (fft4096 at 96K)   is x4 of 1024
 #define ZOOM_NUM    3       // Number of zoom level choiced for menu system
 
-// ------------------------  OPERTIONAL PARAMETER STORAGE --------------------------------------
+// ------------------------  OPERATIONAL PARAMETER STORAGE --------------------------------------
 //
 //  Most users will not normally mess around in this section but you can edit some of the table data to refine the default to your liking.  
 //  Contained here are per-band settings, User Profile settings (globals), Font type and sizes

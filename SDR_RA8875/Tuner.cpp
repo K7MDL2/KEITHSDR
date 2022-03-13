@@ -7,11 +7,14 @@
 //			use this fucntion rather than setFreq() since this tracks VFOs and updates their memories.
 //
 
-
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 #include "Tuner.h"
 
+#ifdef USE_RS_HFIQ
+    // init the RS-HFIQ library
+    extern SDR_RS_HFIQ RS_HFIQ;
+#endif
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
@@ -98,8 +101,8 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 	#endif
   
     displayFreq(); // show freq on display
-	#ifdef RS_HFIQ    
-		send_variable_cmd_to_RSHFIQ("*F", convert_freq_to_Str(Freq));
+	#ifdef USE_RS_HFIQ    
+		RS_HFIQ.send_variable_cmd_to_RSHFIQ("*F", RS_HFIQ.convert_freq_to_Str(Freq));
 	#else
     	SetFreq(Freq); // send freq to SI5351
 	#endif

@@ -15,19 +15,22 @@
 #include "SDR_RA8875.h"
 #include "SDR_Data.h"
 #include "Hilbert.h"            // filter coefficients
+
 #include "AudioSDRpreProcessor_F32.h" // From https://github.com/DerekRowell/AudioSDR.  
-//  Local copies of the 2 needed files are included in this distributon modified for F32 compatibility.
+//  Local copies of the 2 needed files are included in this distribution modified for F32 compatibility.
 
-#include "SDR_RSHFIQ.h"
-
+#ifdef USE_RS_HFIQ
+    // init the RS-HFIQ library
+    SDR_RS_HFIQ RS_HFIQ;
+#endif
 
 #ifdef USE_FFT_LO_MIXER
     #include "hilbert251A.h"        // filter coefficients
 #endif
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
- #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
- SVN1AFN_BandpassFilters bpf;  // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
+    #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
+    SVN1AFN_BandpassFilters bpf;  // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
                                 // For 60M coverage requires and updated libary file set.
 #endif // SV1AFN_BPF
 
@@ -62,16 +65,16 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
 #endif // I2C_ENCODER
 
 #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
- #include <si5351.h>            // Using this etherkits library because it supporst the B and C version PLLs with external ref clock
- Si5351 si5351;
+    #include <si5351.h>            // Using this etherkits library because it supporst the B and C version PLLs with external ref clock
+    Si5351 si5351;
 #else // OCXO_10MHZ
- #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu
- Si5351mcu si5351;
+    #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu
+    Si5351mcu si5351;
 #endif // OCXO_10MHZ
 
 #ifdef I2C_LCD
-  #include <LiquidCrystal_I2C.h>
-  LiquidCrystal_I2C lcd(LCD_ADR,LCD_COL, LCD_LINES);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+    #include <LiquidCrystal_I2C.h>
+    LiquidCrystal_I2C lcd(LCD_ADR,LCD_COL, LCD_LINES);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 #endif
 
 COLD void I2C_Scanner(void);
@@ -93,7 +96,10 @@ COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool 
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void PhaseChange(uint8_t chg);
 COLD void resetCodec(void);
-
+COLD void TwinPeaks(void);  // Test auto I2S Alignment 
+#ifdef USE_RS_HFIQ
+    HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
+#endif
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
@@ -101,11 +107,11 @@ COLD void resetCodec(void);
 //
 
 #ifndef PANADAPTER
- #ifdef USE_ENET_PROFILE
-    uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
- #else  // USE_ENET_PROFILE
+    #ifdef USE_ENET_PROFILE
+        uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
+    #else  // USE_ENET_PROFILE
     uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
- #endif  // USE_ENET_PROFILE
+    #endif  // USE_ENET_PROFILE
 #else  // PANADAPTER
     uint8_t     user_Profile = 2;   // Profile 2 is optimized for Panadapter usage
 #endif  // PANADAPTER
@@ -114,7 +120,7 @@ COLD void resetCodec(void);
 //----------------------------------------------------------------------------------------------------------------------------
 //
 // These should be saved in EEPROM periodically along with several other parameters
-uint8_t     curr_band   = BAND2;    // global tracks our current band setting.  
+uint8_t     curr_band   = BAND80M;    // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
@@ -229,6 +235,24 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
+//         *******    MINI CONTROL PANEL     *******
+//
+// Pick one, based on the analog signal source harware being used:
+#define SIGNAL_HARDWARE TP_SIGNAL_CODEC
+//#define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN
+//
+// Show the Teensy pin used for both Codec and I/O pin signal source methods
+#define PIN_FOR_TP 41
+//
+// Set threshold as needed. Examine 3 output data around update #15
+// and use about half of maximum positive value.
+#define  TP_THRESHOLD 11.0f
+//
+// Un-comment the next to print samples of the phase-adjusted L&R data
+// #define PRINT_OUTPUT_DATA
+//
+//                      End Control Panel
+
 #ifdef PHASE_CHANGE_ON
     //.............................
     // phase correction FIRs. Apparently sometimes the I2s audio samples are 1 step out of phase
@@ -238,8 +262,10 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     //.............................
     AudioFilterFIR_F32          PhaseI(audio_settings);
     AudioFilterFIR_F32          PhaseQ(audio_settings);
-#else
+#elif AUDIO_SDR
     AudioSDRpreProcessor_F32    preProcessor;
+#else
+    AudioAlignLR_F32            TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
@@ -283,19 +309,24 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
 #ifdef PHASE_CHANGE_ON   // use one of 2 I2S input phase correction tools
-AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseI,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
-AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
-#else
+    AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseI,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
+    AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
+#elif AudioSDR
 // F32 converted I2S correction version
-AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
-AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
-AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
-AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
+    AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
+    AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
+    AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
+#else
+    AudioConnection_F32     patchCord_RX_In_L(Input,0,                           TwinPeak,0); // correct i2s phase imbalance
+    AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
+    AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_Ph_R(TwinPeak,1,                        Q_Switch,0);
 #endif
 
-// Test tones sources for single or two tone in place of (or in addition to) real input audio
+// Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
 //AudioConnection     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
@@ -478,7 +509,7 @@ COLD void setup()
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
     #endif
     
-    #if defined(USE_FT5206_TOUCH)
+    #ifdef USE_FT5206_TOUCH
         tft.useCapINT(RA8875_INT);
         tft.setTouchLimit(MAXTOUCHLIMIT);
         tft.enableCapISR(true);
@@ -580,6 +611,13 @@ COLD void setup()
     VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
     VFOB = bandmem[curr_band].vfo_B_last;
     #endif
+                               
+    #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
+        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+            RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+        else
+            RS_HFIQ.setup_RSHFIQ(1, VFOB);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+    #endif
 
 #ifndef BYPASS_SPECTRUM_MODULE    
     spectrum_RA887x.Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
@@ -618,10 +656,6 @@ COLD void setup()
     #ifdef ALL_CAT
         CAT_setup();   // Setup the Serial port for cnfigured Radio comm port
     #endif
-    
-    #ifdef RS_HFIQ
-        setup_RSHFIQ(1);  // 0 is non blocking wait, 1 is blocking wait
-    #endif
 }
 
 static uint32_t delta = 0;
@@ -634,6 +668,12 @@ HOT void loop()
     static uint32_t time_old = 0;
     static uint32_t time_n  = 0;
     static uint32_t time_sp;
+
+#ifndef PHASE_CHANGE_ON
+    #ifndef AUDIO_SDR
+        TwinPeaks();
+    #endif
+#endif
 
 #ifndef BYPASS_SPECTRUM_MODULE
     // Update spectrum and waterfall based on timer
@@ -673,10 +713,10 @@ HOT void loop()
     }
     time_old = millis();
 
-    if (touch.check() == 1)
-    {
+    //if (touch.check() == 1)
+    //{
         Touch(); // touch points and gestures
-    }
+    //}
 
     if (tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
     {
@@ -808,11 +848,12 @@ if(!bandmem[curr_band].XIT_en)
                             }
                         }
                         break;
-            default:   
-                        #ifdef RS_HFIQ   //  Check the serial ports for manual inputs.       
-                            cmd_console();
-                        #endif  // RS_HFIQ
-                        break;
+            default:    {
+                            #ifdef USE_RS_HFIQ
+                                RS_HFIQ_Service();
+                            #endif
+                        }
+                        break;  
         }
     }
     //check to see whether to print the CPU and Memory Usage
@@ -1028,7 +1069,7 @@ COLD void printHelp(void)
     Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
     Serial.println(F("   M: Print Detailed Memory Region Usage Report"));
     Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
-    #ifdef RS_HFIQ
+    #ifdef USE_RS_HFIQ
     Serial.println(F("   R to display the RS-HFIQ Menu"));
     #endif
 }
@@ -1687,7 +1728,7 @@ COLD void resetCodec(void)
         PhaseI.begin(PhaseIfir, 2);
         PhaseQ.begin(PhaseQfir, 2);
         //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ANT button (long press)
-    #else
+    #elif AUDIO_SDR
         // automatic I2S phase correction 
         preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
         preProcessor.swapIQ(false);
@@ -1708,6 +1749,18 @@ COLD void resetCodec(void)
             delay(3);
         }
         Serial.print("AutoI2S Error Correction Loop Completed or Timed Out at "); Serial.print(now()-loop_time); Serial.println(" Seconds");
+    #else
+        #if SIGNAL_HARDWARE==TP_SIGNAL_CODEC
+            Serial.println("Using SGTL5000 Codec output for cross-correlation test signal.");
+        #endif
+        
+        #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+            pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
+            Serial.println("Using I/O pin for cross-correlation test signal.");
+        #endif
+        
+        TwinPeak.setThreshold(TP_THRESHOLD);
+        TwinPeak.stateAlignLR(TP_MEASURE);  // Comes up TP_IDLE
     #endif
 
     // The FM detector has error checking during object construction
@@ -1790,35 +1843,37 @@ COLD void resetCodec(void)
         Performs a complex frequency shift by complex multiplication
         of a time domain signal by a complex exonential.
         From Fourier theory a spectral shift:
-           F(j(w + w0)) = Fourier[f(t) * e^(j(w_0*t))]
-                        = Fourier[f(t) * cos(w_0]*t) * jsin(w_0*t)]
-           where f(t) is complex, and j is the sqrt(-1),
-                                                                    
-           Note:  In the discrete-time case this results in a
-           spectral ROTATION, ie spectral components at either end
-           of the complex spectrum (near the Nyquist frequency)
-           will appear at the other end!
+            F(j(w + w0)) = Fourier[f(t) * e^(j(w_0*t))]
+                            = Fourier[f(t) * cos(w_0]*t) * jsin(w_0*t)]
+            where f(t) is complex, and j is the sqrt(-1),
+                                                                        
+            Note:  In the discrete-time case this results in a
+            spectral ROTATION, ie spectral components at either end
+            of the complex spectrum (near the Nyquist frequency)
+            will appear at the other end!
     ---------------------------------------------------------------*/
-    float32_t freq_shifter(float32_t * _Idata, float32_t * _Qdata, float32_t freq_shift,  float32_t initial_phase) {
-      const float32_t twoPI = 2.0*PI;
-      float32_t phase_inc   = freq_shift*(twoPI/AUDIO_SAMPLE_RATE_EXACT);
-      float32_t phase       = initial_phase;
-      // Frequency shifting is a complex multiplication in the time domain:
-      for (int i = 0; i < n_block; i++) {
-        float32_t cosine = cos_f32(phase);
-        float32_t sine   = sin_f32(phase);
-        float32_t tempI  = _Idata[i];
-        float32_t tempQ  = _Qdata[i];
-        _Idata[i]     = tempI*cosine - tempQ*sine;
-        _Qdata[i]     = tempQ*cosine + tempI*sine;
-        phase        += phase_inc;
-        if (phase > twoPI)    phase -= twoPI;
-        else if (phase < 0.0) phase += twoPI;
-      }
-      // Return the updated phase for the next iteration
-      return phase;
+    float32_t freq_shifter(float32_t * _Idata, float32_t * _Qdata, float32_t freq_shift,  float32_t initial_phase) 
+    {
+        const float32_t twoPI = 2.0*PI;
+        float32_t phase_inc   = freq_shift*(twoPI/AUDIO_SAMPLE_RATE_EXACT);
+        float32_t phase       = initial_phase;
+        // Frequency shifting is a complex multiplication in the time domain:
+        for (int i = 0; i < n_block; i++) 
+        {
+            float32_t cosine = cos_f32(phase);
+            float32_t sine   = sin_f32(phase);
+            float32_t tempI  = _Idata[i];
+            float32_t tempQ  = _Qdata[i];
+            _Idata[i]     = tempI*cosine - tempQ*sine;
+            _Qdata[i]     = tempQ*cosine + tempI*sine;
+            phase        += phase_inc;
+            if (phase > twoPI)    phase -= twoPI;
+            else if (phase < 0.0) phase += twoPI;
+        }
+        // Return the updated phase for the next iteration
+        return phase;
     }
-    #endif
+#endif
 
 #ifdef PHASE_CHANGE_ON
 
@@ -1827,28 +1882,118 @@ void PhaseChange(uint8_t chg)
 {
     static int val;
 
-   if( chg ){
+    if( chg )
+    {
       if( ++val > 2 ) val = 0;                            // rotate through the settings
-   }
-      // print 
-   Serial.print("Ph:  ");
+    }
+    // print 
+    Serial.print("Ph:  ");
 
-   switch( val ){
-      case 0:  
-         PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;        // normal in phase
-         PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
-         Serial.println("1010");
-      break;
-      case 1:
-         PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;    
-         PhaseQfir[0] = 0;      PhaseQfir[1] = 1.0f;    // delay Q  ( delay I if fir runs backward )
-         Serial.println("1001");
-      break;
-      case 2:
-         PhaseIfir[0] = 0;      PhaseIfir[1] = 1.0f;    // delay I
-         PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
-         Serial.println("0110");
-      break;
+    switch( val ){
+        case 0:  
+            PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;        // normal in phase
+            PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
+            Serial.println("1010");
+        break;
+        case 1:
+            PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;    
+            PhaseQfir[0] = 0;      PhaseQfir[1] = 1.0f;    // delay Q  ( delay I if fir runs backward )
+            Serial.println("1001");
+        break;
+        case 2:
+            PhaseIfir[0] = 0;      PhaseIfir[1] = 1.0f;    // delay I
+            PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
+            Serial.println("0110");
+        break;
     }  
 }
 #endif
+
+#ifndef AUDIO_SDR
+    #ifndef PHASE_CHANGE_ON
+        uint16_t nMeasLast = 0;
+        uint32_t timeSquareWave = 0;   // Switch every 45 microseconds
+
+        void TwinPeaks(void)
+        {
+            // uint32_t tt=micros();
+            TPinfo* pData = TwinPeak.read();
+            if(pData->nMeas > nMeasLast && pData->nMeas<20)
+            {
+                nMeasLast = pData->nMeas;     // This print takes about 6 microseconds
+                Serial.print(pData->nMeas); Serial.print(", ");
+                Serial.print(pData->xcVal[3], 6); Serial.print(", ");
+                Serial.print(pData->xcVal[0], 6); Serial.print(", ");
+                Serial.print(pData->xcVal[1], 6); Serial.print(", ");
+                Serial.print(pData->neededShift); Serial.print(",   ");
+                Serial.println(pData->TPerror);
+                //Serial.println(pData->TPstate);
+                #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+                    if(pData->TPerror == 0)
+                    {
+                        TwinPeak.stateAlignLR(TP_RUN);  // TP is done
+                        digitalWrite(PIN_FOR_TP, 0);
+                    }
+                #endif
+                // Serial.println(micros()-tt);
+            }
+
+            #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+                // Generate 11.11 kHz square wave
+                // For other sample rates, set to roughly 2 sample periods, in microseconds
+                if(micros()-timeSquareWave >= 45 && pData->TPstate==TP_MEASURE)
+                {
+                    static uint16_t squareWave = 0;
+                    timeSquareWave = micros();
+                    squareWave = squareWave^1;
+                    digitalWrite(PIN_FOR_TP, squareWave);
+                }
+            #endif
+        }
+    #endif 
+#endif
+
+#ifdef USE_RS_HFIQ   //  Check the serial ports for manual inputs.
+void RS_HFIQ_Service(void)
+{
+    uint32_t temp_freq;
+    static uint32_t last_VFOA = VFOA;
+    static uint32_t last_VFOB = VFOB;
+    static int8_t last_curr_band = curr_band;
+
+    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+    {
+        if ((temp_freq = RS_HFIQ.cmd_console(VFOA, &curr_band)) != 0)
+        {
+            //Serial.println(curr_band);
+            VFOA = bandmem[curr_band].vfo_A_last = temp_freq; 
+            VFOB = bandmem[curr_band].vfo_B_last; 
+        }
+    }
+    else
+    {
+        if ((temp_freq = RS_HFIQ.cmd_console(VFOB, &curr_band)) != 0)
+        {
+            //Serial.println(curr_band);
+            VFOA = bandmem[curr_band].vfo_A_last; 
+            VFOB = bandmem[curr_band].vfo_B_last = temp_freq;
+        }
+    }
+    if (temp_freq != 0)
+    {
+        if (last_VFOA != VFOA || last_VFOB != VFOB)  // only act on frequency changes, skip other things like queries
+        {                         
+            selectFrequency(0);
+            displayFreq();
+            last_VFOA = VFOA;
+            last_VFOB = VFOB;
+        }
+        if (last_curr_band != curr_band)
+        {
+            Serial.print("New Band = "); Serial.println(curr_band);    
+            changeBands(0);
+            last_curr_band = curr_band;
+        }
+    }
+}
+#endif  // USE_RS_HFIQ

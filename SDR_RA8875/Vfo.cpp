@@ -23,7 +23,7 @@ extern int32_t Fc;
 COLD void initVfo(void)
 {
 
-    #ifdef RS_HFIQ
+    #ifdef USE_RS_HFIQ
         return;
     #endif
     
@@ -120,7 +120,7 @@ COLD void initVfo(void)
 
 COLD void SetFreq(uint32_t Freq)
 { 
-    #ifdef RS_HFIQ
+    #ifdef USE_RS_HFIQ
         return;
     #endif
 
