@@ -27,8 +27,8 @@ static int16_t spectrum_scale_mindB = 80;   // min value in dB above the spectru
 //static int16_t fftFrequency         = 0;  // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 static int16_t fftMaxPower          = 0;    // Used to hold the FFT peak power for the strongest signal
 //static int16_t fft_avg              = 0;    // Internal FFT averaging feature. Must be >= 1.  Set this > 1 to trigger usage
-const int8_t  NAvg                  = 3;
-static uint32_t time_spectrum;
+const int8_t  NAvg                  = 5;
+//static uint32_t time_spectrum;
 
 // Place to hold custom data for creating new layouts using the Generator function
 struct Spectrum_Parms Sp_Parms_Custom[1]    = {};      // Temp storage for generating new layouts    
@@ -138,9 +138,9 @@ int32_t Spectrum_RA887x::spectrum_update(int16_t s, int16_t VFOA_YES, int32_t Vf
     //int16_t blanking = 3; //3;  // used to remove the DC line from the graphs at Fc
     int16_t pix_o16;
     int16_t pix_n16;
-    static int16_t spect_scale_last     = 0;
+    //static int16_t spect_scale_last     = 0;
     //static int16_t spect_ref_last     = 0;
-    int16_t fft_pk_bin                  = 0;
+    //int16_t fft_pk_bin                  = 0;
     static int16_t fftPower_pk_last     = ptr->spect_floor;
     static int16_t pix_min              = ptr->spect_floor;
     int32_t freq_peak                   = 0;
@@ -727,7 +727,7 @@ FLASHMEM void Spectrum_RA887x::drawSpectrumFrame(uint8_t s)
     //else
     //    spectrum_waterfall_update.interval(2);   // set to something acceptable in case the stored value does not exist or is too low.
 
-    Serial.print("fft_axis=");Serial.println(fft_axis);
+    //Serial.print("fft_axis=");Serial.println(fft_axis);
 
     // Choose our output type.  Can do dB, RMS or power
     #ifdef FFT_4096
