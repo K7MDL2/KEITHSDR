@@ -463,6 +463,16 @@ COLD void setup()
         Serial.println(F("Initializing RA8875 Display"));
         tft.begin(RA8875_800x480);
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees
+        #ifdef USE_FT5206_TOUCH
+            tft.useCapINT(RA8875_INT);
+            tft.setTouchLimit(MAXTOUCHLIMIT);
+            tft.enableCapISR(true);
+            tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+        #else
+            #ifdef USE_RA8875
+                //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
+            #endif  // USE_RA8875
+        #endif // USE_FT5206_TOUCH
     #else 
         Serial.println(F("Initializing RA8876 Display"));   
         tft.begin(30000000UL);
@@ -494,17 +504,6 @@ COLD void setup()
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
     #endif
-    
-    #ifdef USE_FT5206_TOUCH
-        tft.useCapINT(RA8875_INT);
-        tft.setTouchLimit(MAXTOUCHLIMIT);
-        tft.enableCapISR(true);
-        tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
-    #else
-        #ifdef USE_RA8875
-            //tft.print("you should open RA8875UserSettings.h file and uncomment USE_FT5206_TOUCH!");
-        #endif  // USE_RA8875
-    #endif // USE_FT5206_TOUCH
 
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
     #ifdef ENET
@@ -1678,7 +1677,6 @@ HOT void RF_Limiter(float peak_avg)
         }
     }
 }
-
 
 // Attempt to resolve the Twin peaks issue by restarting the codec and related post config actions.
 // Can be used as a major part of initDSP()
