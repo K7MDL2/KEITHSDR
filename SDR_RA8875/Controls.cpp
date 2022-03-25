@@ -633,13 +633,13 @@ COLD void Atten(int8_t delta)
 {
     float _atten = bandmem[curr_band].attenuator_dB;
 
-    _atten += delta*3;      // convert percentage request to a single digit float
+    _atten += delta*3;
 
-    if(_atten > 100) 
+    if(_atten > 100)        // Keep in 0-100 range
         _atten = 100;
     if(_atten <= 0 )
         _atten = 0;
-    bandmem[curr_band].attenuator_dB = (uint8_t) _atten;  // Assign new value
+    bandmem[curr_band].attenuator_dB = (uint8_t) _atten;  // Assign new valid value
     
     Serial.print("Setting attenuator value to "); Serial.println(bandmem[curr_band].attenuator_dB);
     displayAttn();  // update the button value
@@ -1583,7 +1583,7 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
         
         Serial.print("digital step converted = "); Serial.println(atten);
 
-        atten *= 2; //shift the value x2 so the LSB controls the 0.5 step.  We are not using the 0.5 today.
+        atten *= 2; //shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
         /* Convert to 8 bits of  0 and 1 format */
         itoa(atten, atten_str, 2);
 
