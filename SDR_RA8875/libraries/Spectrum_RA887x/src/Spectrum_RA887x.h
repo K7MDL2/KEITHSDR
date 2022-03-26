@@ -52,7 +52,7 @@
 // USER DEFINED SECTION --------------------------------------------------------------------//
 
 
-#define USE_RA8875  // ********** Uncomment for RA8876 AND in your main program **************
+//#define USE_RA8875  // ********** Comment this line out for RA8876.  Also in your main program **************
 
 
 // -----------------------------------------------------------------------------------------//
