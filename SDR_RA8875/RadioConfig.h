@@ -133,17 +133,12 @@
 
 //------------------------------------------
 // Choose ONLY 1 of these 3 methods
-#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
+//#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
                             // When enabled use long press on ANT button to cycle thorugh 3 possible
                             // solutons to remove mirror image aka Twin Peaks problem
 //#define AUDIO_SDR         // When uncommented, use AutoSDRpreProcessor auto correction 
 //#define W7PUA_I2S_CORRECTION  // Requires 100K resistors on each SGTL5000 codec LineIn pin to a common GPIO pin    
 /// ---------------------------------------
-
-#ifdef W7PUA_I2S_CORRECTION
-  #define PIN_FOR_TP 22       // Show the Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
-  #define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN
-#endif
 
 //#define USE_RS_HFIQ             // Use the RSD-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
@@ -155,15 +150,15 @@
 //******************************************************************************************
 
 #ifdef K7MDL_BUILD     
-    //#define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
+    #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
     #ifdef RA8876_ON      // Config for my particular RA8876 build
       #undef USE_RA8875               // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
-      #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
+      #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
       //#define SV1AFN_BPF              // Use the BPF board
       //#define PE4302                  // Use the step atten usually the PE4302 board
-      #undef I2C_ENCODERS
+      //#define I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
       #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
@@ -183,7 +178,7 @@
         //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
       #endif    
       #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-    #endif // RA8876_ON
+    #endif 
 
     // Config items common or NA to both builds
     //#define MECH_ENCODERS           // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
@@ -204,6 +199,7 @@
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
     #define USE_RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+    #define W7PUA_I2S_CORRECTION
 #endif  // K7MDL_BUILD
 
 //
@@ -299,6 +295,11 @@
 
 #ifdef ALL_CAT
   #include "SDR_CAT.h"
+#endif
+
+#ifdef W7PUA_I2S_CORRECTION
+  #define PIN_FOR_TP 22       // Show the Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
+  #define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN
 #endif
 
 #endif //_RADIOCONFIG_H_
