@@ -152,7 +152,7 @@
 #ifdef K7MDL_BUILD     
     #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
     #ifdef RA8876_ON      // Config for my particular RA8876 build
-      #undef USE_RA8875               // UN-comment this line to use RA8876  *** AND in the Spectrum_RA887x.h ***
+      #undef USE_RA8875              
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
       #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
