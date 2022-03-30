@@ -451,6 +451,9 @@ struct User_Settings {
     uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
+    uint8_t     encoder4_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
+    uint8_t     encoder5_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
+    uint8_t     encoder6_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
     uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
     uint8_t     pan_state;          // 0 = OFF, 1 = ON
     uint8_t     pan_level;          // 0-100 converts to pan range of -0.50 to 0.50 for the pan memory.  0  is centered.

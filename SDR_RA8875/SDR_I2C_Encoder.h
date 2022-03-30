@@ -23,6 +23,15 @@ void blink_ENC2_RGB(void);
 #ifdef ENC3_ADDR
 void blink_ENC3_RGB(void);
 #endif
+#ifdef ENC4_ADDR
+void blink_ENC4_RGB(void);
+#endif
+#ifdef ENC5_ADDR
+void blink_ENC5_RGB(void);
+#endif
+#ifdef ENC6_ADDR
+void blink_ENC6_RGB(void);
+#endif
 void set_I2CEncoders(void);
 
 // These are generic callback functions - meaning when a hardware event occurs these functions are 

@@ -156,10 +156,10 @@ struct Label labels[LABEL_NUM] = {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-//Profile name    sp_preset mn  pop uc1 uc2 uc3  lastB     mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB  DefMFknob    enc1         enc2         enc3      Zoom_lvl panEn panlvl
-    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND80M,   OFF, MIC_ON,  30.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  ATTEN_BTN,   ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND40M,   OFF, MIC_ON,  30.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     MFTUNE,      AFGAIN_BTN,  RFGAIN_BTN,  ZOOMx1, OFF, 50},
-    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 30.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,     REFLVL_BTN,  REFLVL_BTN,  RFGAIN_BTN,  ZOOMx1, OFF, 50}
+//Profile name    sp_preset mn  pop uc1 uc2 uc3  lastB     mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB DefMFknob  enc1       enc2           enc3        enc4       enc5        enc6       Zoom_lvl panEn panlvl
+    {"ENET ON Config",    0, 0, OFF,  0,  0,  0, BAND80M,   OFF, MIC_ON,  30.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE,    RFGAIN_BTN,   ATTEN_BTN,   PAN_BTN,   NB_BTN,   RFGAIN_BTN,    ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2",    0, 0, OFF,  0,  0,  0, BAND10M,   OFF, MIC_ON,  30.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE,    RFGAIN_BTN,   ATTEN_BTN,   PAN_BTN,   NB_BTN,   RFGAIN_BTN,    ZOOMx1, OFF, 50},
+    {"PanAdapter Config", 0, 0, OFF,  0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 30.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE,    RFGAIN_BTN,   ATTEN_BTN,   PAN_BTN,   NB_BTN,   RFGAIN_BTN,    ZOOMx1, OFF, 50}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {

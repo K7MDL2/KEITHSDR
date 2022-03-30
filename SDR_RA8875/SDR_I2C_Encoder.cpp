@@ -77,6 +77,18 @@ Metro press_timer2 = Metro(600);
 	void blink_ENC3_RGB(void);
 	i2cEncoderLibV2 ENC3(ENC3_ADDR);  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/
 #endif
+#ifdef ENC4_ADDR
+	void blink_ENC4_RGB(void);
+	i2cEncoderLibV2 ENC4(ENC4_ADDR);  	/* Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#endif
+#ifdef ENC5_ADDR
+	void blink_ENC5_RGB(void);
+	i2cEncoderLibV2 ENC5(ENC5_ADDR);  	/* Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#endif
+#ifdef ENC6_ADDR
+	void blink_ENC6_RGB(void);
+	i2cEncoderLibV2 ENC6(ENC6_ADDR);  	/* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#endif
 // These are generic callback functions - meaning when a hardware event occurs these functions are 
 // called with the info associated with that encoder.  We can assing each encoder to things like AF and RF gain.
 void encoder_rotated(i2cEncoderLibV2* obj);
@@ -226,7 +238,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 		#else
 			setMode(1);
 		#endif
-}
+	}
 }
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short
@@ -365,6 +377,93 @@ COLD void set_I2CEncoders()
 		blink_ENC3_RGB();
 	}
 	#endif
+
+	#ifdef ENC4_ADDR
+	// Encoder 4 setup
+	if(user_settings[user_Profile].encoder4_client)  // 0 if no encoder assigned so skip this
+    {
+		Serial.println(F("Encoder #4 Setup"));
+		ENC4.reset();
+		delay(20);
+		ENC4.begin(
+			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+		ENC4.id = user_settings[user_Profile].encoder3_client;   
+		ENC4.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+		ENC4.writeMax((int32_t) 100); /* Set the maximum threshold*/
+		ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
+		ENC4.writeStep((int32_t) 1); /* Set the step to 1*/
+		/* Configure the events */
+		ENC4.onChange = encoder_rotated;
+		ENC4.onButtonRelease = encoder_click;
+		ENC4.onMinMax = encoder_thresholds;
+		ENC4.onFadeProcess = encoder_fade;
+		ENC4.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+		ENC4.autoconfigInterrupt();
+		blink_ENC4_RGB();
+	}
+	#endif
+
+	#ifdef ENC5_ADDR
+	// Encoder 5 setup
+	if(user_settings[user_Profile].encoder5_client)  // 0 if no encoder assigned so skip this
+    {
+		Serial.println(F("Encoder #5 Setup"));
+		ENC5.reset();
+		delay(20);
+		ENC5.begin(
+			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+		ENC5.id = user_settings[user_Profile].encoder3_client;   
+		ENC5.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+		ENC5.writeMax((int32_t) 100); /* Set the maximum threshold*/
+		ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
+		ENC5.writeStep((int32_t) 1); /* Set the step to 1*/
+		/* Configure the events */
+		ENC5.onChange = encoder_rotated;
+		ENC5.onButtonRelease = encoder_click;
+		ENC5.onMinMax = encoder_thresholds;
+		ENC5.onFadeProcess = encoder_fade;
+		ENC5.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+		ENC5.autoconfigInterrupt();
+		blink_ENC5_RGB();
+	}
+	#endif
+
+	#ifdef ENC6_ADDR
+	// Encoder 6 setup
+	if(user_settings[user_Profile].encoder6_client)  // 0 if no encoder assigned so skip this
+    {
+		Serial.println(F("Encoder #6 Setup"));
+		ENC6.reset();
+		delay(20);
+		ENC6.begin(
+			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+		ENC6.id = user_settings[user_Profile].encoder3_client;   
+		ENC6.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+		ENC6.writeMax((int32_t) 100); /* Set the maximum threshold*/
+		ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */
+		ENC6.writeStep((int32_t) 1); /* Set the step to 1*/
+		/* Configure the events */
+		ENC6.onChange = encoder_rotated;
+		ENC6.onButtonRelease = encoder_click;
+		ENC6.onMinMax = encoder_thresholds;
+		ENC6.onFadeProcess = encoder_fade;
+		ENC6.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+		ENC6.autoconfigInterrupt();
+		blink_ENC6_RGB();
+	}
+	#endif
 }
 
 #ifdef MF_ENC_ADDR
@@ -379,7 +478,7 @@ COLD void blink_MF_RGB(void)
     delay(250);
     MF_ENC.writeRGBCode(0x000000);
 	Serial.println(F("Blink MF RGB"));
-    MF_ENC.writeFadeRGB(2); //Fade enabled with 3ms step
+    MF_ENC.writeFadeRGB(2); //Fade enabled with 2ms step
 }
 #endif
 
@@ -412,6 +511,54 @@ COLD void blink_ENC3_RGB(void)
     ENC3.writeRGBCode(0x000000);
 	Serial.println(F("Blink ENC3 RGB"));
     ENC3.writeFadeRGB(3); //Fade enabled with 3ms step
+}
+#endif
+
+#ifdef ENC4_ADDR
+COLD void blink_ENC4_RGB(void)
+{	
+    /* blink the RGB LED */
+    ENC4.writeRGBCode(0xFF0000);
+    delay(250);
+    ENC4.writeRGBCode(0x00FF00);
+    delay(250);
+    ENC4.writeRGBCode(0x0000FF);
+    delay(250);
+    ENC4.writeRGBCode(0x000000);
+	Serial.println(F("Blink ENC4 RGB"));
+    ENC4.writeFadeRGB(3); //Fade enabled with 3ms step
+}
+#endif
+
+#ifdef ENC5_ADDR
+COLD void blink_ENC5_RGB(void)
+{	
+    /* blink the RGB LED */
+    ENC5.writeRGBCode(0xFF0000);
+    delay(250);
+    ENC5.writeRGBCode(0x00FF00);
+    delay(250);
+    ENC5.writeRGBCode(0x0000FF);
+    delay(250);
+    ENC5.writeRGBCode(0x000000);
+	Serial.println(F("Blink ENC5 RGB"));
+    ENC5.writeFadeRGB(3); //Fade enabled with 3ms step
+}
+#endif
+
+#ifdef ENC6_ADDR
+COLD void blink_ENC6_RGB(void)
+{	
+    /* blink the RGB LED */
+    ENC6.writeRGBCode(0xFF0000);
+    delay(250);
+    ENC6.writeRGBCode(0x00FF00);
+    delay(250);
+    ENC6.writeRGBCode(0x0000FF);
+    delay(250);
+    ENC6.writeRGBCode(0x000000);
+	Serial.println(F("Blink ENC6 RGB"));
+    ENC6.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
 
