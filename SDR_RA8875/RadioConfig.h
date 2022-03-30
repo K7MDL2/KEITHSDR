@@ -158,7 +158,7 @@
       #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
       //#define SV1AFN_BPF              // Use the BPF board
       //#define PE4302                  // Use the step atten usually the PE4302 board
-      //#define I2C_ENCODERS
+      #define I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
       #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
@@ -221,10 +221,10 @@
   #define I2C_INT_PIN     29
   #define MF_ENC_ADDR     (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
   #define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
-  #define ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  
-  #define ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
-  #define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
-  #define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/  
+  //#define ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  
+  //#define ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
+  //#define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
+  //#define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/  
   
 #else
   #define MF_ENC_PIN_A    40   // list pins for any non I2C aux encoders.
