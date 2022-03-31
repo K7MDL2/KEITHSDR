@@ -311,6 +311,10 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(TwinPeak,1,                        Q_Switch,0);
 #endif
+#if !defined(PHASE_CHANGE_ON) && !defined(AudioSDR) && !defined(W7PUA_I2S_CORRECTION)  // If none of methods defined fall back to none.
+    AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                         I_Switch,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                         Q_Switch,0);
+#endif
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
@@ -624,6 +628,7 @@ COLD void setup()
 
     //--------------------------   Setup our Audio System -------------------------------------
     initVfo(); // initialize the si5351 vfo
+    delay(10);
     initDSP();
     //RFgain(0);
     changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.

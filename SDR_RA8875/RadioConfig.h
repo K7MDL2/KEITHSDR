@@ -132,7 +132,8 @@
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
 //------------------------------------------
-// Choose ONLY 1 of these 3 methods
+// Can choose NONE of these
+// OR if correction is desired, choose ONLY 1 of these 3 methods
 //#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
                             // When enabled use long press on ANT button to cycle thorugh 3 possible
                             // solutons to remove mirror image aka Twin Peaks problem
@@ -199,7 +200,7 @@
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
     #define USE_RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-    #define W7PUA_I2S_CORRECTION
+    //#define W7PUA_I2S_CORRECTION
 #endif  // K7MDL_BUILD
 
 //
