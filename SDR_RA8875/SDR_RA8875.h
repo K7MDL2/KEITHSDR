@@ -61,9 +61,9 @@
     #ifdef USE_RA8875
         #define  SCREEN_WIDTH       800 
         #define  SCREEN_HEIGHT      480
-        #ifdef SMALL_PCB_V1
+        #if defined(SMALL_PCB_V1)
             #define  RA8875_INT        28  //28 for John's small V1 motherboard
-        #elif LARGE_PCB_V1
+        #elif defined(LARGE_PCB_V1)
             #define  RA8875_INT        27  //27 for John's larger 4.3" motherboard
         #else
             #define  RA8875_INT        14  //14 for K7MDL old prototype board
