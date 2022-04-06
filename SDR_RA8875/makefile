@@ -29,7 +29,7 @@ LIBRARIES        := -built-in-libraries="C:\Progra~2\Arduino/libraries"
 LIBRARIES        := -libraries="C:\Users\k7mdl\OneDrive\Documents\Arduino\libraries"
 LIBRARIES        := -libraries="C:\Users\k7mdl\Documents\Arduino\libraries"
 UPL_PJRC_B       := C:\Progra~2\Arduino\hardware\tools
-UPL_TYCMD_B      := C:\Users\k7mdl\OneDrive\Documents\Arduino\TyTools-0.9.3-win64
+UPL_TYCMD_B      := D:\OneDrive\Documents\Arduino\TyTools-0.9.3-win64
 UPL_CLICMD_B     := 
 
 TARGET_HEX       := $(BUILD_PATH)/$(SKETCH_NAME).hex

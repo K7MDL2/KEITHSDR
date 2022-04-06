@@ -118,9 +118,9 @@
 
 #define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-#define PTT_INPUT    35     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_INPUT    37     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
-#define PTT_OUT1     36     // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_OUT1     38    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  
@@ -134,12 +134,20 @@
 //------------------------------------------
 // Can choose NONE of these
 // OR if correction is desired, choose ONLY 1 of these 3 methods
-//#define PHASE_CHANGE_ON   // Switch manual methos fo I2S inut phase correction.  
-                            // When enabled use long press on ANT button to cycle thorugh 3 possible
+//#define PHASE_CHANGE_ON   // Manual method for I2S input phase correction.  
+                            // When enabled use long press on ANT button to cycle through 3 possible
                             // solutons to remove mirror image aka Twin Peaks problem
 //#define AUDIO_SDR         // When uncommented, use AutoSDRpreProcessor auto correction 
-//#define W7PUA_I2S_CORRECTION  // Requires 100K resistors on each SGTL5000 codec LineIn pin to a common GPIO pin    
+//#define W7PUA_I2S_CORRECTION  // Requires 10K resistors on each SGTL5000 codec LineIn pin (L and R) to a common GPIO pin    
+                            // 10K is for RS-HFIQ which has 100ohm output impedance.  Other Line Out sources may vary.
 /// ---------------------------------------
+
+// --------------- Motherboard/Protoboard version --------------------------
+// Uncomment one of these to account for Touch interrupt differences, or
+// if not using either board, comment them both out to use the default old values
+//#define LARGE_PCB_V1   // For the V1 large 4.3" motherboard 4/2022
+//#define SMALL_PCB_V1   // For the small motgherboard 4/2022
+// -------------------------------------------------------------------------
 
 //#define USE_RS_HFIQ             // Use the RSD-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
@@ -155,14 +163,18 @@
     #ifdef RA8876_ON      // Config for my particular RA8876 build
       #undef USE_RA8875              
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
-      #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board
-      #define TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
+      #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board, Value ignored for RS-HFIQ
+      #undef SCREEN_ROTATION
+      #define SCREEN_ROTATION     2
+      #undef TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
       //#define SV1AFN_BPF              // Use the BPF board
       //#define PE4302                  // Use the step atten usually the PE4302 board
-      #define I2C_ENCODERS
+      //#define I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
       #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
       #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
+      #define SMALL_PCB_V1            // For the small motherboard 4/2022
+      #define PHASE_CHANGE_ON
     #else   // My RA8875 specific build items
       #define USE_RA8875
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
@@ -179,6 +191,8 @@
         //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
       #endif    
       #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
+      #define LARGE_PCB_V1            // For the V1 large 4.3" motherboard 4/2022
+      #define W7PUA_I2S_CORRECTION
     #endif 
 
     // Config items common or NA to both builds
@@ -200,7 +214,6 @@
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
     #define USE_RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-    //#define W7PUA_I2S_CORRECTION
 #endif  // K7MDL_BUILD
 
 //
@@ -210,8 +223,8 @@
 // 
 // Choose your actual pin assignments for any you may have.
 // VFO Encoder (not I2C)
-#define VFO_ENC_PIN_A   4
-#define VFO_ENC_PIN_B   5
+#define VFO_ENC_PIN_A   3  //4
+#define VFO_ENC_PIN_B   4  //5
 
 #define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
@@ -219,7 +232,7 @@
 // I2C connected encoders use this this pin to signal interrupts
 // Knob assignments are the user_settings database                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
 #ifdef I2C_ENCODERS
-  #define I2C_INT_PIN     29
+  #define I2C_INT_PIN     36  //29
   #define MF_ENC_ADDR     (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
   #define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
   //#define ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  

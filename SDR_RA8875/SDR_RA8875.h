@@ -34,6 +34,7 @@
 #include "RadioConfig.h"        // Our main configuration file
 #ifndef BYPASS_SPECTRUM_MODULE
   #include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
+                                  // https://github.com/K7MDL2/Spectrum_RA887x_Library
 #endif
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
 #include "Vfo.h"
@@ -60,7 +61,13 @@
     #ifdef USE_RA8875
         #define  SCREEN_WIDTH       800 
         #define  SCREEN_HEIGHT      480
-        #define  RA8875_INT        14   //any pin
+        #ifdef SMALL_PCB_V1
+            #define  RA8875_INT        28  //28 for John's small V1 motherboard
+        #elif LARGE_PCB_V1
+            #define  RA8875_INT        27  //27 for John's larger 4.3" motherboard
+        #else
+            #define  RA8875_INT        14  //14 for K7MDL old prototype board
+        #endif    
         #define  RA8875_CS         10   //any digital pin
         #define  RA8875_RESET      9    //any pin or nothing!
         #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
@@ -76,8 +83,12 @@
         #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
         #include <RA8876_t3.h>           // Github
         #include <FT5206.h>
-        //#define  CTP_INT           14   // Use an interrupt capable pin such as pin 2 (any pin on a Teensy)
+
+        // Included here for reference only, do not need any of these for RA8876 here.
+        //#define  CTP_INT           28   // 27 for large board, 28 for small board  14 for older boards
         //#define  RA8876_CS         10   //any digital pin
+        //#define  RA8876_CS         10   //any digital pin
+        //#define  RA8876_RESET      9    //any pin or nothing!
         //#define  RA8876_RESET      9    //any pin or nothing!
         //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
         
