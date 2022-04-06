@@ -222,9 +222,15 @@
 // ---------------------------------------ENCODERS----------------------------------------------
 // 
 // Choose your actual pin assignments for any you may have.
+
 // VFO Encoder (not I2C)
-#define VFO_ENC_PIN_A   3  //4
-#define VFO_ENC_PIN_B   4  //5
+#if defined(LARGE_PCB_V1) || defined(SMALL_PCB_V1)   // For the large and small motherboards 4/2022
+  #define VFO_ENC_PIN_A   3
+  #define VFO_ENC_PIN_B   4
+#else  // old proto boards
+  #define VFO_ENC_PIN_A   4
+  #define VFO_ENC_PIN_B   5
+#endif
 
 #define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
