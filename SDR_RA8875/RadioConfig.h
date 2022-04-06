@@ -224,13 +224,13 @@
 // Choose your actual pin assignments for any you may have.
 
 // VFO Encoder (not I2C)
-#if defined(LARGE_PCB_V1) || defined(SMALL_PCB_V1)   // For the large and small motherboards 4/2022
+#if defined(LARGE_PCB_V1) || defined(SMALL_PCB_V1)
   #define VFO_ENC_PIN_A   3
   #define VFO_ENC_PIN_B   4
-#else  // old proto boards
+#else // else old proto board assignments
   #define VFO_ENC_PIN_A   4
   #define VFO_ENC_PIN_B   5
-#endif
+#endif 
 
 #define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
@@ -238,14 +238,17 @@
 // I2C connected encoders use this this pin to signal interrupts
 // Knob assignments are the user_settings database                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
 #ifdef I2C_ENCODERS
-  #define I2C_INT_PIN     36  //29
+  #if defined(LARGE_PCB_V1) || defined(SMALL_PCB_V1)
+    #define I2C_INT_PIN     36
+  #else // else old proto board assignment
+    #define I2C_INT_PIN     29
+  #endif 
   #define MF_ENC_ADDR     (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
   #define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
   //#define ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  
   //#define ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
   //#define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
-  //#define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/  
-  
+  //#define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/   
 #else
   #define MF_ENC_PIN_A    40   // list pins for any non I2C aux encoders.
   #define MF_ENC_PIN_B    39
