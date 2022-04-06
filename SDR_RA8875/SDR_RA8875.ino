@@ -53,14 +53,29 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
     //  INT -> 29
     #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.                                 // Hardware verson 2.1, Arduino library version 1.40.
     //Class initialization with the I2C addresses
-    extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
-    extern i2cEncoderLibV2 ENC2; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
-    extern i2cEncoderLibV2 ENC3; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.// 
+    #ifdef MF_ENC_ADDR
+      extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
+    #endif
+    #ifdef ENC2_ADDR
+      extern i2cEncoderLibV2 ENC2; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+    #endif
+    #ifdef ENC3_ADDR
+      extern i2cEncoderLibV2 ENC3; // Address 0x63 only - Jumpers A1, A5 and A6 are soldered.// 
+    #endif
+    #ifdef ENC4_ADDR
+      extern i2cEncoderLibV2 ENC4;    /* Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+    #endif
+    #ifdef ENC5_ADDR
+      extern i2cEncoderLibV2 ENC5;    /* Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+    #endif
+    #ifdef ENC6_ADDR
+      extern i2cEncoderLibV2 ENC6;    /* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+    #endif    
 #else 
     #ifdef MECH_ENCODERS
         Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
-        Encoder AF(29,28);   // AF gain control - not used yet
-        Encoder RF(33,34);   // RF gain control - not used yet 
+        Encoder AF(30,31);  //29,28);   // AF gain control - not used yet
+        Encoder RF(34,35);    //(33,34);   // RF gain control - not used yet 
     #endif
 #endif // I2C_ENCODER
 
@@ -147,7 +162,8 @@ float       pan                     = 0.0f;
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
 #else
     RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
-    FT5206 cts    = FT5206(CTP_INT); 
+    FT5206 cts    = FT5206(CTP_INT);    // Be sure to set the motherboard version used to get the correct Touch INT!
+                                        // Set in 2 places, the spectrum_RA887x library and in RadioConfig.h
 #endif
 
 #ifdef ENET
