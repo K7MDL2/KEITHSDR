@@ -79,13 +79,15 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
     #endif
 #endif // I2C_ENCODER
 
-#ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
-    #include <si5351.h>            // Using this etherkits library because it supporst the B and C version PLLs with external ref clock
-    Si5351 si5351;
-#else // OCXO_10MHZ
-    #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu
-    Si5351mcu si5351;
-#endif // OCXO_10MHZ
+#ifndef USE_RS_HFIQ
+    #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
+        #include <si5351.h>            // Using this etherkits library because it supporst the B and C version PLLs with external ref clock
+        Si5351 si5351;
+    #else // OCXO_10MHZ
+        #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu
+        Si5351mcu si5351;
+    #endif // OCXO_10MHZ
+#endif // RS-HFIQ
 
 #ifdef I2C_LCD
     #include <LiquidCrystal_I2C.h>
@@ -313,21 +315,18 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
     AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
-#endif
-#ifdef AudioSDR
+#elif AudioSDR
 // F32 converted I2S correction version
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
     AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
-#endif
-#ifdef W7PUA_I2S_CORRECTION
+#elif W7PUA_I2S_CORRECTION
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           TwinPeak,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(TwinPeak,1,                        Q_Switch,0);
-#endif
-#if !defined(PHASE_CHANGE_ON) && !defined(AudioSDR) && !defined(W7PUA_I2S_CORRECTION)  // If none of methods defined fall back to none.
+#else
     AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                           I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                           Q_Switch,0);
 #endif
@@ -618,6 +617,7 @@ COLD void setup()
     #endif
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
+        Serial.println(F("Initializing RS-HFIQ Radio via USB Host port"));
         if (bandmem[curr_band].VFO_AB_Active == VFO_A)
             RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         else
@@ -1716,12 +1716,13 @@ COLD void resetCodec(void)
     
     #ifdef PHASE_CHANGE_ON
         // Manual approach
+        Serial.println(F("Start Manual I2S Error Correction"));
         PhaseI.begin(PhaseIfir, 2);
         PhaseQ.begin(PhaseQfir, 2);
         //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ENET button
     #endif    
     #ifdef AUDIO_SDR
-        // automatic I2S phase correction 
+        // automatic I2S phase correction
         preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
         preProcessor.swapIQ(false);
         // Wait for a successful I2S correction before changing anything else affecting the process
