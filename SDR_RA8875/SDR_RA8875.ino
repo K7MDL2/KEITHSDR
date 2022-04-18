@@ -328,8 +328,8 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
     AudioConnection_F32     patchCord_RX_Ph_R(TwinPeak,1,                        Q_Switch,0);
 #endif
 #if !defined(PHASE_CHANGE_ON) && !defined(AudioSDR) && !defined(W7PUA_I2S_CORRECTION)  // If none of methods defined fall back to none.
-    AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                         I_Switch,0);  // route raw input audio to the FFT display
-    AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                         Q_Switch,0);
+    AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                           I_Switch,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                           Q_Switch,0);
 #endif
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
@@ -1718,7 +1718,7 @@ COLD void resetCodec(void)
         // Manual approach
         PhaseI.begin(PhaseIfir, 2);
         PhaseQ.begin(PhaseQfir, 2);
-        //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ANT button (long press)
+        //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ENET button
     #endif    
     #ifdef AUDIO_SDR
         // automatic I2S phase correction 
