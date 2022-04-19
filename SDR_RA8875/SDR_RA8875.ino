@@ -310,18 +310,18 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
-#ifdef PHASE_CHANGE_ON   // use one of 2 I2S input phase correction tools
+#if defined (PHASE_CHANGE_ON)   // use one of 2 I2S input phase correction tools
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseI,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
     AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
-#elif AudioSDR
+#elif defined(AudioSDR)
 // F32 converted I2S correction version
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
     AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
-#elif W7PUA_I2S_CORRECTION
+#elif defined(W7PUA_I2S_CORRECTION)
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           TwinPeak,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
