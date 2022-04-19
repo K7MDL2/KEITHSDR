@@ -149,7 +149,7 @@
 //#define SMALL_PCB_V1   // For the small motgherboard 4/2022
 // -------------------------------------------------------------------------
 
-//#define USE_RS_HFIQ             // Use the RSD-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+//#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
@@ -158,8 +158,8 @@
 
 //******************************************************************************************
 
-#ifdef K7MDL_BUILD     
-    #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
+#ifdef K7MDL_BUILD   
+    //#define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
     #ifdef RA8876_ON      // Config for my particular RA8876 build
       #undef USE_RA8875              
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
@@ -171,11 +171,11 @@
       //#define PE4302                  // Use the step atten usually the PE4302 board
       //#define I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
-      #define si5351_TCXO             // Set load cap to 0pF for TCXO    //#define si5351_TCXO             // Set load cap to 0pF for TCXO
-      #define si5351_CORRECTION 0     // for TCXO whcih has been adjusted or corrected in other ways
+      #define si5351_TCXO             // Set load cap to 0pF for TCXO - skipped for RS-HFIQ
+      #define si5351_CORRECTION 0     // for TCXO which has been adjusted or corrected in other ways - skipped for RS-HFIQ
       #define SMALL_PCB_V1            // For the small motherboard 4/2022
-      #define PHASE_CHANGE_ON
-    #else   // My RA8875 specific build items
+      #define W7PUA_I2S_CORRECTION
+    #else   // My RA8875 4.3" specific build items
       #define USE_RA8875
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
@@ -213,7 +213,7 @@
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
-    #define USE_RS_HFIQ  // use the RSD-HFIQ W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+    #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 #endif  // K7MDL_BUILD
 
 //
