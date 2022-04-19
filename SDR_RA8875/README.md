@@ -4,9 +4,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## April 2022
 
-    1. Added front panel drawing file for Front Panel Express milling on a Hammond 1455N 160mm x 103mm x 53mm extruded box. Attempting to package the RS-HFIQ PCB into the same small (hand-held) box with RA8875 4.3" display and 2 encoders.
+    1. Added front panel drawing file for Front Panel Express milling on a Hammond 1455N 160mm x 103mm x 53mm extruded box. Attempting to package the RS-HFIQ PCB into the same small (hand-held) box with RA8875 4.3" display and 2 encoders. 
     2. Minor revisions to some I2s correction #define logic.
     3. Updated the Teensy RS-HFIQ library added *B, *D, and *E commands, updated example programs.
+    4. Added Small_PCB_V1 and Large_PCB_V1 #defines to handle the different IO pinouts for John's Teensy mnotherboards (as of April 18th V1 versions).  Updated the Spectrum_RA887x Library also to match.
 
 ## March 2022
 
