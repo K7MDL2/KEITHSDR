@@ -1909,7 +1909,8 @@ void PhaseChange(uint8_t chg)
             pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
             Serial.println(F("Using I/O pin for cross-correlation test signal."));
         #endif
-
+        
+        //TwinPeak.setLRfilter(true);
         //TwinPeak.setThreshold(TP_THRESHOLD);   Not used
         TwinPeak.stateAlignLR(TP_MEASURE);  // Comes up TP_IDLE
 
@@ -1929,7 +1930,7 @@ void PhaseChange(uint8_t chg)
                 pData = TwinPeak.read();
             }
             // The update has moved from Measure to Run. Ground the PIN_FOR_TP
-            //TwinPeak.stateAlignLR(TP_RUN);  // TP is done, not TP_MEASURE
+            TwinPeak.stateAlignLR(TP_RUN);  // TP is done, not TP_MEASURE
             digitalWrite(PIN_FOR_TP, 0);    // Set pin to zero
 
             Serial.println("");
@@ -1943,6 +1944,7 @@ void PhaseChange(uint8_t chg)
             Serial.print(pData->neededShift); Serial.print(",   ");
             Serial.print(pData->TPerror); Serial.print(",    ");
             Serial.println(pData->TPstate);
+            Serial.println("");
 
             // You can see the injected signal level by the printed variable, pData->xNorm
             // It is the sum of the 4 cross-correlation numbers and if it is below 0.0001 the

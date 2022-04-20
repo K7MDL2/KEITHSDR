@@ -27,6 +27,7 @@
 void Button_Handler(int16_t x, uint16_t y); 
 uint8_t Gesture_Handler(uint8_t gesture);
 void setPanel(void);
-void Touch( void);
+void Touch(void);
+void Button_Action(uint16_t button_name);
 
 #endif //end of _USERINPUT_H_

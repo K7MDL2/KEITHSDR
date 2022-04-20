@@ -62,6 +62,10 @@ extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has 
 extern Metro MF_Timeout;
 Metro press_timer = Metro(600);
 Metro press_timer2 = Metro(600);
+Metro press_timer3 = Metro(600);
+Metro press_timer4 = Metro(600);
+Metro press_timer5 = Metro(600);
+Metro press_timer6 = Metro(600);
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -203,7 +207,8 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			noteOn(CHANNEL, 62, 127);
 			noteOff(CHANNEL, 62, 0);
 		#else
-			Rate(0);			
+			Button_Action(user_settings[user_Profile].encoder1_client_swl);
+			//Rate(0);			
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
@@ -213,8 +218,9 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 63, 127);
 			noteOff(CHANNEL, 63, 0);
-		#else			
-			setRFgain(2);
+		#else	
+			Button_Action(user_settings[user_Profile].encoder1_client_sw);		
+			//setRFgain(2);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
@@ -225,18 +231,116 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			noteOn(CHANNEL, 64, 127);
 			noteOff(CHANNEL, 64, 0);
 		#else
-			Filter(0);
+			Button_Action(user_settings[user_Profile].encoder2_client_swl);
+			//Filter(0);
 		#endif
 	}
-	else
+	else if (obj->id == user_settings[user_Profile].encoder2_client)
 	{
 		Serial.println(F("Knob #2 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
-			noteOn(CHANNEL, 65, 127);
+			noteOn(CHANcNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
 		#else
-			setMode(1);
+			Button_Action(user_settings[user_Profile].encoder2_client_sw);
+			//setMode(1);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder3_client && press_timer3.check() == 1)
+	{
+		Serial.println(F("Knob #3 Long Push - Change Filter "));
+		obj->writeRGBCode(0x00FF00);
+		#ifdef USE_MIDI
+			noteOn(CHANNEL, 64, 127);
+			noteOff(CHANNEL, 64, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder3_client_swl);
+			//Filter(0);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder3_client)
+	{
+		Serial.println(F("Knob #3 Push: Change Mode"));
+		obj->writeRGBCode(0x0000FF);
+		#ifdef USE_MIDI
+			noteOn(CHANcNEL, 65, 127);
+			noteOff(CHANNEL, 65, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder3_client_sw);
+			//setMode(1);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder4_client && press_timer4.check() == 1)
+	{
+		Serial.println(F("Knob #4 Long Push - Change Filter "));
+		obj->writeRGBCode(0x00FF00);
+		#ifdef USE_MIDI
+			noteOn(CHANNEL, 64, 127);
+			noteOff(CHANNEL, 64, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder4_client_swl);
+			//Filter(0);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder4_client)
+	{
+		Serial.println(F("Knob #4 Push: Change Mode"));
+		obj->writeRGBCode(0x0000FF);
+		#ifdef USE_MIDI
+			noteOn(CHANcNEL, 65, 127);
+			noteOff(CHANNEL, 65, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder4_client_sw);
+			//setMode(1);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder5_client && press_timer5.check() == 1)
+	{
+		Serial.println(F("Knob #5 Long Push - Change Filter "));
+		obj->writeRGBCode(0x00FF00);
+		#ifdef USE_MIDI
+			noteOn(CHANNEL, 64, 127);
+			noteOff(CHANNEL, 64, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder5_client_swl);
+			//Filter(0);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder5_client)
+	{
+		Serial.println(F("Knob #5 Push: Change Mode"));
+		obj->writeRGBCode(0x0000FF);
+		#ifdef USE_MIDI
+			noteOn(CHANcNEL, 65, 127);
+			noteOff(CHANNEL, 65, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder5_client_sw);
+			//setMode(1);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder6_client && press_timer6.check() == 1)
+	{
+		Serial.println(F("Knob #6 Long Push - Change Filter "));
+		obj->writeRGBCode(0x00FF00);
+		#ifdef USE_MIDI
+			noteOn(CHANNEL, 64, 127);
+			noteOff(CHANNEL, 64, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder6_client_swl);
+			//Filter(0);
+		#endif
+	}
+	else if (obj->id == user_settings[user_Profile].encoder6_client)
+	{
+		Serial.println(F("Knob #6 Push: Change Mode"));
+		obj->writeRGBCode(0x0000FF);
+		#ifdef USE_MIDI
+			noteOn(CHANcNEL, 65, 127);
+			noteOff(CHANNEL, 65, 0);
+		#else
+			Button_Action(user_settings[user_Profile].encoder6_client_sw);
+			//setMode(1);
 		#endif
 	}
 }

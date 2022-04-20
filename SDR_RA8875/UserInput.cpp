@@ -4,6 +4,7 @@
 
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
+#include "UserInput.h"
 
 #define BUTTON_TOUCH    10  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
 //#define MAXTOUCHLIMIT    2  //1...5
@@ -46,10 +47,6 @@ extern struct Spectrum_Parms Sp_Parms_Def[];
 extern void PhaseChange(uint8_t chg);
 
 // Function declarations
-void Button_Handler(int16_t x, uint16_t y); 
-uint8_t Gesture_Handler(uint8_t gesture);
-void setPanel(void);
-void Touch( void);
 void zero_coordinates(void);
 
 // structure to record the touch event info used to determine if there is a button press or a gesture.
@@ -696,48 +693,8 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
         {
             if ((ptr+i)->show && holdtime == 0)  // if the show property ius active, call the button function to act on it.
-            {   // used the index to the table to match up a function to call
-                // feedback beep
-                touchBeep(true);  // a timer will shut it off.  
-                switch (i)
-                {
-                    case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
-                    case FILTER_BTN:    Filter(0);      break;
-                    case RATE_BTN:      Rate(0);        break; //Increment from current value 
-                    case AGC_BTN:       AGC();          break;
-                    case ANT_BTN:       Ant();          break;                    
-                    case MUTE_BTN:      Mute();         break;
-                    case MENU_BTN:      Menu();         break;
-                    case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
-                    case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
-                    case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
-                    case RIT_BTN:       RIT();          break;
-                    case XIT_BTN:       XIT();          break;
-                    case SPLIT_BTN:     Split();        break;
-                    case XVTR_BTN:      Xvtr();         break;
-                    case ATU_BTN:       ATU(2);         break;
-                    case FINE_BTN:      Fine();         break;
-                    case XMIT_BTN:      Xmit(2);        break;
-                    case NB_BTN:        setNB(2);       break;
-                    case NR_BTN:        setNR();        break;
-                    case ENET_BTN:      Enet();         break;
-                    case AFGAIN_BTN:    setAFgain(2);   break;
-                    case RFGAIN_BTN:    setRFgain(2);   break;
-                    case PAN_BTN:       setPAN(2);      break;
-                    case SPOT_BTN:      Spot();         break;
-                    case REFLVL_BTN:    setRefLevel(2); break;
-                    case NOTCH_BTN:     Notch();        break;
-                    case BANDUP_BTN:    BandUp();       break;
-                    case BANDDN_BTN:    BandDn();       break;
-                    case BAND_BTN:      Band();         break;
-                    case DISPLAY_BTN:   Display();      break;
-                    case FN_BTN:        setPanel();     break;
-                    case ZOOM_BTN:      setZoom(0);     break;
-                    case UTCTIME_BTN:   break;        //nothing to do
-                    case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
-                    default: Serial.print(F("Found a button with SHOW on but has no function to call.  Index = "));
-                        Serial.println(i); break;
-                }
+            {   
+                Button_Action(i);
             } // LONG PRESS
             if ((ptr+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
@@ -811,6 +768,53 @@ COLD void Button_Handler(int16_t x, uint16_t y)
     ptrStby += 1;   // The frequency display areas itself  
     if ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh))
         VFO_AB();
+}
+
+
+void Button_Action(uint16_t button_name)
+{
+    // used the index to the table to match up a function to call
+    // feedback beep
+    touchBeep(true);  // a timer will shut it off.  
+    switch (button_name)
+    {
+        case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
+        case FILTER_BTN:    Filter(0);      break;
+        case RATE_BTN:      Rate(0);        break; //Increment from current value 
+        case AGC_BTN:       AGC();          break;
+        case ANT_BTN:       Ant();          break;                    
+        case MUTE_BTN:      Mute();         break;
+        case MENU_BTN:      Menu();         break;
+        case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
+        case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+        case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+        case RIT_BTN:       RIT();          break;
+        case XIT_BTN:       XIT();          break;
+        case SPLIT_BTN:     Split();        break;
+        case XVTR_BTN:      Xvtr();         break;
+        case ATU_BTN:       ATU(2);         break;
+        case FINE_BTN:      Fine();         break;
+        case XMIT_BTN:      Xmit(2);        break;
+        case NB_BTN:        setNB(2);       break;
+        case NR_BTN:        setNR();        break;
+        case ENET_BTN:      Enet();         break;
+        case AFGAIN_BTN:    setAFgain(2);   break;
+        case RFGAIN_BTN:    setRFgain(2);   break;
+        case PAN_BTN:       setPAN(2);      break;
+        case SPOT_BTN:      Spot();         break;
+        case REFLVL_BTN:    setRefLevel(2); break;
+        case NOTCH_BTN:     Notch();        break;
+        case BANDUP_BTN:    BandUp();       break;
+        case BANDDN_BTN:    BandDn();       break;
+        case BAND_BTN:      Band();         break;
+        case DISPLAY_BTN:   Display();      break;
+        case FN_BTN:        setPanel();     break;
+        case ZOOM_BTN:      setZoom(0);     break;
+        case UTCTIME_BTN:   break;        //nothing to do
+        case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
+        default: Serial.print(F("Found a button with SHOW on but has no function to call.  Index = "));
+            Serial.println(button_name); break;
+    }
 }
 
 //
