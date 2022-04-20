@@ -8,6 +8,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     2. Minor revisions to some I2s correction #define logic.
     3. Updated the Teensy RS-HFIQ library added *B, *D, and *E commands, updated example programs.
     4. Added Small_PCB_V1 and Large_PCB_V1 #defines to handle the different IO pinouts for John's Teensy mnotherboards (as of April 18th V1 versions).  Updated the Spectrum_RA887x Library also to match.
+    5. Added 12 switch actions in SDR_Data user_settings table.
+    6. For i2C encoders long and short press events are assigned switch actions, up to 6 i2c encoders. 
 
 ## March 2022
 
