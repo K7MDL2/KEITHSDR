@@ -352,7 +352,7 @@ struct Band_Memory {
     uint32_t    edge_upper;
     uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
     uint32_t    vfo_B_last;
-    uint8_t     VFO_AB_Active;  // Flag to track which has focus. Usesd in RX.  Used in TX for split
+    uint8_t     VFO_AB_Active;  // Flag to track which has focus. Used in RX.  Used in TX for split
     uint8_t     mode_A;         // CW, LSB, USB, DATA.  
     uint8_t     mode_B;         // CW, LSB, USB, DATA.  
     uint8_t     filter;         // index to Bandwidth selection for this band.
