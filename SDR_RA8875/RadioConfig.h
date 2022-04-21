@@ -118,9 +118,9 @@
 
 #define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-#define PTT_INPUT    37     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_INPUT    33     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
-#define PTT_OUT1     38    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_OUT1     34    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  
@@ -144,9 +144,10 @@
 
 // --------------- Motherboard/Protoboard version --------------------------
 // Uncomment one of these to account for Touch interrupt differences, or
-// if not using either board, comment them both out to use the default old values
-//#define LARGE_PCB_V1   // For the V1 large 4.3" motherboard 4/2022
-//#define SMALL_PCB_V1   // For the small motgherboard 4/2022
+// if not using any of these boards, comment them out to use the default old values
+//#define V1_4_3_PCB   // For the V1 4.3" motherboard 4/18/2022
+//#define V2_4_3_PCB   // For the V2 4.3" motherboard 4/21/2022
+//#define SMALL_PCB_V1   // For the small motgherboard 4/18/2022
 // -------------------------------------------------------------------------
 
 //#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
@@ -154,7 +155,7 @@
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
+#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -191,7 +192,8 @@
         //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
       #endif    
       #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-      #define LARGE_PCB_V1            // For the V1 large 4.3" motherboard 4/2022
+      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
+      //#define V2_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
       #define W7PUA_I2S_CORRECTION
     #endif 
 
@@ -224,9 +226,12 @@
 // Choose your actual pin assignments for any you may have.
 
 // VFO Encoder (not I2C)
-#if defined(LARGE_PCB_V1) || defined(SMALL_PCB_V1)
+#if defined(V1_4_3_PCB) || defined(SMALL_PCB_V1)
   #define VFO_ENC_PIN_A   3
   #define VFO_ENC_PIN_B   4
+#elif defined (V2_4_3_PCB)
+  #define VFO_ENC_PIN_A   15
+  #define VFO_ENC_PIN_B   16
 #else // else old proto board assignments
   #define VFO_ENC_PIN_A   4
   #define VFO_ENC_PIN_B   5
@@ -238,8 +243,10 @@
 // I2C connected encoders use this this pin to signal interrupts
 // Knob assignments are the user_settings database                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
 #ifdef I2C_ENCODERS
-  #if defined(LARGE_PCB_V1) || defined(SMALL_PCB_V1)
+  #if defined(V1_4_3_PCB) || defined(SMALL_PCB_V1)
     #define I2C_INT_PIN     36
+  #elif defined (V2_4_3_PCB)
+    #define I2C_INT_PIN     17
   #else // else old proto board assignment
     #define I2C_INT_PIN     29
   #endif 
@@ -250,8 +257,8 @@
   //#define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
   //#define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/   
 #else
-  #define MF_ENC_PIN_A    40   // list pins for any non I2C aux encoders.
-  #define MF_ENC_PIN_B    39
+  #define MF_ENC_PIN_A    37   // list pins for any non I2C aux encoders.
+  #define MF_ENC_PIN_B    36
 #endif // I2C_ENCODERS
 
 // -------------------------  PE4302 6 bit Digital Step Attenuator -----------------------------
