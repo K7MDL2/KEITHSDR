@@ -11,6 +11,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     5. Added 12 switch actions in SDR_Data user_settings table.
     6. For i2C encoders long and short press events are assigned switch actions, up to 6 i2c encoders.
     7. Eliminated the sub-VFO flicker while tuning.
+    8. Added support for the 4.3" motherboard V2. The defines are V1_4_3_PCB, V2_4_3_PCB, SMALL_PCB_V1, or none of these for the old way.
 
 ## March 2022
 
