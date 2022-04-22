@@ -13,6 +13,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     7. Eliminated the sub-VFO amd A & B VFO marker flicker while tuning.
     8. Added support for the 4.3" motherboard V2. The defines are V1_4_3_PCB, V2_4_3_PCB, SMALL_PCB_V1, or none of these for the old way.
     9. Spectrum_RA887x.h in the library also updated with the new #define names.  V2 is same touch IRQ line as V1.
+    10. Removed AutoSDR and PhaseChange methods of I2S phase error correction (aka Twin Peaks problem). The W7PUA correction process has shown to be very successful. It does require 2x 10K resistors. Latest enhancements use a 2KHz filter on the line-in signals to help the auto-detection FFT see only the IO pin generated test signal. A strong enough RF signal can still get in and confuse things so starting up on a quiet band can help. The ultimate solution is to switch the antenna or Line-In to ground at startup so that only the IO pin generated test signal is presented to the FFT analysis.  The V2_4_3_PCB has the 2 resistors on the motherboard.
 
 ## March 2022
 
