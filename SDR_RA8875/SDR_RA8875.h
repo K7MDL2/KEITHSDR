@@ -391,6 +391,7 @@ struct Standard_Button {
     uint8_t  enabled;       // ON - enabled. Enable or disable this button. UserInput() will look for matched coordinate and skip if disabled.                            
     uint8_t  show;          // ON= Show key. 0 = Hide key. Used to Hide a button without disabling it. Useful for swapping panels of buttons.
     uint8_t  Panelnum;      // Panel to display this button in, if any
+    uint8_t  Panelpos;      // Display order for a panel starting with 0 for the left most position.
     uint16_t bx;            // coordinates used by both touch and display systems
 	uint16_t by;
 	uint16_t bw;

@@ -835,10 +835,10 @@ COLD  void setPanel()
     sprintf(std_btn[FN_BTN].label, "Fn %d", panel);   // Update our button label
 
     // Turn ON or OFF Panel X buttons
-    for ( uint16_t i=1; i < STD_BTN_NUM; i++ ) //skip record 0 which is the the Fn key 
+    for ( uint16_t i=1; i < STD_BTN_NUM; i++ ) //skip record 0 which is the the Fn key - search through whole list of buttons
     {
-        if ((ptr+i)->Panelnum == panel || (ptr+i)->Panelnum == panel*50 || (ptr+i)->Panelnum == panel*40 )  // if the field has a matching panel number then turn it in for "show" state else turn it off
-        {                                                               // panelnum*X is a one off cheat to allow a button to appear in more than 1 row.
+        if ((ptr+i)->Panelnum == panel)  // if the field has a matching panel number then turn it in for "show" state else turn it off
+        {                                       
             (ptr+i)->show = ON;
             //Serial.print(F("Turning ON "));
             //Serial.println((ptr+i)->label);
