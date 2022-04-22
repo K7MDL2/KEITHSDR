@@ -76,8 +76,8 @@ uint8_t _colorIndex = 0;
 
 COLD void displayFreq(void)
 {
-	static uint8_t vfo_a_last = 255;  // use 255 since vfo.active is using 0 and 1 values
-	static uint8_t vfo_b_last = 0;
+	static uint8_t vfo_active_last = 255;  // use 255 since .VFO_AB_active is using 0 and 1 values
+	static uint8_t vfo_changed = 0;
 	
 	// bx					// X - upper left corner anchor point
 	// by					// Y - upper left corner anchor point
@@ -107,22 +107,22 @@ COLD void displayFreq(void)
 	#endif // USE_RA8875
 	//tft.drawRect(0, 15, 792, 65, RA8875_LIGHT_ORANGE);  // test box
 
+	tft.fillRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->bg_clr);
+	tft.drawRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->ol_clr);
+
 	// Detect if active VFO changed, if it did, then draw the changed VFO standby section, else leave it alone to reduce flicker
-	if (bandmem[curr_band].VFO_AB_Active != vfo_a_last)
+	if (bandmem[curr_band].VFO_AB_Active != vfo_active_last)
 	{
-		vfo_a_last = bandmem[curr_band].VFO_AB_Active;  // track VFO swapping
-		vfo_b_last = 1;  // force stby vfo update
+		vfo_active_last = bandmem[curr_band].VFO_AB_Active;  // track VFO swapping
+		vfo_changed = 1;  // force stby vfo update
+			// Draw Active VFO box and Label
+		tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->bg_clr);
+		tft.drawRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->ol_clr);
 	}
 	else
 	{
-		vfo_a_last = (bandmem[curr_band].VFO_AB_Active);  // Active VFO did not change
-		//vfo_b_last = 0;  // skip
+		vfo_active_last = (bandmem[curr_band].VFO_AB_Active);  // Active VFO did not change
 	}
-	// Draw Active VFO box and Label
-	tft.fillRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->bg_clr);
-	tft.drawRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->ol_clr);
-	tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->bg_clr);
-	tft.drawRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->ol_clr);
 
 	// Write the Active VFO
 	tft.setFont(pMAct->txt_Font);
@@ -132,7 +132,8 @@ COLD void displayFreq(void)
 		tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->TX_clr);
 	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
 	{
-		tft.print("A");		
+		if (vfo_changed) // only update the marker if the VFO changed to prevent flicker
+			tft.print("A");	
 		tft.setFont(pVAct->txt_Font);
 		tft.setTextColor(pVAct->txt_clr);
 		tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
@@ -144,7 +145,8 @@ COLD void displayFreq(void)
 	}
 	else
 	{
-		tft.print("B");		
+		if (vfo_changed)  // only update the marker if the VFO changed to prevent flicker
+			tft.print("B");		
 		tft.setFont(pVAct->txt_Font);
 		tft.setTextColor(pVAct->txt_clr);
 		tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
@@ -155,7 +157,7 @@ COLD void displayFreq(void)
 		#endif
 	}
 
-	if (vfo_b_last)  // only update when the active VFO changes
+	if (vfo_changed)  // only update when the active VFO changes
 	{
 		// Draw Standby VFO box and Label
 		tft.fillRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->bg_clr);
@@ -184,7 +186,7 @@ COLD void displayFreq(void)
 			tft.setCursor(pVStby->bx+pVStby->padx, pVStby->by+pVStby->pady);
 			tft.print(formatVFO(VFOA));
 		}
-		vfo_b_last = 0;
+		vfo_changed = 0;
 	}
 }
 
@@ -577,6 +579,9 @@ COLD const char* formatVFO(uint32_t vfo)
 //
 //  Usage: This function calls all of the displayXXX() functions to easily refresh the
 //			screen except for the spectrum display module.
+// In theory every button and label can be called here in any order.  
+// The table Panelnum and Panelpos control the position.  Show control visibility.
+// When a panel is active, the button for tha panel are flipped to show=ON, all other are set to show=OFF
 // 
 COLD void displayRefresh(void)
 {
