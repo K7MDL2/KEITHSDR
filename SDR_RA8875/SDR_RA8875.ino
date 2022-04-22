@@ -16,9 +16,6 @@
 #include "SDR_Data.h"
 #include "Hilbert.h"            // filter coefficients
 
-#include "AudioSDRpreProcessor_F32.h" // From https://github.com/DerekRowell/AudioSDR.  
-//  Local copies of the 2 needed files are included in this distribution modified for F32 compatibility.
-
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
     SDR_RS_HFIQ RS_HFIQ;
@@ -111,11 +108,10 @@ COLD void SetFilter(void);
 HOT  void RF_Limiter(float peak_avg);
 COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
-COLD void PhaseChange(uint8_t chg);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
 #ifdef USE_RS_HFIQ
-    HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
+  HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
 #endif
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -184,7 +180,6 @@ Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout        = Metro(2000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
-Metro Auto_I2S_Timer    = Metro(80000);  // Escape timer for AutoI2S correction process
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -253,21 +248,8 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
-#ifdef PHASE_CHANGE_ON
-    //.............................
-    // Phase correction FIRs. Sometimes the I2s audio samples are 1 step out of phase
-    // and waterfall shows very little opposite sideband suppression
-    float32_t  PhaseIfir[2] = { 1.0f, 0 };    // swap constants to change phasing
-    float32_t  PhaseQfir[2] = { 1.0f, 0 };
-    //.............................
-    AudioFilterFIR_F32          PhaseI(audio_settings);
-    AudioFilterFIR_F32          PhaseQ(audio_settings);
-#endif
-#ifdef AUDIO_SDR
-    AudioSDRpreProcessor_F32    preProcessor;
-#endif
 #ifdef W7PUA_I2S_CORRECTION
-    AudioAlignLR_F32            TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
+  AudioAlignLR_F32          TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
@@ -310,18 +292,7 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
-#if defined (PHASE_CHANGE_ON)   // use one of 2 I2S input phase correction tools
-    AudioConnection_F32     patchCord_RX_In_L(Input,0,                          PhaseI,0);  // route raw input audio to the FFT display
-    AudioConnection_F32     patchCord_RX_In_R(Input,1,                          PhaseQ,0);
-    AudioConnection_F32     patchCord_RX_Ph_L(PhaseI,0,                         I_Switch,0);  // route raw input audio to the FFT display
-    AudioConnection_F32     patchCord_RX_Ph_R(PhaseQ,0,                         Q_Switch,0);
-#elif defined(AudioSDR)
-// F32 converted I2S correction version
-    AudioConnection_F32     patchCord_RX_In_L(Input,0,                           preProcessor,0); // correct i2s phase imbalance
-    AudioConnection_F32     patchCord_RX_In_R(Input,1,                           preProcessor,1);
-    AudioConnection_F32     patchCord_RX_Ph_L(preProcessor,0,                    I_Switch,0);  // route raw input audio to the FFT display
-    AudioConnection_F32     patchCord_RX_Ph_R(preProcessor,1,                    Q_Switch,0);
-#elif defined(W7PUA_I2S_CORRECTION)
+#if defined(W7PUA_I2S_CORRECTION)
     AudioConnection_F32     patchCord_RX_In_L(Input,0,                           TwinPeak,0); // correct i2s phase imbalance
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
@@ -1713,36 +1684,7 @@ COLD void resetCodec(void)
     codec1.adcHighPassFilterEnable();
     //codec1.adcHighPassFilterDisable();
     delay(50);
-    
-    #ifdef PHASE_CHANGE_ON
-        // Manual approach
-        Serial.println(F("Start Manual I2S Error Correction"));
-        PhaseI.begin(PhaseIfir, 2);
-        PhaseQ.begin(PhaseQfir, 2);
-        //PhaseChange(1);  // deal with "twin-peaks problem"   This is now located in ENET button
-    #endif    
-    #ifdef AUDIO_SDR
-        // automatic I2S phase correction
-        preProcessor.startAutoI2SerrorDetection(); // Start I2S error detection
-        preProcessor.swapIQ(false);
-        // Wait for a successful I2S correction before changing anything else affecting the process
-        time_t loop_time = now(); 
-        tft.setFont(Arial_14);
-        tft.setTextColor(myWHITE);
-        tft.setCursor(20, SCREEN_HEIGHT/2);
-        tft.print(F("AutoI2S Error Correction Loop Started"));
-        Serial.println(F("AutoI2S Error Correction Loop Started"));
-        // Timeout in case the correction process never ends
-        while (Auto_I2S_Timer.check() != 1 && preProcessor.getAutoI2SerrorDetectionStatus())        
-        //while (preProcessor.getAutoI2SerrorDetectionStatus())        
-        {   // Debug Stuff
-            //Serial.print("*");
-            //Serial.print("*** AutoI2S Correction Status = "); Serial.println(preProcessor.getAutoI2SerrorDetectionStatus());            
-            //Serial.print("*** AutoI2S Error Comp        = "); Serial.println(preProcessor.getI2SerrorCompensation());
-            delay(3);
-        }
-        Serial.print(F("AutoI2S Error Correction Loop Completed or Timed Out at ")); Serial.print(now()-loop_time); Serial.println(" Seconds");
-    #endif
+
     #ifdef W7PUA_I2S_CORRECTION 
         Serial.println(F("Start W7PUA AutoI2S Error Correction"));
         TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin       
@@ -1858,40 +1800,6 @@ COLD void resetCodec(void)
         // Return the updated phase for the next iteration
         return phase;
     }
-#endif
-
-#ifdef PHASE_CHANGE_ON
-
-// I2S audio sometimes starts with I and Q out of order
-void PhaseChange(uint8_t chg)
-{
-    static int val;
-
-    if( chg )
-    {
-      if( ++val > 2 ) val = 0;                            // rotate through the settings
-    }
-    // print 
-    Serial.print(F("Ph:  "));
-
-    switch( val ){
-        case 0:  
-            PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;        // normal in phase
-            PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
-            Serial.println(F("1010"));
-        break;
-        case 1:
-            PhaseIfir[0] = 1.0f;   PhaseIfir[1] = 0;    
-            PhaseQfir[0] = 0;      PhaseQfir[1] = 1.0f;    // delay Q  ( delay I if fir runs backward )
-            Serial.println(F("1001"));
-        break;
-        case 2:
-            PhaseIfir[0] = 0;      PhaseIfir[1] = 1.0f;    // delay I
-            PhaseQfir[0] = 1.0f;   PhaseQfir[1] = 0;
-            Serial.println(F("0110"));
-        break;
-    }  
-}
 #endif
 
 #ifdef W7PUA_I2S_CORRECTION

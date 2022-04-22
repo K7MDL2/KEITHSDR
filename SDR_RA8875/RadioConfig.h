@@ -131,16 +131,18 @@
 
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
-//------------------------------------------
-// Can choose NONE of these
-// OR if correction is desired, choose ONLY 1 of these 3 methods
-//#define PHASE_CHANGE_ON   // Manual method for I2S input phase correction.  
-                            // When enabled use long press on ANT button to cycle through 3 possible
-                            // solutons to remove mirror image aka Twin Peaks problem
-//#define AUDIO_SDR         // When uncommented, use AutoSDRpreProcessor auto correction 
-//#define W7PUA_I2S_CORRECTION  // Requires 10K resistors on each SGTL5000 codec LineIn pin (L and R) to a common GPIO pin    
-                            // 10K is for RS-HFIQ which has 100ohm output impedance.  Other Line Out sources may vary.
-/// ---------------------------------------
+//-------------------------W7PUA Auto I2S phase correction-----------------
+//
+// Auto I2S alignment error correction (aka Twin Peaks problem)
+// Requires 10K resistors on each SGTL5000 codec LineIn pin (L and R) to a common GPIO pin, pin 22 by default, defined in this file
+//
+//#define W7PUA_I2S_CORRECTION  
+//
+// Can leave these 2 defined, no effect on other things.
+#define PIN_FOR_TP 22       // Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
+#define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN  // 10Kohm is for RS-HFIQ which has 100ohm output impedance.  Other audio sources may vary.
+//
+// ---------------------------------------
 
 // --------------- Motherboard/Protoboard version --------------------------
 // Uncomment one of these to account for Touch interrupt differences, or
@@ -329,11 +331,6 @@
 
 #ifdef ALL_CAT
   #include "SDR_CAT.h"
-#endif
-
-#ifdef W7PUA_I2S_CORRECTION
-  #define PIN_FOR_TP 22       // Show the Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
-  #define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN
 #endif
 
 #endif //_RADIOCONFIG_H_

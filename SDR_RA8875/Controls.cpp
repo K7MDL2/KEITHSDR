@@ -76,7 +76,6 @@ extern RadioIQMixer_F32             FFT_LO_Mixer_I;
 extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
 #endif
 extern          float               pan;
-extern          void                PhaseChange(uint8_t chg);
 extern          void                send_fixed_cmd_to_RSHFIQ(const char * str);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
@@ -1278,12 +1277,7 @@ COLD void Enet()
         user_settings[user_Profile].enet_output = OFF;
     else if (user_settings[user_Profile].enet_output == OFF)
         user_settings[user_Profile].enet_output = ON;
-
-#ifdef PHASE_CHANGE_ON
-    PhaseChange(1);  // deal with "twin-peaks problem" TEST ONLY
-#endif
-
-        
+   
     displayEnet();
     //Serial.print("Set Ethernet to ");
     //Serial.println(user_settings[user_Profile].enet_output);
