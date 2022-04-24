@@ -9,7 +9,7 @@
 #include "SDR_RA8875.h"
 
 struct Band_Memory bandmem[BANDS] = { 
-    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band     ts agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   AttByp att_DB  PREAMP    XVE XV#  SpRef
+    // name    lower   upper    VFOA     VFOB  VActiv modeA modeB filt   band     ts   agc  SPLIT RT RV XT XV ATU ANT BPF  ATTEN   AttByp att_DB  PREAMP    XVE XV#  SpRef
     {"160M", 1800000, 2000000, 1840000, 1860000,VFO_A,DATA, LSB, BW4_0, BAND160M,  1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 0,  ATTEN_ON,   1,   80,  PREAMP_OFF,  0,  0,  8},
     { "80M", 3500000, 4000000, 3573000, 3868000,VFO_A,DATA, LSB, BW3_2, BAND80M,   1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 1,  ATTEN_ON,   1,   40,  PREAMP_OFF,  0,  1,  5},
     { "60M", 4990000, 5367000, 5000000, 5366000,VFO_A, USB, USB, BW3_2, BAND60M,   1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1, 2,  ATTEN_ON,   1,   40,  PREAMP_OFF,  0,  2,  8},
