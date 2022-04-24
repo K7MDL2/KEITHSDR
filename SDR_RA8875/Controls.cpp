@@ -107,7 +107,7 @@ void XIT();
 void RIT();
 void Preamp(int8_t toggle);
 void setAtten(int8_t toggle);
-void VFO_AB();
+void VFO_AB(uint8_t state);
 void Atten(int8_t delta);
 void setAFgain(int8_t toggle);
 void AFgain(int8_t delta);
@@ -524,28 +524,45 @@ COLD void Menu()
 }
 
 // VFO A/B
-COLD void VFO_AB()
+// state == 0 for VFO B
+// state == 1 for VFO A
+// state == 2 for toggle VFO
+COLD void VFO_AB(uint8_t state)
 {
     // feedback beep
     touchBeep(true);  // a timer will shut it off.
 
-    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+    if (state == 1)
+    {
+        bandmem[curr_band].VFO_AB_Active = VFO_A;
+        selectMode(bandmem[curr_band].mode_A);
+    }
+    if (state == 0)
     {
         bandmem[curr_band].VFO_AB_Active = VFO_B;
         selectMode(bandmem[curr_band].mode_B);
     }
-    else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
+    
+    if (state == 2)
     {
-        bandmem[curr_band].VFO_AB_Active = VFO_A;
-        selectMode(bandmem[curr_band].mode_A);
+        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+        {
+            bandmem[curr_band].VFO_AB_Active = VFO_B;
+            selectMode(bandmem[curr_band].mode_B);
+        }
+        else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
+        {
+            bandmem[curr_band].VFO_AB_Active = VFO_A;
+            selectMode(bandmem[curr_band].mode_A);
+        }
     }
     VFOA = bandmem[curr_band].vfo_A_last;
     VFOB = bandmem[curr_band].vfo_B_last;
     selectFrequency(0);
     displayVFO_AB();
     displayMode();
-    //Serial.print("Set VFO_AB_Active to ");
-    //Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
+    Serial.print("Set VFO_AB_Active to ");
+    Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
 }
 
 // ATT
@@ -649,10 +666,10 @@ COLD void Atten(int8_t delta)
 }
 
 // PREAMP button
-//   toogle = 0 sets Preamp state off
-//   toogle = 1 sets Preamp state on
-//   toogle = 2 toggles Preamp state
-//   toogle = -1 or any value other than 0-2 sets Preamp state to current database value. Used for startup or changing bands.
+//   toggle = 0 sets Preamp state off
+//   toggle = 1 sets Preamp state on
+//   toggle = 2 toggles Preamp state
+//   toggle = -1 or any value other than 0-2 sets Preamp state to current database value. Used for startup or changing bands.
 //
 COLD void Preamp(int8_t toggle)
 {    
@@ -717,12 +734,22 @@ COLD void XIT()
 }
 
 // SPLIT button
-COLD void Split()
+//   state = 0 sets Preamp state off
+//   state = 1 sets Preamp state on
+//   state = 2 toggles Preamp state
+COLD void Split(uint8_t state)
 {
-    if (bandmem[curr_band].split == ON)
+    if (state == 0)
         bandmem[curr_band].split = OFF;
-    else if (bandmem[curr_band].split == OFF)
+    if (state == 1)
         bandmem[curr_band].split = ON;
+    if (state == 2)
+    {
+        if (bandmem[curr_band].split == ON)
+            bandmem[curr_band].split = OFF;
+        else if (bandmem[curr_band].split == OFF)
+            bandmem[curr_band].split = ON;
+    }
     displaySplit();
     displayFreq();
     //Serial.print("Set Split to ");
@@ -1160,6 +1187,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
             TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
     }
     displayXMIT();
+    displayFreq();
     //Serial.print("Set XMIT to ");
     //Serial.println(user_settings[user_Profile].xmit);
 }
