@@ -589,11 +589,17 @@ COLD void setup()
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
         Serial.println(F("Initializing RS-HFIQ Radio via USB Host port"));
+        tft.setFont(Arial_14);
+        tft.setTextColor(RA8875_BLUE);
+        tft.setCursor(50, 100);
+        tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
         if (bandmem[curr_band].VFO_AB_Active == VFO_A)
             RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         else
             RS_HFIQ.setup_RSHFIQ(1, VFOB);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+        tft.clearScreen();
     #endif
+        
 
 #ifndef BYPASS_SPECTRUM_MODULE    
     spectrum_RA887x.Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
@@ -1869,56 +1875,63 @@ void RS_HFIQ_Service(void)
     static uint32_t last_VFOA = VFOA;
     static uint32_t last_VFOB = VFOB;
     static int8_t last_curr_band = curr_band;
+    static uint8_t xmit_last = OFF;
+    static uint8_t vfo_ab_last = bandmem[curr_band].VFO_AB_Active;
+    static uint8_t split_last = bandmem[curr_band].split;
 
-    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+    if ((temp_freq = RS_HFIQ.cmd_console(&(bandmem[curr_band].VFO_AB_Active), &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
     {
-        if ((temp_freq = RS_HFIQ.cmd_console(VFOA, &curr_band)) != 0)
+        
+        if (bandmem[curr_band].split != split_last)
         {
-            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-            {     
-                //Serial.println(curr_band);
-                VFOA = bandmem[curr_band].vfo_A_last = temp_freq; 
-                VFOB = bandmem[curr_band].vfo_B_last; 
-            }
-            else                
-            {     
-                //Serial.println(curr_band);
-                VFOA = bandmem[curr_band].vfo_A_last; 
-                VFOB = bandmem[curr_band].vfo_B_last = temp_freq; 
-            }
-            if (last_curr_band != curr_band)
-            {
-                changeBands(0);
-                last_curr_band = curr_band;
-                Serial.print(F("New Band = ")); Serial.println(curr_band);  
-            }   
+            Serial.println("Split VFOs");
+            split_last = bandmem[curr_band].split;
+            Split(bandmem[curr_band].split);
+            return;
         }
-    }
-    else
-    {
-        if ((temp_freq = RS_HFIQ.cmd_console(VFOB, &curr_band)) != 0)
-        {
-            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-            {     
-                //Serial.println(curr_band);
-                VFOA = bandmem[curr_band].vfo_A_last = temp_freq; 
-                VFOB = bandmem[curr_band].vfo_B_last; 
-            }
-            else                
-            {     
-                //Serial.println(curr_band);
-                VFOA = bandmem[curr_band].vfo_A_last; 
-                VFOB = bandmem[curr_band].vfo_B_last = temp_freq; 
-            }
- 
+
+        //if (bandmem[curr_band].VFO_AB_Active != vfo_ab_last)
+        //{
+            Serial.print("Swap VFOs: "); Serial.println(bandmem[curr_band].VFO_AB_Active);
+            vfo_ab_last = bandmem[curr_band].VFO_AB_Active;
+            VFO_AB(2);
+        //}
+
+        Serial.print(F("Main New Band: ")); Serial.println(curr_band);
+        Serial.print(F("Main ActiveVFO(1=A, 0=B): ")); Serial.println(bandmem[curr_band].VFO_AB_Active);
+        Serial.print(F("Main VFOA: ")); Serial.println(VFOA);
+        Serial.print(F("Main VFOB: ")); Serial.println(VFOB);
+
+        // Now we possibly have a new band so load up the per-band settings, update both VFOs for that band
+        if (bandmem[curr_band].vfo_A_last != VFOA)
+        {                     
+            bandmem[curr_band].vfo_A_last = VFOA; 
+            VFOB = bandmem[curr_band].vfo_B_last;
+            Serial.print(F("Main1A VFOA: ")); Serial.println(VFOA);
+            Serial.print(F("Main1A VFOB: ")); Serial.println(VFOB);
         }
+        if (bandmem[curr_band].vfo_B_last != VFOB)
+        {     
+            VFOA = bandmem[curr_band].vfo_A_last;
+            bandmem[curr_band].vfo_B_last = VFOB; 
+            Serial.print(F("Main1B VFOA: ")); Serial.println(VFOA);
+            Serial.print(F("Main1B VFOB: ")); Serial.println(VFOB);
+        }
+
         if (last_curr_band != curr_band)
         {
             changeBands(0);
             last_curr_band = curr_band;
-            Serial.print(F("New Band = ")); Serial.println(curr_band);  
-        }  
+            Serial.print(F("Main VFO: New Band = ")); Serial.println(curr_band);  
+        }
     }
+
+    if (user_settings[user_Profile].xmit != xmit_last)   // Pass on any change in Xmit state from CAT port
+    {
+        Xmit(user_settings[user_Profile].xmit);
+        xmit_last = user_settings[user_Profile].xmit;
+    }
+
     if (temp_freq != 0)
     {
         if (last_VFOA != VFOA || last_VFOB != VFOB)  // only act on frequency changes, skip other things like queries
