@@ -1890,12 +1890,12 @@ void RS_HFIQ_Service(void)
             return;
         }
 
-        //if (bandmem[curr_band].VFO_AB_Active != vfo_ab_last)
-        //{
+        if (bandmem[curr_band].VFO_AB_Active != vfo_ab_last)
+        {
             Serial.print("Swap VFOs: "); Serial.println(bandmem[curr_band].VFO_AB_Active);
             vfo_ab_last = bandmem[curr_band].VFO_AB_Active;
             VFO_AB(2);
-        //}
+        }
 
         Serial.print(F("Main New Band: ")); Serial.println(curr_band);
         Serial.print(F("Main ActiveVFO(1=A, 0=B): ")); Serial.println(bandmem[curr_band].VFO_AB_Active);
