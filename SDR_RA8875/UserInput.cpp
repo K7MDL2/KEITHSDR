@@ -755,19 +755,19 @@ COLD void Button_Handler(int16_t x, uint16_t y)
     // These are special cases
     struct Frequency_Display *ptrAct  = &disp_Freq[0];   // The frequency display areas itself  
     if ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))
-        VFO_AB(2);
+        VFO_AB();
     
     ptrAct  +=1;   // The frequency display areas itself  
     if ((x > ptrAct->bx && x < ptrAct->bx + ptrAct->bw) && ( y > ptrAct->by && y < ptrAct->by + ptrAct->bh))
-        VFO_AB(2);
+        VFO_AB();
 
     struct Frequency_Display *ptrStby = &disp_Freq[2];   // The frequency display areas itself  
     if ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh))
-        VFO_AB(2);
+        VFO_AB();
         
     ptrStby += 1;   // The frequency display areas itself  
     if ((x > ptrStby->bx && x < ptrStby->bx + ptrStby->bw) && ( y > ptrStby->by && y < ptrStby->by + ptrStby->bh))
-        VFO_AB(2);
+        VFO_AB();
 }
 
 
@@ -785,7 +785,7 @@ void Button_Action(uint16_t button_name)
         case ANT_BTN:       Ant();          break;                    
         case MUTE_BTN:      Mute();         break;
         case MENU_BTN:      Menu();         break;
-        case VFO_AB_BTN:    VFO_AB(2);       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
+        case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
         case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
         case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
         case RIT_BTN:       RIT();          break;

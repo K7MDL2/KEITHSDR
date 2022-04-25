@@ -351,10 +351,9 @@ struct Band_Memory {
     uint32_t    edge_lower;     // band edge limits for TX and for when to change to next band when tuning up or down.
     uint32_t    edge_upper;
     uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
-    uint32_t    vfo_B_last;
-    uint8_t     VFO_AB_Active;  // Flag to track which has focus. Used in RX.  Used in TX for split
+    uint32_t    vfo_B_last;     // moving away from per-band VFOB recall, moving to use a global sub-VFO which can be on any band.
     uint8_t     mode_A;         // CW, LSB, USB, DATA.  
-    uint8_t     mode_B;         // CW, LSB, USB, DATA.  
+    uint8_t     mode_B;         // CW, LSB, USB, DATA. - Depricating in favor is global Sub_VFO mode in user_settings 
     uint8_t     filter;         // index to Bandwidth selection for this band.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
     uint8_t     tune_step;      // last step rate on this band.  Index to Tune step table 
@@ -431,7 +430,8 @@ struct User_Settings {
     char        configset_name[20]; // friendly anme for this record
     uint16_t    sp_preset;          // Sets the Spectrum module layout preset
     uint8_t     main_page;          // stores index to page settings table
-    uint8_t     band_popup;         // index to band selection pop-up page layout preference
+    uint32_t    sub_VFO;            // Global sub-VFO (B).  Not per band like VFOA is.
+    uint8_t     sub_VFO_mode;       // Mode for the Sub_VFO. Moved from per-band.
     uint8_t     usrcfgpage_1;       // index to user configuration page layout
     uint8_t     usrcfgpage_2;       // index to user configuration page layout
     uint8_t     usrcfgpage_3;       // index to user configuration page layout
@@ -524,13 +524,6 @@ struct Zoom_Lvl {
     char            zoom_name[10];        // A friendly name for display  x1, x2 or x4, etc
     uint8_t         zoom_factor;         // Factor equates to 1, 2 ,or 4
 };
-
-// per-band settings for common user adjustments that are band dependent. The index is the band number.
-//struct Spectrum_Settings {
-//    uint16_t    Ref_level;      // Spectrum common adjustments due to noise level and scale/gain choices during operation.
-//    uint16_t    Span;
-//    float       scale;
-//};
 
 struct Filter_Settings {
     char        Filter_name[12];   // display name for UI

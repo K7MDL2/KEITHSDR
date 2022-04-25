@@ -76,9 +76,6 @@ uint8_t _colorIndex = 0;
 
 COLD void displayFreq(void)
 {
-	static uint8_t 	vfo_active_last = 255;  // use 255 since .VFO_AB_active is using 0 and 1 values
-	static uint8_t 	vfo_changed = 0;
-	static uint32_t vfo_a_last  = 0;
 	static uint32_t vfo_b_last  = 0;
 	static uint8_t 	xmit_last   = 0;
 	
@@ -110,102 +107,56 @@ COLD void displayFreq(void)
 	#endif // USE_RA8875
 	//tft.drawRect(0, 15, 792, 65, RA8875_LIGHT_ORANGE);  // test box
 
-	// Detect if active VFO changed, or any VFO value, if any did, then draw the changed VFO standby section, else leave it alone to reduce flicker
-	if (bandmem[curr_band].VFO_AB_Active != vfo_active_last)
-	{
-		vfo_active_last = bandmem[curr_band].VFO_AB_Active;  // track VFO swapping
-		vfo_changed = 1;  // force stby vfo update
-	}
-	else
-	{
-		vfo_active_last = (bandmem[curr_band].VFO_AB_Active);  // Active VFO did not change
-	}
-
 	if (pTX->xmit != xmit_last)
 	{
-		vfo_changed = 1;
 		xmit_last =pTX->xmit;
 	}
 
 	//Update VFO Markers
-	if (vfo_changed)
-	{
-		// Update the Active VFO Marker
-		if (pTX->xmit && !bandmem[curr_band].split)
-			tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->TX_clr);
-		else	
-			tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->bg_clr);
-		tft.drawRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->ol_clr);
-		tft.setFont(pMAct->txt_Font);
-		tft.setCursor(pMAct->bx+pMAct->padx, pMAct->by+pMAct->pady);
-		tft.setTextColor(pMAct->txt_clr);
-		if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-			tft.print("A");	
-		else
-			tft.print("B");
+	// Update the Active VFO Marker
+	if (pTX->xmit && !bandmem[curr_band].split)
+		tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->TX_clr);
+	else	
+		tft.fillRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->bg_clr);
+	tft.drawRect(pMAct->bx, pMAct->by, pMAct->bw, pMAct->bh, pMAct->ol_clr);
+	tft.setFont(pMAct->txt_Font);
+	tft.setCursor(pMAct->bx+pMAct->padx, pMAct->by+pMAct->pady);
+	tft.setTextColor(pMAct->txt_clr);
+	tft.print("A");	
 
-		// Update Stby VFO marker
-		if (pTX->xmit && bandmem[curr_band].split)
-			tft.fillRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->TX_clr);
-		else
-			tft.fillRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->bg_clr);
-		tft.drawRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->ol_clr);
-		tft.setFont(pMStby->txt_Font);
-		tft.setCursor(pMStby->bx+pMStby->padx, pMStby->by+pMStby->pady);
-		tft.setTextColor(pMStby->txt_clr);
-
-		if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-			tft.print("B");	
-		else
-			tft.print("A");
-	}
+	// Update Stby VFO marker
+	if (pTX->xmit && bandmem[curr_band].split)
+		tft.fillRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->TX_clr);
+	else
+		tft.fillRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->bg_clr);
+	tft.drawRect(pMStby->bx, pMStby->by, pMStby->bw, pMStby->bh, pMStby->ol_clr);
+	tft.setFont(pMStby->txt_Font);
+	tft.setCursor(pMStby->bx+pMStby->padx, pMStby->by+pMStby->pady);
+	tft.setTextColor(pMStby->txt_clr);
+	tft.print("B");	
 
 	// Update VFO only if they change	
 	// Update the active VFO frequency (top line)
-	if  ((bandmem[curr_band].VFO_AB_Active == VFO_A && vfo_a_last != VFOA) || 
-		 (bandmem[curr_band].VFO_AB_Active == VFO_B && vfo_b_last != VFOB) ||
-		vfo_changed)
-	{
-		tft.fillRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->bg_clr);
-		tft.drawRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->ol_clr);
-		tft.setFont(pVAct->txt_Font);
-		tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
-		tft.setTextColor(pVAct->txt_clr);
-		if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-		{
-			tft.print(formatVFO(VFOA));
-			#ifdef I2C_LCD
-				lcd.setCursor(0,0);
-				lcd.print(formatVFO(VFOA));
-			#endif
-		} 
-		else
-		{
-			tft.print(formatVFO(VFOB));
-			#ifdef I2C_LCD
-				lcd.setCursor(0,0);
-				lcd.print(formatVFO(VFOB));
-			#endif
-		}
-	}
-	
-	if  ((bandmem[curr_band].VFO_AB_Active == VFO_B && vfo_a_last != VFOA) || 
-		 (bandmem[curr_band].VFO_AB_Active == VFO_A && vfo_b_last != VFOB) ||
-		vfo_changed)
+	tft.fillRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->bg_clr);
+	tft.drawRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->ol_clr);
+	tft.setFont(pVAct->txt_Font);
+	tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
+	tft.setTextColor(pVAct->txt_clr);
+	tft.print(formatVFO(VFOA));
+	#ifdef I2C_LCD
+		lcd.setCursor(0,0);
+		lcd.print(formatVFO(VFOA));
+	#endif
+
+	if (vfo_b_last != VFOB)
 	{
 		tft.fillRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->bg_clr);
 		tft.drawRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->ol_clr);
 		tft.setFont(pVStby->txt_Font);
 		tft.setCursor(pVStby->bx+pVStby->padx, pVStby->by+pVStby->pady);
 		tft.setTextColor(pVStby->txt_clr);
-		if (bandmem[curr_band].VFO_AB_Active == VFO_A)			
-			tft.print(formatVFO(VFOB));			
-		else
-			tft.print(formatVFO(VFOA));	
+		tft.print(formatVFO(VFOB));			
 	}
-	
-	vfo_changed = 0;
-	vfo_a_last = VFOA;  // record to detect a change next time around.
 	vfo_b_last = VFOB;
 }
 
@@ -213,10 +164,7 @@ COLD void displayMode(void)
 {
 	uint8_t mode;
 
-	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-		mode = bandmem[curr_band].mode_A;
-	else 
-		mode = bandmem[curr_band].mode_B;
+	mode = bandmem[curr_band].mode_A;
 	//sprintf(std_btn[MODE_BTN].label, "%s", Mode[mode]);
 	sprintf(labels[MODE_LBL].label, "%s", modeList[mode].mode_label);
 	drawLabel(MODE_LBL, &mode);
@@ -485,7 +433,7 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 // These buttons have no associated labels so are simply button updates
 COLD void displayMenu() 	{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				 }
 COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					 }
-COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &bandmem[curr_band].VFO_AB_Active);	 }
+COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &std_btn[VFO_AB_BTN].enabled);	 }
 COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			 }
 COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			 }
 COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		 }

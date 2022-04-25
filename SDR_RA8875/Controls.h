@@ -41,7 +41,7 @@ void XIT();
 void RIT();
 void Preamp(int8_t toggle);
 void setAtten(int8_t toggle);
-void VFO_AB(uint8_t state);
+void VFO_AB();
 void Atten(int8_t delta);
 void setAFgain(int8_t toggle);
 void AFgain(int8_t delta);

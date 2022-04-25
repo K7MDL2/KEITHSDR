@@ -142,18 +142,18 @@ int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 //control display and serial interaction
 bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
 void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
-uint8_t     popup                   = 0;                          // experimental flag for pop up windows
-int32_t     multiKnob(uint8_t clear);           // consumer features use this for control input
+uint8_t     popup                   = 0;   // experimental flag for pop up windows
+int32_t     multiKnob(uint8_t clear);      // consumer features use this for control input
 int32_t     Freq_Peak               = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
 bool        touchBeep_flag          = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
 uint8_t     last_PTT_Input          = 1;   // track input pin state changes after any debounce timers
-uint8_t     PTT_pin_state           = 1;    // current input pin state
-unsigned long PTT_Input_time        = 0;  // Debounce timer
+uint8_t     PTT_pin_state           = 1;   // current input pin state
+unsigned long PTT_Input_time        = 0;   // Debounce timer
 uint8_t     PTT_Input_debounce      = 0;   // Debounce state tracking
-float       S_Meter_Peak_Avg;  // For RF AGC Limiter
-bool        TwoToneTest = OFF;  // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
+float       S_Meter_Peak_Avg;              // For RF AGC Limiter
+bool        TwoToneTest             = OFF; // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 float       pan                     = 0.0f;
 
 #ifdef USE_RA8875
@@ -584,7 +584,7 @@ COLD void setup()
     VFOB = PANADAPTER_LO;
     #else
     VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
-    VFOB = bandmem[curr_band].vfo_B_last;
+    VFOB = user_settings[user_Profile].sub_VFO;
     #endif
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
@@ -593,10 +593,7 @@ COLD void setup()
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(50, 100);
         tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
-        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-            RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
-        else
-            RS_HFIQ.setup_RSHFIQ(1, VFOB);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+        RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         tft.clearScreen();
     #endif
         
@@ -658,12 +655,12 @@ HOT void loop()
     {      
         time_sp = millis();
 
-        if (!popup)                           // do not draw in the screen space while the pop up has the screen focus.
-                                              // a popup must call drawSpectrumFrame when it is done and clear this flag.
-            if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
+        //if (1) //(!popup)                    // do not draw in the screen space while the pop up has the screen focus.
+                                             // a popup must call drawSpectrumFrame when it is done and clear this flag.
+            //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
                 Freq_Peak = spectrum_RA887x.spectrum_update(
                     user_settings[user_Profile].sp_preset,
-                    (bandmem[curr_band].VFO_AB_Active == VFO_A),  // pass along active VFO True if VFO_A active
+                    1,  // No longer used, se tto 1
                     VFOA,               // for onscreen freq info
                     VFOB,               // Not really needed today
                     ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
@@ -1876,12 +1873,12 @@ void RS_HFIQ_Service(void)
     static uint32_t last_VFOB = VFOB;
     static int8_t last_curr_band = curr_band;
     static uint8_t xmit_last = OFF;
-    static uint8_t vfo_ab_last = bandmem[curr_band].VFO_AB_Active;
     static uint8_t split_last = bandmem[curr_band].split;
+    static uint8_t swap_VFO = 0;
+    static uint8_t swap_VFO_last = 0;
 
-    if ((temp_freq = RS_HFIQ.cmd_console(&(bandmem[curr_band].VFO_AB_Active), &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
+    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
     {
-        
         if (bandmem[curr_band].split != split_last)
         {
             Serial.println("Split VFOs");
@@ -1890,31 +1887,27 @@ void RS_HFIQ_Service(void)
             return;
         }
 
-        if (bandmem[curr_band].VFO_AB_Active != vfo_ab_last)
+        if (swap_VFO != swap_VFO_last)
         {
-            Serial.print("Swap VFOs: "); Serial.println(bandmem[curr_band].VFO_AB_Active);
-            vfo_ab_last = bandmem[curr_band].VFO_AB_Active;
-            VFO_AB(2);
+            Serial.println("Swap VFOs: "); 
+            swap_VFO_last = swap_VFO;
+            VFO_AB();
         }
 
-        Serial.print(F("Main New Band: ")); Serial.println(curr_band);
-        Serial.print(F("Main ActiveVFO(1=A, 0=B): ")); Serial.println(bandmem[curr_band].VFO_AB_Active);
-        Serial.print(F("Main VFOA: ")); Serial.println(VFOA);
-        Serial.print(F("Main VFOB: ")); Serial.println(VFOB);
+        //Serial.print(F("Main New Band: ")); Serial.println(curr_band);
+        //Serial.print(F("Main VFOA: ")); Serial.println(VFOA);
+        //Serial.print(F("Main VFOB: ")); Serial.println(VFOB);
 
         // Now we possibly have a new band so load up the per-band settings, update both VFOs for that band
-        if (bandmem[curr_band].vfo_A_last != VFOA)
+        if (last_VFOA != VFOA)
         {                     
             bandmem[curr_band].vfo_A_last = VFOA; 
-            VFOB = bandmem[curr_band].vfo_B_last;
             Serial.print(F("Main1A VFOA: ")); Serial.println(VFOA);
-            Serial.print(F("Main1A VFOB: ")); Serial.println(VFOB);
         }
-        if (bandmem[curr_band].vfo_B_last != VFOB)
+        if (last_VFOB != VFOB)
         {     
-            VFOA = bandmem[curr_band].vfo_A_last;
             bandmem[curr_band].vfo_B_last = VFOB; 
-            Serial.print(F("Main1B VFOA: ")); Serial.println(VFOA);
+            user_settings[user_Profile].sub_VFO = VFOB;
             Serial.print(F("Main1B VFOB: ")); Serial.println(VFOB);
         }
 

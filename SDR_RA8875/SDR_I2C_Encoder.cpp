@@ -106,8 +106,8 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 {
 	uint8_t knob_assigned;
 
-	Serial.print(F("Encoder ID = "));
-    Serial.println(obj->id);
+	//Serial.print(F("Encoder ID = "));
+    //Serial.println(obj->id);
 	
 	if (obj->id == user_settings[user_Profile].encoder1_client)
 		knob_assigned = MF_client; 	// 2nd encoder 
@@ -115,84 +115,73 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 		knob_assigned = obj->id;
 
 	if (obj->readStatus(i2cEncoderLibV2::RINC))
-		Serial.print(F("Increment: "));
+		{}//Serial.print(F("Increment: "));
 	else
-		Serial.print(F("Decrement: "));
+		{}//Serial.print(F("Decrement: "));
 	int16_t count = obj->readCounterInt();
-	Serial.println(count);
+	//Serial.println(count);
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
-	Serial.print(F("Knob Assigned to "));
-	Serial.println(knob_assigned);
+	//Serial.print(F("Knob Assigned to "));
+	//Serial.println(knob_assigned);
 	
-	//if (0) //press_timer.check() == 1)
-	//{
-	//	switch(knob_assigned)
-	//	{
-	//		case MFTUNE: 	noteOn(CHANNEL, 50, 64+count);
-	//		              break;
-	//		default: 		obj->writeRGBCode(tval); break;
-	//	}
-	//}
-	//else
-	//{
-		switch(knob_assigned)
-		{
-			char string[80];   // print format stuff
-			case RFGAIN_BTN:    sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
-								MeterInUse = true;
-								displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
-								if (user_settings[user_Profile].rfGain < 2 || user_settings[user_Profile].rfGain >98)								
-									tval = 0xFF0000;  // Change to red
-								break;
-			case AFGAIN_BTN:    sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
-								MeterInUse = true;
-								displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
-								if (user_settings[user_Profile].afGain < 2 || user_settings[user_Profile].afGain >98)
-									tval = 0xFF0000;  // Change to red
-								AFgain(0);
-								#ifdef USE_MIDI
-									note(CHANNEL, 52, (user_settings[user_Profile].afGain * 1.27));  // scale 100% to 127 for MIDI max of 127.
-								#endif  
-								break;
-			case ATTEN_BTN:     sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
-								MeterInUse = true;
-								displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme
-								if (bandmem[curr_band].attenuator_dB < 2  || bandmem[curr_band].attenuator_dB > 98)
-									tval = 0xFF0000;  // Change to red
-								Atten(0);
-								break;
-			case REFLVL_BTN:   	sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
-								MeterInUse = true; 
-								displayMeter((bandmem[curr_band].sp_ref_lvl+50)/10, string, 5);   // val, string label, color scheme
-								if (bandmem[curr_band].sp_ref_lvl < -48 || bandmem[curr_band].sp_ref_lvl > 48)
-									tval = 0xFF0000;  // Change to red
-								RefLevel(0);
-								break;
-			case NB_BTN:   		sprintf(string, "  NB:%1d", user_settings[user_Profile].nb_level);
-								MeterInUse = true;
-								displayMeter((int) user_settings[user_Profile].nb_level*1.7, string, 5);   // val, string label, color scheme 
-								if (user_settings[user_Profile].nb_level >= 6 || user_settings[user_Profile].nb_level <=0)
-									tval = 0xFF0000;  // Change to red
-								NBLevel(0);
-								break;
-			case PAN_BTN:       sprintf(string, "Pan:%3d", user_settings[user_Profile].pan_level-50);
-								MeterInUse = true;
-								displayMeter(user_settings[user_Profile].pan_level/10, string, 5);   // val, string label, color scheme
-								if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
-									tval = 0xFF0000;  // Change to red
-								PAN(0);
-								break;
-			default:  
-								#ifdef USE_MIDI
-									note(CHANNEL, 50, 64+count);   // MIDI jog wheel uses 64 as center
-								#endif
-								obj->writeRGBCode(tval); 
-								break;
-		}
-	//}
+	switch(knob_assigned)
+	{
+		char string[80];   // print format stuff
+		case RFGAIN_BTN:    sprintf(string, " RF:%d", user_settings[user_Profile].rfGain);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].rfGain/10, string, 5);   // val, string label, color scheme
+							if (user_settings[user_Profile].rfGain < 2 || user_settings[user_Profile].rfGain >98)								
+								tval = 0xFF0000;  // Change to red
+							break;
+		case AFGAIN_BTN:    sprintf(string, " AF:%d", user_settings[user_Profile].afGain);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
+							if (user_settings[user_Profile].afGain < 2 || user_settings[user_Profile].afGain >98)
+								tval = 0xFF0000;  // Change to red
+							AFgain(0);
+							#ifdef USE_MIDI
+								note(CHANNEL, 52, (user_settings[user_Profile].afGain * 1.27));  // scale 100% to 127 for MIDI max of 127.
+							#endif  
+							break;
+		case ATTEN_BTN:     sprintf(string, " ATT:%d", bandmem[curr_band].attenuator_dB);
+							MeterInUse = true;
+							displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme
+							if (bandmem[curr_band].attenuator_dB < 2  || bandmem[curr_band].attenuator_dB > 98)
+								tval = 0xFF0000;  // Change to red
+							Atten(0);
+							break;
+		case REFLVL_BTN:   	sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
+							MeterInUse = true; 
+							displayMeter((bandmem[curr_band].sp_ref_lvl+50)/10, string, 5);   // val, string label, color scheme
+							if (bandmem[curr_band].sp_ref_lvl < -48 || bandmem[curr_band].sp_ref_lvl > 48)
+								tval = 0xFF0000;  // Change to red
+							RefLevel(0);
+							break;
+		case NB_BTN:   		sprintf(string, "  NB:%1d", user_settings[user_Profile].nb_level);
+							MeterInUse = true;
+							displayMeter((int) user_settings[user_Profile].nb_level*1.7, string, 5);   // val, string label, color scheme 
+							if (user_settings[user_Profile].nb_level >= 6 || user_settings[user_Profile].nb_level <=0)
+								tval = 0xFF0000;  // Change to red
+							NBLevel(0);
+							break;
+		case PAN_BTN:       sprintf(string, "Pan:%3d", user_settings[user_Profile].pan_level-50);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].pan_level/10, string, 5);   // val, string label, color scheme
+							if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
+								tval = 0xFF0000;  // Change to red
+							PAN(0);
+							break;
+		default:  
+							#ifdef USE_MIDI
+								note(CHANNEL, 50, 64+count);   // MIDI jog wheel uses 64 as center
+							#endif
+							obj->writeRGBCode(tval); 
+							break;
+	}
+	
 	obj->writeRGBCode(tval);  // set color
 }
 								

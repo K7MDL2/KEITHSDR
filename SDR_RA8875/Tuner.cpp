@@ -19,6 +19,8 @@ extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
+extern struct User_Settings user_settings[];
+extern uint8_t user_Profile;
 extern const struct TuneSteps tstep[];
 extern void RampVolume(float vol, int16_t rampType);
 extern char * convert_freq_to_Str(uint32_t freq);
@@ -41,10 +43,10 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
   	uint32_t Freq;
   
-  	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-  		  Freq = VFOA;
-  	else
-  		  Freq = VFOB;	
+  	if (bandmem[curr_band].split && user_settings[user_Profile].xmit)
+    	Freq = user_settings[user_Profile].sub_VFO;
+	else
+		Freq = VFOA;
   
   	Freq = (Freq + newFreq*fstep); 
   	if (Freq >= topFreq)            
@@ -52,31 +54,21 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
   	if (Freq <= bottomFreq)            
   		  Freq = bottomFreq;   
 
-  	// If this is configured to be a pandapter then change from VFO to fixed LO.	
-  	if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-  	{
-		#ifdef PANADAPTER
-        	Freq = PANADAPTER_LO;
-			if (bandmem[curr_band].mode_A == DATA)      
-				Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode
-		#else
-  			VFOA = Freq;
-  			bandmem[curr_band].vfo_A_last = VFOA;
-		#endif
-	
-  	}
-  	else
-  	{
-		#ifdef PANADAPTER
-			Freq = PANADAPTER_LO;
-			if (bandmem[curr_band].mode_B == DATA)      
-            	Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode    
-		#else
-			VFOB = Freq;
-  			bandmem[curr_band].vfo_B_last = VFOB;
-		#endif		  
-  	}
-  
+// If this is configured to be a pandapter then change from VFO to fixed LO.	
+	#ifdef PANADAPTER
+		Freq = PANADAPTER_LO;
+		if (bandmem[curr_band].mode_A == DATA)      
+			Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode
+	#else
+		if (bandmem[curr_band].split && user_settings[user_Profile].xmit)
+		{}
+		else
+		{
+			VFOA = Freq;
+			bandmem[curr_band].vfo_A_last = VFOA;
+		}
+	#endif
+
 	#ifdef PANADAPTER
 		#ifdef SV1AFN_BPF
 			bpf.setBand(HFBand(HFBypass));
@@ -101,7 +93,7 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 	#endif
   
     displayFreq(); // show freq on display
-	#ifdef USE_RS_HFIQ    
+	#ifdef USE_RS_HFIQ
 		RS_HFIQ.send_variable_cmd_to_RSHFIQ("*F", RS_HFIQ.convert_freq_to_Str(Freq));
 	#else
     	SetFreq(Freq); // send freq to SI5351

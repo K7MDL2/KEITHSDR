@@ -107,7 +107,7 @@ void XIT();
 void RIT();
 void Preamp(int8_t toggle);
 void setAtten(int8_t toggle);
-void VFO_AB(uint8_t state);
+void VFO_AB();
 void Atten(int8_t delta);
 void setAFgain(int8_t toggle);
 void AFgain(int8_t delta);
@@ -184,13 +184,31 @@ COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
 
 COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multiple bandswith value > 1.
 {
+    int8_t target_band;
     // TODO search bands column for match to account for mapping that does not start with 0 and bands could be in odd order and disabled.
+    
     //Serial.print("\nCurrent Band is "); Serial.println(bandmem[curr_band].band_name);
-    bandmem[curr_band].vfo_A_last = VFOA;
-    bandmem[curr_band].vfo_B_last = VFOB;
+    //Serial.print("Current Freq is "); Serial.println(VFOA);
+    //Serial.print("Current Last_VFOA is "); Serial.println(bandmem[curr_band].vfo_A_last);
+
+    // Find new band index based on frequency range
+    #ifdef USE_RS_HFIQ 
+        if (uint32_t temp_VFO = RS_HFIQ.find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
+            VFOA = temp_VFO;
+    #else  // non RS-HFIQ
+        //for (int i BANDS; i => 0; i--)
+        //{
+        //    curr_band = bandmem[i].band_num;
+            // XXXX add more logic to search all bands
+        //}
+        bandmem[curr_band].vfo_A_last = VFOA;
+    #endif
+    //Serial.print("Band after Lookup is "); Serial.println(bandmem[curr_band].band_name);
+    //Serial.print("Freq is "); Serial.println(VFOA);
+    //Serial.print("Last_VFOA is "); Serial.println(bandmem[curr_band].vfo_A_last);
 
     // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
-    int8_t target_band = bandmem[curr_band].band_num + direction;
+    target_band = bandmem[curr_band].band_num + direction;
     
     //Serial.print("Target Band is "); Serial.println(target_band);
 
@@ -205,18 +223,19 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
             target_band = BAND160M;    
     #endif
 
-    //Serial.print("Corrected Target Band is "); Serial.println(target_band);    
-  
+    //Serial.print("Corrected Target Band is "); Serial.println(target_band); 
+    //Serial.print("Target Band Last_VFOA is "); Serial.println(bandmem[target_band].vfo_A_last);
+
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     codec1.muteHeadphone();  // remove audio thumps during hardware transients
     #ifndef PANADAPTER    
         curr_band = target_band;    // Set out new band
     #endif
     VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
-    VFOB = bandmem[curr_band].vfo_B_last;
-   
-    //Serial.print("New Band is "); Serial.println(bandmem[curr_band].band_name);     
+    //Serial.print("New Band is "); Serial.print(bandmem[curr_band].band_name); Serial.println("");
+    //Serial.print("Target Freq is "); Serial.println(VFOA);
     selectFrequency(0);  // change band and preselector
+    
     setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     selectBandwidth(bandmem[curr_band].filter);
      //dB level is set elsewhere and uses value in the dB in this function.
@@ -309,10 +328,7 @@ COLD void setMode(int8_t dir)
 {
 	uint8_t mndx;
 
-	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
-		mndx = bandmem[curr_band].mode_A;			
-	else
-		mndx = bandmem[curr_band].mode_B;
+	mndx = bandmem[curr_band].mode_A;			
 	
 	mndx += dir; // Make the change
 
@@ -323,11 +339,8 @@ COLD void setMode(int8_t dir)
 
     selectMode(mndx);   // Select the mode for the Active VFO 
     
-	if (bandmem[curr_band].VFO_AB_Active == VFO_A)   // Store our mode for the active VFO
-		bandmem[curr_band].mode_A = mndx;
-	else	
-		bandmem[curr_band].mode_B = mndx;    
-    
+	bandmem[curr_band].mode_A = mndx;
+	
     // Update the filter setting per mode 
     Filter(2);
     //Serial.println("Set Mode");  
@@ -364,10 +377,7 @@ COLD void Filter(int dir)
         direction = -1;
     }
 
-    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-        _mode = bandmem[curr_band].mode_A;
-    else
-        _mode = bandmem[curr_band].mode_B;
+    _mode = bandmem[curr_band].mode_A;
 
     if (_mode == CW || _mode == CW_REV)  // CW modes
     {
@@ -504,14 +514,14 @@ COLD void Mute()
             AFgain(0);
         }
         displayMute();
-    }        
+    }
 }
 
 // MENU
 COLD void Menu()
 {   
-    //popup = 1;
-    //pop_win(1);
+    popup = 1;
+    pop_win(1);
 #ifndef BYPASS_SPECTRUM_MODULE
     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp += 10;
     if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp > 10000)
@@ -520,49 +530,29 @@ COLD void Menu()
     //Serial.print("spectrum_wf_colortemp = ");
     //Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp); 
     displayMenu();
-    //Serial.println("Menu Pressed");
+    //popup = 0;
+    //pop_win(0);
+    Serial.println("Menu Pressed");
 }
 
-// VFO A/B
-// state == 0 for VFO B
-// state == 1 for VFO A
-// state == 2 for toggle VFO
-COLD void VFO_AB(uint8_t state)
+// VFO A/B - swap VFO A and B values.
+COLD void VFO_AB(void)
 {
     // feedback beep
-    touchBeep(true);  // a timer will shut it off.
+    touchBeep(true);  // a timer will shut it off.   
 
-    if (state == 1)
-    {
-        bandmem[curr_band].VFO_AB_Active = VFO_A;
-        selectMode(bandmem[curr_band].mode_A);
-    }
-    if (state == 0)
-    {
-        bandmem[curr_band].VFO_AB_Active = VFO_B;
-        selectMode(bandmem[curr_band].mode_B);
-    }
-    
-    if (state == 2)
-    {
-        if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-        {
-            bandmem[curr_band].VFO_AB_Active = VFO_B;
-            selectMode(bandmem[curr_band].mode_B);
-        }
-        else if (bandmem[curr_band].VFO_AB_Active == VFO_B)
-        {
-            bandmem[curr_band].VFO_AB_Active = VFO_A;
-            selectMode(bandmem[curr_band].mode_A);
-        }
-    }
-    VFOA = bandmem[curr_band].vfo_A_last;
-    VFOB = bandmem[curr_band].vfo_B_last;
+    bandmem[curr_band].vfo_A_last = VFOA;   // save last used freq for existing VFO A
+    VFOA = user_settings[user_Profile].sub_VFO;   // Update VFOA to new freq, then update the band index to match
+    user_settings[user_Profile].sub_VFO = bandmem[curr_band].vfo_A_last;  // Swap VFOB into the sub_VFO
+    RS_HFIQ.find_new_band(VFOA, &curr_band);  // return the updated band index for the new freq
+    VFOB = user_settings[user_Profile].sub_VFO; // Udpate VFOB
+    selectMode(bandmem[curr_band].mode_A);
     selectFrequency(0);
+    changeBands(0);
     displayVFO_AB();
     displayMode();
-    Serial.print("Set VFO_AB_Active to ");
-    Serial.println(bandmem[curr_band].VFO_AB_Active,DEC);
+    //Serial.print("Set VFO_A to "); Serial.println(VFOA);
+    //Serial.print("Set VFO_B to "); Serial.println(VFOB);
 }
 
 // ATT
@@ -1152,10 +1142,8 @@ COLD void PAN(int8_t delta)
 COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
 {
     uint8_t mode_idx;
-  	if (bandmem[curr_band].VFO_AB_Active == VFO_A)  // get Active VFO mode
-		mode_idx = bandmem[curr_band].mode_A;			
-	else
-		mode_idx = bandmem[curr_band].mode_B;
+	
+    mode_idx = bandmem[curr_band].mode_A;			
 
     if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)  // Transmit OFF
     {
@@ -1163,6 +1151,8 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
         digitalWrite(PTT_OUT1, HIGH);
         #ifdef USE_RS_HFIQ  
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X0");  //RS-HFIQ TX OFF
+            delay(5);
+            selectFrequency(0);
         #endif
         // enable line input to pass to headphone jack on audio card, set audio levels
         TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.5f);  
@@ -1178,6 +1168,8 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
         user_settings[user_Profile].xmit = ON;
         digitalWrite(PTT_OUT1, LOW);
         #ifdef USE_RS_HFIQ  
+            selectFrequency(0);
+            delay(5);  // slight delay needed for reliable changeover 
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
         #endif
         // enable mic input to pass to line out on audio card, set audio levels
@@ -1472,32 +1464,17 @@ COLD void TouchTune(int16_t touch_Freq)
     //Serial.print(F("Target VFOA - VFO_peak (Hz)       =")); Serial.println((int32_t) VFOA+_newfreq-Freq_Peak);
     
     Serial.print(F("Touch-Tune frequency is "));
-    if (bandmem[curr_band].VFO_AB_Active == VFO_A)
+    VFOA += _newfreq;
+
+    // If the Peak happens to be close to the touch target frequency then we can use that to fine tune the new VFO
+    if (abs(VFOA - (uint32_t) Freq_Peak < 1000))
     {
-        VFOA += _newfreq;
-    
-        // If the Peak happens to be close to the touch target frequency then we can use that to fine tune the new VFO
-        if (abs(VFOA - (uint32_t) Freq_Peak < 1000))
-        {
-            if (bandmem[curr_band].mode_A == CW || bandmem[curr_band].mode_A == CW_REV)
-                VFOA = Freq_Peak - ModeOffset;  //user_settings[user_Profile].pitch;
-            else
-                VFOA = Freq_Peak;  // bin number from spectrum
-        }
-        Serial.println(formatVFO(VFOA));
+        if (bandmem[curr_band].mode_A == CW || bandmem[curr_band].mode_A == CW_REV)
+            VFOA = Freq_Peak - ModeOffset;  //user_settings[user_Profile].pitch;
+        else
+            VFOA = Freq_Peak;  // bin number from spectrum
     }
-    else
-    {
-        VFOB += _newfreq; 
-        if (abs((int32_t) VFOB - (int32_t) Freq_Peak) < 800)
-        {
-            if (bandmem[curr_band].mode_B == CW || bandmem[curr_band].mode_B == CW_REV)
-                VFOB = Freq_Peak - ModeOffset; //user_settings[user_Profile].pitch;
-            else
-                VFOB = Freq_Peak;
-        }
-        Serial.println(formatVFO(VFOB));
-    }
+    Serial.println(formatVFO(VFOA));
 #endif    
     selectFrequency(0);
     displayFreq();
