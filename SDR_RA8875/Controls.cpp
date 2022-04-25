@@ -319,9 +319,9 @@ COLD void pop_win(uint8_t init)
 //   Called by Touch, Encoder, or Switch events
 
 // ---------------------------Mode() ----------------------------------
-//   Input: 0 = set to current value in the database (circular rotation through all modes)
-//          1 = increment the mode
-//         -1 = decrement the mode
+//   Input: 0 = set to current value in the database 
+//          1 = increment the mode (circular rotation through all modes)
+//         -1 = decrement the mode (circular rotation through all modes)
     
 // MODE button
 COLD void setMode(int8_t dir)
@@ -541,18 +541,43 @@ COLD void VFO_AB(void)
     // feedback beep
     touchBeep(true);  // a timer will shut it off.   
 
-    bandmem[curr_band].vfo_A_last = VFOA;   // save last used freq for existing VFO A
-    VFOA = user_settings[user_Profile].sub_VFO;   // Update VFOA to new freq, then update the band index to match
-    user_settings[user_Profile].sub_VFO = bandmem[curr_band].vfo_A_last;  // Swap VFOB into the sub_VFO
-    RS_HFIQ.find_new_band(VFOA, &curr_band);  // return the updated band index for the new freq
-    VFOB = user_settings[user_Profile].sub_VFO; // Udpate VFOB
-    selectMode(bandmem[curr_band].mode_A);
-    selectFrequency(0);
-    changeBands(0);
-    displayVFO_AB();
-    displayMode();
-    //Serial.print("Set VFO_A to "); Serial.println(VFOA);
-    //Serial.print("Set VFO_B to "); Serial.println(VFOB);
+    // collect some settings in prep for swapping
+    uint32_t old_VFOA   = VFOA;
+    uint8_t  old_A_mode = bandmem[curr_band].mode_A;
+    uint8_t  old_A_band = curr_band;
+    uint32_t old_VFOB   = user_settings[user_Profile].sub_VFO;
+    uint8_t  old_B_mode = user_settings[user_Profile].sub_VFO_mode;
+ 
+    // Compute the band index for the new target band an ensure it is in limits
+    if (RS_HFIQ.find_new_band(old_VFOB, &curr_band));  // return the updated band index for the new freq
+    {
+        // all good, now start swapping
+        //Serial.print("\nStart Swapping -  VFO A: ");
+        //Serial.print(old_VFOB);
+        //Serial.print("  VFO A Mode: ");
+        //Serial.print(old_B_mode);
+        //Serial.print(" VFO A band: ");
+        //Serial.println(curr_band);
+        VFOA = bandmem[curr_band].vfo_A_last = old_VFOB;   // Update VFOA to new freq, then update the band index to match
+        bandmem[curr_band].mode_A = old_B_mode;
+        selectMode(old_B_mode);  // copy to VFOA mode and apply
+        
+        //Serial.print("Stash sub_VFO values - VFO B: ");
+        //Serial.print(old_VFOA);
+        //Serial.print("  VFO B Mode: ");
+        //Serial.print(old_A_mode);
+        //Serial.print(" VFO B band: ");
+        //Serial.println(old_A_band);
+        VFOB = user_settings[user_Profile].sub_VFO = old_VFOA;   // save A into the database
+        user_settings[user_Profile].sub_VFO_mode = old_A_mode; // Udpate VFOB
+
+        selectFrequency(0);
+        changeBands(0);
+        displayVFO_AB();
+        displayMode();
+        Serial.print("Set VFO_A to "); Serial.println(VFOA);
+        Serial.print("Set VFO_B to "); Serial.println(VFOB);
+    }
 }
 
 // ATT
