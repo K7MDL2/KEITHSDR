@@ -116,11 +116,11 @@ COLD void toggle_enet_data_out(uint8_t mode)
 	}
 	if (enet_data_out == 1){          
 		user_settings[user_Profile].enet_output = ON;    
-		Serial.println(">Enabled UDP Data Output");
+		MSG_Serial.println(">Enabled UDP Data Output");
 	}
 	else {          
 		user_settings[user_Profile].enet_output = OFF;
-		Serial.println(">Disabled UDP Data Output");
+		MSG_Serial.println(">Disabled UDP Data Output");
 	}
 }
 
@@ -129,7 +129,7 @@ COLD void teensyMAC(uint8_t *mac)
   	static char teensyMac[23];
   
   	#if defined (HW_OCOTP_MAC1) && defined(HW_OCOTP_MAC0)
-      Serial.println("using HW_OCOTP_MAC* - see https://forum.pjrc.com/threads/57595-Serial-amp-MAC-Address-Teensy-4-0");
+      MSG_Serial.println("using HW_OCOTP_MAC* - see https://forum.pjrc.com/threads/57595-Serial-amp-MAC-Address-Teensy-4-0");
       for(uint8_t by=0; by<2; by++) mac[by]=(HW_OCOTP_MAC1 >> ((1-by)*8)) & 0xFF;
       for(uint8_t by=0; by<4; by++) mac[by+2]=(HW_OCOTP_MAC0 >> ((3-by)*8)) & 0xFF;
   
@@ -145,7 +145,7 @@ COLD void teensyMAC(uint8_t *mac)
       __disable_irq();
       
       #if defined(HAS_KINETIS_FLASH_FTFA) || defined(HAS_KINETIS_FLASH_FTFL)
-    	  Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
+    	  MSG_Serial.println("using FTFL_FSTAT_FTFA - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
     	
       	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
       	FTFL_FCCOB0 = 0x41;
@@ -157,7 +157,7 @@ COLD void teensyMAC(uint8_t *mac)
     	  #define MAC_OK
         
       #elif defined(HAS_KINETIS_FLASH_FTFE)
-    	  Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
+    	  MSG_Serial.println("using FTFL_FSTAT_FTFE - vis teensyID.h - see https://github.com/sstaub/TeensyID/blob/master/TeensyID.h");
     	
       	kinetis_hsrun_disable();
       	FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
@@ -179,9 +179,9 @@ COLD void teensyMAC(uint8_t *mac)
 
   	#ifdef MAC_OK
       sprintf(teensyMac, "MAC: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-      Serial.println(teensyMac);
+      MSG_Serial.println(teensyMac);
     	#else
-      Serial.println("ERROR: could not get MAC");
+      MSG_Serial.println("ERROR: could not get MAC");
   	#endif
 }
 
@@ -202,14 +202,14 @@ HOT uint8_t enet_read(void)
             Udp.read(rx_buffer, RX_BUFFER_SIZE);
             rx_buffer[count] = '\0';
             rx_count = count;          
-            Serial.println(rx_count);
-            Serial.println((char *) rx_buffer);
+            MSG_Serial.println(rx_count);
+            MSG_Serial.println((char *) rx_buffer);
             
             // initially p1 = p2.  parser will move p1 up to p2 and when they are equal, buffer is empty, parser will reset p1 and p2 back to start of sData         
             memcpy(pSdata2, rx_buffer, rx_count+1);   // append the new buffer data to current end marked by pointer 2        
             pSdata2 += rx_count;                      // Update the end pointer position. The function processing chars will update the p1 and p2 pointer             
             rx_count = pSdata2 - pSdata1;             // update count for total unread chars. 
-            //Serial.println(rx_count);  
+            //MSG_Serial.println(rx_count);  
         }
         rx_buffer[0] = '\0';
         return rx_count;
@@ -222,8 +222,8 @@ HOT uint8_t enet_write(uint8_t *tx_buffer, const int count)   //, uint16_t tx_co
 	#ifdef REMOTE_OPS
    	if (enet_ready && user_settings[user_Profile].enet_enabled && user_settings[user_Profile].enet_output)  // skip if no enet connection
    	{
-		//Serial.print("ENET Write: ");
-		//Serial.println((char *) tx_buffer);
+		//MSG_Serial.print("ENET Write: ");
+		//MSG_Serial.println((char *) tx_buffer);
 		Udp.beginPacket(remote_ip, remoteport);
 		Udp.write(tx_buffer, count);
 		Udp.endPacket();
@@ -256,25 +256,25 @@ COLD void enet_start(void)
 	enet_ready = 0;
 	if (Ethernet.hardwareStatus() == EthernetNoHardware) 
 	{
-		Serial.println(F("Ethernet shield was not found.  Sorry, can't run the network without hardware. :("));
+		MSG_Serial.println(F("Ethernet shield was not found.  Sorry, can't run the network without hardware. :("));
 		enet_ready = 0;  // shut down usage of enet
 	}
 	else
 	{
 		//delay(1000);
-		Serial.print(F("Ethernet Address = "));
-		Serial.println(Ethernet.localIP());
+		MSG_Serial.print(F("Ethernet Address = "));
+		MSG_Serial.println(Ethernet.localIP());
 		//delay(4000);
 		if (Ethernet.linkStatus() == LinkOFF) 
 		{
-			Serial.println(F("Ethernet cable is not connected."));
+			MSG_Serial.println(F("Ethernet cable is not connected."));
 			enet_ready = 0;
 		}
 		else
 		{  
 			enet_ready = 1;
 			//delay(100);
-			Serial.println(F("Ethernet cable connected."));
+			MSG_Serial.println(F("Ethernet cable connected."));
 			// start UDP
 			Udp.begin(localPort); // Startup our SDR comms
       		Udp_NTP.begin(localPort_NTP);  // startup NTP Client comms
@@ -289,7 +289,7 @@ COLD time_t getNtpTime()
     int size = Udp_NTP.parsePacket();
     if (size >= NTP_PACKET_SIZE) 
 	  {
-    		//Serial.println("Receive NTP Response");
+    		//MSG_Serial.println("Receive NTP Response");
     		Udp_NTP.read(packetBuffer_NTP, NTP_PACKET_SIZE);  // read packet into the buffer
     		unsigned long secsSince1900;
     		// convert four bytes starting at location 40 to a long integer
@@ -297,14 +297,14 @@ COLD time_t getNtpTime()
     		secsSince1900 |= (unsigned long)packetBuffer_NTP[41] << 16;
     		secsSince1900 |= (unsigned long)packetBuffer_NTP[42] << 8;
     		secsSince1900 |= (unsigned long)packetBuffer_NTP[43];
-    		//Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
+    		//MSG_Serial.println(secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR);
     		time_t t;
     		t = secsSince1900 - 2208988790UL + timeZone * SECS_PER_HOUR;
     		Teensy3Clock.set(t); // set the RTC
     		setTime(t);			 // set the time structure
     		return t;
     }
-  	Serial.println(F("No NTP Response :-("));
+  	MSG_Serial.println(F("No NTP Response :-("));
   	return 0; // return 0 if unable to get the time
 }
 
@@ -345,7 +345,7 @@ COLD void sendNTPpacket(const char * address)
     uint16_t escape_counter = 0;
     while(!link_status && escape_counter < 200){
         escape_counter++;
-        Serial.println("Waiting for Link Status");
+        MSG_Serial.println("Waiting for Link Status");
         delay(10);
         return;
     }  

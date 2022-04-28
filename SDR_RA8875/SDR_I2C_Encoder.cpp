@@ -106,8 +106,8 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 {
 	uint8_t knob_assigned;
 
-	//Serial.print(F("Encoder ID = "));
-    //Serial.println(obj->id);
+	//MSG_MSG_Serial.print(F("Encoder ID = "));
+    //MSG_Serial.println(obj->id);
 	
 	if (obj->id == user_settings[user_Profile].encoder1_client)
 		knob_assigned = MF_client; 	// 2nd encoder 
@@ -115,17 +115,17 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 		knob_assigned = obj->id;
 
 	if (obj->readStatus(i2cEncoderLibV2::RINC))
-		{}//Serial.print(F("Increment: "));
+		{}//MSG_Serial.print(F("Increment: "));
 	else
-		{}//Serial.print(F("Decrement: "));
+		{}//MSG_Serial.print(F("Decrement: "));
 	int16_t count = obj->readCounterInt();
-	//Serial.println(count);
+	//MSG_Serial.println(count);
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
-	//Serial.print(F("Knob Assigned to "));
-	//Serial.println(knob_assigned);
+	//MSG_Serial.print(F("Knob Assigned to "));
+	//MSG_Serial.println(knob_assigned);
 	
 	switch(knob_assigned)
 	{
@@ -190,7 +190,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 {
 	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
 	{	
-		Serial.println(F("Long MF Knob Push- Change Tune Rate "));
+		MSG_Serial.println(F("Long MF Knob Push- Change Tune Rate "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 62, 127);
@@ -202,7 +202,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
 	{
-		Serial.println(F("MF Knob Push to set RF Gain "));
+		MSG_Serial.println(F("MF Knob Push to set RF Gain "));
 		obj->writeRGBCode(0xFF0000);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 63, 127);
@@ -214,7 +214,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
 	{
-		Serial.println(F("Knob #2 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #2 Long Push - Change Filter "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
@@ -226,7 +226,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder2_client)
 	{
-		Serial.println(F("Knob #2 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #2 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
@@ -238,7 +238,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder3_client && press_timer3.check() == 1)
 	{
-		Serial.println(F("Knob #3 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #3 Long Push - Change Filter "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
@@ -250,7 +250,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder3_client)
 	{
-		Serial.println(F("Knob #3 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #3 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
@@ -262,7 +262,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder4_client && press_timer4.check() == 1)
 	{
-		Serial.println(F("Knob #4 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #4 Long Push - Change Filter "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
@@ -274,7 +274,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder4_client)
 	{
-		Serial.println(F("Knob #4 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #4 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
@@ -286,7 +286,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder5_client && press_timer5.check() == 1)
 	{
-		Serial.println(F("Knob #5 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #5 Long Push - Change Filter "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
@@ -298,7 +298,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder5_client)
 	{
-		Serial.println(F("Knob #5 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #5 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
@@ -310,7 +310,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder6_client && press_timer6.check() == 1)
 	{
-		Serial.println(F("Knob #6 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #6 Long Push - Change Filter "));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
@@ -322,7 +322,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 	}
 	else if (obj->id == user_settings[user_Profile].encoder6_client)
 	{
-		Serial.println(F("Knob #6 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #6 Push: Change Mode"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
@@ -336,7 +336,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short
 COLD void encoder_timer_start(i2cEncoderLibV2* obj) {
-	Serial.println(F("Push Timer Start: "));
+	MSG_Serial.println(F("Push Timer Start: "));
 	obj->writeRGBCode(0x0000FF);
 	if (obj->id == user_settings[user_Profile].encoder1_client)
 	  press_timer.reset();
@@ -348,9 +348,9 @@ COLD void encoder_timer_start(i2cEncoderLibV2* obj) {
 COLD void encoder_thresholds(i2cEncoderLibV2* obj) 
 {
 	if (obj->readStatus(i2cEncoderLibV2::RMAX))
-		Serial.println(F("Max!"));
+		MSG_Serial.println(F("Max!"));
 	else
-		Serial.println(F("Min!"));
+		MSG_Serial.println(F("Min!"));
 	obj->writeRGBCode(0xFF0000);
 }
 
@@ -360,13 +360,13 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 	//uint8_t mfg; 
 	MF_ENC.updateStatus();
 	//mfg = MF_ENC.readStatus();
-	//Serial.print(F("****Checked MF_Enc (in FADE) status = ")); Serial.println(mfg);
+	//MSG_Serial.print(F("****Checked MF_Enc (in FADE) status = ")); MSG_Serial.println(mfg);
 	//#ifdef MF_ENC_ADDR
 	// Check the status of the encoder (if enabled) and call the callback
 	//if(mfg == 0 && press_timer.check() == 1 && obj->id == user_settings[user_Profile].encoder1_client && user_settings[user_Profile].encoder1_client == MFTUNE)
 	//{     
 		//VFO_AB();
-		//Serial.println(F("Long MF Knob Push- Swap VFOs "));
+		//MSG_Serial.println(F("Long MF Knob Push- Swap VFOs "));
 		//obj->writeRGBCode(0x00FF00);
 	//}
 	//#endif
@@ -376,13 +376,13 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 COLD void set_I2CEncoders()
 {
     pinMode(I2C_INT_PIN, INPUT_PULLUP);
-    Serial.println(F("Setup ENC"));
+    MSG_Serial.println(F("Setup ENC"));
 
 	#ifdef MF_ENC_ADDR
     // MF KNOB - Multi-Function knob setup.
 	if(user_settings[user_Profile].encoder1_client)  // 0 is no encoder assigned so skip this
 	{
-		Serial.println(F("MF Encoder Setup"));
+		MSG_Serial.println(F("MF Encoder Setup"));
 		MF_ENC.reset();
 		delay(20);
 		MF_ENC.begin(
@@ -416,7 +416,7 @@ COLD void set_I2CEncoders()
 	// Encoder 2 setup
 	if(user_settings[user_Profile].encoder2_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println(F("Encoder #2 Setup"));
+		MSG_Serial.println(F("Encoder #2 Setup"));
 		ENC2.reset();
 		delay(20);
 		ENC2.begin(
@@ -446,7 +446,7 @@ COLD void set_I2CEncoders()
 	// Encoder 3 setup
 	if(user_settings[user_Profile].encoder3_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println(F("Encoder #3 Setup"));
+		MSG_Serial.println(F("Encoder #3 Setup"));
 		ENC3.reset();
 		delay(20);
 		ENC3.begin(
@@ -475,7 +475,7 @@ COLD void set_I2CEncoders()
 	// Encoder 4 setup
 	if(user_settings[user_Profile].encoder4_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println(F("Encoder #4 Setup"));
+		MSG_Serial.println(F("Encoder #4 Setup"));
 		ENC4.reset();
 		delay(20);
 		ENC4.begin(
@@ -504,7 +504,7 @@ COLD void set_I2CEncoders()
 	// Encoder 5 setup
 	if(user_settings[user_Profile].encoder5_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println(F("Encoder #5 Setup"));
+		MSG_Serial.println(F("Encoder #5 Setup"));
 		ENC5.reset();
 		delay(20);
 		ENC5.begin(
@@ -533,7 +533,7 @@ COLD void set_I2CEncoders()
 	// Encoder 6 setup
 	if(user_settings[user_Profile].encoder6_client)  // 0 if no encoder assigned so skip this
     {
-		Serial.println(F("Encoder #6 Setup"));
+		MSG_Serial.println(F("Encoder #6 Setup"));
 		ENC6.reset();
 		delay(20);
 		ENC6.begin(
@@ -570,7 +570,7 @@ COLD void blink_MF_RGB(void)
     MF_ENC.writeRGBCode(0x0000FF);
     delay(250);
     MF_ENC.writeRGBCode(0x000000);
-	Serial.println(F("Blink MF RGB"));
+	MSG_Serial.println(F("Blink MF RGB"));
     MF_ENC.writeFadeRGB(2); //Fade enabled with 2ms step
 }
 #endif
@@ -586,7 +586,7 @@ COLD void blink_ENC2_RGB(void)
     ENC2.writeRGBCode(0x0000FF);
     delay(250);
     ENC2.writeRGBCode(0x000000);
-	Serial.println(F("Blink ENC2 RGB"));
+	MSG_Serial.println(F("Blink ENC2 RGB"));
     ENC2.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
@@ -602,7 +602,7 @@ COLD void blink_ENC3_RGB(void)
     ENC3.writeRGBCode(0x0000FF);
     delay(250);
     ENC3.writeRGBCode(0x000000);
-	Serial.println(F("Blink ENC3 RGB"));
+	MSG_Serial.println(F("Blink ENC3 RGB"));
     ENC3.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
@@ -618,7 +618,7 @@ COLD void blink_ENC4_RGB(void)
     ENC4.writeRGBCode(0x0000FF);
     delay(250);
     ENC4.writeRGBCode(0x000000);
-	Serial.println(F("Blink ENC4 RGB"));
+	MSG_Serial.println(F("Blink ENC4 RGB"));
     ENC4.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
@@ -634,7 +634,7 @@ COLD void blink_ENC5_RGB(void)
     ENC5.writeRGBCode(0x0000FF);
     delay(250);
     ENC5.writeRGBCode(0x000000);
-	Serial.println(F("Blink ENC5 RGB"));
+	MSG_Serial.println(F("Blink ENC5 RGB"));
     ENC5.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
@@ -650,7 +650,7 @@ COLD void blink_ENC6_RGB(void)
     ENC6.writeRGBCode(0x0000FF);
     delay(250);
     ENC6.writeRGBCode(0x000000);
-	Serial.println(F("Blink ENC6 RGB"));
+	MSG_Serial.println(F("Blink ENC6 RGB"));
     ENC6.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif

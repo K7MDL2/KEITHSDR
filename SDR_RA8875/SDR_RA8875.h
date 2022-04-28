@@ -31,6 +31,7 @@
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
 // Below are local project files
+#define MSG_Serial Serial
 #include "RadioConfig.h"        // Our main configuration file
 #ifndef BYPASS_SPECTRUM_MODULE
   #include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
