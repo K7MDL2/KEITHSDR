@@ -655,7 +655,7 @@ HOT void loop()
     {      
         time_sp = millis();
 
-        //if (1) //(!popup)                    // do not draw in the screen space while the pop up has the screen focus.
+        if (!popup)                    // do not draw in the screen space while the pop up has the screen focus.
                                              // a popup must call drawSpectrumFrame when it is done and clear this flag.
             //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
                 Freq_Peak = spectrum_RA887x.spectrum_update(
@@ -788,8 +788,10 @@ if(!bandmem[curr_band].XIT_en)
         #endif  // ALL_CAT
     #endif // PANADAPTER
 
-    if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
+    //if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
+    if (popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     {
+        struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
         // Service popup window
     }
     
@@ -1042,9 +1044,9 @@ COLD void printHelp(void)
     MSG_Serial.println(F("   h: Print this help"));
     MSG_Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
     MSG_Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
-    #ifdef USE_RS_HFIQ
-      MSG_Serial.println(F("   R to display the RS-HFIQ Menu"));
-    #endif
+    //#ifdef USE_RS_HFIQ
+      //MSG_Serial.println(F("   R to display the RS-HFIQ Menu"));
+    //#endif
 }
 #ifndef I2C_ENCODERS
     //#ifdef MECH_ENCODERS
