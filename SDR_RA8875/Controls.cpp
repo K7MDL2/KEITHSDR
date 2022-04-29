@@ -529,7 +529,7 @@ COLD void Menu()
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp = 1;              
 #endif
     //tft.fillRect(t_ptr->bx, t_ptr->by, t_ptr->bw, t_ptr->bh, RA8875_BLACK);
-    tft.setFont(Arial_14);
+    tft.setFont(Arial_24);
     tft.setTextColor(RA8875_BLUE);
     tft.setCursor(CENTER, CENTER, true);
     tft.print(F("this is a future keyboard"));

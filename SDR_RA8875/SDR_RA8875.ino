@@ -791,7 +791,7 @@ if(!bandmem[curr_band].XIT_en)
     //if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     if (popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     {
-        struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
+        //struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
         // Service popup window
     }
     
