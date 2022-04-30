@@ -7,6 +7,10 @@ This is a GitHub Repository for Group Member builds and variations of hardware a
 
 The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 with Audio Card and RA8875 based capacitive touchscreen at 800x480 or a RA8876 capacitive touchscreen at 1024x600.  
   
+  ![K7MDL Front Panel RA8875 Compact Teensy SDR](https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/TeensySDR%20in%20Hammond%201455N1601-Front-1.jpg)
+  
+  
+  
   Features:
   
   1. 4096 point I&Q FFT using the OpenAudio_Library converted to 32 bit Floating Point by W7PUA.
