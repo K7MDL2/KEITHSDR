@@ -2,6 +2,13 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## May 2022
+
+    1. Added Popup Window create and destroy functions. A window is a very big button (with touch disabled) for color and size, the pop_win_up() and pop_win_down() function use the same bit move engine technique I use for the spectrum waterfall display.  Saves the screen under the window, sets the active_window and colors it like all button do.  There are 2 windows, Menu, which is only seen as a text line today (future use), and Band Select Menu. Window placement and size is configured by table values.
+    2. Added Band Select Menu with buttons for 160M to 6M.  Hit Band button to bring the menu up. Band buttons can be easily disabled by placing 255 in their bandmem.Panelpos field. Color, size and placement is configured in the standard_button table like all buttons. Disabled buttons are hidden. Hot any buttom to change to that band, or hit the Band button again to close the window with no change.
+    3. I am experimenting with window and button coloring.  When a window is active, all gestures and non-window related controls are diaabled.  The spectrum is halted but RX audio continues on.  
+    4. Future: When a window is open the MF knob will take focus.  When rotated it will highlight a button or setting, pushing the encoder switch then selects it.
+    
 ## April 2022
 
     1. Added front panel drawing file for Front Panel Express milling on a Hammond 1455N 160mm x 103mm x 53mm extruded box. Attempting to package the RS-HFIQ PCB into the same small (hand-held) box with RA8875 4.3" display and 2 encoders. 
