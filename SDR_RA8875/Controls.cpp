@@ -1433,6 +1433,7 @@ COLD void Display()
 COLD void TouchTune(int16_t touch_Freq)
 {
     
+    if (popup == 1) return;   // skip if menu window is active
 
 #ifndef BYPASS_SPECTRUM_MODULE
     int32_t pk;

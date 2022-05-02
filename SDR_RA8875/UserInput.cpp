@@ -450,6 +450,9 @@ void zero_coordinates(void)
 */
 COLD uint8_t Gesture_Handler(uint8_t gesture)
 {
+
+    if (popup) return;  // Ignore gestures when a selection window is active.
+
     // Get our various coordinates
     T1_X = touch_evt.distance[0][0];  
     T1_Y = touch_evt.distance[0][1];  
@@ -773,47 +776,82 @@ COLD void Button_Handler(int16_t x, uint16_t y)
 
 void Button_Action(uint16_t button_name)
 {
+    struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
+
     // used the index to the table to match up a function to call
     // feedback beep
     touchBeep(true);  // a timer will shut it off.  
-    switch (button_name)
+    if (!popup)
     {
-        case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
-        case FILTER_BTN:    Filter(0);      break;
-        case RATE_BTN:      Rate(0);        break; //Increment from current value 
-        case AGC_BTN:       AGC();          break;
-        case ANT_BTN:       Ant();          break;                    
-        case MUTE_BTN:      Mute();         break;
-        case MENU_BTN:      Menu();         break;
-        case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
-        case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
-        case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
-        case RIT_BTN:       RIT();          break;
-        case XIT_BTN:       XIT();          break;
-        case SPLIT_BTN:     Split(2);       break;
-        case XVTR_BTN:      Xvtr();         break;
-        case ATU_BTN:       ATU(2);         break;
-        case FINE_BTN:      Fine();         break;
-        case XMIT_BTN:      Xmit(2);        break;
-        case NB_BTN:        setNB(2);       break;
-        case NR_BTN:        setNR();        break;
-        case ENET_BTN:      Enet();         break;
-        case AFGAIN_BTN:    setAFgain(2);   break;
-        case RFGAIN_BTN:    setRFgain(2);   break;
-        case PAN_BTN:       setPAN(2);      break;
-        //case SPOT_BTN:      Spot();         break;
-        case REFLVL_BTN:    setRefLevel(2); break;
-        case NOTCH_BTN:     Notch();        break;
-        case BANDUP_BTN:    BandUp();       break;
-        case BANDDN_BTN:    BandDn();       break;
-        case BAND_BTN:      Band();         break;
-        case DISPLAY_BTN:   Display();      break;
-        case FN_BTN:        setPanel();     break;
-        case ZOOM_BTN:      setZoom(0);     break;
-        case UTCTIME_BTN:   break;        //nothing to do
-        case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
-        default: Serial.print(F("Found a button with SHOW on but has no function to call.  Index = "));
-            Serial.println(button_name); break;
+        switch (button_name)
+        {
+            case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
+            case FILTER_BTN:    Filter(0);      break;
+            case RATE_BTN:      Rate(0);        break; //Increment from current value 
+            case AGC_BTN:       AGC();          break;
+            case ANT_BTN:       Ant();          break;                    
+            case MUTE_BTN:      Mute();         break;
+            case MENU_BTN:      Menu();         break;
+            case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
+            case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+            case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
+            case RIT_BTN:       RIT();          break;
+            case XIT_BTN:       XIT();          break;
+            case SPLIT_BTN:     Split(2);       break;
+            case XVTR_BTN:      Xvtr();         break;
+            case ATU_BTN:       ATU(2);         break;
+            case FINE_BTN:      Fine();         break;
+            case XMIT_BTN:      Xmit(2);        break;
+            case NB_BTN:        setNB(2);       break;
+            case NR_BTN:        setNR();        break;
+            case ENET_BTN:      Enet();         break;
+            case AFGAIN_BTN:    setAFgain(2);   break;
+            case RFGAIN_BTN:    setRFgain(2);   break;
+            case PAN_BTN:       setPAN(2);      break;
+            //case SPOT_BTN:      Spot();         break;
+            case REFLVL_BTN:    setRefLevel(2); break;
+            case NOTCH_BTN:     Notch();        break;
+            case BANDUP_BTN:    BandUp();       break;
+            case BANDDN_BTN:    BandDn();       break;
+            case BAND_BTN:      Band();         break;
+            case DISPLAY_BTN:   Display();      break;
+            case FN_BTN:        setPanel();     break;
+            case ZOOM_BTN:      setZoom(0);     break;
+            case UTCTIME_BTN:   break;        //nothing to do
+            case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
+            default: Serial.print(F("Found a non-popup button with SHOW on but has no function to call.  Index = "));
+                Serial.println(button_name); break;
+        }
+    }
+    else if ((ptr+button_name)->Panelnum == 100 && (ptr+button_name)->Panelpos != 255)
+    {
+        switch (button_name)
+        {
+            //   When a buttonb is selected, load that bands last VFOA.  changeBands() will validate and compute the new band num
+            case BS_160M:   VFOA = bandmem[BAND160M].vfo_A_last;  changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_80M:    VFOA = bandmem[BAND80M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_60M:    VFOA = bandmem[BAND60M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_40M:    VFOA = bandmem[BAND40M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_30M:    VFOA = bandmem[BAND30M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_20M:    VFOA = bandmem[BAND20M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_17M:    VFOA = bandmem[BAND17M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_15M:    VFOA = bandmem[BAND15M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_12M:    VFOA = bandmem[BAND12M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_10M:    VFOA = bandmem[BAND10M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
+            case BS_6M:     VFOA = bandmem[BAND6M].vfo_A_last;    changeBands(0);  displayBand_Menu(0); Band(); break;
+            default: Serial.print(F("Found a popup button with SHOW on but has no function to call.  Index = "));
+                Serial.println(button_name); break;
+        }
+    }
+    else
+    {
+        switch (button_name)
+        {
+            case MENU_BTN:  Menu();  break;
+            case BAND_BTN:  Band();  break;
+            default: Serial.print(F("Found a popup button with SHOW on but has no function to call.  Index = "));
+                    Serial.println(button_name); break;
+        }
     }
 }
 

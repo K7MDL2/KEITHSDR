@@ -101,7 +101,9 @@ COLD void displayFreq(void)
     // TX_clr    			// Color when active VFO is in transmit
 	// padx					// horizonal padding from left side of box
 	// pady					// vertical padding form top of box
-	
+		
+	if (popup) return;   // Do not write to the screen when a control window is active
+
 	// Put a box around the VFO section (use BLACK to turn it off)
 	//tft.drawRect(pVAct->bx-1, pVAct->by-1, pVAct->bw+2, pVAct->bh+pVStby->bh+4, pVAct->box_clr);
 
@@ -170,6 +172,8 @@ COLD void displayMode(void)
 {
 	uint8_t mode;
 
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	mode = bandmem[curr_band].mode_A;
 	//sprintf(std_btn[MODE_BTN].label, "%s", Mode[mode]);
 	sprintf(labels[MODE_LBL].label, "%s", modeList[mode].mode_label);
@@ -180,6 +184,8 @@ COLD void displayMode(void)
 COLD void displayFilter(void)
 {
 	char str[15];
+
+	if (popup) return;  // Do not write to the screen when a window is active
 
 	#ifdef PANADAPTER
 		extern int16_t filterWidth;
@@ -195,6 +201,8 @@ COLD void displayFilter(void)
 
 COLD void displayRate(void)
 {	
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	if (bandmem[curr_band].tune_step >= TS_STEPS)
 		bandmem[curr_band].tune_step = TS_STEPS-1;
 	sprintf(labels[RATE_LBL].label, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
@@ -205,6 +213,8 @@ COLD void displayRate(void)
 
 COLD void displayAgc(void)
 {	
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
 	sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
 	//MSG_Serial.print("AGC ="); MSG_Serial.println(std_btn[AGC_BTN].label);
@@ -214,6 +224,8 @@ COLD void displayAgc(void)
 
 COLD void displayANT(void)
 {	
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
 	sprintf(labels[ANT_LBL].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
 	//MSG_Serial.print(F("Antenna Switch set to ")); MSG_Serial.println(std_btn[ANT_BTN].label);
@@ -223,6 +235,8 @@ COLD void displayANT(void)
 
 void displayPan(void)
 {	
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char string[80];   // print format stuff
 	sprintf(std_btn[PAN_BTN].label, "%s%3d", "Pan:", user_settings[user_Profile].pan_level-50);
 	//sprintf(labels[PAN_BTN].label, "%s%3d", "PN:", user_settings[user_Profile].pan_level);
@@ -244,6 +258,8 @@ void displayPan(void)
 
 COLD void displayRFgain(void)
 {	
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char string[80];   // print format stuff
 	sprintf(std_btn[RFGAIN_BTN].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
 	//sprintf(labels[RFGAIN_LBL].label, "%s%3d", "RF:", user_settings[user_Profile].rfGain);
@@ -265,6 +281,8 @@ COLD void displayRFgain(void)
 
 COLD void displayAFgain(void)
 {	
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char string[80];   // print format stuff
 	sprintf(std_btn[AFGAIN_BTN].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
 	//sprintf(labels[AFGAIN_LBL].label, "%s%3d", "AF:", user_settings[user_Profile].afGain);
@@ -285,6 +303,8 @@ COLD void displayAFgain(void)
 
 COLD void displayAttn()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char string[80];   // print format stuff
 	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
 	//MSG_Serial.print(F("Atten is ")); MSG_Serial.println(bandmem[curr_band].attenuator);
@@ -300,6 +320,8 @@ COLD void displayAttn()
 
 COLD void displayPreamp()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("Preamp is ")); MSG_Serial.println(bandmem[curr_band].preamp);
 	drawLabel(PREAMP_LBL, &bandmem[curr_band].preamp);
 	draw_2_state_Button(PREAMP_BTN, &bandmem[curr_band].preamp);
@@ -307,6 +329,8 @@ COLD void displayPreamp()
 
 COLD void displayATU()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("ATU is ")); MSG_Serial.println(bandmem[curr_band].ATU);
 	drawLabel(ATU_LBL, &bandmem[curr_band].ATU);
 	draw_2_state_Button(ATU_BTN, &bandmem[curr_band].ATU);
@@ -314,6 +338,8 @@ COLD void displayATU()
 
 COLD void displayRIT()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("RIT is ")); MSG_Serial.println(bandmem[curr_band].RIT_en);
 	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
@@ -321,6 +347,8 @@ COLD void displayRIT()
 
 COLD void displayXIT()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("XIT is ")); MSG_Serial.println(bandmem[curr_band].XIT_en);
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
@@ -328,6 +356,8 @@ COLD void displayXIT()
 
 COLD void displayFine()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("Fine Tune is ")); MSG_Serial.println(user_settings[user_Profile].fine);
 	drawLabel(FINE_LBL, &user_settings[user_Profile].fine);
 	draw_2_state_Button(FINE_BTN,  &user_settings[user_Profile].fine);
@@ -335,6 +365,8 @@ COLD void displayFine()
 
 COLD void displayNB()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char string[80];   // print format stuff
 	sprintf(std_btn[NB_BTN].label, "NB:%1d", user_settings[user_Profile].nb_level);
     //sprintf(labels[NB_LBL].label,  "NB%s", nb[user_settings[user_Profile].nb_level].nb_name);
@@ -352,6 +384,8 @@ COLD void displayNB()
 
 COLD void displayZoom()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	// Enable the label draw if a screen icon is used
     //sprintf(labels[ZOOM_LBL].label,  "Zoom:%d", user_settings[user_Profile].zoom_level);
 	//drawLabel(ZOOM_LBL, &user_settings[user_Profile].zoom_level);
@@ -363,6 +397,8 @@ COLD void displayZoom()
 
 COLD void displayRefLevel()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char string[80];   // print format stuff
 	if (MF_client == REFLVL_BTN) 
 	{ 
@@ -375,6 +411,8 @@ COLD void displayRefLevel()
 
 COLD void displayNR()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("NR is ")); MSG_Serial.println(user_settings[user_Profile].nr_en);
 	drawLabel(NR_LBL, &user_settings[user_Profile].nr_en);
 	draw_2_state_Button(NR_BTN, &user_settings[user_Profile].nr_en);
@@ -382,6 +420,8 @@ COLD void displayNR()
 
 COLD void displayNotch()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	//MSG_Serial.print(F("Notch is ")); MSG_Serial.println(std_btn[NOTCH_BTN].label);
 	drawLabel(NOTCH_LBL, &user_settings[user_Profile].notch);
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
@@ -389,6 +429,8 @@ COLD void displayNotch()
 
 COLD void displaySplit()
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	char sp_label[15];
 
 	if (bandmem[curr_band].split)
@@ -410,6 +452,8 @@ COLD void displaySplit()
 
 COLD void displayTime(void)
 {
+	//if (popup) return;  // Do not write to the screen when a window is active
+
 	#ifdef ENET
 	sprintf(std_btn[UTCTIME_BTN].label, "UTC:%02d:%02d:%02d", hour(), minute(), second());
 	#else
@@ -423,6 +467,8 @@ COLD void displayTime(void)
 // val = bar graph value (0 to 10 range), string is the meter text, color set
 COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 {
+	if (popup) return;  // Do not write to the screen when a window is active
+
 	#ifdef USE_RA8875
 	   	ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	#else
@@ -447,9 +493,25 @@ void displayBand_Menu(uint8_t state)
 		tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color);
 		tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
 		tft.setFont(Arial_20);
-		tft.setTextColor(RA8875_BLUE);
-		tft.setCursor(CENTER, ptr->by+24, true);
+		tft.setTextColor(ptr->txtclr);
+		tft.setCursor(CENTER, ptr->by+30, true);
 		tft.print(F("Band Select Menu"));
+		// loop through record with panelnum == 100 and panelpos !255.  
+		// draw the buttons in the panelpos order, not the x,y values. 
+		
+		//ptr = std_btn;
+		tft.setFont(Arial_12);
+		for (int i = 0; i <= STD_BTN_NUM; i++)
+		{
+			ptr = std_btn + i;
+			if (ptr->Panelnum == 100 && ptr->Panelpos != 255)
+			{
+				//tft.setTextColor((ptr+i)->txtclr);
+				//tft.setCursor(ptr->bx+10, ptr->by+34+(i*20));
+				//tft.printf("Button Pos: %d - %s\n", (ptr+i)->Panelpos, (ptr+i)->label);
+				draw_2_state_Button(i, &std_btn[i].enabled);
+			}
+		}
 	}
 	else
 	{
@@ -462,17 +524,24 @@ void displayBand_Menu(uint8_t state)
 }
 
 // These buttons have no associated labels so are simply button updates
-COLD void displayMenu() 	{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				 }
-COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					 }
-COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &std_btn[VFO_AB_BTN].enabled);	 		 }
-COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			 }
+COLD void displayMenu() 	{if (popup) return; draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				 }
+COLD void displayFn() 		{if (popup) return; draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					 }
+COLD void displayVFO_AB() 	{if (popup) return; draw_2_state_Button(VFO_AB_BTN, &std_btn[VFO_AB_BTN].enabled);	 		 }
+COLD void displayBandUp() 	{if (popup) return; draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			 }
 COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &std_btn[BAND_BTN].enabled); 				 } //COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		 }
-COLD void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			 }
-COLD void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						 }
-COLD void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 }
-COLD void displayMute()		{draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		 }
-COLD void displayXVTR()		{draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			 }
-COLD void displayEnet()		{draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
+COLD void displayBandDn()	{if (popup) return; draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			 }
+COLD void displayDisplay()	{if (popup) return; draw_2_state_Button(DISPLAY_BTN, &display_state);						 }
+COLD void displayXMIT()		{if (popup) return; draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 }
+COLD void displayMute()		{if (popup) return; draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		 }
+COLD void displayXVTR()		{if (popup) return; draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			 }
+COLD void displayEnet()		{if (popup) return; draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
+
+// Band Select Window buttons
+COLD void display160M() 	{draw_2_state_Button(BS_160M, &std_btn[BS_160M].enabled);	}
+COLD void display80M() 		{draw_2_state_Button(BS_80M, &std_btn[BS_80M].enabled);	 	}
+COLD void display60M() 		{draw_2_state_Button(BS_60M, &std_btn[BS_60M].enabled);	 	}
+
+// better saolutoin is to have one window draw that loops through the table calling draw if enabled.
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------
@@ -1417,7 +1486,7 @@ COLD void pop_win_down(uint8_t win_num)
         #endif
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);      
-        displayRefresh();
+        //displayRefresh();
    }
 }
 

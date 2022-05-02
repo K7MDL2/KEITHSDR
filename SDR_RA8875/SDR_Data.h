@@ -104,41 +104,57 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     {OFF, OFF,   5, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
     { ON, OFF,   5, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
     { ON, OFF,   5, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
-    
+
 #ifdef USE_RA8875   // These rows differ between display sizes. 
+    #define BS_ANCHOR_X 100
+    #define BS_ANCHOR_Y 80
     // Panelpos ==255 means it is a special type button not on a panel
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
     { ON,  ON,   0, 255, 630,   1, 170,  36,   3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
     { ON,  ON,   0, 255, 645,  40, 140,  85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
     { ON, OFF,   0, 255,   0, 200, 800, 180, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
-    
-    // This group is used for hte Band Select Menu Window buttons
-    // This defines the window
-    { ON, OFF,   0, 255, 100,  80, 600, 280, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},   // Band Select menu Window
+    // This defines the Band Select window
+    { ON, OFF,   0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLUE, BLUE,  9, 20, ""},   // Band Select menu Window
     // These are the Band buttons.  Use panel_num 100
     // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
-    { ON, OFF,   100, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "80M\0"},
-    { ON, OFF,   100, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "60M\0"},   
-    { ON, OFF,   100, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "40M\0"}
-    //{ ON, OFF,   4, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "30M\0"},
-    //{ ON, OFF,   4, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "20M\0"},
-    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "17M\0"},
-    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "15M\0"},
-    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "12M\0"},
-    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "10M\0"},
-
-};
 // Spare
 //    { ON, OFF,   2, 255, 467, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
 #else
     
+    #define BS_ANCHOR_X 200
+    #define BS_ANCHOR_Y 80
     { ON,  ON,   0, 255, 865,   1, 170,   36,   3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
     { ON,  ON,   0, 255, 880,  41, 140,   85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
     { ON, OFF,   0, 255.   0, 190,1023,  320, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
-    { ON, OFF,   0, 255. 200,  20, 800,  510, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Band Select Menu Windows
+    // This defines the Band Select window
+    { ON, OFF,   0, 255. BS_ANCHOR_X, BS_ANCHOR_Y, 800,  510, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Band Select Menu Windows
     // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
-};
 #endif  // USE_RA8875
+    #define BSX_0  (BS_ANCHOR_X+20)
+    #define BSX_1  (BS_ANCHOR_X+20+(w_1+14))
+    #define BSX_2 ((BS_ANCHOR_X+20+(w_1+14)*2))
+    #define BSX_3 ((BS_ANCHOR_X+20+(w_1+14)*3))
+    #define BSX_4 ((BS_ANCHOR_X+20+(w_1+14)*4))
+
+    #define BSY_0 (BS_ANCHOR_Y+80)
+    #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
+    #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
+    
+    // This group is used for the Band Select Menu Window buttons.
+    // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
+    { ON, ON, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, "160M\0"},
+    { ON, ON, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "80M\0"},   
+    { ON, ON, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "60M\0"},
+    { ON, ON, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "40M\0"},
+    { ON, ON, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "30M\0"},
+    { ON, ON, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "20M\0"},
+    { ON, ON, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20,  "17M\0"},
+    { ON, ON, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "15M\0"},
+    { ON, ON, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "12M\0"},
+    { ON, ON, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "10M\0"},
+    { ON, ON, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 30,   "6M\0"}
+};
+
 
 // Labels are screen display objects that are used mostly to show status.
 // They may be used for touch events, usually in combination with a button.  Take NR for example

@@ -289,7 +289,7 @@
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   22      // number of labels in the table
-#define STD_BTN_NUM 39      // number of buttons in the table
+#define STD_BTN_NUM 46      // number of buttons in the table
 
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
@@ -340,7 +340,19 @@
 #define SMETER_BTN  32      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
 #define SPECTUNE_BTN 33     // Converts a touch in the spectrum window to a frequency to tune too.
 #define BAND_MENU   34      // Band selection window 
-#define SPOT_BTN    35      // will display the NR value in the button - Not used today but a function exists.
+//#define SPOT_BTN    35      // will display the NR value in the button - Not used today but a function exists.
+// Band select Window buttons
+#define BS_160M     35
+#define BS_80M      36
+#define BS_60M      37
+#define BS_40M      38
+#define BS_30M      39
+#define BS_20M      40
+#define BS_17M      41
+#define BS_15M      42
+#define BS_12M      43
+#define BS_10M      44
+#define BS_6M       45
 
 // The #define button numbers act as the ID of possible owners of MF knob services
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
