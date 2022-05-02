@@ -1925,7 +1925,7 @@ void RS_HFIQ_Service(void)
         {
             changeBands(0);
             last_curr_band = curr_band;
-            MSG_Serial.print(F("Main VFO: New Band = ")); MSG_Serial.println(curr_band);  
+            MSG_Serial.print(F("New Band Number: ")); MSG_Serial.println(curr_band);  
         }
     }
 

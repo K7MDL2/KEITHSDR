@@ -451,7 +451,7 @@ void zero_coordinates(void)
 COLD uint8_t Gesture_Handler(uint8_t gesture)
 {
 
-    if (popup) return;  // Ignore gestures when a selection window is active.
+    if (popup) return 0;  // Ignore gestures when a selection window is active.
 
     // Get our various coordinates
     T1_X = touch_evt.distance[0][0];  
@@ -685,9 +685,6 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
 COLD void Button_Handler(int16_t x, uint16_t y)
 {
     //Serial.print(F("Button:"));Serial.print(x);Serial.print(" ");Serial.println(y);
-    
-    if (popup)
-        popup_timer.reset();
 
     struct Standard_Button *ptr = std_btn; // pointer to standard button layout table
     for ( uint16_t i=0; i < STD_BTN_NUM; i++ )
@@ -696,10 +693,11 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
         {
             if ((ptr+i)->show && holdtime == 0)  // if the show property ius active, call the button function to act on it.
-            {   
+            {                   
+                touchBeep(true);  // feedback beep - a timer will shut it off.
                 Button_Action(i);
             } // LONG PRESS
-            if ((ptr+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
+            else if ((ptr+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 // feedback beep
                 touchBeep(true);  // a timer will shut it off.
@@ -712,13 +710,12 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
                     //case AFGAIN_BTN:    setAFgain(1);   break;
                     case RFGAIN_BTN:    setRFgain(3);   break;  // same as 2 but toggle PAN ON state
-                    default: Serial.print(F("Found a button with SHOW on WITH LONG PRESS but has no function to call.  Index = "));
+                    default: Serial.print(F("Found a LONG PRESS button with SHOW ON but has no function to call.  Index = "));
                        Serial.println(i); break;
                 }
             }
-            if ((ptr+i)->enabled)    // TOUCHTUNE button - This uses the enabled field so treated on its own
+            else if ((ptr+i)->enabled)    // TOUCHTUNE button - This uses the enabled field so treated on its own
             {
-                // feedback beep
                 touchBeep(true);  // a timer will shut it off.
                 switch (i)
                 {
@@ -739,8 +736,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         {
             if ((pLabel+i)->show)  // if the show property ius active, call the button function to act on it.
             {   
-                // feedback beep
-                touchBeep(true);  // a timer will shut it off.
+                touchBeep(true);  // feedback beep - a timer will shut it off.
                 // used the index to the table to match up a function to call
                 switch (i)
                 {
@@ -749,7 +745,8 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case RATE_LBL:      Rate(0);        break;
                     case AGC_LBL:       AGC();          break;
                     case ANT_LBL:       Ant();          break;
-                    default: break;
+                    default: Serial.print(F("Found a Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
+                       Serial.println(i); break;
                 }
             }
         }
@@ -779,8 +776,6 @@ void Button_Action(uint16_t button_name)
     struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
 
     // used the index to the table to match up a function to call
-    // feedback beep
-    touchBeep(true);  // a timer will shut it off.  
     if (!popup)
     {
         switch (button_name)
@@ -819,37 +814,41 @@ void Button_Action(uint16_t button_name)
             case ZOOM_BTN:      setZoom(0);     break;
             case UTCTIME_BTN:   break;        //nothing to do
             case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
-            default: Serial.print(F("Found a non-popup button with SHOW on but has no function to call.  Index = "));
-                Serial.println(button_name); break;
+            default: 
+                    if (button_name != SPECTUNE_BTN) 
+                    {
+                        Serial.print(F("Found a non-popup button with SHOW ON but has no function to call.  Index = "));  Serial.println(button_name);
+                    }
+                    break;
         }
     }
-    else if ((ptr+button_name)->Panelnum == 100 && (ptr+button_name)->Panelpos != 255)
+    else if ((ptr+button_name)->Panelnum == 100 && (ptr+button_name)->Panelpos != 255)  // A window is active, detect the chosen button
     {
         switch (button_name)
         {
-            //   When a buttonb is selected, load that bands last VFOA.  changeBands() will validate and compute the new band num
-            case BS_160M:   VFOA = bandmem[BAND160M].vfo_A_last;  changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_80M:    VFOA = bandmem[BAND80M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_60M:    VFOA = bandmem[BAND60M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_40M:    VFOA = bandmem[BAND40M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_30M:    VFOA = bandmem[BAND30M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_20M:    VFOA = bandmem[BAND20M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_17M:    VFOA = bandmem[BAND17M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_15M:    VFOA = bandmem[BAND15M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_12M:    VFOA = bandmem[BAND12M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_10M:    VFOA = bandmem[BAND10M].vfo_A_last;   changeBands(0);  displayBand_Menu(0); Band(); break;
-            case BS_6M:     VFOA = bandmem[BAND6M].vfo_A_last;    changeBands(0);  displayBand_Menu(0); Band(); break;
-            default: Serial.print(F("Found a popup button with SHOW on but has no function to call.  Index = "));
+            //   When a button is selected, load that band's last VFOA.  changeBands() will validate and compute the new band number
+            case BS_160M:   VFOA = bandmem[BAND160M].vfo_A_last; changeBands(0); Band(); break;  // Band toggles the windows and buttons off
+            case BS_80M:    VFOA = bandmem[BAND80M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_60M:    VFOA = bandmem[BAND60M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_40M:    VFOA = bandmem[BAND40M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_30M:    VFOA = bandmem[BAND30M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_20M:    VFOA = bandmem[BAND20M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_17M:    VFOA = bandmem[BAND17M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_15M:    VFOA = bandmem[BAND15M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_12M:    VFOA = bandmem[BAND12M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_10M:    VFOA = bandmem[BAND10M].vfo_A_last;  changeBands(0); Band(); break;
+            case BS_6M:     VFOA = bandmem[BAND6M].vfo_A_last;   changeBands(0); Band(); break;
+            default: Serial.print(F("Found a popup button with SHOW ON but has no function to call.  Index = "));
                 Serial.println(button_name); break;
         }
     }
-    else
+    else  // provide a way to exit a window with normal buttons as all other buttons are ignored when a window is active
     {
         switch (button_name)
         {
             case MENU_BTN:  Menu();  break;
-            case BAND_BTN:  Band();  break;
-            default: Serial.print(F("Found a popup button with SHOW on but has no function to call.  Index = "));
+            case BAND_BTN:  Band();  break; 
+            default: Serial.print(F("Found a popup button with SHOW ON but has no function to call.  Index = "));
                     Serial.println(button_name); break;
         }
     }

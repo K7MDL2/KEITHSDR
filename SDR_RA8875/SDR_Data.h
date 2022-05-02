@@ -114,7 +114,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON,  ON,   0, 255, 645,  40, 140,  85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
     { ON, OFF,   0, 255,   0, 200, 800, 180, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
     // This defines the Band Select window
-    { ON, OFF,   0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLUE, BLUE,  9, 20, ""},   // Band Select menu Window
+    { OFF, OFF,   0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLUE, BLUE,  9, 20, "Band Select"},   // Band Select menu Window
     // These are the Band buttons.  Use panel_num 100
     // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
 // Spare
@@ -127,7 +127,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON,  ON,   0, 255, 880,  41, 140,   85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
     { ON, OFF,   0, 255.   0, 190,1023,  320, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
     // This defines the Band Select window
-    { ON, OFF,   0, 255. BS_ANCHOR_X, BS_ANCHOR_Y, 800,  510, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Band Select Menu Windows
+    { OFF, OFF,   0, 255. BS_ANCHOR_X, BS_ANCHOR_Y, 800,  510, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Band Select Menu Windows
     // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
 #endif  // USE_RA8875
     #define BSX_0  (BS_ANCHOR_X+20)
@@ -142,17 +142,17 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     
     // This group is used for the Band Select Menu Window buttons.
     // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
-    { ON, ON, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, "160M\0"},
-    { ON, ON, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "80M\0"},   
-    { ON, ON, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "60M\0"},
-    { ON, ON, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "40M\0"},
-    { ON, ON, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "30M\0"},
-    { ON, ON, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "20M\0"},
-    { ON, ON, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20,  "17M\0"},
-    { ON, ON, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "15M\0"},
-    { ON, ON, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "12M\0"},
-    { ON, ON, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "10M\0"},
-    { ON, ON, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 30,   "6M\0"}
+    { OFF, OFF, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, "160M\0"},
+    { OFF, OFF, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "80M\0"},   
+    { OFF, OFF, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "60M\0"},
+    { OFF, OFF, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "40M\0"},
+    { OFF, OFF, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "30M\0"},
+    { OFF, OFF, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "20M\0"},
+    { OFF, OFF, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20,  "17M\0"},
+    { OFF, OFF, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "15M\0"},
+    { OFF, OFF, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "12M\0"},
+    { OFF, OFF, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "10M\0"},
+    { OFF, OFF, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 30,   "6M\0"}
 };
 
 

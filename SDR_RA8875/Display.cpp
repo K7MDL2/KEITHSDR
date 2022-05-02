@@ -482,14 +482,19 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 	}
 }
 
+// state == 1 to draw in the window, draw and enable the buttons.
+// state == 0 to remnove teh window and disable the buttons.
 void displayBand_Menu(uint8_t state)
 {
-    struct Standard_Button *ptr = std_btn + BAND_MENU;     // pointer to button object passed by calling function
-
- 	if (state)
+    struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
+	char temp[30];
+ 	
+	if (state)
     {
+		ptr += BAND_MENU;
+		sprintf(temp, "\nWindow is %s\n",ptr->label);
+		MSG_Serial.print(temp);
 		pop_win_up(BAND_MENU);   // arg is index into table with size of window in the record.
-		//tft.fillRect(t_ptr->bx, t_ptr->by, t_ptr->bw, t_ptr->bh, RA8875_BLACK);
 		tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color);
 		tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
 		tft.setFont(Arial_20);
@@ -497,29 +502,36 @@ void displayBand_Menu(uint8_t state)
 		tft.setCursor(CENTER, ptr->by+30, true);
 		tft.print(F("Band Select Menu"));
 		// loop through record with panelnum == 100 and panelpos !255.  
-		// draw the buttons in the panelpos order, not the x,y values. 
-		
-		//ptr = std_btn;
+		// In the future draw the buttons in the panelpos order, not the x,y values. For now using x,y from table.
+		ptr = std_btn;
 		tft.setFont(Arial_12);
-		for (int i = 0; i <= STD_BTN_NUM; i++)
+		for (int i = 0; i <= STD_BTN_NUM; i++)   // look thorugh whole table
 		{
 			ptr = std_btn + i;
 			if (ptr->Panelnum == 100 && ptr->Panelpos != 255)
 			{
-				//tft.setTextColor((ptr+i)->txtclr);
-				//tft.setCursor(ptr->bx+10, ptr->by+34+(i*20));
-				//tft.printf("Button Pos: %d - %s\n", (ptr+i)->Panelpos, (ptr+i)->label);
+				std_btn[i].enabled = ON;  // Enable touch for the active buttons.  Turn them off when the window is closed
+				std_btn[i].show = ON;
 				draw_2_state_Button(i, &std_btn[i].enabled);
+				//sprintf(temp, "Enabled Button Pos: %d Label: %s\n", ptr->Panelpos, ptr->label); MSG_Serial.print(temp);
 			}
 		}
+		MSG_Serial.println("Band Select Menu Buttons Turned ON");
 	}
 	else
 	{
-		//MSG_Serial.print("spectrum_wf_colortemp = ");
-		//MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp); 
 		pop_win_down(BAND_MENU);  // remove window, restore old screen info, clear popup flag and timer
-		//displayBand();
-		//MSG_Serial.println("Menu Pressed");
+		for (int i = 0; i <= STD_BTN_NUM; i++)   // look thorugh whole table and shut off band select related buttons
+		{
+			ptr = std_btn + i;
+			if (ptr->Panelnum == 100 && ptr->Panelpos != 255)
+			{
+				std_btn[i].enabled = OFF;  // Enable touch for the active buttons.  Turn them off when the window is closed
+				std_btn[i].show = OFF;
+				//sprintf(temp, "Disabled Button Pos: %d Label: %s\n", ptr->Panelpos, ptr->label); MSG_Serial.print(temp);
+			}
+		}
+		MSG_Serial.println("Band Select Menu Buttons Turned OFF\n");
 	}
 }
 
@@ -528,20 +540,14 @@ COLD void displayMenu() 	{if (popup) return; draw_2_state_Button(MENU_BTN, &std_
 COLD void displayFn() 		{if (popup) return; draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					 }
 COLD void displayVFO_AB() 	{if (popup) return; draw_2_state_Button(VFO_AB_BTN, &std_btn[VFO_AB_BTN].enabled);	 		 }
 COLD void displayBandUp() 	{if (popup) return; draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			 }
-COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &std_btn[BAND_BTN].enabled); 				 } //COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		 }
+COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &std_btn[BAND_BTN].enabled); 				                 }
+//COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		                     }
 COLD void displayBandDn()	{if (popup) return; draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			 }
 COLD void displayDisplay()	{if (popup) return; draw_2_state_Button(DISPLAY_BTN, &display_state);						 }
 COLD void displayXMIT()		{if (popup) return; draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 }
 COLD void displayMute()		{if (popup) return; draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		 }
-COLD void displayXVTR()		{if (popup) return; draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			 }
-COLD void displayEnet()		{if (popup) return; draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output);}
-
-// Band Select Window buttons
-COLD void display160M() 	{draw_2_state_Button(BS_160M, &std_btn[BS_160M].enabled);	}
-COLD void display80M() 		{draw_2_state_Button(BS_80M, &std_btn[BS_80M].enabled);	 	}
-COLD void display60M() 		{draw_2_state_Button(BS_60M, &std_btn[BS_60M].enabled);	 	}
-
-// better saolutoin is to have one window draw that loops through the table calling draw if enabled.
+COLD void displayXVTR()		{if (popup) return; draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			     }
+COLD void displayEnet()		{if (popup) return; draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------
