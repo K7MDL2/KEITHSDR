@@ -19,9 +19,6 @@ void displayRefresh();
 // Bottom Panel Anchor button
 void displayFn();   // make fn=1 to call displayFn() to prevent calling itself
 void displayFreq();    // display frequency
-#ifdef ENET
-void displayTime();
-#endif
 // Panel 1 buttons
 void displayMode();
 void displayFilter();

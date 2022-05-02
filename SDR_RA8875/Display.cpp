@@ -660,10 +660,7 @@ COLD void displayRefresh(void)
 	// Bottom Panel Anchor button
 	displayFn();   // make fn=1 to call displayFn() to prevent calling itself
     displayFreq();    // display frequency
-	#ifdef ENET
-	if (enet_ready)
-		displayTime();
-	#endif
+	displayTime();
 	//displayMeter();
 	// Panel 1 buttons
 	displayMode();
