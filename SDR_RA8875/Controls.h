@@ -15,8 +15,6 @@
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
 void changeBands(int8_t direction);
-void pop_win_up(uint8_t win_num);
-void pop_win_down(uint8_t win_num);
 void Mute();
 void Menu();
 void Display();

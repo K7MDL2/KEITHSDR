@@ -801,7 +801,7 @@ void Button_Action(uint16_t button_name)
         case AFGAIN_BTN:    setAFgain(2);   break;
         case RFGAIN_BTN:    setRFgain(2);   break;
         case PAN_BTN:       setPAN(2);      break;
-        case SPOT_BTN:      Spot();         break;
+        //case SPOT_BTN:      Spot();         break;
         case REFLVL_BTN:    setRefLevel(2); break;
         case NOTCH_BTN:     Notch();        break;
         case BANDUP_BTN:    BandUp();       break;

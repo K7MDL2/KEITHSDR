@@ -57,6 +57,12 @@ void displayRFgain();
 void displayRefLevel();
 void displayAFgain();
 void displayMute();
+// Band Select Window
+void displayBand_Menu(uint8_t state);
+
+// pop up window controls
+void pop_win_up(uint8_t win_num);
+void pop_win_down(uint8_t win_num);
 
 //void displaySpot();  // spare
 

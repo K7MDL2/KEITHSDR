@@ -263,58 +263,6 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     codec1.unmuteHeadphone();  // reduce audio thump from hardware transitions
 }
 
-COLD void pop_win_up(uint8_t win_num)
-{  
-    if(win_num)  // Future index to a window size
-    {
-        popup_timer.interval(4000);
-        tft.setFont(Arial_14);
-
-        #ifdef USE_RA8875
-        tft.setActiveWindow(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT);  
-          // Save the current screen to Layer 2
-          tft.BTE_move(0,0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 2);  // Layer 1 to Layer 2
-          while (tft.readStatus());  // Make sure it is done.  Memory moves can take time.
-          tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR  
-        #else   // RA8876  
-          tft.canvasImageStartAddress(PAGE1_START_ADDR);
-          tft.boxPut(PAGE2_START_ADDR, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);                    
-          tft.check2dBusy();    
-          tft.canvasImageStartAddress(PAGE1_START_ADDR);
-          // Blank the plot area and we will draw a new line, flicker free!
-          setActiveWindow(0, SCREEN_WIDTH, 0, SCREEN_HEIGHT); 
-        #endif  // USE_RA8875
-        tft.fillRoundRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 20, RA8875_LIGHT_GREY);
-        tft.drawRoundRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 20, RA8875_RED);
-    }
-}
-
-COLD void pop_win_down(uint8_t win_num)
-{  
-  if(win_num)  // Future index to a window size
-  {
-      #ifdef USE_RA8875
-          // Use BTE_Move to copy our fresh drawn spectrum form layer 2 to Layer 1
-          tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
-          tft.BTE_move(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.            
-          while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.
-          tft.setActiveWindow();
-      #else
-          // BTE block copy it to page 1 spectrum window area. No flicker this way, no artifacts since we clear the window each time.            
-          tft.boxGet(PAGE2_START_ADDR, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0);
-          tft.check2dBusy();            
-          tft.canvasImageStartAddress(PAGE1_START_ADDR);
-          setActiveWindow_default();
-      #endif
-      popup = 0;   // resume our normal schedule broadcast
-      popup_timer.interval(65000);
-#ifndef BYPASS_SPECTRUM_MODULE        
-      spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
-#endif        
-      displayRefresh();
-   }
-}
-
 //
 //  -----------------------   Button Functions --------------------------------------------
 //   Called by Touch, Encoder, or Switch events
@@ -521,7 +469,6 @@ COLD void Mute()
 // MENU
 COLD void Menu()
 {   
-    popup = 1;
     pop_win_up(SPECTUNE_BTN);
 #ifndef BYPASS_SPECTRUM_MODULE
     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp += 10;
@@ -1444,14 +1391,20 @@ COLD void BandDn()
 // BAND button
 COLD void Band()
 {
-    //popup = 1;
-    //pop_win_up();
-    changeBands(1);  // increment up 1 band for now until the pop up windows buttons and/or MF are working
+    if (std_btn[BAND_BTN].enabled == ON)
+    {
+        std_btn[BAND_BTN].enabled = OFF;
+        displayBand_Menu(0);  // Exit window
+    }
+    else
+    {
+        std_btn[BAND_BTN].enabled = ON;
+        displayBand_Menu(1);  // Init window
+    }
+    //changeBands(1);  // increment up 1 band for now until the pop up windows buttons and/or MF are working
     displayBand();
     //MSG_Serial.print("Set Band to ");
     //MSG_Serial.println(bandmem[curr_band].band_num,DEC);
-    //popup = 0;
-    //pop_win_down(0);
 }
 
 // DISPLAY button

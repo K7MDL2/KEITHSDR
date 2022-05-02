@@ -649,31 +649,28 @@ HOT void loop()
     static uint32_t time_n  = 0;
     static uint32_t time_sp;
 
-#ifndef BYPASS_SPECTRUM_MODULE
-    // Update spectrum and waterfall based on timer
-    if (spectrum_waterfall_update.check() == 1) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
-    {      
-        time_sp = millis();
-
-        if (!popup)                    // do not draw in the screen space while the pop up has the screen focus.
-                                             // a popup must call drawSpectrumFrame when it is done and clear this flag.
-            //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
-                Freq_Peak = spectrum_RA887x.spectrum_update(
-                    user_settings[user_Profile].sp_preset,
-                    1,  // No longer used, se tto 1
-                    VFOA,               // for onscreen freq info
-                    VFOB,               // Not really needed today
-                    ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
-                    filterCenter,       // Center the on screen filter shaded area
-                    filterBandwidth,    // Display the filter width on screen
-                    pan,                // Pannng offset from center frequency
-                    fft_size,           // use this size to display for simple zoom effect
-                    fft_bin_size,       // pass along the calculated bin size
-                    fft_bins            // pass along the number of bins.  FOr IQ FFTs, this is fft_size, else fft_size/2
-                    ); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
-                // spectrum_update(6);  // for 2nd window
-    }
-#endif
+    #ifndef BYPASS_SPECTRUM_MODULE
+        // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
+        if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
+        {      
+            time_sp = millis();        
+        //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
+            Freq_Peak = spectrum_RA887x.spectrum_update(
+                user_settings[user_Profile].sp_preset,
+                1,  // No longer used, se tto 1
+                VFOA,               // for onscreen freq info
+                VFOB,               // Not really needed today
+                ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
+                filterCenter,       // Center the on screen filter shaded area
+                filterBandwidth,    // Display the filter width on screen
+                pan,                // Pannng offset from center frequency
+                fft_size,           // use this size to display for simple zoom effect
+                fft_bin_size,       // pass along the calculated bin size
+                fft_bins            // pass along the number of bins.  FOr IQ FFTs, this is fft_size, else fft_size/2
+                ); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+            // spectrum_update(6);  // for 2nd window
+        }
+    #endif
 
     time_n = millis() - time_old;
     
@@ -692,16 +689,17 @@ HOT void loop()
         Touch(); // touch points and gestures
     //}
 
-    if (tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
+    if (!popup && tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
     {
         VFO.readAndReset();
         //VFO.read();
         newFreq = 0;
     }
 
-    newFreq += VFO.read();    // faster to poll for change since last read
+    if (!popup)
+        newFreq += VFO.read();    // faster to poll for change since last read
                               // accumulate counts until we have enough to act on for scaling factor to work right.
-    if (newFreq != 0 && abs(newFreq) > enc_ppr_response) // newFreq is a positive or negative number of counts since last read.
+    if (!popup && newFreq != 0 && abs(newFreq) > enc_ppr_response) // newFreq is a positive or negative number of counts since last read.
     {
         newFreq /= enc_ppr_response;    // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
@@ -766,12 +764,13 @@ HOT void loop()
         #endif
     #endif // I2C_ENCODERS
 
-    Check_PTT();
+    if (!popup)
+        Check_PTT();
 
-    if (meter.check() == 1) // update our meters
+    if (!popup && meter.check() == 1) // update our meters
     {
-if(!bandmem[curr_band].XIT_en)
-        S_Meter_Peak_Avg = Peak();   // return an average for RF AGC limiter if used
+        //if(!bandmem[curr_band].XIT_en)
+            S_Meter_Peak_Avg = Peak();   // return an average for RF AGC limiter if used
         //MSG_Serial.print("S-Meter Peak Avg = ");
         //MSG_Serial.println(S_Meter_Peak_Avg);
     }
@@ -783,7 +782,8 @@ if(!bandmem[curr_band].XIT_en)
             //if (CAT_update.check() == 1) // update our meters
             //{
                 // update Panadapter CAT port data using same time  
-                CAT_handler();
+                if (!popup)
+                    CAT_handler();
             //}
         #endif  // ALL_CAT
     #endif // PANADAPTER
@@ -802,7 +802,7 @@ if(!bandmem[curr_band].XIT_en)
     }
 
     //respond to MSG_Serial commands
-    while (MSG_Serial.available())
+    while (!popup && MSG_Serial.available())
     {
         //char ch = (MSG_Serial.peek());
         char ch = (MSG_Serial.read());
@@ -837,9 +837,10 @@ if(!bandmem[curr_band].XIT_en)
     if (enable_printCPUandMemory)
         printCPUandMemory(millis(), 3000); //print every 3000 msec
 
- #ifdef USE_RS_HFIQ
-   RS_HFIQ_Service();
- #endif
+#ifdef USE_RS_HFIQ
+    if (!popup) 
+        RS_HFIQ_Service();
+#endif
                             
 #ifdef ENET // Don't compile this code if no ethernet usage intended
 
@@ -876,7 +877,7 @@ if(!bandmem[curr_band].XIT_en)
         {
             //update the display only if time has changed
             prevDisplay = now();
-if(!bandmem[curr_band].XIT_en)
+//if(!bandmem[curr_band].XIT_en)
             displayTime();
         }
     }
@@ -1911,13 +1912,13 @@ void RS_HFIQ_Service(void)
         if (last_VFOA != VFOA)
         {                     
             bandmem[curr_band].vfo_A_last = VFOA; 
-            MSG_Serial.print(F("Main1A VFOA: ")); MSG_Serial.println(VFOA);
+            //MSG_Serial.print(F("Main1A VFOA: ")); MSG_Serial.println(VFOA);
         }
         if (last_VFOB != VFOB)
         {     
             bandmem[curr_band].vfo_B_last = VFOB; 
             user_settings[user_Profile].sub_VFO = VFOB;
-            MSG_Serial.print(F("Main1B VFOB: ")); MSG_Serial.println(VFOB);
+            //MSG_Serial.print(F("Main1B VFOB: ")); MSG_Serial.println(VFOB);
         }
 
         if (last_curr_band != curr_band)

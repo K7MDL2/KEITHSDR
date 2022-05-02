@@ -75,7 +75,7 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
     { ON,  ON,   1, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
     { ON,  ON,   1, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  4, 20, "ATT\0"},
     { ON,  ON,   1, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Preamp\0"},
-    { ON,  ON,   1, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
+    { OFF,  ON,   1, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
     //Panel 2
     { ON, OFF,   2, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "NB\0"},
     { ON, OFF,   2, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
@@ -108,17 +108,34 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 #ifdef USE_RA8875   // These rows differ between display sizes. 
     // Panelpos ==255 means it is a special type button not on a panel
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
-    { ON,  ON,   0, 255, 630,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
-    { ON,  ON,   0, 255, 645,  40, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
-    { ON, OFF,   0, 255,   0, 200, 800,180, r_1, RA8875_BLACK,     RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune area definition.
+    { ON,  ON,   0, 255, 630,   1, 170,  36,   3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
+    { ON,  ON,   0, 255, 645,  40, 140,  85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
+    { ON, OFF,   0, 255,   0, 200, 800, 180, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
+    
+    // This group is used for hte Band Select Menu Window buttons
+    // This defines the window
+    { ON, OFF,   0, 255, 100,  80, 600, 280, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},   // Band Select menu Window
+    // These are the Band buttons.  Use panel_num 100
+    // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
+    { ON, OFF,   100, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "80M\0"},
+    { ON, OFF,   100, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "60M\0"},   
+    { ON, OFF,   100, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "40M\0"}
+    //{ ON, OFF,   4, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "30M\0"},
+    //{ ON, OFF,   4, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "20M\0"},
+    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "17M\0"},
+    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "15M\0"},
+    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "12M\0"},
+    //{ ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "10M\0"},
+
 };
 // Spare
 //    { ON, OFF,   2, 255, 467, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
 #else
     
-    { ON,  ON,   0, 255, 865,   1, 170, 36,  3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
-    { ON,  ON,   0, 255, 880,  41, 140, 85,  8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
-    { ON, OFF,   0, 255.   0, 190,1023,320, 20, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Spectrum TouchTune hotspot area definition.
+    { ON,  ON,   0, 255, 865,   1, 170,   36,   3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
+    { ON,  ON,   0, 255, 880,  41, 140,   85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
+    { ON, OFF,   0, 255.   0, 190,1023,  320, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
+    { ON, OFF,   0, 255. 200,  20, 800,  510, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""}  // Band Select Menu Windows
     // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
 };
 #endif  // USE_RA8875

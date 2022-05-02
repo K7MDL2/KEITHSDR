@@ -194,8 +194,8 @@
         //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
       #endif    
       #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
-      //#define V2_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
+      //#define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
+      #define V2_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
       #define W7PUA_I2S_CORRECTION
     #endif 
 

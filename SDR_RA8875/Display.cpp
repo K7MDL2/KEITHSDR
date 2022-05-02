@@ -20,6 +20,10 @@
   	extern uint8_t enet_ready;
 #endif
 
+#ifndef BYPASS_SPECTRUM_MODULE
+    extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
+#endif
+
 extern uint8_t 	display_state;   // something to hold the button state for the display pop-up window later.
 extern uint8_t 	curr_band;   // global tracks our current band setting.  
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
@@ -39,6 +43,8 @@ extern struct 	TuneSteps tstep[];
 extern bool    	MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern uint8_t 	MF_client;  // Flag for current owner of MF knob services
 extern int32_t 	ModeOffset;
+extern uint8_t  popup;
+extern Metro    popup_timer; // used to check for popup screen request
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -430,13 +436,37 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 	}
 }
 
+void displayBand_Menu(uint8_t state)
+{
+    struct Standard_Button *ptr = std_btn + BAND_MENU;     // pointer to button object passed by calling function
+
+ 	if (state)
+    {
+		pop_win_up(BAND_MENU);   // arg is index into table with size of window in the record.
+		//tft.fillRect(t_ptr->bx, t_ptr->by, t_ptr->bw, t_ptr->bh, RA8875_BLACK);
+		tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color);
+		tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
+		tft.setFont(Arial_20);
+		tft.setTextColor(RA8875_BLUE);
+		tft.setCursor(CENTER, ptr->by+24, true);
+		tft.print(F("Band Select Menu"));
+	}
+	else
+	{
+		//MSG_Serial.print("spectrum_wf_colortemp = ");
+		//MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp); 
+		pop_win_down(BAND_MENU);  // remove window, restore old screen info, clear popup flag and timer
+		//displayBand();
+		//MSG_Serial.println("Menu Pressed");
+	}
+}
+
 // These buttons have no associated labels so are simply button updates
 COLD void displayMenu() 	{draw_2_state_Button(MENU_BTN, &std_btn[MENU_BTN].enabled);				 }
 COLD void displayFn() 		{draw_2_state_Button(FN_BTN, &std_btn[FN_BTN].enabled);					 }
-COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &std_btn[VFO_AB_BTN].enabled);	 }
+COLD void displayVFO_AB() 	{draw_2_state_Button(VFO_AB_BTN, &std_btn[VFO_AB_BTN].enabled);	 		 }
 COLD void displayBandUp() 	{draw_2_state_Button(BANDUP_BTN, &bandmem[curr_band].band_num);			 }
-COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &bandmem[curr_band].band_num);			 }
-COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		 }
+COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &std_btn[BAND_BTN].enabled); 				 } //COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		 }
 COLD void displayBandDn()	{draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			 }
 COLD void displayDisplay()	{draw_2_state_Button(DISPLAY_BTN, &display_state);						 }
 COLD void displayXMIT()		{draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 }
@@ -1336,6 +1366,59 @@ COLD void drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornernam
       tft.drawPixel(x0 - x, y0 - r, color);
     }
   }
+}
+
+COLD void pop_win_up(uint8_t win_num)
+{  
+    struct Standard_Button *ptr = std_btn + win_num;     // pointer to button object passed by calling function
+
+    if(win_num)  // Future index to a window size
+    {
+        popup_timer.interval(4000);
+        tft.setFont(Arial_14);
+        popup = 1;
+        #ifdef USE_RA8875
+            tft.setActiveWindow(ptr->bx, ptr->bx+ptr->bw, ptr->by, ptr->by+ptr->bh);  
+            // Save the current screen to Layer 2
+            tft.BTE_move(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->bx, ptr->by, 1, 2);  // Layer 1 to Layer 2
+            while (tft.readStatus());  // Make sure it is done.  Memory moves can take time.
+            tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR  
+        #else   // RA8876  
+            tft.canvasImageStartAddress(PAGE1_START_ADDR);
+            tft.boxPut(PAGE2_START_ADDR, ptr->bx, ptr->by, ptr->bx+ptr->bw, ptr->by+ptr->bh, ptr->bx, ptr->by);                    
+            tft.check2dBusy();    
+            tft.canvasImageStartAddress(PAGE1_START_ADDR);
+            // Blank the plot area and we will draw a new line, flicker free!
+            setActiveWindow(ptr->bx, ptr->bx+ptr->bw, ptr->by, ptr->by+ptr->bh); 
+        #endif  // USE_RA8875
+        // Let the calling fucntion handle the rest of the screen drawing then call pop_win_down
+        //   to tear down the window and restore the original screen
+    }
+}
+
+COLD void pop_win_down(uint8_t win_num)
+{  
+    struct Standard_Button *ptr = std_btn + win_num;     // pointer to button object passed by calling function
+
+    if(win_num)  // Future index to a window size
+    {
+        #ifdef USE_RA8875
+            // Use BTE_Move to copy our fresh drawn spectrum form layer 2 to Layer 1
+            tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
+            tft.BTE_move(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->bx, ptr->by, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.            
+            while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.
+            tft.setActiveWindow();
+        #else
+            // BTE block copy it to page 1 spectrum window area. No flicker this way, no artifacts since we clear the window each time.            
+            tft.boxGet(PAGE2_START_ADDR, ptr->bx, ptr->by, ptr->bx+ptr->bw, ptr->by+ptr->bh, ptr->bx, ptr->by);
+            tft.check2dBusy();            
+            tft.canvasImageStartAddress(PAGE1_START_ADDR);
+            setActiveWindow_default();
+        #endif
+        popup = 0;   // resume our normal schedule broadcast
+        popup_timer.interval(65000);      
+        displayRefresh();
+   }
 }
 
 //	#endif // ifndef USE_RA8875
