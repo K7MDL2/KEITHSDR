@@ -789,11 +789,9 @@ HOT void loop()
     #endif // PANADAPTER
 
     //if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
-    if (popup) // stop spectrum updates, clear the screen and post up a keyboard or something
-    {
-        //struct Standard_Button *t_ptr = &std_btn[UTCTIME_BTN];
-        // Service popup window
-    }
+    //{
+        // timeout the active window
+    //}
     
     // The timer and flag are set by the rogerBeep() function
     if (touchBeep_flag && touchBeep_timer.check() == 1)   
@@ -838,7 +836,7 @@ HOT void loop()
         printCPUandMemory(millis(), 3000); //print every 3000 msec
 
 #ifdef USE_RS_HFIQ
-    if (!popup) 
+    //if (!popup) 
         RS_HFIQ_Service();
 #endif
                             
@@ -1889,6 +1887,8 @@ void RS_HFIQ_Service(void)
 
     if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
     {
+        if (popup) return;  // ignore external changes while a window is active.  Changes wil be applied when the window is close (popup OFF)
+
         if (bandmem[curr_band].split != split_last)
         {
             MSG_Serial.println("Split VFOs");
