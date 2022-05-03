@@ -66,68 +66,68 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
   //  en  show  pnl pos  x   y    w    h    r   outline_color      txtcolor           on_color     off_color     padx pady  label
     // Special button for function button is presented on every row to advance to the next row.
     // Enable value is used to store th actiuve panel number for the function button operation. Starts at offset of 2. (2-1 to get panel 1 for example)   Do not change this value
-    {  2,  ON,   0, 0, x_0, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 25, 20, "Fn 1\0"},
+    {  2,  ON,   0, 0, x_0, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 25, 20, "Fn 1\0"},
     
     // Panel 1  - this table is organized in sorted order for convenience but can be in any order using Panelnum an Panelpos
     // Show == ON unhides ths button for display on a panel.   Enable usually tracks the on/off state of the button.
-    { ON,  ON,   1, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Mode\0"},
-    { ON,  ON,   1, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 21, 20, "Filter\0"},
-    { ON,  ON,   1, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 24, 20, "Rate\0"},
-    { ON,  ON,   1, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  4, 20, "ATT\0"},
-    { ON,  ON,   1, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Preamp\0"},
-    { OFF,  ON,   1, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 20, 20, "Band\0"},
+    { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Mode\0"},
+    { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, "Filter\0"},
+    { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, "Rate\0"},
+    { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  4, 20, "ATT\0"},
+    { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Preamp\0"},
+    { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
     //Panel 2
-    { ON, OFF,   2, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "NB\0"},
-    { ON, OFF,   2, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 32, 20, "NR\0"},
-    { ON, OFF,   2, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 18, 20, "Notch\0"},
-    { ON, OFF,   2, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  8, 20, "AGC- \0"},
-    { ON, OFF,   2, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  7, 20, "Zoom\0"},
-    { ON, OFF,   2, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  5, 20, "Pan\0"},
+    { ON, OFF, 2, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "NB\0"},
+    { ON, OFF, 2, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 32, 20, "NR\0"},
+    { ON, OFF, 2, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 18, 20, "Notch\0"},
+    { ON, OFF, 2, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  8, 20, "AGC- \0"},
+    { ON, OFF, 2, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  7, 20, "Zoom\0"},
+    { ON, OFF, 2, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Pan\0"},
     //Panel 3
-    { ON, OFF,   3, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "Menu\0"},
-    { ON, OFF,   3, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 18, 20, "ANT  \0"},
-    { ON, OFF,   3, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 25, 20, "ATU\0"},
-    { ON, OFF,   3, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 22, 20, "XMIT\0"},
-    { ON, OFF,   3, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band -\0"},
-    { ON, OFF,   3, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 12, 20, "Band +\0"},
+    { ON, OFF, 3, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "Menu\0"},
+    { ON, OFF, 3, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "ANT  \0"},
+    { ON, OFF, 3, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 25, 20, "ATU\0"},
+    { ON, OFF, 3, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "XMIT\0"},
+    { ON, OFF, 3, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band -\0"},
+    { ON, OFF, 3, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band +\0"},
     //Panel 4
-    { ON, OFF,   4, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "RIT\0"},
-    { ON, OFF,   4, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 31, 20, "XIT\0"},   
-    { ON, OFF,   4, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 26, 20, "Fine\0"},
-    { ON, OFF,   4, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Split\0"},
-    { ON, OFF,   4, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK,  9, 20, "Display\0"},
-    { ON, OFF,   4, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLUE,  31, 20, "A/B\0"},
+    { ON, OFF, 4, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "RIT\0"},
+    { ON, OFF, 4, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "XIT\0"},   
+    { ON, OFF, 4, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 26, 20, "Fine\0"},
+    { ON, OFF, 4, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Split\0"},
+    { ON, OFF, 4, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Display\0"},
+    { ON, OFF, 4, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLUE,  31, 20, "A/B\0"},
     //Panel 5
-    { ON, OFF,   5, 1, x_1, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Enet\0"},
-    { ON, OFF,   5, 2, x_2, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 30, 20, "Xvtr\0"},
-    { ON, OFF,   5, 3, x_3, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "RF:\0"},
-    {OFF, OFF,   5, 4, x_4, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 14, 20, "RefLvl\0"},
-    { ON, OFF,   5, 5, x_5, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK,  9, 20, "AF:\0"},
-    { ON, OFF,   5, 6, x_6, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLUE,  RA8875_BLACK, 23, 20, "Mute\0"},
+    { ON, OFF, 5, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Enet\0"},
+    { ON, OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, "Xvtr\0"},
+    { ON, OFF, 5, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "RF:\0"},
+    {OFF, OFF, 5, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 14, 20, "RefLvl\0"},
+    { ON, OFF, 5, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "AF:\0"},
+    { ON, OFF, 5, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Mute\0"},
 
 #ifdef USE_RA8875   // These rows differ between display sizes. 
     #define BS_ANCHOR_X 100
     #define BS_ANCHOR_Y 80
     // Panelpos ==255 means it is a special type button not on a panel
     //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
-    { ON,  ON,   0, 255, 630,   1, 170,  36,   3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
-    { ON,  ON,   0, 255, 645,  40, 140,  85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
-    { ON, OFF,   0, 255,   0, 200, 800, 180, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
+    { ON,  ON, 0, 255, 630,   1, 170,  36,   3, BLACK,      LIGHTGREY,  BLACK, BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
+    { ON,  ON, 0, 255, 645,  40, 140,  85,   8, LIGHTGREY,  BLUE,       BLACK, BLACK, 7,  10, ""},  // S/MF meter for RA8875 4.3"
+    { ON, OFF, 0, 255,   0, 200, 800, 180, r_1, BLACK,      BLACK,      BLACK, BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
     // This defines the Band Select window
-    { OFF, OFF,   0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLUE, BLUE,  9, 20, "Band Select"},   // Band Select menu Window
+    { OFF, OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
     // These are the Band buttons.  Use panel_num 100
     // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
 // Spare
-//    { ON, OFF,   2, 255, 467, y_1, w_1, h_1, r_1, RA8875_LIGHT_GREY, RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 23, 20, "Spot\0"},
+//    { ON, OFF, 2, 255, 467, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 23, 20, "Spot\0"},
 #else
     
     #define BS_ANCHOR_X 200
     #define BS_ANCHOR_Y 80
-    { ON,  ON,   0, 255, 865,   1, 170,   36,   3, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK, RA8875_BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
-    { ON,  ON,   0, 255, 880,  41, 140,   85,   8, RA8875_LIGHT_GREY, RA8875_BLUE,       RA8875_BLACK, RA8875_BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
-    { ON, OFF,   0, 255.   0, 190,1023,  320, r_1, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
+    { ON,  ON, 0, 255, 865,   1, 170,   36,   3, BLACK,      LIGHTGREY,  BLACK, BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
+    { ON,  ON, 0, 255, 880,  41, 140,   85,   8, LIGHTGREY,  BLUE,       BLACK, BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
+    { ON, OFF, 0, 255.   0, 190,1023,  320, r_1, BLACK,      BLACK,      BLACK, BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
     // This defines the Band Select window
-    { OFF, OFF,   0, 255. BS_ANCHOR_X, BS_ANCHOR_Y, 800,  510, r_1, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK, RA8875_BLACK,  9, 20, ""},  // Band Select Menu Windows
+    { OFF, OFF, 0, 255. BS_ANCHOR_X, BS_ANCHOR_Y, 800,  510, r_1, LIGHTGREY, BLACK, BLACK, BLACK,  9, 20, ""},  // Band Select Menu Windows
     // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
 #endif  // USE_RA8875
     #define BSX_0  (BS_ANCHOR_X+20)
@@ -166,32 +166,32 @@ struct Standard_Button std_btn[STD_BTN_NUM] = {
 
 struct Label labels[LABEL_NUM] = {
   //  en  show   x   y    w    h   r   outline_color     on_txtclr      on_color    off_txtclr     off_color  padx pady  label 
-    {OFF, OFF,   0,   0,  40, 29, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "B:\0"},   
-    {OFF,  ON,  20, 110,  90, 28, 3, RA8875_BLACK, RA8875_YELLOW,RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 130, 110, 105, 28, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,   RA8875_CYAN,  RA8875_BLACK, 3, 7, "F:\0"},
-    {OFF,  ON, 280, 110,  96, 28, 3, RA8875_BLACK, RA8875_BLUE,  RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, 3, 7, "R:\0"},
-    {OFF,  ON, 430, 110,  72, 28, 3, RA8875_BLACK, RA8875_LIGHT_ORANGE, RA8875_BLACK, RA8875_BLUE, RA8875_BLACK, 3, 7, "AGC-\0"},
-    {OFF,  ON, 560, 110,  60, 28, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,   RA8875_YELLOW,RA8875_BLACK, 3, 7, "ANT-\0"}, 
-    {OFF,  ON,  10,  15,  48, 22, 3, RA8875_BLACK, RA8875_CYAN,  RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "ATT\0"},
-    {OFF,  ON,  70,  15,  48, 22, 3, RA8875_BLACK, RA8875_BLACK, RA8875_BLUE,     myDARKGREY,  RA8875_BLACK, 6, 4, "Pre\0"},
-    {OFF,  ON, 130,  15,  48, 22, 3, RA8875_CYAN,  RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 6, 4, "ATU\0"},
-    {OFF,  ON,  10,  40,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "RIT\0"},
-    {OFF,  ON,  70,  40,  48, 22, 3, RA8875_BLACK, RA8875_RED,   RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 4, "XIT\0"},
-    {OFF,  ON, 130,  40,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 5, 4, "Fine\0"},
-    {OFF,  ON,  10,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 8, 4, "NB\0"},
-    {OFF,  ON,  70,  65,  48, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 9, 4, "NR\0"},
-    {OFF,  ON, 130,  65,  60, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Notch\0"},
+    {OFF, OFF,   0,   0,  40, 29, 3, BLACK, BLUE,  BLACK, CYAN,       BLACK, 3, 7, "B:\0"},   
+    {OFF,  ON,  20, 110,  90, 28, 3, BLACK, YELLOW,BLACK, YELLOW,     BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON, 130, 110, 105, 28, 3, BLACK, CYAN,  BLACK, CYAN,       BLACK, 3, 7, "F:\0"},
+    {OFF,  ON, 280, 110,  96, 28, 3, BLACK, BLUE,  BLACK, ORANGE,     BLACK, 3, 7, "R:\0"},
+    {OFF,  ON, 430, 110,  72, 28, 3, BLACK, ORANGE,BLACK, BLUE,       BLACK, 3, 7, "AGC-\0"},
+    {OFF,  ON, 560, 110,  60, 28, 3, BLACK, RED,   BLACK, YELLOW,     BLACK, 3, 7, "ANT-\0"}, 
+    {OFF,  ON,  10,  15,  48, 22, 3, BLACK, CYAN,  BLACK, myDARKGREY, BLACK, 3, 4, "ATT\0"},
+    {OFF,  ON,  70,  15,  48, 22, 3, BLACK, BLACK, BLUE,  myDARKGREY, BLACK, 6, 4, "Pre\0"},
+    {OFF,  ON, 130,  15,  48, 22, 3, CYAN,  GREEN, BLACK, myDARKGREY, BLACK, 6, 4, "ATU\0"},
+    {OFF,  ON,  10,  40,  48, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 5, 4, "RIT\0"},
+    {OFF,  ON,  70,  40,  48, 22, 3, BLACK, RED,   BLACK, myDARKGREY, BLACK, 8, 4, "XIT\0"},
+    {OFF,  ON, 130,  40,  60, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 5, 4, "Fine\0"},
+    {OFF,  ON,  10,  65,  48, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 8, 4, "NB\0"},
+    {OFF,  ON,  70,  65,  48, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 9, 4, "NR\0"},
+    {OFF,  ON, 130,  65,  60, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 2, 4, "Notch\0"},
     #ifdef USE_RA8875
-    {OFF,  ON, 220,  65,  90, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Split\0"},
+    {OFF,  ON, 220,  65,  90, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Split\0"},
     #else
-    {OFF,  ON, 320,  65,  90, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Split\0"},
+    {OFF,  ON, 320,  65,  90, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Split\0"},
     #endif
-    {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
-    {OFF, OFF, 467, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
-    {OFF, OFF, 583, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "RefLvl\0"},  // No label on screen for this today
-    {OFF, OFF, 583, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 2, 4, "Zoom\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, RA8875_BLACK, RA8875_GREEN, RA8875_BLACK,    myDARKGREY,  RA8875_BLACK, 3, 4, "Pan\0"} // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
+    {OFF, OFF, 467, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
+    {OFF, OFF, 583, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "RefLvl\0"},  // No label on screen for this today
+    {OFF, OFF, 583, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 2, 4, "Zoom\0"}, // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Pan\0"} // No label on screen for this today
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
@@ -204,15 +204,15 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     // x   y    w    h    r   bs  bm   outline_clr     box_clr              bg_clr      txt_clr              txt_Fnt   TX_clr     padx  pady
     #ifdef USE_RA8875
-    {204,  1, 380,  50,   3,  0,  0, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY, Arial_40, RA8875_RED,   4,   4}, // VFO Active Digits
-    {588,  6,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  RA8875_GREEN,      Arial_24, RA8875_RED,   9,   7}, // VFO Active Label
-    {310, 53, 274,  40,   3,  0,  0, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_28, RA8875_RED,   6,   6}, // VFO Stby Digits
-    {588, 53,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_24, RA8875_RED,   9,   7}  // VFO Stby Label
+    {204,  1, 380,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_40, RED,   4,   4}, // VFO Active Digits
+    {588,  6,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active Label
+    {310, 53, 274,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_28, RED,   6,   6}, // VFO Stby Digits
+    {588, 53,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   9,   7}  // VFO Stby Label
     #else
-    {304,  1, 380,  50,   3,  0,  0, RA8875_BLACK,      RA8875_LIGHT_GREY, RA8875_BLACK,  RA8875_LIGHT_GREY, Arial_40, RA8875_RED,   4,   4}, // VFO Active Digits
-    {688,  6,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  RA8875_GREEN,      Arial_24, RA8875_RED,   9,   7}, // VFO Active Label
-    {410, 53, 274,  40,   3,  0,  0, RA8875_BLACK,      RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_28, RA8875_RED,   6,   6}, // VFO Stby Digits
-    {688, 53,  40,  40,   3,  0,  0, RA8875_LIGHT_GREY, RA8875_BLACK,      RA8875_BLACK,  myDARKGREY,        Arial_24, RA8875_RED,   9,   7}  // VFO Stby Label
+    {304,  1, 380,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_40, RED,   4,   4}, // VFO Active Digits
+    {688,  6,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active Label
+    {410, 53, 274,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_28, RED,   6,   6}, // VFO Stby Digits
+    {688, 53,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   9,   7}  // VFO Stby Label
     #endif  // USE_RA8875
 };
 
