@@ -808,7 +808,7 @@ void Button_Action(uint16_t button_name)
             case NOTCH_BTN:     Notch();        break;
             case BANDUP_BTN:    BandUp();       break;
             case BANDDN_BTN:    BandDn();       break;
-            case BAND_BTN:      Band();         break;
+            case BAND_BTN:      Band(255);        break;
             case DISPLAY_BTN:   Display();      break;
             case FN_BTN:        setPanel();     break;
             case ZOOM_BTN:      setZoom(0);     break;
@@ -827,17 +827,17 @@ void Button_Action(uint16_t button_name)
         switch (button_name)
         {
             //   When a button is selected, load that band's last VFOA.  changeBands() will validate and compute the new band number
-            case BS_160M:   VFOA = bandmem[BAND160M].vfo_A_last; changeBands(0); Band(); break;  // Band toggles the windows and buttons off
-            case BS_80M:    VFOA = bandmem[BAND80M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_60M:    VFOA = bandmem[BAND60M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_40M:    VFOA = bandmem[BAND40M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_30M:    VFOA = bandmem[BAND30M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_20M:    VFOA = bandmem[BAND20M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_17M:    VFOA = bandmem[BAND17M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_15M:    VFOA = bandmem[BAND15M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_12M:    VFOA = bandmem[BAND12M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_10M:    VFOA = bandmem[BAND10M].vfo_A_last;  changeBands(0); Band(); break;
-            case BS_6M:     VFOA = bandmem[BAND6M].vfo_A_last;   changeBands(0); Band(); break;
+            case BS_160M:   Band(BAND160M); break;  // Band toggles the windows and buttons off
+            case BS_80M:    Band(BAND80M);  break;
+            case BS_60M:    Band(BAND60M);  break;
+            case BS_40M:    Band(BAND40M);  break;
+            case BS_30M:    Band(BAND30M);  break;
+            case BS_20M:    Band(BAND20M);  break;
+            case BS_17M:    Band(BAND17M);  break;
+            case BS_15M:    Band(BAND15M);  break;
+            case BS_12M:    Band(BAND12M);  break;
+            case BS_10M:    Band(BAND10M);  break;
+            case BS_6M:     Band(BAND6M);   break;
             default: Serial.print(F("Found a popup button with SHOW ON but has no function to call.  Index = "));
                 Serial.println(button_name); break;
         }
@@ -847,7 +847,7 @@ void Button_Action(uint16_t button_name)
         switch (button_name)
         {
             case MENU_BTN:  Menu();  break;
-            case BAND_BTN:  Band();  break; 
+            case BAND_BTN:  Band(255);  break; 
             default: Serial.print(F("Found a popup button with SHOW ON but has no function to call.  Index = "));
                     Serial.println(button_name); break;
         }

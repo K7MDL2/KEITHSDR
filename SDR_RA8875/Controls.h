@@ -18,7 +18,7 @@ void changeBands(int8_t direction);
 void Mute();
 void Menu();
 void Display();
-void Band();
+void Band(uint8_t new_band);
 void BandDn();
 void BandUp();
 void Notch();

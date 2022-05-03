@@ -86,7 +86,7 @@ void pop_win_down(uint8_t win_num);
 void Mute();
 void Menu();
 void Display();
-void Band();
+void Band(uint8_t new_band);
 void BandDn();
 void BandUp();
 void Notch();
@@ -1389,10 +1389,30 @@ COLD void BandDn()
 }
 
 // BAND button
-COLD void Band()
+// Bandstack will copy in one of the alternative saved VFOA values and cycle throgh them.  VFO_A_last is always the last active value. Last_1 the previous, and last_2 previous to that.
+COLD void Band(uint8_t new_band)
 {
     if (std_btn[BAND_BTN].enabled == ON)
     {
+        if (popup && new_band != 255)
+        {
+            if (curr_band == new_band) // already on this band so new request must be for bandstack, cycle through, saving changes each time
+            {   
+                MSG_Serial.print("Previous VFO A on Band "); MSG_Serial.println(new_band);
+                uint32_t temp_last;
+                temp_last = bandmem[new_band].vfo_A_last;
+                bandmem[new_band].vfo_A_last   = bandmem[new_band].vfo_A_last_1;
+                bandmem[new_band].vfo_A_last_1 = bandmem[new_band].vfo_A_last_2;
+                bandmem[new_band].vfo_A_last_2 = temp_last;  // let changeBands compute new band based on VFO frequency
+                VFOA = bandmem[new_band].vfo_A_last;  // store in the Active VFO register
+            }
+            else
+            {
+                MSG_Serial.print("Last VFO A on Band "); MSG_Serial.println(new_band);
+                VFOA = bandmem[new_band].vfo_A_last;  // let changeBands compute new band based on VFO frequency
+            }
+            changeBands(0);
+        }
         std_btn[BAND_BTN].enabled = OFF;
         displayBand_Menu(0);  // Exit window
     }
@@ -1401,10 +1421,8 @@ COLD void Band()
         std_btn[BAND_BTN].enabled = ON;
         displayBand_Menu(1);  // Init window
     }
-    //changeBands(1);  // increment up 1 band for now until the pop up windows buttons and/or MF are working
     displayBand();
-    //MSG_Serial.print("Set Band to ");
-    //MSG_Serial.println(bandmem[curr_band].band_num,DEC);
+    //MSG_Serial.print("Set Band to "); MSG_Serial.println(bandmem[curr_band].band_num,DEC);
 }
 
 // DISPLAY button
