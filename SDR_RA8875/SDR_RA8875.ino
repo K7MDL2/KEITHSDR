@@ -792,10 +792,12 @@ HOT void loop()
         #endif  // ALL_CAT
     #endif // PANADAPTER
 
-    //if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
-    //{
+    if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
+    {
         // timeout the active window
-    //}
+        pop_win_down(BAND_MENU);
+        Band(255);
+    }
     
     // The timer and flag are set by the rogerBeep() function
     if (touchBeep_flag && touchBeep_timer.check() == 1)   
@@ -840,7 +842,6 @@ HOT void loop()
         printCPUandMemory(millis(), 3000); //print every 3000 msec
 
 #ifdef USE_RS_HFIQ
-    //if (!popup) 
         RS_HFIQ_Service();
 #endif
                             

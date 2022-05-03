@@ -1451,7 +1451,7 @@ COLD void pop_win_up(uint8_t win_num)
 
     if(win_num)  // Future index to a window size
     {
-        popup_timer.interval(4000);
+        popup_timer.interval(5000);
         tft.setFont(Arial_14);
         popup = 1;
         #ifdef USE_RA8875
@@ -1495,7 +1495,7 @@ COLD void pop_win_down(uint8_t win_num)
 			spectrum_RA887x.setActiveWindow_default();
         #endif
         popup = 0;   // resume our normal schedule broadcast
-        popup_timer.interval(65000);      
+        popup_timer.interval(500);      
         //displayRefresh();
    }
 }
