@@ -60,7 +60,7 @@ extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
-Metro press_timer = Metro(600);
+Metro press_timer  = Metro(600);
 Metro press_timer2 = Metro(600);
 Metro press_timer3 = Metro(600);
 Metro press_timer4 = Metro(600);
@@ -172,7 +172,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							displayMeter(user_settings[user_Profile].pan_level/10, string, 5);   // val, string label, color scheme
 							if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
 								tval = 0xFF0000;  // Change to red
-							PAN(0);
+							PAN(1);
 							break;
 		default:  
 							#ifdef USE_MIDI
@@ -190,158 +190,154 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 {
 	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
 	{	
-		MSG_Serial.println(F("Long MF Knob Push- Change Tune Rate "));
+		MSG_Serial.println(F("Long MF Knob Push"));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 62, 127);
 			noteOff(CHANNEL, 62, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder1_client_swl);
-			//Rate(0);			
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder1_client)
 	{
-		MSG_Serial.println(F("MF Knob Push to set RF Gain "));
+		MSG_Serial.println(F("MF Knob Push"));
 		obj->writeRGBCode(0xFF0000);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 63, 127);
 			noteOff(CHANNEL, 63, 0);
 		#else	
-			Button_Action(user_settings[user_Profile].encoder1_client_sw);		
-			//setRFgain(2);
+			Button_Action(user_settings[user_Profile].encoder1_client_sw);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
 	{
-		MSG_Serial.println(F("Knob #2 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #2 Long Push"));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
 			noteOff(CHANNEL, 64, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder2_client_swl);
-			//Filter(0);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder2_client)
 	{
-		MSG_Serial.println(F("Knob #2 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #2 Push"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder2_client_sw);
-			//setMode(1);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder3_client && press_timer3.check() == 1)
 	{
-		MSG_Serial.println(F("Knob #3 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #3 Long Push"));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
 			noteOff(CHANNEL, 64, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder3_client_swl);
-			//Filter(0);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder3_client)
 	{
-		MSG_Serial.println(F("Knob #3 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #3 Push"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder3_client_sw);
-			//setMode(1);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder4_client && press_timer4.check() == 1)
 	{
-		MSG_Serial.println(F("Knob #4 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #4 Long Push"));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
 			noteOff(CHANNEL, 64, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder4_client_swl);
-			//Filter(0);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder4_client)
 	{
-		MSG_Serial.println(F("Knob #4 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #4 Push"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder4_client_sw);
-			//setMode(1);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder5_client && press_timer5.check() == 1)
 	{
-		MSG_Serial.println(F("Knob #5 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #5 Long Push"));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
 			noteOff(CHANNEL, 64, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder5_client_swl);
-			//Filter(0);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder5_client)
 	{
-		MSG_Serial.println(F("Knob #5 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #5 Push"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder5_client_sw);
-			//setMode(1);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder6_client && press_timer6.check() == 1)
 	{
-		MSG_Serial.println(F("Knob #6 Long Push - Change Filter "));
+		MSG_Serial.println(F("Knob #6 Long Push"));
 		obj->writeRGBCode(0x00FF00);
 		#ifdef USE_MIDI
 			noteOn(CHANNEL, 64, 127);
 			noteOff(CHANNEL, 64, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder6_client_swl);
-			//Filter(0);
 		#endif
 	}
 	else if (obj->id == user_settings[user_Profile].encoder6_client)
 	{
-		MSG_Serial.println(F("Knob #6 Push: Change Mode"));
+		MSG_Serial.println(F("Knob #6 Push"));
 		obj->writeRGBCode(0x0000FF);
 		#ifdef USE_MIDI
 			noteOn(CHANcNEL, 65, 127);
 			noteOff(CHANNEL, 65, 0);
 		#else
 			Button_Action(user_settings[user_Profile].encoder6_client_sw);
-			//setMode(1);
 		#endif
 	}
 }
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short
 COLD void encoder_timer_start(i2cEncoderLibV2* obj) {
-	MSG_Serial.println(F("Push Timer Start: "));
+	//MSG_Serial.println(F("Push Timer Start: "));
 	obj->writeRGBCode(0x0000FF);
 	if (obj->id == user_settings[user_Profile].encoder1_client)
-	  press_timer.reset();
+	  	press_timer.reset();
   	if (obj->id == user_settings[user_Profile].encoder2_client) 
-    press_timer2.reset();
+    	press_timer2.reset();
+	if (obj->id == user_settings[user_Profile].encoder3_client) 
+    	press_timer3.reset();
+	if (obj->id == user_settings[user_Profile].encoder4_client) 
+    	press_timer4.reset();
+	if (obj->id == user_settings[user_Profile].encoder5_client) 
+    	press_timer5.reset();
+	if (obj->id == user_settings[user_Profile].encoder6_client) 
+    	press_timer6.reset();
 }
 
 //Callback when the encoder reaches the max or min
@@ -465,6 +461,7 @@ COLD void set_I2CEncoders()
 		ENC3.onButtonRelease = encoder_click;
 		ENC3.onMinMax = encoder_thresholds;
 		ENC3.onFadeProcess = encoder_fade;
+		ENC3.onButtonPush = encoder_timer_start;
 		ENC3.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 		ENC3.autoconfigInterrupt();
 		blink_ENC3_RGB();
@@ -484,7 +481,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC4.id = user_settings[user_Profile].encoder3_client;   
+		ENC4.id = user_settings[user_Profile].encoder4_client;   
 		ENC4.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC4.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -494,6 +491,7 @@ COLD void set_I2CEncoders()
 		ENC4.onButtonRelease = encoder_click;
 		ENC4.onMinMax = encoder_thresholds;
 		ENC4.onFadeProcess = encoder_fade;
+		ENC4.onButtonPush = encoder_timer_start;
 		ENC4.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 		ENC4.autoconfigInterrupt();
 		blink_ENC4_RGB();
@@ -513,7 +511,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC5.id = user_settings[user_Profile].encoder3_client;   
+		ENC5.id = user_settings[user_Profile].encoder5_client;   
 		ENC5.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC5.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -523,6 +521,7 @@ COLD void set_I2CEncoders()
 		ENC5.onButtonRelease = encoder_click;
 		ENC5.onMinMax = encoder_thresholds;
 		ENC5.onFadeProcess = encoder_fade;
+		ENC5.onButtonPush = encoder_timer_start;
 		ENC5.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 		ENC5.autoconfigInterrupt();
 		blink_ENC5_RGB();
@@ -542,7 +541,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC6.id = user_settings[user_Profile].encoder3_client;   
+		ENC6.id = user_settings[user_Profile].encoder6_client;   
 		ENC6.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC6.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -552,6 +551,7 @@ COLD void set_I2CEncoders()
 		ENC6.onButtonRelease = encoder_click;
 		ENC6.onMinMax = encoder_thresholds;
 		ENC6.onFadeProcess = encoder_fade;
+		ENC6.onButtonPush = encoder_timer_start;
 		ENC6.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 		ENC6.autoconfigInterrupt();
 		blink_ENC6_RGB();

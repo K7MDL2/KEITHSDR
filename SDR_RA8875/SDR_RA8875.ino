@@ -737,7 +737,7 @@ HOT void loop()
         {            
             mfg = MF_ENC.readStatus();
             if (mfg) {}
-                //{ MSG_Serial.print(F("****Checked MF_Enc status = ")); MSG_Serial.println(mfg); }
+            //if (mfg) { MSG_Serial.print(F("****Checked MF_Enc status = ")); MSG_Serial.println(mfg); }
         }
         #endif
         #ifdef ENC2_ADDR
@@ -745,7 +745,7 @@ HOT void loop()
         {
             mfg = ENC2.readStatus();
             if (mfg) {}
-                //{MSG_Serial.print(F("****Checked Encoder #2 status = ")); MSG_Serial.println(mfg); }
+            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #2 status = ")); MSG_Serial.println(mfg); }
         }
         #endif
         #ifdef ENC3_ADDR
@@ -761,7 +761,7 @@ HOT void loop()
         {
             mfg = ENC4.readStatus();
             if (mfg) {}
-                //{MSG_Serial.print(F("****Checked Encoder #4 status = ")); MSG_Serial.println(mfg); }
+            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #4 status = ")); MSG_Serial.println(mfg); }
         }
         #endif
         #ifdef ENC5_ADDR
@@ -777,7 +777,7 @@ HOT void loop()
         {
             mfg = ENC6.readStatus();
             if (mfg) {}
-                //{MSG_Serial.print(F("****Checked Encoder #6 status = ")); MSG_Serial.println(mfg); }
+            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #6 status = ")); MSG_Serial.println(mfg); }
         }
         #endif
     }

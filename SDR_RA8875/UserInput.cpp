@@ -775,6 +775,8 @@ void Button_Action(uint16_t button_name)
 {
     struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
 
+    //Serial.print(F("Button Called "));  Serial.println(button_name);
+
     // used the index to the table to match up a function to call
     if (!popup)
     {
