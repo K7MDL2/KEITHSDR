@@ -9,6 +9,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     3. I am experimenting with window and button coloring.  When a window is active, all gestures and non-window related controls are diaabled.  The spectrum is halted but RX audio continues on.  
     4. Future: When a window is open the MF knob will take focus.  When rotated it will highlight a button or setting, pushing the encoder switch then selects it.
     5. Added 3-Deep VFO Bandstack feature, per-band. If you hit a band button that is the current band it cycles the last used frequency saving the last 3 VFO A values. Since nothing is stored on SD or EEPROM yet, these values will return to the table defaults on bootups.
+    6. Fixed Band Select Window graphics for the RA8876 7" display
+    7. Fixed the Band Select Window timeout. Will close the window after 5 seconds.
     
 ## April 2022
 
