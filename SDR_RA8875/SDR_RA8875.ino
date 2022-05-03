@@ -752,7 +752,32 @@ HOT void loop()
         if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client)
         {
             mfg = ENC3.readStatus();
-            if (mfg) {MSG_Serial.print(F("****Checked Encoder #3 status = ")); MSG_Serial.println(mfg); }
+            if (mfg) {}
+            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #3 status = ")); MSG_Serial.println(mfg); }
+        }
+        #endif
+        #ifdef ENC4_ADDR
+        if(ENC4.updateStatus() && user_settings[user_Profile].encoder4_client)
+        {
+            mfg = ENC4.readStatus();
+            if (mfg) {}
+                //{MSG_Serial.print(F("****Checked Encoder #4 status = ")); MSG_Serial.println(mfg); }
+        }
+        #endif
+        #ifdef ENC5_ADDR
+        if(ENC5.updateStatus() && user_settings[user_Profile].encoder5_client)
+        {
+            mfg = ENC5.readStatus();
+            if (mfg) {}
+            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #5 status = ")); MSG_Serial.println(mfg); }
+        }
+        #endif
+        #ifdef ENC6_ADDR
+        if(ENC6.updateStatus() && user_settings[user_Profile].encoder6_client)
+        {
+            mfg = ENC6.readStatus();
+            if (mfg) {}
+                //{MSG_Serial.print(F("****Checked Encoder #6 status = ")); MSG_Serial.println(mfg); }
         }
         #endif
     }

@@ -1,6 +1,6 @@
 {
   "files.exclude": {
-    "**/.git":true,
+    "**/.git": true,
     "**/.lib": true,
     "**/.vsteensy/**": true,
     ".pio": true,
@@ -15,5 +15,24 @@
   "C_Cpp.errorSquiggles": "Disabled",
   "C_Cpp.default.includePath": [
     "D:\\ProgramFiles\\Arduino"
+  ],
+  "task.autoDetect": "off",
+  "compiler-explorer.url": "http://localhost:10240",
+  "compiler-explorer.compiler": "g54",
+  "compiler-explorer.options": [
+    "-I'C:/Users/k7mdl/Documents/GitHub/KEITHSDR/SDR_RA8875/src'",
+    "-I'C:/Progra~2/Arduino/hardware/teensy/avr/cores/teensy4'",
+    "-D__IMXRT1062__ -DTEENSYDUINO=156",
+    "-DF_CPU=816000000",
+    "-DUSB_DUAL_SERIAL",
+    "-DLAYOUT_US_ENGLISH",
+    "-DARDUINO_TEENSY41",
+    "-DARDUINO=10815",
+    "-std=gnu++14 -fno-exceptions -fpermissive -fno-rtti -fno-threadsafe-statics -felide-constructors -Wno-error=narrowing",
+    "",
+    "-mthumb -mcpu=cortex-m7 -mfloat-abi=hard -mfpu=fpv5-d16",
+    "-O3",
+    "-g -Wall -ffunction-sections -fdata-sections -nostdlib",
+    null
   ]
 }

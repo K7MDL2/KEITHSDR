@@ -3,7 +3,7 @@
     {
       "label": "Build",
       "group": "build",
-      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "command": "E:/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "all",
         "",
@@ -12,16 +12,22 @@
     },
     {
       "label": "Clean",
-      "group": "build",
-      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "command": "E:/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "clean"
       ]
     },
     {
       "label": "Upload (teensy.exe)",
-      "group": "build",
-      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "command": "E:/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "upload",
         "",
@@ -34,7 +40,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "command": "C:/Progra~2/GnuWin32/bin/make.exe",
+      "command": "E:/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "uploadTy",
         "",
