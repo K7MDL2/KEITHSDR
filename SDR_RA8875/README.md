@@ -8,9 +8,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     2. Added Band Select Menu with buttons for 160M to 6M.  Hit Band button to bring the menu up. Band buttons can be easily disabled by placing 255 in their bandmem.Panelpos field. Color, size and placement is configured in the standard_button table like all buttons. Disabled buttons are hidden. Hot any buttom to change to that band, or hit the Band button again to close the window with no change.
     3. I am experimenting with window and button coloring.  When a window is active, all gestures and non-window related controls are diaabled.  The spectrum is halted but RX audio continues on.  
     4. Future: When a window is open the MF knob will take focus.  When rotated it will highlight a button or setting, pushing the encoder switch then selects it.
-    5. Added 3-Deep VFO Bandstack feature, per-band. If you hit a band button that is the current band it cycles the last used frequency saving the last 3 VFO A values. Since nothing is stored on SD or EEPROM yet, these values will return to the table defaults on bootups.
+    5. Added 3-Deep VFO BandStack feature, per-band. If you hit a band button that is the current band it cycles the last used frequency saving the last 3 VFO A values. Since nothing is stored on SD or EEPROM yet, these values will return to the table defaults on bootups.
     6. Fixed Band Select Window graphics for the RA8876 7" display
     7. Fixed the Band Select Window timeout. Will close the window after 5 seconds.
+    8. Fixed seeveral bugs related to enabling i2c encoder 3 to 6. You can assign any encoder number to any address as long as you only define encoders that really exit. If you have 2x i2c encoders, then define only 2 of them in RadioConfig.h. Enabling more results in eternal Long Push events from non-existent encoder switches and cause the radio to not work. Encoder 1 is special, it is a multi-function (MF) enabled knob so should always stay assigned. Your 2nd encoders could be assigned to any other encoder number such as #5. If so then that 2nd encoder, now known as Encoder 5, will be assigned the encoder 5 functions in the user_settings table. You can edit the table assignments any way you like. There are lots of switch actions, so far there are only 6 or 7 adjustable knobs to choose from.
     
 ## April 2022
 
