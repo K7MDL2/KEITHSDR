@@ -8,7 +8,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     2. Added Band Select Menu with buttons for 160M to 6M.  Hit Band button to bring the menu up. Band buttons can be easily disabled by placing 255 in their bandmem.Panelpos field. Color, size and placement is configured in the standard_button table like all buttons. Disabled buttons are hidden. Hot any buttom to change to that band, or hit the Band button again to close the window with no change.
     3. I am experimenting with window and button coloring.  When a window is active, all gestures and non-window related controls are diaabled.  The spectrum is halted but RX audio continues on.  
     4. Future: When a window is open the MF knob will take focus.  When rotated it will highlight a button or setting, pushing the encoder switch then selects it.
-    5. Added 3-Deep VFO Bandstack featuire, per-band. If you hit a band button that is the current band it cycles the last used frequency saving the last 3 VFO A values. Since nothing is stored on SD or EEPROM yet, these values will return to the table defaults on bootups.
+    5. Added 3-Deep VFO Bandstack feature, per-band. If you hit a band button that is the current band it cycles the last used frequency saving the last 3 VFO A values. Since nothing is stored on SD or EEPROM yet, these values will return to the table defaults on bootups.
     
 ## April 2022
 
