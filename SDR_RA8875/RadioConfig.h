@@ -151,7 +151,6 @@
 //#define V2_4_3_PCB   // For the V2 4.3" motherboard 4/21/2022
 //#define SMALL_PCB_V1   // For the small motgherboard 4/18/2022
 // -------------------------------------------------------------------------
-
 //#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 
 // *****************************************************************************************
@@ -162,21 +161,21 @@
 //******************************************************************************************
 
 #ifdef K7MDL_BUILD   
-    //#define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
+    #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
     #ifdef RA8876_ON      // Config for my particular RA8876 build
       #undef USE_RA8875              
       #undef VFO_MULT                 // undefine so we can redefine it without error msg
       #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board, Value ignored for RS-HFIQ
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
-      #undef TOUCH_ROTATION          // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
+      #undef TOUCH_ROTATION           // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
       //#define SV1AFN_BPF              // Use the BPF board
       //#define PE4302                  // Use the step atten usually the PE4302 board
       //#define I2C_ENCODERS
       #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
       #define si5351_TCXO             // Set load cap to 0pF for TCXO - skipped for RS-HFIQ
-      #define si5351_CORRECTION 0     // for TCXO which has been adjusted or corrected in other ways - skipped for RS-HFIQ
-      #define SMALL_PCB_V1            // For the small motherboard 4/2022
+      #define si5351_CORRECTION   0   // for TCXO which has been adjusted or corrected in other ways - skipped for RS-HFIQ
+      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
       #define W7PUA_I2S_CORRECTION
     #else   // My RA8875 4.3" specific build items
       #define USE_RA8875
@@ -194,11 +193,9 @@
         //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
       #endif    
       #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
-      //#define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
-      #define V2_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
+      #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       #define W7PUA_I2S_CORRECTION
-    #endif 
-
+    #endif
     // Config items common or NA to both builds
     //#define MECH_ENCODERS           // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
                                       // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.

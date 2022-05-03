@@ -464,7 +464,7 @@ COLD void setup()
             #endif  // USE_RA8875
         #endif // USE_FT5206_TOUCH
     #else 
-        MSG_MSG_Serial.println(F("Initializing RA8876 Display"));   
+        MSG_Serial.println(F("Initializing RA8876 Display"));   
         tft.begin(30000000UL);
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
@@ -594,7 +594,11 @@ COLD void setup()
         tft.setCursor(50, 100);
         tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
         RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
-        tft.clearScreen();
+        #ifdef USE_RA8875
+            tft.clearScreen();
+        #else
+            tft.clearActiveScreen();
+        #endif    
     #endif
         
 

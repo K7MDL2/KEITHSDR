@@ -495,8 +495,13 @@ void displayBand_Menu(uint8_t state)
 		sprintf(temp, "\nWindow is %s\n",ptr->label);
 		MSG_Serial.print(temp);
 		pop_win_up(BAND_MENU);   // arg is index into table with size of window in the record.
-		tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color);
-		tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
+		#ifdef USE_RA8875
+			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color);
+			tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
+		#else
+			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->off_color);	
+			tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->outline_color);
+		#endif
 		tft.setFont(Arial_20);
 		tft.setTextColor(ptr->txtclr);
 		tft.setCursor(CENTER, ptr->by+30, true);
@@ -576,7 +581,7 @@ COLD void draw_2_state_Button(uint8_t button, uint8_t *function_ptr)
 		if(*function_ptr > 0)
 			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->on_color);		
 		else  //(*function_ptr == 0)		
-			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->off_color );					
+			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->off_color);					
 		tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->outline_color);
 		#endif
 		tft.setTextColor(ptr->txtclr);
@@ -1456,14 +1461,15 @@ COLD void pop_win_up(uint8_t win_num)
             while (tft.readStatus());  // Make sure it is done.  Memory moves can take time.
             tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR  
         #else   // RA8876  
-            tft.canvasImageStartAddress(PAGE1_START_ADDR);
-            tft.boxPut(PAGE2_START_ADDR, ptr->bx, ptr->by, ptr->bx+ptr->bw, ptr->by+ptr->bh, ptr->bx, ptr->by);                    
+			int offset = 5;  // an offset is required because the activeWindow, boxGet, and boxPut x values do not line up right
+            tft.canvasImageStartAddress(PAGE2_START_ADDR);
+            tft.boxPut(PAGE2_START_ADDR, ptr->bx-offset, ptr->by, ptr->bx+offset+ptr->bw, ptr->by+ptr->bh, ptr->bx-offset, ptr->by);
             tft.check2dBusy();    
             tft.canvasImageStartAddress(PAGE1_START_ADDR);
             // Blank the plot area and we will draw a new line, flicker free!
-            setActiveWindow(ptr->bx, ptr->bx+ptr->bw, ptr->by, ptr->by+ptr->bh); 
+       		spectrum_RA887x.setActiveWindow(ptr->bx-offset, ptr->bx+offset+ptr->bw, ptr->by, ptr->by+ptr->bh);
         #endif  // USE_RA8875
-        // Let the calling fucntion handle the rest of the screen drawing then call pop_win_down
+        // Let the calling function handle the rest of the screen drawing then call pop_win_down
         //   to tear down the window and restore the original screen
     }
 }
@@ -1481,11 +1487,12 @@ COLD void pop_win_down(uint8_t win_num)
             while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.
             tft.setActiveWindow();
         #else
-            // BTE block copy it to page 1 spectrum window area. No flicker this way, no artifacts since we clear the window each time.            
-            tft.boxGet(PAGE2_START_ADDR, ptr->bx, ptr->by, ptr->bx+ptr->bw, ptr->by+ptr->bh, ptr->bx, ptr->by);
+			int offset = 5;  // an offset is required because the activeWindow, boxGet, and boxPut x values do not line up right
+            // BTE block copy from our saved image on Page 2 back to page 1.            
+            tft.boxGet(PAGE2_START_ADDR, ptr->bx-offset, ptr->by, ptr->bx+offset+ptr->bw, ptr->by+ptr->bh, ptr->bx-offset, ptr->by);
             tft.check2dBusy();            
-            tft.canvasImageStartAddress(PAGE1_START_ADDR);
-            setActiveWindow_default();
+			tft.canvasImageStartAddress(PAGE1_START_ADDR);
+			spectrum_RA887x.setActiveWindow_default();
         #endif
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(65000);      
