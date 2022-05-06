@@ -288,11 +288,11 @@ COLD void setMode(int8_t dir)
 
     selectMode(mndx);   // Select the mode for the Active VFO 
     
-	bandmem[curr_band].mode_A = mndx;
+	bandmem[curr_band].mode_A = mndx;  // store it
 	
     // Update the filter setting per mode 
     Filter(2);
-    //MSG_Serial.println("Set Mode");  
+    //MSG_Serial.print("Set Mode: ");  MSG_Serial.println(bandmem[curr_band].mode_A);
     displayMode();
     selectFrequency(0);  // Call in case a mode change requires a frequency offset
 }
@@ -1398,13 +1398,18 @@ COLD void Band(uint8_t new_band)
         {
             if (curr_band == new_band) // already on this band so new request must be for bandstack, cycle through, saving changes each time
             {   
-                MSG_Serial.print("Previous VFO A on Band "); MSG_Serial.println(new_band);
-                uint32_t temp_last;
-                temp_last = bandmem[new_band].vfo_A_last;
-                bandmem[new_band].vfo_A_last   = bandmem[new_band].vfo_A_last_1;
-                bandmem[new_band].vfo_A_last_1 = bandmem[new_band].vfo_A_last_2;
-                bandmem[new_band].vfo_A_last_2 = temp_last;  // let changeBands compute new band based on VFO frequency
-                VFOA = bandmem[new_band].vfo_A_last;  // store in the Active VFO register
+                MSG_Serial.print("Previous VFO A on Band "); MSG_Serial.println(curr_band);
+                uint32_t temp_vfo_last;
+                uint8_t  temp_mode_last;
+                temp_vfo_last = bandmem[curr_band].vfo_A_last;  // Save  current freq and mode
+                temp_mode_last = bandmem[curr_band].mode_A;
+                bandmem[curr_band].vfo_A_last   = bandmem[curr_band].vfo_A_last_1; // shuffle previous up to curent
+                bandmem[curr_band].mode_A = bandmem[curr_band].mode_A_1;
+                bandmem[curr_band].vfo_A_last_1 = bandmem[curr_band].vfo_A_last_2;  // shuffle more
+                bandmem[curr_band].mode_A_1 = bandmem[curr_band].mode_A_2;
+                bandmem[curr_band].vfo_A_last_2 = temp_vfo_last;  // let changeBands compute new band based on VFO frequency
+                bandmem[curr_band].mode_A_2 = temp_mode_last;
+                VFOA = bandmem[curr_band].vfo_A_last;  // store in the Active VFO register
             }
             else
             {
@@ -1422,6 +1427,9 @@ COLD void Band(uint8_t new_band)
         displayBand_Menu(1);  // Init window
     }
     displayBand();
+    displayMode();
+    displayFilter();
+    //displayRefresh();
     //MSG_Serial.print("Set Band to "); MSG_Serial.println(bandmem[curr_band].band_num,DEC);
 }
 

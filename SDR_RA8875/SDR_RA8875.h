@@ -365,10 +365,12 @@ struct Band_Memory {
     uint32_t    edge_lower;     // band edge limits for TX and for when to change to next band when tuning up or down.
     uint32_t    edge_upper;
     uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
-    uint32_t    vfo_A_last_1;   // remember previous VFO dial setting in this band (bandstack)
-    uint32_t    vfo_A_last_2;   // remember previous VFO dial setting in this band (bandstack)
-    uint32_t    vfo_B_last;   // moving away from per-band VFOB recall, moving to use a global sub-VFO which can be on any band.
     uint8_t     mode_A;         // CW, LSB, USB, DATA.  
+    uint32_t    vfo_A_last_1;   // remember previous VFO dial setting in this band (bandstack)
+    uint8_t     mode_A_1;
+    uint32_t    vfo_A_last_2;   // remember previous VFO dial setting in this band (bandstack)
+    uint8_t     mode_A_2;
+    uint32_t    vfo_B_last;   // moving away from per-band VFOB recall, moving to use a global sub-VFO which can be on any band.
     uint8_t     mode_B;         // CW, LSB, USB, DATA. - Depricating in favor is global Sub_VFO mode in user_settings 
     uint8_t     filter;         // index to Bandwidth selection for this band.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
