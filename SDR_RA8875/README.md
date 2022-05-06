@@ -12,6 +12,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     6. Fixed Band Select Window graphics for the RA8876 7" display
     7. Fixed the Band Select Window timeout. Will close the window after 5 seconds.
     8. Fixed seeveral bugs related to enabling i2c encoder 3 to 6. You can assign any encoder number to any address as long as you only define encoders that really exit. If you have 2x i2c encoders, then define only 2 of them in RadioConfig.h. Enabling more results in eternal Long Push events from non-existent encoder switches and cause the radio to not work. Encoder 1 is special, it is a multi-function (MF) enabled knob so should always stay assigned. Your 2nd encoders could be assigned to any other encoder number such as #5. If so then that 2nd encoder, now known as Encoder 5, will be assigned the encoder 5 functions in the user_settings table. You can edit the table assignments any way you like. There are lots of switch actions, so far there are only 6 or 7 adjustable knobs to choose from.
+    9. Now storing mode along with the frequency for each band stack memory. An existing feature updates the filter BW to the last used width for each mode. These reset to the database on each bootup until EEPROM/SD is implemented. You can edit SDR_DATA bandmem table.
     
 ## April 2022
 
