@@ -11,6 +11,9 @@
 //
 //  Test tones are enabled in spectrum only, not in audio path.
 //
+//#define V2_4_3_PCB  
+//#define USE_RA8875 
+
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 // #include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
@@ -21,7 +24,7 @@
 #include <WireIMXRT.h>          // gets installed with wire.h
 #include <WireKinetis.h>        // included with Arduino
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
-#define  INPUT_PULLUP           // This is used by the encoder library to configure internal pullups for the encoder inputs.
+#define  INPUT_PULLUP 2         // This is used by the encoder library to configure internal pullups for the encoder inputs.
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
