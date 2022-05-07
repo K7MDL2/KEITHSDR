@@ -21,7 +21,7 @@
 #include <WireIMXRT.h>          // gets installed with wire.h
 #include <WireKinetis.h>        // included with Arduino
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
-#define  INPUT_PULLUP           // This is used by the enoder library to configure internal pullups for the encoder inputs.
+#define  INPUT_PULLUP           // This is used by the encoder library to configure internal pullups for the encoder inputs.
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
