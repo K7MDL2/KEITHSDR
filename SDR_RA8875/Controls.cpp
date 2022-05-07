@@ -1333,7 +1333,7 @@ COLD void setRefLevel(int8_t toggle)
 // Pass the desired new absolute value.  It will be limited to allowable range of -110 to -220
 COLD void RefLevel(int8_t newval)
 {
-    bandmem[curr_band].sp_ref_lvl += newval*5;
+    bandmem[curr_band].sp_ref_lvl += newval;
     if (bandmem[curr_band].sp_ref_lvl > 50)
         bandmem[curr_band].sp_ref_lvl = 50; 
     if (bandmem[curr_band].sp_ref_lvl < -50)
