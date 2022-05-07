@@ -81,14 +81,14 @@
     #define ENET
 #endif  // REMOTE_OPS
 
-//#define TEST_SINEWAVE_SIG       // Turns on sinewave generators for display in the spectrum FFT only.
+//#define TEST_SINEWAVE_SIG   // Turns on sinewave generators for display in the spectrum FFT only.
 
-#define SPECTRUM_PRESET  0        // The spectrum layout record default value.
-                                  // 0 is recommended for full screen.
-                                  // 5 for smaller 2 window size.
+#define SPECTRUM_PRESET  0    // The spectrum layout record default value.
+                              // 0 is recommended for full screen.
+                              // 5 for smaller 2 window size.
 
 //#define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
-                            // Comment this ouot to dispable all PANADAPTER settings.
+                              // Comment this ouot to dispable all PANADAPTER settings.
 
 #define PANADAPTER_LO   8215000 // Frequency of radio's IF output in Hz. 
                                 // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
@@ -129,6 +129,15 @@
                             // > 1.0f is positive gain.  Too high and you can get clipping.  
                             // See AudioAmplifer doc at https://www.pjrc.com/teensy/gui/index.html?info=AudioAmplifier
 
+// Choose 1024, 2048, or 4096  for AUDIO audio output- usually defined in the main program
+#define FFT_SIZE 4096
+
+// --->>>> Enable one or more FFT pipelines for 2nd window, pan and zoom, if used
+// Recommend all 3 be enabled for 3 zoom levels -  At least one must match FFT_SIZE
+#define FFT_4096 
+#define FFT_2048
+#define FFT_1024
+
 //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
 //-------------------------W7PUA Auto I2S phase correction-----------------
@@ -141,7 +150,6 @@
 // Can leave these 2 defined, no effect on other things.
 #define PIN_FOR_TP 22       // Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
 #define SIGNAL_HARDWARE TP_SIGNAL_IO_PIN  // 10Kohm is for RS-HFIQ which has 100ohm output impedance.  Other audio sources may vary.
-//
 // ---------------------------------------
 
 // --------------- Motherboard/Protoboard version --------------------------
@@ -161,60 +169,34 @@
 //******************************************************************************************
 
 #ifdef K7MDL_BUILD   
-    #define RA8876_ON // Config for my particular RA8876 build.  Uncomment for my RA8875 build
-    #ifdef RA8876_ON      // Config for my particular RA8876 build
-      #undef USE_RA8875              
-      #undef VFO_MULT                 // undefine so we can redefine it without error msg
-      #define VFO_MULT            4   // 2 for NT7V board, 4 for QRP labs RX board, Value ignored for RS-HFIQ
-      #undef SCREEN_ROTATION
-      #define SCREEN_ROTATION     2
-      #undef TOUCH_ROTATION           // Rotate for the RA8876 for better view angle and no touch coordinate correction required.
-      //#define SV1AFN_BPF              // Use the BPF board
-      //#define PE4302                  // Use the step atten usually the PE4302 board
-      //#define I2C_ENCODERS
-      #define HARDWARE_ATT_SIZE  31   // account for additional hardware attenuators and/or cal fudge factor
-      #define si5351_TCXO             // Set load cap to 0pF for TCXO - skipped for RS-HFIQ
-      #define si5351_CORRECTION   0   // for TCXO which has been adjusted or corrected in other ways - skipped for RS-HFIQ
-      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022
-      #define W7PUA_I2S_CORRECTION
-    #else   // My RA8875 4.3" specific build items
-      #define USE_RA8875
-      #undef VFO_MULT                 // undefine so we can redefine it without error msg
-      #define VFO_MULT            2   // 2 for NT7V board, 4 for QRP labs RX board
-      #undef TOUCH_ROTATION           // Rotate for the RA8876 for better view angle and no touch coordnmate correction required.
-      #undef SV1AFN_BPF               // Use the BPF board
-      #undef PE4302                   // Use the step atten usually the PE4302 board
+    #ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders.
       #define HARDWARE_ATT_SIZE   0 
-      //#define PANADAPTER            // Enable panadapter mode
-      #ifdef PANADAPTER
-        #define ALL_CAT               // Band decoder library - reads radio info only for many radios by many means, voltage, serial, bcd input
-        //#define FT817_CAT           // FT-817 control library - does full control and monitor for the FT-817
-        //#define PANADAPTER_INVERT   // Invert spectrum for inverted IF tuning direction
-      #endif    
-      #define si5351_CORRECTION 1726  // for standard crystal PLL +1726 for my 4.3" with cheap crystal Si5351a at 80F ambient
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
-      #define W7PUA_I2S_CORRECTION
-    #endif
+    #else // My RA8876 7" specific build items
+      #undef SCREEN_ROTATION
+      #define SCREEN_ROTATION     2
+      //#define I2C_ENCODERS
+      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022      
+    #endif   //
+
     // Config items common or NA to both builds
     //#define MECH_ENCODERS           // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
                                       // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
-                                      // This does not include the main VFO encoder, it is always enabled if connected or not.
-    //#define OCXO_10MHZ              // Switch to etherkits library and set to use ext ref input at 10MHz
-    //#define K7MDL_OCXO              // use the si5351 C board with 10Mhz OCXO
-    #define si5351_XTAL_25MHZ         // Choose 25MHz tcxo or crystal, else 27Mhz is default                 
+                                      // This does not include the main VFO encoder, it is always enabled if connected or not.             
     #define USE_DHCP                  // UNCOMMENT this for static IP  
     //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET
     #ifdef USE_ENET_PROFILE
       #define ENET
     #endif
-    //#define REMOTE_OPS              // Experimentatl.  Can dump out FFT data
     #undef AUDIOBOOST
     #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation.  1.0f is pass through.
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
     #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+    #define W7PUA_I2S_CORRECTION
+    //#define BETATEST  // audio memory external buffer test using FFT4096 
 #endif  // K7MDL_BUILD
 
 //

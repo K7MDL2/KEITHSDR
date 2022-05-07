@@ -11,9 +11,6 @@
 //
 //  Test tones are enabled in spectrum only, not in audio path.
 //
-//#define V2_4_3_PCB  
-//#define USE_RA8875 
-
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 // #include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
@@ -38,7 +35,7 @@
 #define MSG_Serial Serial
 #include "RadioConfig.h"        // Our main configuration file
 #ifndef BYPASS_SPECTRUM_MODULE
-  #include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022
+  #include "Spectrum_RA887x.h"    // New K7MDL Spectrum and Waterfall library created Jan 2022
                                   // https://github.com/K7MDL2/Spectrum_RA887x_Library
 #endif
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
@@ -88,14 +85,10 @@
         #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
         #include <RA8876_t3.h>           // Github
         #include <FT5206.h>
-
-        // Included here for reference only, do not need any of these for RA8876 here.
-        //#define  CTP_INT           28   // 27 for large board, 28 for small board  14 for older boards
-        //#define  RA8876_CS         10   //any digital pin
-        //#define  RA8876_CS         10   //any digital pin
-        //#define  RA8876_RESET      9    //any pin or nothing!
-        //#define  RA8876_RESET      9    //any pin or nothing!
-        //#define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+        #define  CTP_INT           28   // 27 for large board, 28 for small board  14 for older boards
+        #define  RA8876_CS         10   //any digital pin
+        #define  RA8876_RESET      9    //any pin or nothing!
+        #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
         
         // From RA8875/_settings/RA8875ColorPresets.h
         // Colors preset (RGB565)

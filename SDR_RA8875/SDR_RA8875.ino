@@ -160,8 +160,7 @@ float       pan                     = 0.0f;
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
 #else
     RA8876_t3 tft = RA8876_t3(RA8876_CS,RA8876_RESET); //initiate the display object
-    FT5206 cts    = FT5206(CTP_INT);    // Be sure to set the motherboard version used to get the correct Touch INT!
-                                        // Set in 2 places, the spectrum_RA887x library and in RadioConfig.h
+    FT5206 cts    = FT5206(CTP_INT);    // Be sure to set the motherboard version used to get the correct Touch INT!                                    // Set in 2 places, the spectrum_RA887x library and in RadioConfig.h
 #endif
 
 #ifdef ENET
@@ -219,24 +218,23 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
+//#ifndef BYPASS_SPECTRUM_MODULE
+  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
+  extern struct   Spectrum_Parms Sp_Parms_Def[];
+//#endif
 
-#define BETATEST
 #ifdef BETATEST
-DMAMEM float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
-DMAMEM float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
-DMAMEM float32_t  fftBuffer[8192];  // Used by FFT, 4096 real, 4096 imag, interleaved
-DMAMEM float32_t  sumsq[4096];      // Required ONLY if power averaging is being done
+    DMAMEM  float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
+    DMAMEM  float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
+    DMAMEM  float32_t  fftBuffer[8192];  // Used by FFT, 4096 real, 4096 imag, interleaved
+    DMAMEM  float32_t  sumsq[4096];      // Required ONLY if power averaging is being done
 #endif
-// These next 3 (one or more) are normally defined in the spectrum_RA887x.h file.  Included here for FYI
-// enable any combo for multiple FFT resolutions for pan and zoom - each takes CPU time and more memory
-//#define FFT_4096
-//#define FFT_2048
-//#define FFT_1024
+
 AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);    
 
 #ifdef FFT_4096
     #ifndef BETATEST
-        DMAMEM AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+        DMAMEM  AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
     #else
         AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // with power averaging array 
     #endif
@@ -410,12 +408,6 @@ float32_t fir_IQ29[29] = {
 tmElements_t tm;
 time_t prevDisplay = 0; // When the digital clock was displayed
 
-#ifndef BYPASS_SPECTRUM_MODULE
-  Spectrum_RA887x spectrum_RA887x(fft_size, fft_bins, fft_bin_size);  // initialize the Spectrum Library
-  extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
-  extern struct   Spectrum_Parms Sp_Parms_Def[];
-#endif
-
 COLD void setup()
 {
     pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
@@ -481,7 +473,7 @@ COLD void setup()
         //tft.activeWindowWH(SCREEN_WIDTH,SCREEN_HEIGHT);
 
 #ifndef BYPASS_SPECTRUM_MODULE        
-        spectrum_RA887x.setActiveWindow_default();
+        setActiveWindow_default();
 #endif        
         tft.graphicMode(true);
         tft.clearActiveScreen();
@@ -538,7 +530,7 @@ COLD void setup()
     
 
 #ifndef BYPASS_SPECTRUM_MODULE
-    spectrum_RA887x.initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
 #endif
 
     #ifdef PE4302
@@ -603,12 +595,12 @@ COLD void setup()
         
 
 #ifndef BYPASS_SPECTRUM_MODULE    
-    spectrum_RA887x.Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
+    Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
                                                               // 1st arg is new target layout record - usually 0 unless you create more examples
                                                               // 2nd arg is current empty layout record (preset) value - usually 0
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
                                                               // Generator only reads the global values, it does not change them or the database, just prints the new params                                                             
-    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
+    drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
                                                               // DrawSpectrum does not read the globals but does update them to match the current preset.
                                                               // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
                                                               // Generator never modifies the globals so never affects the layout itself.
@@ -655,11 +647,12 @@ HOT void loop()
 
     #ifndef BYPASS_SPECTRUM_MODULE
         // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
-        if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
+        //if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
+        if (!popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
         {      
             time_sp = millis();        
         //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
-            Freq_Peak = spectrum_RA887x.spectrum_update(
+            Freq_Peak = spectrum_update(
                 user_settings[user_Profile].sp_preset,
                 1,  // No longer used, se tto 1
                 VFOA,               // for onscreen freq info

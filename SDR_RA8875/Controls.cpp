@@ -22,9 +22,7 @@
 #else 
 	extern RA8876_t3 tft;
 #endif
-#ifndef BYPASS_SPECTRUM_MODULE
-    extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
-#endif
+
 extern          uint8_t             display_state;   // something to hold the button state for the display pop-up window later.
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
 extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
@@ -250,7 +248,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     ATU(-1); // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.
     
 #ifndef BYPASS_SPECTRUM_MODULE
-    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
+    drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif
     //Rate(0); Not needed
     //Ant() when there is hardware to setup in the future
@@ -1447,7 +1445,7 @@ COLD void Display()
         display_state = 1;
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_dot_bar_mode = 1;
     }
-    spectrum_RA887x.drawSpectrumFrame(user_settings[user_Profile].sp_preset);
+    drawSpectrumFrame(user_settings[user_Profile].sp_preset);
 #endif
     //popup = 1;
     //pop_win_up(1);

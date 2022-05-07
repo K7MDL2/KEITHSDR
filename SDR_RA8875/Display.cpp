@@ -20,10 +20,6 @@
   	extern uint8_t enet_ready;
 #endif
 
-#ifndef BYPASS_SPECTRUM_MODULE
-    extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
-#endif
-
 extern uint8_t 	display_state;   // something to hold the button state for the display pop-up window later.
 extern uint8_t 	curr_band;   // global tracks our current band setting.  
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
@@ -76,9 +72,9 @@ uint8_t _colorIndex = 0;
 // Function Declarations
 //-------------- COLOR CONVERSION -----------------------------------------------------------
 	inline uint16_t Color565(uint8_t r,uint8_t g,uint8_t b) { return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3); }
-	inline uint16_t Color24To565(int32_t color_) { return ((((color_ >> 16) & 0xFF) / 8) << 11) | ((((color_ >> 8) & 0xFF) / 4) << 5) | (((color_) &  0xFF) / 8);}
-	inline uint16_t htmlTo565(int32_t color_) { return (uint16_t)(((color_ & 0xF80000) >> 8) | ((color_ & 0x00FC00) >> 5) | ((color_ & 0x0000F8) >> 3));}
-	inline void 	Color565ToRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b){r = (((color & 0xF800) >> 11) * 527 + 23) >> 6; g = (((color & 0x07E0) >> 5) * 259 + 33) >> 6; b = ((color & 0x001F) * 527 + 23) >> 6;}
+	//inline uint16_t Color24To565(int32_t color_) { return ((((color_ >> 16) & 0xFF) / 8) << 11) | ((((color_ >> 8) & 0xFF) / 4) << 5) | (((color_) &  0xFF) / 8);}
+	//inline uint16_t htmlTo565(int32_t color_) { return (uint16_t)(((color_ & 0xF80000) >> 8) | ((color_ & 0x00FC00) >> 5) | ((color_ & 0x0000F8) >> 3));}
+	//inline void 	Color565ToRGB(uint16_t color, uint8_t &r, uint8_t &g, uint8_t &b){r = (((color & 0xF800) >> 11) * 527 + 23) >> 6; g = (((color & 0x07E0) >> 5) * 259 + 33) >> 6; b = ((color & 0x001F) * 527 + 23) >> 6;}
 
 COLD void displayFreq(void)
 {
@@ -1467,7 +1463,7 @@ COLD void pop_win_up(uint8_t win_num)
             tft.check2dBusy();    
             tft.canvasImageStartAddress(PAGE1_START_ADDR);
             // Blank the plot area and we will draw a new line, flicker free!
-       		spectrum_RA887x.setActiveWindow(ptr->bx-offset, ptr->bx+offset+ptr->bw, ptr->by, ptr->by+ptr->bh);
+       		setActiveWindow(ptr->bx-offset, ptr->bx+offset+ptr->bw, ptr->by, ptr->by+ptr->bh);
         #endif  // USE_RA8875
         // Let the calling function handle the rest of the screen drawing then call pop_win_down
         //   to tear down the window and restore the original screen
@@ -1492,7 +1488,7 @@ COLD void pop_win_down(uint8_t win_num)
             tft.boxGet(PAGE2_START_ADDR, ptr->bx-offset, ptr->by, ptr->bx+offset+ptr->bw, ptr->by+ptr->bh, ptr->bx-offset, ptr->by);
             tft.check2dBusy();            
 			tft.canvasImageStartAddress(PAGE1_START_ADDR);
-			spectrum_RA887x.setActiveWindow_default();
+			setActiveWindow_default();
         #endif
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(500);      
