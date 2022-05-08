@@ -180,10 +180,7 @@
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022      
     #endif   //
 
-    // Config items common or NA to both builds
-    //#define MECH_ENCODERS           // Use regular (or non-I2C) connected encoders.  If this is defined and there are no encoders connected,
-                                      // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
-                                      // This does not include the main VFO encoder, it is always enabled if connected or not.             
+    // Config items common or NA to both builds        
     #define USE_DHCP                  // UNCOMMENT this for static IP  
     //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET
     #ifdef USE_ENET_PROFILE
@@ -191,12 +188,14 @@
     #endif
     #undef AUDIOBOOST
     #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation.  1.0f is pass through.
+    #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+    #define W7PUA_I2S_CORRECTION
+
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
-    #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-    #define W7PUA_I2S_CORRECTION
     //#define BETATEST  // audio memory external buffer test using FFT4096 
+
 #endif  // K7MDL_BUILD
 
 //

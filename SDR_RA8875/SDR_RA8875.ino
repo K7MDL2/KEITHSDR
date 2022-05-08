@@ -180,6 +180,7 @@ Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout        = Metro(2000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
+Metro ENC_Read_timer    = Metro(250);   // time allowed to accumulate counts for slow moving detented encoders
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -785,9 +786,26 @@ HOT void loop()
             // Use a mechanical encoder on the GPIO pins, if any.
             if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
             {
-                static int8_t counts = 0;   
-                counts = (int8_t) round(multiKnob(0)/4);
-                MF_Service(counts, MF_client);
+                static int8_t counts = 0;
+                static int8_t counts_last = 0;
+                
+                counts += (int8_t) multiKnob(0);
+                
+                if (!counts_last && counts)  // detect and capture new counts, start timer
+                {
+                    ENC_Read_timer.reset();
+                    counts_last = counts; 
+                    return;
+                }
+
+                if (counts_last && abs(counts) && ENC_Read_timer.check() == 1)
+                { 
+                    //MSG_Serial.println(counts/4);
+                    MF_Service(counts/4, MF_client);
+                    multiKnob(1); // clear buffer
+                    counts = 0;
+                    counts_last = 0;
+                } 
             }
         #endif
     #endif // I2C_ENCODERS
@@ -1129,7 +1147,6 @@ COLD void printHelp(void)
         else
         {
             mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
-            //MSG_Serial.println("Multi-Knob Read");
         }
         return mf_count;
     }
