@@ -160,6 +160,7 @@
 //#define SMALL_PCB_V1   // For the small motgherboard 4/18/2022
 // -------------------------------------------------------------------------
 //#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+//#define NO_RSHFIQ_BLOCKING      // When combined with USE_RS-HFIQ, bypasses wait loops for queries from hardware allowing testing with no hardware connected
 
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
@@ -175,10 +176,10 @@
     #else // My RA8876 7" specific build items
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
-      //#define I2C_ENCODERS
       #define MECH_ENCODERS
-      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022      
-    #endif   //
+      #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
+      #define NO_RSHFIQ_BLOCKING      // When combined with RS-HFIQ config, bypasses waiting for serial messages from hardwre allowing testign with no hardware connected
+    #endif
 
     // Config items common or NA to both builds        
     #define USE_DHCP                  // UNCOMMENT this for static IP  
@@ -195,7 +196,7 @@
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
     //#define BETATEST  // audio memory external buffer test using FFT4096 
-
+    
 #endif  // K7MDL_BUILD
 
 //
