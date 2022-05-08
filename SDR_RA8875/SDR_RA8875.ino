@@ -31,9 +31,6 @@
                                 // For 60M coverage requires and updated libary file set.
 #endif // SV1AFN_BPF
 
-// Choose your actual pin assignments for any you may have.
-Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 for VFO A/B tuning encoder 
-
 #ifdef I2C_ENCODERS              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
     //  This is a basic example for using the I2C Encoder V2
     //  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
@@ -69,12 +66,16 @@ Encoder VFO(VFO_ENC_PIN_A, VFO_ENC_PIN_B); //using pins 4 and 5 on teensy 4.0 fo
       extern i2cEncoderLibV2 ENC6;    /* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
     #endif    
 #else 
-    #ifdef MECH_ENCODERS
-        Encoder Multi(MF_ENC_PIN_A, MF_ENC_PIN_B);  // Multi Function Encoder pins assignments usnig GPIO pinss
-        Encoder AF(30,31);  //29,28);   // AF gain control - not used yet
-        Encoder RF(34,35);    //(33,34);   // RF gain control - not used yet 
+    #ifdef MECH_ENCODERS   // if you have both i2c and mechanical encoders, assignment get tricky.  Default is only i2c OR mechanical
+        // On the Teensy motherboards, ENC1 is the VFO.  This is ENC2 jack. In the database this is handled as "encoder1_client" and "default_MF_client"
+        Encoder Multi(ENC2_PIN_A, ENC2_PIN_B);  // Multi Function Encoder GPIO pins assignments
+        // These are single fucntion encoders "encoderX_client" where X is 2 through 6
+        //Encoder Encoder2(ENC3_PIN_A, ENC3_PIN_B);   // "encoder2_client" mapped to ENC3 on the board
     #endif
 #endif // I2C_ENCODER
+
+// Choose your actual pin assignments for any you may have.
+Encoder VFO(ENC1_PIN_A, ENC1_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
 
 #ifndef USE_RS_HFIQ
     #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
@@ -432,6 +433,11 @@ COLD void setup()
         set_I2CEncoders();
     #endif // I2C_ENCODERS
 
+    #ifdef MECH_ENCODERS
+        pinMode(ENC2_PIN_SW, INPUT_PULLUP);   // Pullups for Enc2 and 3 switches
+        pinMode(ENC3_PIN_SW, INPUT_PULLUP);
+    #endif
+
     #ifdef SV1AFN_BPF
         // set address to 0x20 (32 decimal) for V2.X adafruit MCP23017 library. 
         // A value of 0 now kills the I2C bus.
@@ -776,7 +782,7 @@ HOT void loop()
     }
     #else
         #ifdef MECH_ENCODERS
-            // Use a mechanical encoder on the GPIO pisn, if any.
+            // Use a mechanical encoder on the GPIO pins, if any.
             if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
             {
                 static int8_t counts = 0;   
@@ -785,6 +791,16 @@ HOT void loop()
             }
         #endif
     #endif // I2C_ENCODERS
+
+    #ifdef MECH_ENCODERS
+        // ToDo: Check timer for long and short press, add debounce
+        //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
+        if (!digitalRead(ENC2_PIN_SW))
+            Button_Action(user_settings[user_Profile].encoder1_client_sw);
+        //if (!ENC3_PIN_SW) Button_Action(user_settings[user_Profile].encoder2_client_swl);
+        if (!digitalRead(ENC3_PIN_SW))
+            Button_Action(user_settings[user_Profile].encoder2_client_sw);
+    #endif
 
     if (!popup)
         Check_PTT();
@@ -1093,11 +1109,14 @@ COLD void printHelp(void)
 
         if (clear)
         {
-            //Multi.readAndReset(); // toss results, zero the encoder
+            Multi.readAndReset(); // toss results, zero the encoder
             mf_count = 0;
         }
         else
-        {}    //mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
+        {
+            mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
+            //MSG_Serial.println("Multi-Knob Read");
+        }
         return mf_count;
     }
     //#endif  //MECH_ENCODERS
@@ -1164,8 +1183,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         MF_Timeout.reset();  // if it is the MF_Client then reset (extend) timeout timer as long as there is activity.  
                             // When it expires it will be switched to default
 
-    //MSG_Serial.print("MF Knob Client ID is ");
-    //MSG_Serial.println(MF_client);
+    //MSG_Serial.print("MF Knob Client ID is "); MSG_Serial.println(MF_client);
 
     switch (knob)      // Give this owner control until timeout
     {

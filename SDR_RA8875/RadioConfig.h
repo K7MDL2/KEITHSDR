@@ -44,7 +44,7 @@
                             // You can use this without relays or the BPF board 
                             // The RF attenuator bypass relay is turned on and off.  Does not matter if there is a real relay connected or not. 
 
-//#define HARDWARE_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99 (Future use!)
+#define HARDWARE_ATT_SIZE  0   // Fixed attenuator size. 0 is OFF.  >0 == ON.   MAX = 99 (Future use!)
                             // This is used to correct the dBm scale on the spectrum 
                             // Can also fudge it to calibrate the spectrum until a more elegant solution is built
 
@@ -170,13 +170,13 @@
 
 #ifdef K7MDL_BUILD   
     #ifdef USE_RA8875   // My RA8875 4.3" specific build items
-      #define I2C_ENCODERS            // Use I2C connected encoders.
-      #define HARDWARE_ATT_SIZE   0 
+      #define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
     #else // My RA8876 7" specific build items
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
       //#define I2C_ENCODERS
+      #define MECH_ENCODERS
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022      
     #endif   //
 
@@ -206,16 +206,37 @@
 // 
 // Choose your actual pin assignments for any you may have.
 
-// VFO Encoder (not I2C)
-#if defined(V1_4_3_PCB) || defined(SMALL_PCB_V1)
-  #define VFO_ENC_PIN_A   3
-  #define VFO_ENC_PIN_B   4
+// VFO Encoder (not I2C).  ENCx is the same as on the PCBs
+#if defined(SMALL_PCB_V1)
+  #define ENC1_PIN_A      3   // used for VFO
+  #define ENC1_PIN_B      4
+  #define ENC2_PIN_A     30   // Encoder 2.
+  #define ENC2_PIN_B     31
+  #define ENC2_PIN_SW    32
+  #define ENC3_PIN_A     34   // Encoder 3
+  #define ENC3_PIN_B     35
+  #define ENC3_PIN_SW    33
+#elif defined(V1_4_3_PCB)
+  #define ENC1_PIN_A      3   // used for VFO
+  #define ENC1_PIN_B      4
+  #define ENC2_PIN_A     30   // Encoder 2.
+  #define ENC2_PIN_B     31
+  #define ENC2_PIN_SW    32
+  #define ENC3_PIN_A     33   // Encoder 3
+  #define ENC3_PIN_B     34
+  #define ENC3_PIN_SW    35
 #elif defined (V2_4_3_PCB)
-  #define VFO_ENC_PIN_A   15
-  #define VFO_ENC_PIN_B   16
+  #define ENC1_PIN_A     15   // used for VFO
+  #define ENC1_PIN_B     16
+  #define ENC2_PIN_A     30   // Encoder 2.
+  #define ENC2_PIN_B     31
+  #define ENC2_PIN_SW    32
+  #define ENC3_PIN_A     33   // Encoder 3
+  #define ENC3_PIN_B     34
+  #define ENC3_PIN_SW    35
 #else // else old proto board assignments
-  #define VFO_ENC_PIN_A   4
-  #define VFO_ENC_PIN_B   5
+  #define ENC1_PIN_A      4   // used for VFO
+  #define ENC1_PIN_B      5
 #endif 
 
 #define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -237,9 +258,6 @@
   //#define ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
   //#define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
   //#define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/   
-#else
-  #define MF_ENC_PIN_A    37   // list pins for any non I2C aux encoders.
-  #define MF_ENC_PIN_B    36
 #endif // I2C_ENCODERS
 
 // -------------------------  PE4302 6 bit Digital Step Attenuator -----------------------------

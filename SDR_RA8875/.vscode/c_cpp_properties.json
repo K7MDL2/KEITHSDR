@@ -3,7 +3,6 @@
         {
             "name": "VisualTeensy",
             "includePath": [
-		        "C:/Users/k7mdl/OneDrive/Documents/Arduino/libraries/**",
                 "C:/Progra~2/Arduino/hardware/teensy/avr/cores/teensy4/**",
                 "C:/Progra~2/Arduino/hardware/teensy/avr/libraries/**",
                 "C:/Progra~2/Arduino/libraries/**",

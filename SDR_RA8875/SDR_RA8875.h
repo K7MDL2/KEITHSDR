@@ -21,7 +21,6 @@
 #include <WireIMXRT.h>          // gets installed with wire.h
 #include <WireKinetis.h>        // included with Arduino
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
-#define  INPUT_PULLUP 2         // This is used by the encoder library to configure internal pullups for the encoder inputs.
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
@@ -35,7 +34,8 @@
 #define MSG_Serial Serial
 #include "RadioConfig.h"        // Our main configuration file
 #ifndef BYPASS_SPECTRUM_MODULE
-  #include "Spectrum_RA887x.h"    // New K7MDL Spectrum and Waterfall library created Jan 2022
+    #include "Spectrum_RA887x.h"    // Library has been merged into the main code, no library download required as of May 7, 2022
+    //#include <Spectrum_RA887x.h>    // New K7MDL Spectrum and Waterfall library created Jan 2022 (only for builds before May  7, 2022)
                                   // https://github.com/K7MDL2/Spectrum_RA887x_Library
 #endif
 #include "SDR_Network.h"        // for ethernet UDP remote control and monitoring
@@ -85,7 +85,13 @@
         #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
         #include <RA8876_t3.h>           // Github
         #include <FT5206.h>
-        #define  CTP_INT           28   // 27 for large board, 28 for small board  14 for older boards
+        #if defined(SMALL_PCB_V1)
+            #define  CTP_INT        28  //28 for John's small V1 motherboard
+        #elif defined(V1_4_3_PCB) || defined (V2_4_3_PCB)
+            #define  CTP_INT        27  //27 for John's larger 4.3" motherboard
+        #else
+            #define  CTP_INT        14  //14 for K7MDL old prototype board
+        #endif
         #define  RA8876_CS         10   //any digital pin
         #define  RA8876_RESET      9    //any pin or nothing!
         #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch

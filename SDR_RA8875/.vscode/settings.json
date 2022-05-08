@@ -12,9 +12,12 @@
     ".*.zip": true
   },
   "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
-  "C_Cpp.errorSquiggles": "Disabled",
+  "C_Cpp.errorSquiggles": "Enabled",
   "C_Cpp.default.includePath": [
-    "D:\\ProgramFiles\\Arduino"
+    "C:\\ProgramFiles\\Arduino",
+    "C:\\Program Files (x86)\\Arduino",
+    "C:\\Users\\k7mdl\\Documents\\Arduino\\libraries",
+    "C:\\Program Files (x86)\\Arduino\\hardware\\teensy\\avr\\libraries"
   ],
   "task.autoDetect": "off",
   "compiler-explorer.url": "http://localhost:10240",
@@ -34,5 +37,10 @@
     "-O3",
     "-g -Wall -ffunction-sections -fdata-sections -nostdlib",
     null
-  ]
+  ],
+  "gnuGlobal.libraryPath": [
+    "C:\\Program Files (x86)\\Arduino\\libraries"
+  ],
+  "C_Cpp.default.compilerPath": "",
+  "C_Cpp.default.mergeConfigurations": true
 }
