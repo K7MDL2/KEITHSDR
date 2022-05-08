@@ -219,10 +219,10 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-//#ifndef BYPASS_SPECTRUM_MODULE
+#ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
-//#endif
+#endif
 
 #ifdef BETATEST
     DMAMEM  float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
@@ -792,14 +792,28 @@ HOT void loop()
         #endif
     #endif // I2C_ENCODERS
 
+    static uint8_t ENC2_sw_pushed = 0;
+    static uint8_t ENC3_sw_pushed = 0;
+
     #ifdef MECH_ENCODERS
         // ToDo: Check timer for long and short press, add debounce
         //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
-        if (!digitalRead(ENC2_PIN_SW))
+        
+        if (!digitalRead(ENC2_PIN_SW) && !ENC2_sw_pushed)
+        {
             Button_Action(user_settings[user_Profile].encoder1_client_sw);
-        //if (!ENC3_PIN_SW) Button_Action(user_settings[user_Profile].encoder2_client_swl);
-        if (!digitalRead(ENC3_PIN_SW))
+            ENC2_sw_pushed = 1;
+        }
+        else if (digitalRead(ENC2_PIN_SW) && ENC2_sw_pushed)
+            ENC2_sw_pushed = 0;
+
+        if (!digitalRead(ENC3_PIN_SW) && !ENC3_sw_pushed)
+        {
             Button_Action(user_settings[user_Profile].encoder2_client_sw);
+            ENC3_sw_pushed = 1;
+        }
+        else  if (digitalRead(ENC3_PIN_SW) && ENC3_sw_pushed)
+            ENC3_sw_pushed = 0;
     #endif
 
     if (!popup)
