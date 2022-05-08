@@ -592,7 +592,11 @@ COLD void setup()
         tft.setTextColor(RA8875_BLUE);
         tft.setCursor(50, 100);
         tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
-        RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+        #ifndef NO_RSHFIQ_BLOCKING
+            RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+        #else
+            RS_HFIQ.setup_RSHFIQ(0, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+        #endif
         #ifdef USE_RA8875
             tft.clearScreen();
         #else
@@ -810,10 +814,11 @@ HOT void loop()
         #endif
     #endif // I2C_ENCODERS
 
-    static uint8_t ENC2_sw_pushed = 0;
-    static uint8_t ENC3_sw_pushed = 0;
-
     #ifdef MECH_ENCODERS
+        
+        static uint8_t ENC2_sw_pushed = 0;
+        static uint8_t ENC3_sw_pushed = 0;
+
         // ToDo: Check timer for long and short press, add debounce
         //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
         
