@@ -1123,40 +1123,40 @@ COLD void printHelp(void)
       //MSG_Serial.println(F("   R to display the RS-HFIQ Menu"));
     //#endif
 }
-#ifndef I2C_ENCODERS
-    //#ifdef MECH_ENCODERS
-    //
-    // ---------------------------------  multiKnob() -----------------------------------------------
-    //
-    //  Handles a detented incremental encoder for any calling function returning the count, if any,
-    //          positive or negative until a reset is requested to 0.
-    //
-    //  Input:  uint8_t clear.  If clear == 1 then reset the encoder to ready it for a next read.
-    //
-    //  Usage:  A consumer function will call this with clear flag set at the start of use.
-    //          It will poll this function for counts acting on any in any way it needs to.
-    //          It will clear the count to look for next action.
-    //          If a clear is not performed then the consumer function must deal with figuring out how
-    //          the value has changed and what to do with it.
-    //          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
-    //
-    int32_t multiKnob(uint8_t clear)
-    {
-        static int32_t mf_count = 0;
 
-        if (clear)
-        {
-            Multi.readAndReset(); // toss results, zero the encoder
-            mf_count = 0;
-        }
-        else
-        {
-            mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
-        }
-        return mf_count;
+#ifdef MECH_ENCODERS
+//
+// ---------------------------------  multiKnob() -----------------------------------------------
+//
+//  Handles a detented incremental encoder for any calling function returning the count, if any,
+//          positive or negative until a reset is requested to 0.
+//
+//  Input:  uint8_t clear.  If clear == 1 then reset the encoder to ready it for a next read.
+//
+//  Usage:  A consumer function will call this with clear flag set at the start of use.
+//          It will poll this function for counts acting on any in any way it needs to.
+//          It will clear the count to look for next action.
+//          If a clear is not performed then the consumer function must deal with figuring out how
+//          the value has changed and what to do with it.
+//          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
+//
+int32_t multiKnob(uint8_t clear)
+{
+    static int32_t mf_count = 0;
+
+    if (clear)
+    {
+        Multi.readAndReset(); // toss results, zero the encoder
+        mf_count = 0;
     }
-    //#endif  //MECH_ENCODERS
-#endif  // I2C_ENCODERS
+    else
+    {
+        mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
+    }
+    return mf_count;
+}
+#endif  //MECH_ENCODERS
+
 
 // Deregister the MF_client
 COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner button status
@@ -1193,10 +1193,9 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
 COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner after we clear the old one
 {
-    
-    #ifndef I2C_ENCODERS   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
+    #ifdef MECH_ENCODERS   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
         multiKnob(1);       // for non-I2C encoder, clear the counts.
-    #endif //  I2C_ENCODERS
+    #endif
     unset_MF_Service(MF_client);    //  turn off current button if on
     MF_client = new_client_name;        // Now assign new owner
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
