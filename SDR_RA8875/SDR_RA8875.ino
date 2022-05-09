@@ -900,11 +900,7 @@ HOT void loop()
                             }
                         }
                         break;
-            default:    {
-                            //#ifdef USE_RS_HFIQ
-                            //    RS_HFIQ_Service();
-                            //#endif
-                        }
+            default:
                         break;  
         }
     }

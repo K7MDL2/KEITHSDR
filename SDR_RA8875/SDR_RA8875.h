@@ -250,7 +250,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 // This group defines the number of records in each structure
 #define MODES_NUM   8
 #define FREQ_DISP_NUM  4
-#define BANDS       12
+#define BANDS       11
 #define XVTRS       12
 #define TS_STEPS    6
 #define FILTER      9

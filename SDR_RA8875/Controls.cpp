@@ -195,12 +195,8 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
         if (uint32_t temp_VFO = RS_HFIQ.find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
             VFOA = temp_VFO;
     #else  // non RS-HFIQ
-        //for (int i BANDS; i => 0; i--)
-        //{
-        //    curr_band = bandmem[i].band_num;
-            // XXXX add more logic to search all bands
-        //}
-        bandmem[curr_band].vfo_A_last = VFOA;
+        if (uint32_t temp_VFO = find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
+            VFOA = temp_VFO;
     #endif
     //MSG_Serial.print("Band after Lookup is "); MSG_Serial.println(bandmem[curr_band].band_name);
     //MSG_Serial.print("Freq is "); MSG_Serial.println(VFOA);
@@ -211,15 +207,18 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     
     //MSG_Serial.print("Target Band is "); MSG_Serial.println(target_band);
 
-    if (target_band > BAND10M)    // Stop at top
-        target_band = BAND10M;    
-
     #ifdef USE_RS_HFIQ
-        if (target_band < BAND80M)    // Stop at bottom
-            target_band = BAND80M;     
+        if (target_band > BAND10M)    // top
+            target_band = BAND80M;    
+
+        if (target_band < BAND80M)    // bottom
+            target_band = BAND10M;     
     #else
-        if (target_band < BAND160M)    // stop at bottom 
+        if (target_band > BAND6M)     // top
             target_band = BAND160M;    
+
+        if (target_band < BAND160M)   // bottom 
+            target_band = BAND6M;    
     #endif
 
     //MSG_Serial.print("Corrected Target Band is "); MSG_Serial.println(target_band); 
@@ -499,8 +498,12 @@ COLD void VFO_AB(void)
     uint32_t old_VFOB   = user_settings[user_Profile].sub_VFO;
     uint8_t  old_B_mode = user_settings[user_Profile].sub_VFO_mode;
  
-    // Compute the band index for the new target band an ensure it is in limits
-    if (RS_HFIQ.find_new_band(old_VFOB, &curr_band));  // return the updated band index for the new freq
+    #ifndef USE_RS_HFIQ
+        // Compute the band index for the new target band an ensure it is in limits
+        if (RS_HFIQ.find_new_band(old_VFOB, &curr_band))  // return the updated band index for the new freq
+    #else
+        if (find_new_band(old_VFOB, &curr_band))
+    #endif
     {
         // all good, now start swapping
         //MSG_Serial.print("\nStart Swapping -  VFO A: ");
@@ -521,14 +524,13 @@ COLD void VFO_AB(void)
         //MSG_Serial.println(old_A_band);
         VFOB = user_settings[user_Profile].sub_VFO = old_VFOA;   // save A into the database
         user_settings[user_Profile].sub_VFO_mode = old_A_mode; // Udpate VFOB
-
-        selectFrequency(0);
-        changeBands(0);
-        displayVFO_AB();
-        displayMode();
-        MSG_Serial.print("Set VFO_A to "); MSG_Serial.println(VFOA);
-        MSG_Serial.print("Set VFO_B to "); MSG_Serial.println(VFOB);
     }
+    selectFrequency(0);
+    changeBands(0);
+    displayVFO_AB();
+    displayMode();
+    MSG_Serial.print("Set VFO_A to "); MSG_Serial.println(VFOA);
+    MSG_Serial.print("Set VFO_B to "); MSG_Serial.println(VFOB);
 }
 
 // ATT
@@ -1628,46 +1630,33 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
     #endif
 }
 
-/*
-#ifdef USE_RS_HFIQ
-//  By default an internal table is used that matches the RS-HFIQ hardware intent. 
-//  You can replace that internal lookup with an external one such as this working example.
-//  Uses a bandmem table which includes upper and lower frequencies for each band.  
-//  If a band change is detected it calls changeBands(0) to apply the newly set VFO freqency (A or B which ever is active).
-//  If any other serial command is supplied from the terminal it is skipped.
-//  If the VFO is changed but the band remains the same, the changeBands(0) is skipped but the VFOs are updates and displayed.
-//  For RS-HFIQ free-form frequency entry validation but can be useful for external program CAT control such as a logger program.
-//  Changes to the correct band settings for the new target frequency.  
-//  The active VFO will become the new frequency, the other VFO will come from the database last used frequency for that band.
-//  If the new frequency is below or above the band limits it returns a value of 0 and skips any updates.
 //
-uint32_t find_new_band(uint32_t new_frequency)
+// Changes to the correct band settings for the new target frequency.  
+// If the new frequency is below or above the band limits it returns a value of 0
+//
+uint32_t find_new_band(uint32_t new_frequency, uint8_t * rs_curr_band)
 {
     int i;
 
-    for (i=BAND10; i> BAND1; i--)    // start at the top and look for first band that VFOA fits under bandmem[i].edge_upper
+    for (i=BANDS-1; i>=0; i--)    // start at the top and look for first band that VFOA fits under bandmem[i].edge_upper
     {
+        #ifdef DBG  
+        MSG_Serial.print("Edge_Lower Search = "); MSG_Serial.println(rs_bandmem[i].edge_lower);
+        #endif
         if (new_frequency >= bandmem[i].edge_lower && new_frequency <= bandmem[i].edge_upper)  // found a band lower than new_frequency so search has ended
         {
-            //MSG_Serial.print("Edge_Lower = "); MSG_Serial.println(bandmem[i].edge_lower);
-            curr_band = bandmem[i].band_num;
-            if (bandmem[curr_band].VFO_AB_Active == VFO_A)
-            {
-                VFOA = bandmem[curr_band].vfo_A_last = new_frequency;  // up the last used frequencies
-                VFOB = bandmem[curr_band].vfo_B_last;
-            }
-            else
-            {
-                VFOA = bandmem[curr_band].vfo_A_last;
-                VFOB = bandmem[curr_band].vfo_B_last = new_frequency;
-            }
-            //MSG_Serial.print("New Band = "); MSG_Serial.println(curr_band);
-            //changeBands(0);
+            #ifdef DBG  
+            MSG_Serial.print("Edge_Lower = "); MSG_Serial.println(rs_bandmem[i].edge_lower);
+            #endif
+            *rs_curr_band = bandmem[i].band_num;
+            #ifdef DBG  
+            MSG_Serial.print("find_band(): New Band = "); MSG_Serial.println(*rs_curr_band);
+            #endif
             return new_frequency;
-        }
+        }        
     }
-    MSG_Serial.println("Invalid Frequency Requested");
-    return 0;
+    //#ifdef DBG  
+        MSG_Serial.println("Invalid Frequency Requested - Out of Band");
+    //#endif
+    return 0;  // 0 means frequency was not found in the table
 }
-#endif   // end of USE_RS_HFIQ
-*/
