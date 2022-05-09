@@ -43,13 +43,13 @@ COLD float Peak(void)
 		uv= s_sample * 1000;
 		dbuv = 20.0*log10(uv);
 		/*
-		tft.fillRect(700, 38, 99,25,RA8875_BLACK);
+		tft.fillRect(700, 38, 99,25,BLACK);
 		tft.setFont(Arial_14);
 		tft.setCursor(720, 42);
-		tft.setTextColor(RA8875_GREEN);
+		tft.setTextColor(GREEN);
 		tft.print(dbuv);
-		tft.fillRect(130, 47, 550,10, RA8875_BLACK);
-		tft.fillRect(130, 47,abs(dbuv*4),10,RA8875_GREEN );
+		tft.fillRect(130, 47, 550,10, BLACK);
+		tft.fillRect(130, 47,abs(dbuv*4),10,GREEN );
         */
 		s = (dbuv-3)/6.0;
 		
@@ -61,12 +61,12 @@ COLD float Peak(void)
 		else 
 			dbuv = 0;
 			
-		tft.setTextColor(RA8875_BLUE);
+		tft.setTextColor(BLUE);
 		tft.setFont(Arial_14);
 
 		/*		
 		// bar meter
-		tft.fillRect(72, 38, 57,25,RA8875_BLACK);
+		tft.fillRect(72, 38, 57, 25, BLACK);
 		tft.setCursor(1, 42);		
 		if (dbuv == 0)
 			sprintf(string,"S-Meter:%1.0f",s);

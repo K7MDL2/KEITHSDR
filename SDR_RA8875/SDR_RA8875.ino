@@ -487,7 +487,7 @@ COLD void setup()
         tft.selectScreen(0);  // Select screen page 0
         tft.fillScreen(BLACK);
         tft.setBackGroundColor(BLACK);
-        tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+        tft.setTextColor(WHITE, BLACK);
         tft.backlight(true);
         tft.displayOn(true);
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees.  
@@ -589,7 +589,7 @@ COLD void setup()
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
         MSG_Serial.println(F("Initializing RS-HFIQ Radio via USB Host port"));
         tft.setFont(Arial_14);
-        tft.setTextColor(RA8875_BLUE);
+        tft.setTextColor(BLUE);
         tft.setCursor(50, 100);
         tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
         #ifndef NO_RSHFIQ_BLOCKING

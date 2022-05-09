@@ -118,9 +118,9 @@
 
 #define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-#define PTT_INPUT    33     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_INPUT    37     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
-#define PTT_OUT1     34    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_OUT1     38    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  
@@ -266,9 +266,9 @@
 //      For now using Teensy 4.1 pins 30-32.
 //      
 #ifdef PE4302
-  #define Atten_CLK       31
-  #define Atten_DATA      32
-  #define Atten_LE        30
+  #define Atten_CLK       24
+  #define Atten_DATA      25
+  #define Atten_LE        26
 #endif  // DIG_STEP_ATT
 //
 //

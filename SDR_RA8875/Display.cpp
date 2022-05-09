@@ -105,11 +105,11 @@ COLD void displayFreq(void)
 
 	// Draw the top orange separator line (under the VFO numbers)
 	#ifdef USE_RA8875
-		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw-10, RA8875_LIGHT_ORANGE); // for 8875
+		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw-10, LIGHTORANGE); // for 8875
 	#else
-		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+130, RA8875_LIGHT_ORANGE);  // For 8876
+		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+130, LIGHTORANGE);  // For 8876
 	#endif // USE_RA8875
-	//tft.drawRect(0, 15, 792, 65, RA8875_LIGHT_ORANGE);  // test box
+	//tft.drawRect(0, 15, 792, 65, LIGHT_ORANGE);  // test box
 
 	if (pTX->xmit != xmit_last)
 	{
@@ -431,7 +431,7 @@ COLD void displaySplit()
 
 	if (bandmem[curr_band].split)
 	{
-		tft.setTextColor(RA8875_GREEN);
+		tft.setTextColor(GREEN);
 		sprintf(sp_label, "%s %s",  std_btn[SPLIT_BTN].label, ">>>");
 		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
 	}
@@ -896,17 +896,17 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 	// Draw colour blocks every inc degrees
 	for (int16_t i = -angle; i < angle; i += inc) 
 	{
-		colour = RA8875_BLACK;
+		colour = BLACK;
 		switch (colorScheme) 
 		{
 			case 0:
-				colour = RA8875_RED;
+				colour = RED;
 				break; // Fixed colour
 			case 1:
-				colour = RA8875_GREEN;
+				colour = GREEN;
 				break; // Fixed colour
 			case 2:
-				colour = RA8875_BLUE;
+				colour = BLUE;
 				break; // Fixed colour
 			case 3:
 				colour = grandient(map(i, -angle, angle, 0, 127));
@@ -933,7 +933,7 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 				if (colorScheme > 9){
 					colour = colorScheme;
 				} else {
-					colour = RA8875_BLUE;
+					colour = BLUE;
 				}
 				break; // Fixed colour
 		}
@@ -958,13 +958,13 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 			// Fill in coloured segments with 2 triangles
 			switch (colorScheme) 
 			{
-				case 0: colour = RA8875_RED; break; // Fixed colour
-				case 1: colour = RA8875_GREEN; break; // Fixed colour
-				case 2: colour = RA8875_BLUE; break; // Fixed colour
+				case 0: colour = RED; break; // Fixed colour
+				case 1: colour = GREEN; break; // Fixed colour
+				case 2: colour = BLUE; break; // Fixed colour
 				case 3: colour = rainbow(map(i, -angle, angle, 0, 127)); break; // Full spectrum blue to red
 				case 4: colour = rainbow(map(i, -angle, angle, 70, 127)); break; // Green to red (high temperature etc)
 				case 5: colour = rainbow(map(i, -angle, angle, 127, 63)); break; // Red to green (low battery etc)
-			   default: colour = RA8875_BLUE; break; // Fixed colour
+			   default: colour = BLUE; break; // Fixed colour
 			}
 			tft.fillTriangle(x0, y0, x1, y1, x2, y2, colour);
 			tft.fillTriangle(x1, y1, x2, y2, x3, y3, colour);
@@ -997,7 +997,7 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 	*/
 	tft.setTextColor(BLUE, BLACK);
 	// Uncomment next line to set the text colour to the last segment value!
-	//tft.setTextColor(colour, RA8875_BLACK);
+	//tft.setTextColor(colour, BLACK);
 	x -= 32;
 	y -= 8;
 	tft.setCursor(x,y);
@@ -1021,7 +1021,7 @@ COLD void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t 
 	//tft.setTextSize(1);
 	//setTextPadding(0);
 	// Print units, if the meter is large then use big font 4, othewise use 2
-	//tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+	//tft.setTextColor(WHITE, BLACK);
 	//if (r > 84)
 	//{ 
 		//tft.printf(buf, x, y, 4); // Value in middle
@@ -1065,12 +1065,12 @@ COLD void drawAlert(int x, int y , int side, boolean draw)
 {
   if (draw && !alert) {
     tft.fillTriangle(x, y, x+30, y+47, x-30, y+47, rainbow(95));
-    tft.setTextColor(RA8875_BLACK);
+    tft.setTextColor(BLACK);
     drawCentreString("!", x, y + 6, 4);
     alert = 1;
   }
   else if (!draw) {
-    tft.fillTriangle(x, y, x+30, y+47, x-30, y+47, RA8875_BLACK);
+    tft.fillTriangle(x, y, x+30, y+47, x-30, y+47, BLACK);
     alert = 0;
   }
 }
@@ -1209,7 +1209,7 @@ MSG_Serial.println(poY);
   //while (*string) sumX += drawChar(*(string++), poX+sumX, poY, font);
   tft.setCursor(poX+sumX, poY);
   tft.setFont(Arial_14);
-  tft.setTextColor(RA8875_WHITE, RA8875_BLACK);
+  tft.setTextColor(WHITE, BLACK);
   while (*string) sumX += tft.print(*(string++));
 //#define PADDING_DEBUG
 

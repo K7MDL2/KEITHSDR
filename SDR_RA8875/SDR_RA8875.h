@@ -64,7 +64,7 @@
         #define  SCREEN_WIDTH       800 
         #define  SCREEN_HEIGHT      480
         #if defined(SMALL_PCB_V1)
-            #define  RA8875_INT        28  //28 for John's small V1 motherboard
+            #define  RA8875_INT        28  //for John's small V1 motherboard
         #elif defined(V1_4_3_PCB) || defined (V2_4_3_PCB)
             #define  RA8875_INT        27  //27 for John's larger 4.3" motherboard
         #else
@@ -86,57 +86,16 @@
         #include <RA8876_t3.h>           // Github
         #include <FT5206.h>
         #if defined(SMALL_PCB_V1)
-            #define  CTP_INT        28  //28 for John's small V1 motherboard
+            #define  CTP_INT        28  //for John's small V1 motherboard
         #elif defined(V1_4_3_PCB) || defined (V2_4_3_PCB)
-            #define  CTP_INT        27  //27 for John's larger 4.3" motherboard
+            #define  CTP_INT        27  // for John's larger 4.3" motherboard
         #else
             #define  CTP_INT        14  //14 for K7MDL old prototype board
         #endif
         #define  RA8876_CS         10   //any digital pin
         #define  RA8876_RESET      9    //any pin or nothing!
-        #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-        
-        // From RA8875/_settings/RA8875ColorPresets.h
-        // Colors preset (RGB565)
-        const uint16_t	RA8875_BLACK            = 0x0000;
-        const uint16_t 	RA8875_WHITE            = 0xFFFF;
-        const uint16_t	RA8875_RED              = 0xF800;
-        const uint16_t	RA8875_GREEN            = 0x07E0;
-        const uint16_t	RA8875_BLUE             = 0x001F;
-        const uint16_t 	RA8875_CYAN             = RA8875_GREEN | RA8875_BLUE; //0x07FF;
-        const uint16_t 	RA8875_MAGENTA          = 0xF81F;
-        const uint16_t 	RA8875_YELLOW           = RA8875_RED | RA8875_GREEN; //0xFFE0;  
-        const uint16_t 	RA8875_LIGHT_GREY 		= 0xB5B2; // the experimentalist
-        const uint16_t 	RA8875_LIGHT_ORANGE 	= 0xFC80; // the experimentalist
-        const uint16_t 	RA8875_DARK_ORANGE 		= 0xFB60; // the experimentalist
-        const uint16_t 	RA8875_PINK 		    = 0xFCFF; // M.Sandercock
-        const uint16_t 	RA8875_PURPLE 		    = 0x8017; // M.Sandercock
-        const uint16_t 	RA8875_GRAYSCALE 		= 2113; //grayscale30 = RA8875_GRAYSCALE*30
+        #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch      
     #endif // USE_RA8876_t3
-
-    #define myLT_GREY               RA8875_LIGHT_GREY 
-    #define myBLUE                  RA8875_BLUE
-    #define myBLACK                 RA8875_BLACK
-    #define myWHITE                 RA8875_WHITE
-    #define myYELLOW                RA8875_YELLOW
-    #define myGREEN                 RA8875_GREEN
-    #define myRED                   RA8875_RED
-    #define myLIGHT_ORANGE          RA8875_LIGHT_ORANGE
-    
-    const uint16_t myDARK_GREEN         = 0x03C0;
-    const uint16_t myVERY_DARK_GREEN    = 0x02C0;
-    const uint16_t myDARK_BLUE          = 0x02B0;
-    const uint16_t myVERY_DARK_BLUE     = 0x01B0;
-
-    #ifdef USE_RA8875
-	//extern RA8875 tft;
-    #else 
-	//extern RA8876_t3 tft;
-    //int16_t	_activeWindowXL = 0;
-    //int16_t _activeWindowXR = SCREEN_WIDTH;
-    //int16_t	_activeWindowYT = 0;
-    //int16_t _activeWindowYB = SCREEN_HEIGHT;
-    #endif
 
     // use the generator function to create 1 set of data to define preset values for window size and placement.  
     // Just copy and paste from the serial terminal into each record row.
@@ -148,6 +107,49 @@
 
 #endif // BYPASS_SPECTRUM_MODULE
 
+// From RA8876_t3/RA8876Registers.h
+#define BLACK		  0x0000
+#define WHITE		  0xffff
+#define RED		  	  0xf800
+#define LIGHTRED	  0xfc10
+#define CRIMSON		  0x8000
+#define GREEN		  0x07e0
+#define PALEGREEN	  0x87f0
+#define DARKGREEN	  0x0400
+#define BLUE		  0x001f
+#define LIGHTBLUE	  0x051f
+#define SKYBLUE		  0x841f
+#define DARKBLUE	  0x0010
+#define YELLOW		  0xffe0
+#define LIGHTYELLOW	  0xfff0
+#define DARKYELLOW	  0x8400 // mustard
+#define CYAN		  0x07ff
+#define LIGHTCYAN	  0x87ff
+#define DARKCYAN	  0x0410
+#define MAGENTA		  0xf81f
+#define VIOLET		  0xfc1f
+#define BLUEVIOLET	  0x8010
+#define ORCHID		  0xA145 
+// Other sources of RGB color definitions
+#define NAVY          0x000F
+#define MAROON        0x7800
+#define PURPLE        0x780F
+#define OLIVE         0x7BE0
+#define LIGHTGREY     0xC618
+#define DARKGREY      0x7BEF
+#define ORANGE        0xFD20
+#define GREENYELLOW   0xAFE5
+#define PINK          0xF81F
+#define LIGHTORANGE  0xFC80 // the experimentalist
+
+// Some defines for ease of use 
+#define myDARKGREY    31727u
+
+// My custom mixes
+const uint16_t myDARK_GREEN         = 0x03C0;
+const uint16_t myVERY_DARK_GREEN    = 0x02C0;
+const uint16_t myDARK_BLUE          = 0x02B0;
+const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 // Index to bandmem table rows.  Use BANDX since rows can be in any order
@@ -244,42 +246,6 @@
 #define NTCHOFF     0
 #define NTCH1       1
 #define NTCH2       2
-
-// Some defines for ease of use 
-#define myDARKGREY    31727u
-// From RA8876_t3/RA8876Registers.h
-#define BLACK		  0x0000
-#define WHITE		  0xffff
-#define RED		  	  0xf800
-#define LIGHTRED	  0xfc10
-#define CRIMSON		  0x8000
-#define GREEN		  0x07e0
-#define PALEGREEN	  0x87f0
-#define DARKGREEN	  0x0400
-#define BLUE		  0x001f
-#define LIGHTBLUE	  0x051f
-#define SKYBLUE		  0x841f
-#define DARKBLUE	  0x0010
-#define YELLOW		  0xffe0
-#define LIGHTYELLOW	  0xfff0
-#define DARKYELLOW	  0x8400 // mustard
-#define CYAN		  0x07ff
-#define LIGHTCYAN	  0x87ff
-#define DARKCYAN	  0x0410
-#define MAGENTA		  0xf81f
-#define VIOLET		  0xfc1f
-#define BLUEVIOLET	  0x8010
-#define ORCHID		  0xA145 
-// Other sources of RGB color definitions
-#define NAVY          0x000F
-#define MAROON        0x7800
-#define PURPLE        0x780F
-#define OLIVE         0x7BE0
-#define LIGHTGREY     0xC618
-#define DARKGREY      0x7BEF
-#define ORANGE        0xFD20
-#define GREENYELLOW   0xAFE5
-#define PINK          0xF81F
 
 // This group defines the number of records in each structure
 #define MODES_NUM   8
