@@ -17,6 +17,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     11. You won't need external pullup resistors for mechanical encoders, the library appears to set internal pullups. If you do use external resistors, be sure they are on the right voltage for your CPU. The Teensy 4 is 3.3V.  
     12. 3 mechanical/optical incremental encoders are supported. The ENC1 is VFO, ENC2 is multi-fucntion knob, and ENC is user defined via user_settings table.  Push switches for ENC2 an ENC3 are also supported now with simplistic debounce logic.
     13. Fixed mechanical encoder timing for ENC2 and ENC3 to work at very low movement rate with detents.  These 'generally' move 4 counts per detent but when moved very slow can be 1, 2 or 3 counts. Added 250ms timer to accumulate counts and finally divide by 4.
+    14. Duplicated find_new_and for non-RS-HFIQ configs
+    15. Added band wrap around.  Ex: if on highest band then swipe up, change to lowest band.  RS-HFIQ is 80M-10M.  Non-RS-HFIQ can be different like 160M to 6M. Later will add in active transverter bands.
     
 ## April 2022
 
