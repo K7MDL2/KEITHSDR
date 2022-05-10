@@ -498,7 +498,7 @@ COLD void VFO_AB(void)
     uint32_t old_VFOB   = user_settings[user_Profile].sub_VFO;
     uint8_t  old_B_mode = user_settings[user_Profile].sub_VFO_mode;
  
-    #ifndef USE_RS_HFIQ
+    #ifdef USE_RS_HFIQ
         // Compute the band index for the new target band an ensure it is in limits
         if (RS_HFIQ.find_new_band(old_VFOB, &curr_band))  // return the updated band index for the new freq
     #else
