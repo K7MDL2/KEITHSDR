@@ -55,7 +55,7 @@ struct Touch_Control{
     //uint32_t  elapsed_time;  // recalc this each time it is read. Make=O for start of events
     uint16_t    start_coordinates[MAXTOUCHLIMIT][2]; // start of event location
     uint16_t    temp_coordinates[MAXTOUCHLIMIT][2]; // start of event location
-    uint16_t    last_coordinates[MAXTOUCHLIMIT][2];   // updated to curent or end of event location
+    uint16_t    last_coordinates[MAXTOUCHLIMIT][2];   // updated to current or end of event location
     int16_t     distance[MAXTOUCHLIMIT][2];  // signed value used for direction.  5 touch points with X and Y values each.
 } static touch_evt;   // create a static instance of the structure to remember between events
 
@@ -217,7 +217,7 @@ COLD void Touch( void)
         //          current_touches = 1 &&  previous_touch = 1
         //   3a. If a timeout occurs, toss the results and start over. Set previous_touch = 0.
         //   3b. If not timed out yet, return with value = distance set from last change and time elapsed.
-        // Exception: If a slider is active, then report movement to the calling functions so thaty may do ral time adjsutments.  
+        // Exception: If a slider is active, then report movement to the calling functions so that they may do real time adjustments.  
         //      Examples include tuning, volume up and down, brightness adjust, attenuation adjust and so on.
             touch_update(); 
             #ifdef USE_RA8875
