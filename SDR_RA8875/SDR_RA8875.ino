@@ -220,8 +220,8 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-uint16_t    TX_filterCenter;
-uint16_t    TX_filterBandwidth;
+uint16_t    TX_filterCenter = 1500;
+uint16_t    TX_filterBandwidth = 2500;
 #ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -1542,8 +1542,6 @@ COLD void TX_RX_Switch(
         Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(1.0f);   
         codec1.lineInLevel(0);      // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
-        TX_filterCenter = 1500;
-        TX_filterBandwidth = 2500;
         TX_FilterConv.initFilter((float32_t)TX_filterCenter, 90, 2, TX_filterBandwidth);
 
         AudioInterrupts();
