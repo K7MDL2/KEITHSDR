@@ -220,6 +220,8 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
+uint16_t    TX_filterCenter;
+uint16_t    TX_filterBandwidth;
 #ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -265,7 +267,8 @@ DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
-AudioFilterConvolution_F32  FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
+AudioFilterConvolution_F32  RX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
+AudioFilterConvolution_F32  TX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioOutputI2S_F32          Output(audio_settings);
@@ -306,9 +309,11 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 // Mic and Test Tones need to be converted to I and Q
 AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
-AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);    
-AudioConnection_F32     patchCord_IQ_Mix_L(TX_Source,0,                     TX_Hilbert_Plus_45,0); 
-AudioConnection_F32     patchCord_IQ_Mix_R(TX_Source,0,                     TX_Hilbert_Minus_45,0); 
+AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);
+AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                 TX_FilterConv,0);  // variable filter for TX
+    
+AudioConnection_F32     patchCord_IQ_Mix_L(TX_FilterConv,0,                    TX_Hilbert_Plus_45,0); 
+AudioConnection_F32     patchCord_IQ_Mix_R(TX_FilterConv,0,                    TX_Hilbert_Minus_45,0); 
 AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              I_Switch,1); // + and - reversed for TX
 AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             Q_Switch,1); // Feed into normal chain 
 
@@ -376,9 +381,9 @@ AudioConnection_F32     patchCord_FM_Mix_Out(FM_Detector,0,                 Outp
 // Post mixer processing (now treated as mono audio)
 AudioConnection_F32     patchCord_Summer_Peak(RX_Summer,0,                  S_Peak,0);      // S meter source
 AudioConnection_F32     patchCord_Summer_Notch(RX_Summer,0,                 LMS_Notch,0);   // NR and Notch
-AudioConnection_F32     patchCord_Notch(LMS_Notch,0,                        FilterConv,0);  // variable bandwidth filter
-AudioConnection_F32     patchCord_RxOut_L(FilterConv,0,                     OutputSwitch_I,0);  // demod and filtering complete
-AudioConnection_F32     patchCord_RxOut_R(FilterConv,0,                     OutputSwitch_Q,0);  
+AudioConnection_F32     patchCord_Notch(LMS_Notch,0,                        RX_FilterConv,0);  // variable bandwidth filter
+AudioConnection_F32     patchCord_RxOut_L(RX_FilterConv,0,                     OutputSwitch_I,0);  // demod and filtering complete
+AudioConnection_F32     patchCord_RxOut_R(RX_FilterConv,0,                     OutputSwitch_Q,0);  
 
 // In TX the mic source is selected in FFT_Mixer and was phase shifted so just passed
 AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_I,1);  // phase shift mono sourtce 90 degrees
@@ -1434,7 +1439,7 @@ COLD void digitalClockDisplay() {
 
 COLD void SetFilter(void)
 {
-    FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
+    RX_FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
 }
 
 COLD void initDSP(void)
@@ -1537,6 +1542,9 @@ COLD void TX_RX_Switch(
         Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
         Amp1_R.setGain_dB(1.0f);   
         codec1.lineInLevel(0);      // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
+        TX_filterCenter = 1500;
+        TX_filterBandwidth = 2500;
+        TX_FilterConv.initFilter((float32_t)TX_filterCenter, 90, 2, TX_filterBandwidth);
 
         AudioInterrupts();
 
@@ -1809,8 +1817,8 @@ COLD void resetCodec(void)
     // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
-    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Left channel TX
-    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Right channel TX
+    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
+    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
     
     // experiment with numbers  ToDo: enable/disable this via the Notch button
     MSG_Serial.print(F("Initializing Notch/NR Feature = "));
