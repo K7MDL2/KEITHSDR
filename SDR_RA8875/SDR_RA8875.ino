@@ -44,7 +44,7 @@
     //  + -> 3.3V
     //  SDA -> 18
     //  SCL -> 19
-    //  INT -> 29
+    //  INT -> 29 - Dependent on particular board pin assignments
     #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.                                 // Hardware verson 2.1, Arduino library version 1.40.
     //Class initialization with the I2C addresses
     #ifdef MF_ENC_ADDR
@@ -304,13 +304,13 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
-//AudioConnection     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
+AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);    
 AudioConnection_F32     patchCord_IQ_Mix_L(TX_Source,0,                     TX_Hilbert_Plus_45,0); 
 AudioConnection_F32     patchCord_IQ_Mix_R(TX_Source,0,                     TX_Hilbert_Minus_45,0); 
-AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             I_Switch,1); // Feed into normal chain 
-AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              Q_Switch,1); // + and - reversed for TX?
+AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              I_Switch,1); // + and - reversed for TX
+AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             Q_Switch,1); // Feed into normal chain 
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 #ifdef USE_FFT_LO_MIXER
@@ -326,8 +326,8 @@ AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              Q_Sw
     AudioConnection_F32     patchCord_FFT_Shift_L(FFT_SHIFT_I,0,                FFT_Atten_I,0); // Filter I and Q
     AudioConnection_F32     patchCord_FFT_Shift_R(FFT_SHIFT_Q,0,                FFT_Atten_Q,0); 
 #else
-    AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
-    AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);
+    AudioConnection_F32     patchCord_FFT_OUT_L(Q_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(I_Switch,0,                     FFT_Atten_Q,0);     // Swap I and Q for correct FFT 
 #endif
 
 AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
@@ -391,19 +391,6 @@ AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Outp
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
-
-/* FIR filter designed with http://t-filter.appspot.com
- * fs = 44100 Hz, < 5kHz ripple 0.29 dB, >9 kHz, -62 dB, 29 taps
- */
-float32_t fir_IQ29[29] = {
--0.000970689f, -0.004690292f, -0.008256345f, -0.007565650f,
- 0.001524420f,  0.015435011f,  0.021920240f,  0.008211937f,
--0.024286413f, -0.052184700f, -0.040532507f,  0.031248107f,
- 0.146902412f,  0.255179564f,  0.299445269f,  0.255179564f,
- 0.146902412f,  0.031248107f, -0.040532507f, -0.052184700f,
--0.024286413f,  0.008211937f,  0.021920240f,  0.015435011f,
- 0.001524420f, -0.007565650f, -0.008256345f, -0.004690292f,
--0.000970689f};
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 // 
@@ -1492,8 +1479,6 @@ COLD void TX_RX_Switch(
     TX_Source.gain(0, Mic_On); //  Mono Mic audio
     TX_Source.gain(1, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
     TX_Source.gain(2, ToneB); //  Test Tone B
-    
-    FM_Detector.setSquelchThreshold(0.7f);
 
     // use mode to control sideband switching
     float invert;
@@ -1502,7 +1487,7 @@ COLD void TX_RX_Switch(
         case CW:
         case DATA:
         case AM:
-        case FM:
+        case FM: FM_Detector.setSquelchThreshold(0.7f);
         case USB:
             invert = 1.0f; 
             break;

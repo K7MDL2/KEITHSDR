@@ -1151,15 +1151,14 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
         #endif
         // enable mic input to pass to line out on audio card, set audio levels
-        if (TwoToneTest)  // Mic on, turn off test tones
+        if (TwoToneTest)  // do test tones
             TX_RX_Switch(ON, mode_idx, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones            
-        else  // else do test tones
+        else  // Mic on, turn off test tones
             TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
     }
     displayXMIT();
     displayFreq();
-    //MSG_Serial.print("Set XMIT to ");
-    //MSG_Serial.println(user_settings[user_Profile].xmit);
+    //MSG_Serial.print("Set XMIT to "); MSG_Serial.println(user_settings[user_Profile].xmit);
 }
 
 // NB button
