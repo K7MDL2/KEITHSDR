@@ -947,7 +947,7 @@ COLD void AFgain(int8_t delta)
     //MSG_Serial.print(" Volume set to  log = "); 
     //MSG_Serial.println(val);
 
-#ifdef USE_FFT_LO_MIXER
+#ifdef USE_FFT_LO_MIXERxxxx
     AudioNoInterrupts();
     FFT_LO_Mixer_I.frequency((_afLevel)*200.0f);
     FFT_LO_Mixer_Q.frequency((_afLevel)*200.0f);
@@ -1098,9 +1098,9 @@ COLD void PAN(int8_t delta)
         _panLevel = 50;  // 50 is halfway or 0
         user_settings[user_Profile].pan_level = _panLevel;
         //use for testing frequency shift methods  
-        #ifdef USE_FFT_LO_MIXER   
+        #ifdef USE_FFT_LO_MIXERxxxx
             AudioNoInterrupts();
-            FFT_LO_Mixer_I.iqmPhaseS_C(_rfLevel*5.0f);
+            FFT_LO_Mixer_I.iqmPhaseS_C(0); //(_panLevel*5.0f);
             //FFT_LO_Mixer_Q.iqmPhaseS((float) user_settings[user_Profile].rfGain*5);
             AudioInterrupts();
         #endif

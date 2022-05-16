@@ -307,25 +307,27 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
-AudioConnection_F32     patchCord_Mic_In(Input,0,                           TX_Source,0);   // Mic source
-AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                 TX_Source,1);   // Combine mic, tone B and B into L channel
-AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                 TX_Source,2);
-AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                 TX_FilterConv,0);  // variable filter for TX
+AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
+AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,1);   // Combine mic, tone B and B into L channel
+AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,2);
+AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     TX_FilterConv,0);  // variable filter for TX
     
-AudioConnection_F32     patchCord_IQ_Mix_L(TX_FilterConv,0,                    TX_Hilbert_Plus_45,0); 
-AudioConnection_F32     patchCord_IQ_Mix_R(TX_FilterConv,0,                    TX_Hilbert_Minus_45,0); 
-AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,              I_Switch,1); // + and - reversed for TX
-AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,             Q_Switch,1); // Feed into normal chain 
+AudioConnection_F32     patchCord_IQ_Mix_L(TX_FilterConv,0,                     TX_Hilbert_Plus_45,0); 
+AudioConnection_F32     patchCord_IQ_Mix_R(TX_FilterConv,0,                     TX_Hilbert_Minus_45,0); 
+AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  I_Switch,1); // + and - reversed for TX
+AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 Q_Switch,1); // Feed into normal chain 
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 #ifdef USE_FFT_LO_MIXER
-    AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                  FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
-    AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                  FFT_LO_Mixer_I,1);
-    AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,             FFT_90deg_Hilbert,0); // Filter I and Q
-    AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_I,1,             FFT_90deg_Hilbert,1); 
-    AudioConnection_F32     patchCord_LO_Fil_L(FFT_90deg_Hilbert,0,          FFT_Atten_I,0); // Filter I and Q
-    AudioConnection_F32     patchCord_LO_Fil_R(FFT_90deg_Hilbert,1,          FFT_Atten_Q,0);
-#elif USE_FREQ_SHIFTER
+    AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_LO_Mixer_I,1);
+    //AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,              FFT_90deg_Hilbert,0); // Filter I and Q
+    //AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_I,1,              FFT_90deg_Hilbert,1); 
+    //AudioConnection_F32     patchCord_LO_Fil_L(FFT_90deg_Hilbert,0,           FFT_Atten_I,0); // Filter I and Q
+    //AudioConnection_F32     patchCord_LO_Fil_R(FFT_90deg_Hilbert,1,           FFT_Atten_Q,0);
+    AudioConnection_F32     patchCord_LO_Fil_L(FFT_LO_Mixer_I,0,                FFT_Atten_I,0); // Filter I and Q
+    AudioConnection_F32     patchCord_LO_Fil_R(FFT_LO_Mixer_I,1,                FFT_Atten_Q,0);
+#elif defined(USE_FREQ_SHIFTER)
     AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_SHIFT_I,0);     // Attenuate signals to FFT while in TX mode
     AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_SHIFT_Q,0);
     AudioConnection_F32     patchCord_FFT_Shift_L(FFT_SHIFT_I,0,                FFT_Atten_I,0); // Filter I and Q
@@ -1764,6 +1766,8 @@ COLD void resetCodec(void)
         TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin       
     #endif
 
+    AudioNoInterrupts();
+    
     // The FM detector has error checking during object construction
     // when MSG_Serial.print is not available.  See RadioFMDetector_F32.h:
     MSG_Serial.print(F("FM Initialization errors: "));
@@ -1783,7 +1787,7 @@ COLD void resetCodec(void)
         FFT_SHIFT_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
 
         //configure the frequency shifting
-        float shiftFreq_Hz = 6000.0; //shift audio upward a bit
+        float shiftFreq_Hz = 1200.0; //shift audio upward a bit
         float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
         int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
 
@@ -1797,9 +1801,11 @@ COLD void resetCodec(void)
     
     #ifdef USE_FFT_LO_MIXER   // Experimental to shift the FFT spectrum  up away from DC
         // Mixer using LO to shift signal up the FFT spectrum  Experimental, not working yet
-        //FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
-        FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-        FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
+        FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
+        //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+        //FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
+        FFT_LO_Mixer_I.iqmPhaseS(-128);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+        FFT_LO_Mixer_I.frequency(0);
         FFT_LO_Mixer_I.useTwoChannel(true);  //true when using both channels.
         FFT_LO_Mixer_I.useSimple(false); // false to use correction factors
 
@@ -1807,7 +1813,9 @@ COLD void resetCodec(void)
 
         //FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
         //FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+        //FFT_LO_Mixer_Q.iqmPhaseS_C(10);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
         //FFT_LO_Mixer_Q.frequency(user_settings[user_Profile].afGain*100);
+        //FFT_LO_Mixer_Q.frequency(0);
         //FFT_LO_Mixer_Q.useTwoChannel(false);  
         //FFT_LO_Mixer_Q.useSimple(true); 
     #endif
@@ -1825,13 +1833,13 @@ COLD void resetCodec(void)
     LMS_Notch.enable(false);
     NoiseBlanker.useTwoChannel(true);
     
+    AudioInterrupts();
+
     // Will be done in mode function also except for Beep Tone (2)
     //RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
 	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
     RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
     //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-
-    //AudioInterrupts();
     
     Xmit(0);  // Finish RX audio chain setup
 
