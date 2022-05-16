@@ -337,8 +337,8 @@ AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  
     AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);     // Swap I and Q for correct FFT 
 #endif
 
-AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
-AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_Q,0,                  FFT_OutSwitch_Q,0);
+AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_Q,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
+AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_I,0,                  FFT_OutSwitch_Q,0);
 
 // One or more of these FFT pipelines can be used, most likely for pan and zoom.  Normally just 1 is used.
 #ifdef FFT_4096
@@ -953,12 +953,14 @@ HOT void loop()
 HOT void Check_PTT(void)
 {
     PTT_pin_state = digitalRead(PTT_INPUT);
-    // Start debpunce timer if a new pin change of state detected
+    //MSG_Serial.print("PTT State "); MSG_Serial.println(PTT_pin_state);
+    // Start debounce timer if a new pin change of state detected
     if (PTT_pin_state != last_PTT_Input)   // user_settings[user_Profile].xmit == OFF)
     {   
+        //MSG_Serial.print("PTT Changed State "); MSG_Serial.println(PTT_pin_state);
         if (!PTT_Input_debounce)
         {
-            //MSG_Serial.println("Start PTT Settle Timer");
+            MSG_Serial.println("Start PTT Settle Timer");
             PTT_Input_debounce = 1;     // Start debounce timer
             PTT_Input_time = millis();  // Start of transition
             last_PTT_Input = PTT_pin_state;
@@ -976,13 +978,13 @@ HOT void Check_PTT(void)
         PTT_Input_debounce= 0;     // Reset timer for next change
         if (!last_PTT_Input)  // if TX
         {
-            //MSG_Serial.println("PTT TX Detected");
+            MSG_Serial.println("PTT TX Detected");
             Xmit(1);  // transmit state
             last_PTT_Input = 0;
         }
         else // if RX
         {
-            //MSG_Serial.println("PTT TX Released");
+            MSG_Serial.println("PTT TX Released");
             Xmit(0);  // receive state
             last_PTT_Input = 1;
         }
