@@ -314,8 +314,8 @@ AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     
     
 AudioConnection_F32     patchCord_IQ_Mix_L(TX_FilterConv,0,                     TX_Hilbert_Plus_45,0); 
 AudioConnection_F32     patchCord_IQ_Mix_R(TX_FilterConv,0,                     TX_Hilbert_Minus_45,0); 
-AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 Q_Switch,1); // Feed into normal chain 
-AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  I_Switch,1); 
+AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 I_Switch,1); // Feed into normal chain 
+AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  Q_Switch,1); 
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 #if defined (USE_FFT_LO_MIXER)
@@ -337,8 +337,8 @@ AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  
     AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);     // Swap I and Q for correct FFT 
 #endif
 
-AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_Q,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
-AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_I,0,                  FFT_OutSwitch_Q,0);
+AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
+AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_Q,0,                  FFT_OutSwitch_Q,0);
 
 // One or more of these FFT pipelines can be used, most likely for pan and zoom.  Normally just 1 is used.
 #ifdef FFT_4096
@@ -384,12 +384,12 @@ AudioConnection_F32     patchCord_FM_Mix_Out(FM_Detector,0,                 Outp
 AudioConnection_F32     patchCord_Summer_Peak(RX_Summer,0,                  S_Peak,0);      // S meter source
 AudioConnection_F32     patchCord_Summer_Notch(RX_Summer,0,                 LMS_Notch,0);   // NR and Notch
 AudioConnection_F32     patchCord_Notch(LMS_Notch,0,                        RX_FilterConv,0);  // variable bandwidth filter
-AudioConnection_F32     patchCord_RxOut_L(RX_FilterConv,0,                     OutputSwitch_I,0);  // demod and filtering complete
-AudioConnection_F32     patchCord_RxOut_R(RX_FilterConv,0,                     OutputSwitch_Q,0);  
+AudioConnection_F32     patchCord_RxOut_L(RX_FilterConv,0,                  OutputSwitch_I,0);  // demod and filtering complete
+AudioConnection_F32     patchCord_RxOut_R(RX_FilterConv,0,                  OutputSwitch_Q,0);  
 
 // In TX the mic source is selected in FFT_Mixer and was phase shifted so just passed
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_I,1);  // phase shift mono sourtce 90 degrees
-AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         OutputSwitch_Q,1);  // Using L source twice since mic source is mono
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_R,1,         OutputSwitch_I,1);  // phase shift mono source 90 degrees
+AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_L,1,         OutputSwitch_Q,1);  // Using L source twice since mic source is mono
 
 // Selected source goes to output (selected as headphone or lineout in the code) and boosted if needed
 AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1_L,0);  // output to headphone jack Left
