@@ -111,6 +111,7 @@ COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool 
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
+HOT void Check_Encoders(void);
 #ifdef USE_RS_HFIQ
   HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
 #endif
@@ -723,114 +724,8 @@ HOT void loop()
         }
     }
 
-    #ifdef I2C_ENCODERS
-    uint8_t mfg;
-
-    // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
-    if (digitalRead(I2C_INT_PIN) == LOW) 
-    {
-        #ifdef MF_ENC_ADDR
-        // Check the status of the encoder (if enabled) and call the callback
-        if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
-        {            
-            mfg = MF_ENC.readStatus();
-            if (mfg) {}
-            //if (mfg) { MSG_Serial.print(F("****Checked MF_Enc status = ")); MSG_Serial.println(mfg); }
-        }
-        #endif
-        #ifdef ENC2_ADDR
-        if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client)
-        {
-            mfg = ENC2.readStatus();
-            if (mfg) {}
-            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #2 status = ")); MSG_Serial.println(mfg); }
-        }
-        #endif
-        #ifdef ENC3_ADDR
-        if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client)
-        {
-            mfg = ENC3.readStatus();
-            if (mfg) {}
-            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #3 status = ")); MSG_Serial.println(mfg); }
-        }
-        #endif
-        #ifdef ENC4_ADDR
-        if(ENC4.updateStatus() && user_settings[user_Profile].encoder4_client)
-        {
-            mfg = ENC4.readStatus();
-            if (mfg) {}
-            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #4 status = ")); MSG_Serial.println(mfg); }
-        }
-        #endif
-        #ifdef ENC5_ADDR
-        if(ENC5.updateStatus() && user_settings[user_Profile].encoder5_client)
-        {
-            mfg = ENC5.readStatus();
-            if (mfg) {}
-            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #5 status = ")); MSG_Serial.println(mfg); }
-        }
-        #endif
-        #ifdef ENC6_ADDR
-        if(ENC6.updateStatus() && user_settings[user_Profile].encoder6_client)
-        {
-            mfg = ENC6.readStatus();
-            if (mfg) {}
-            //if (mfg) {MSG_Serial.print(F("****Checked Encoder #6 status = ")); MSG_Serial.println(mfg); }
-        }
-        #endif
-    }
-    #else
-        #ifdef MECH_ENCODERS
-            // Use a mechanical encoder on the GPIO pins, if any.
-            if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
-            {
-                static int8_t counts = 0;
-                static int8_t counts_last = 0;
-                
-                counts += (int8_t) multiKnob(0);
-                
-                if (!counts_last && counts)  // detect and capture new counts, start timer
-                {
-                    ENC_Read_timer.reset();
-                    counts_last = counts; 
-                    return;
-                }
-
-                if (counts_last && abs(counts) && ENC_Read_timer.check() == 1)
-                { 
-                    //MSG_Serial.println(counts/4);
-                    MF_Service(counts/4, MF_client);
-                    multiKnob(1); // clear buffer
-                    counts = 0;
-                    counts_last = 0;
-                } 
-            }
-        #endif
-    #endif // I2C_ENCODERS
-
-    #ifdef MECH_ENCODERS
-        
-        static uint8_t ENC2_sw_pushed = 0;
-        static uint8_t ENC3_sw_pushed = 0;
-
-        // ToDo: Check timer for long and short press, add debounce
-        //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
-        
-        if (!digitalRead(ENC2_PIN_SW) && !ENC2_sw_pushed)
-        {
-            Button_Action(user_settings[user_Profile].encoder1_client_sw);
-            ENC2_sw_pushed = 1;
-        }
-        else if (digitalRead(ENC2_PIN_SW) && ENC2_sw_pushed)
-            ENC2_sw_pushed = 0;
-
-        if (!digitalRead(ENC3_PIN_SW) && !ENC3_sw_pushed)
-        {
-            Button_Action(user_settings[user_Profile].encoder2_client_sw);
-            ENC3_sw_pushed = 1;
-        }
-        else  if (digitalRead(ENC3_PIN_SW) && ENC3_sw_pushed)
-            ENC3_sw_pushed = 0;
+    #if defined I2C_ENCODERS || MECH_ENCODERS
+        Check_Encoders();
     #endif
 
     if (!popup)
@@ -960,14 +855,14 @@ HOT void Check_PTT(void)
         //MSG_Serial.print("PTT Changed State "); MSG_Serial.println(PTT_pin_state);
         if (!PTT_Input_debounce)
         {
-            MSG_Serial.println("Start PTT Settle Timer");
+            //MSG_Serial.println("Start PTT Settle Timer");
             PTT_Input_debounce = 1;     // Start debounce timer
             PTT_Input_time = millis();  // Start of transition
             last_PTT_Input = PTT_pin_state;
         }
     }
     // Debounce timer in progress?  If so exit.
-    if (PTT_Input_debounce && ((PTT_Input_time - millis()) < 20)) 
+    if (PTT_Input_debounce && ((PTT_Input_time - millis()) < 30)) 
     {
         //MSG_Serial.println("Waiting for PTT Settle Time");
         return;
@@ -978,15 +873,13 @@ HOT void Check_PTT(void)
         PTT_Input_debounce= 0;     // Reset timer for next change
         if (!last_PTT_Input)  // if TX
         {
-            MSG_Serial.println("PTT TX Detected");
+            MSG_Serial.println("\nPTT TX Detected");
             Xmit(1);  // transmit state
-            last_PTT_Input = 0;
         }
         else // if RX
         {
-            MSG_Serial.println("PTT TX Released");
+            MSG_Serial.println("\nPTT TX Released");
             Xmit(0);  // receive state
-            last_PTT_Input = 1;
         }
     }
 }
@@ -1953,12 +1846,14 @@ void RS_HFIQ_Service(void)
     static uint32_t last_VFOA = VFOA;
     static uint32_t last_VFOB = VFOB;
     static int8_t last_curr_band = curr_band;
-    static uint8_t xmit_last = OFF;
+    static uint8_t CAT_xmit_last = 0;
+    static uint8_t CAT_xmit = 0;
     static uint8_t split_last = bandmem[curr_band].split;
     static uint8_t swap_VFO = 0;
     static uint8_t swap_VFO_last = 0;
 
-    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
+    //if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
+    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &CAT_xmit, &(bandmem[curr_band].split))) != 0)
     {
         if (popup) return;  // ignore external changes while a window is active.  Changes wil be applied when the window is close (popup OFF)
 
@@ -2002,10 +1897,12 @@ void RS_HFIQ_Service(void)
         }
     }
 
-    if (user_settings[user_Profile].xmit != xmit_last)   // Pass on any change in Xmit state from CAT port
+    if (CAT_xmit_last != CAT_xmit) // Pass on any change in Xmit state from CAT port
     {
-        Xmit(user_settings[user_Profile].xmit);
-        xmit_last = user_settings[user_Profile].xmit;
+        //user_settings[user_Profile].xmit;
+        MSG_Serial.print(F("CAT Port: TX = ")); MSG_Serial.println(CAT_xmit);
+        CAT_xmit_last = CAT_xmit;
+        Xmit(CAT_xmit);
     }
 
     if (temp_freq != 0)
@@ -2020,3 +1917,118 @@ void RS_HFIQ_Service(void)
     }
 }
 #endif  // USE_RS_HFIQ
+
+#if defined I2C_ENCODERS || MECH_ENCODERS
+void Check_Encoders(void)
+{   
+    #if defined I2C_ENCODERS
+        uint8_t mfg;
+
+        // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
+        if (digitalRead(I2C_INT_PIN) == LOW) 
+        {
+            #ifdef MF_ENC_ADDR
+            // Check the status of the encoder (if enabled) and call the callback
+            if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
+            {            
+                mfg = MF_ENC.readStatus();
+                if (mfg) {}
+                //if (mfg) { MSG_Serial.print(F("****Checked MF_Enc status = ")); MSG_Serial.println(mfg); }
+            }
+            #endif
+            #ifdef ENC2_ADDR
+            if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client)
+            {
+                mfg = ENC2.readStatus();
+                if (mfg) {}
+                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #2 status = ")); MSG_Serial.println(mfg); }
+            }
+            #endif
+            #ifdef ENC3_ADDR
+            if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client)
+            {
+                mfg = ENC3.readStatus();
+                if (mfg) {}
+                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #3 status = ")); MSG_Serial.println(mfg); }
+            }
+            #endif
+            #ifdef ENC4_ADDR
+            if(ENC4.updateStatus() && user_settings[user_Profile].encoder4_client)
+            {
+                mfg = ENC4.readStatus();
+                if (mfg) {}
+                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #4 status = ")); MSG_Serial.println(mfg); }
+            }
+            #endif
+            #ifdef ENC5_ADDR
+            if(ENC5.updateStatus() && user_settings[user_Profile].encoder5_client)
+            {
+                mfg = ENC5.readStatus();
+                if (mfg) {}
+                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #5 status = ")); MSG_Serial.println(mfg); }
+            }
+            #endif
+            #ifdef ENC6_ADDR
+            if(ENC6.updateStatus() && user_settings[user_Profile].encoder6_client)
+            {
+                mfg = ENC6.readStatus();
+                if (mfg) {}
+                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #6 status = ")); MSG_Serial.println(mfg); }
+            }
+            #endif
+        }
+    #else
+        #ifdef MECH_ENCODERS
+            // Use a mechanical encoder on the GPIO pins, if any.
+            if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
+            {
+                static int8_t counts = 0;
+                static int8_t counts_last = 0;
+                
+                counts += (int8_t) multiKnob(0);
+                
+                if (!counts_last && counts)  // detect and capture new counts, start timer
+                {
+                    ENC_Read_timer.reset();
+                    counts_last = counts; 
+                    return;
+                }
+
+                if (counts_last && abs(counts) && ENC_Read_timer.check() == 1)
+                { 
+                    //MSG_Serial.println(counts/4);
+                    MF_Service(counts/4, MF_client);
+                    multiKnob(1); // clear buffer
+                    counts = 0;
+                    counts_last = 0;
+                } 
+            }
+        #endif
+    #endif // I2C_ENCODERS
+
+    #ifdef MECH_ENCODERS
+        
+        static uint8_t ENC2_sw_pushed = 0;
+        static uint8_t ENC3_sw_pushed = 0;
+
+        // ToDo: Check timer for long and short press, add debounce
+        //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
+        
+        if (!digitalRead(ENC2_PIN_SW) && !ENC2_sw_pushed)
+        {
+            Button_Action(user_settings[user_Profile].encoder1_client_sw);
+            ENC2_sw_pushed = 1;
+        }
+        else if (digitalRead(ENC2_PIN_SW) && ENC2_sw_pushed)
+            ENC2_sw_pushed = 0;
+
+        if (!digitalRead(ENC3_PIN_SW) && !ENC3_sw_pushed)
+        {
+            Button_Action(user_settings[user_Profile].encoder2_client_sw);
+            ENC3_sw_pushed = 1;
+        }
+        else  if (digitalRead(ENC3_PIN_SW) && ENC3_sw_pushed)
+            ENC3_sw_pushed = 0;
+    #endif
+}
+#endif 
