@@ -314,11 +314,11 @@ AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     
     
 AudioConnection_F32     patchCord_IQ_Mix_L(TX_FilterConv,0,                     TX_Hilbert_Plus_45,0); 
 AudioConnection_F32     patchCord_IQ_Mix_R(TX_FilterConv,0,                     TX_Hilbert_Minus_45,0); 
-AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  I_Switch,1); // + and - reversed for TX
 AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 Q_Switch,1); // Feed into normal chain 
+AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  I_Switch,1); 
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
-#ifdef USE_FFT_LO_MIXER
+#if defined (USE_FFT_LO_MIXER)
     AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
     AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_LO_Mixer_I,1);
     //AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,              FFT_90deg_Hilbert,0); // Filter I and Q
@@ -333,8 +333,8 @@ AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 
     AudioConnection_F32     patchCord_FFT_Shift_L(FFT_SHIFT_I,0,                FFT_Atten_I,0); // Filter I and Q
     AudioConnection_F32     patchCord_FFT_Shift_R(FFT_SHIFT_Q,0,                FFT_Atten_Q,0); 
 #else
-    AudioConnection_F32     patchCord_FFT_OUT_L(Q_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
-    AudioConnection_F32     patchCord_FFT_OUT_R(I_Switch,0,                     FFT_Atten_Q,0);     // Swap I and Q for correct FFT 
+    AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_Atten_I,0);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);     // Swap I and Q for correct FFT 
 #endif
 
 AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
