@@ -29,17 +29,10 @@ COLD void selectBandwidth(uint8_t bndx)
     Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
     Amp1_R.setGain_dB(AUDIOBOOST);
     // For convolutional filter method, just set a single fixed Hibert filter width. Rest is taken care of after the summer
-    //RX_Hilbert_Plus_45.end();
-    //RX_Hilbert_Minus_45.end();
-
-    //RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);
-    //RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151);
     
     if(bndx==0)
     {
         //bandwidth="Bw 250 Hz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_500,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_500,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,250.0f,9.0f);   
         //CW_Filter.begin();           
@@ -55,8 +48,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==1)
     {
         //bandwidth="Bw 500 Hz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_500,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_500,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,500.0f,9.0f);
         //CW_Filter.begin();
@@ -72,8 +63,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==2)
     {
         //bandwidth="Bw 700 Hz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_700,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_700,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,700.0f,9.0f);
         //CW_Filter.begin();
@@ -89,8 +78,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==3)
     {
         //bandwidth="Bw 1.0 kHz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_1K,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_1K,151);
         //CW_Filter.end();
         //CW_Filter.setBandpass(0,1000.0f,9.0f);
         //CW_Filter.begin();
@@ -108,8 +95,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==4)
     {
         //bandwidth="Bw 1.8 kHz";  
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_18K,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_18K,151);
         filterCenter = 1850/2;
         filterBandwidth = 1800;
         SetFilter();
@@ -118,8 +103,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==5)
     {
         //bandwidth="Bw 2.3kHz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_23K,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_23K,151);
         filterCenter = 2400/2;
         filterBandwidth = 2300;
         SetFilter();
@@ -128,8 +111,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==6)
     {
         //bandwidth="Bw 2.8 kHz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151);
         filterCenter = 2900/2;
         filterBandwidth = 2800;
         SetFilter();
@@ -138,8 +119,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==7)
     {
         //bandwidth="Bw 3.2 kHz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_32K,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_32K,151);
         filterCenter = 3300/2;
         filterBandwidth = 3200;
         SetFilter();           
@@ -148,8 +127,6 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==8) 
     {
         //bandwidth="4.0 kHz";
-    //    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);
-    //    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151);
         filterCenter = 4100/2;
         filterBandwidth = 4000;
         SetFilter();

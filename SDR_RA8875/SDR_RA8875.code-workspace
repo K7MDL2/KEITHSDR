@@ -26,7 +26,9 @@
 			"glcdfont.c": "cpp",
 			"*.tcc": "cpp",
 			"sdr_ra8875.h": "c",
-			"spi.h": "c"
+			"spi.h": "c",
+			"string_view": "cpp",
+			"regex": "cpp"
 		}
 	}
 }
