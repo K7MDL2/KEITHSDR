@@ -2,8 +2,11 @@
   "tasks": [
     {
       "label": "Build",
-      "group": "build",
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "command": "C:/DATA/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "all",
         "",
@@ -16,7 +19,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "C:/DATA/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "clean"
       ]
@@ -27,7 +30,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "C:/DATA/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "upload",
         "",
@@ -40,7 +43,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "C:/DATA/VisualTeensy_v1.5.0/make.exe",
       "args": [
         "uploadTy",
         "",
