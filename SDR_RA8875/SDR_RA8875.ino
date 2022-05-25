@@ -19,7 +19,6 @@
 #include "hilbert121A.h"
 #include "hilbert251A.h"
 
-
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
     SDR_RS_HFIQ RS_HFIQ;

@@ -23,7 +23,6 @@
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
-#include <Audio.h>              // Included with Teensy and at GitHub https://github.com/PaulStoffregen/Audio
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
 #include <InternalTemperature.h>// V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 #include <TimeLib.h>            // TODO  - list where to find this
