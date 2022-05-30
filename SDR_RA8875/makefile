@@ -24,7 +24,7 @@ BUILD_CACHE      := "C:\Users\k7mdl\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteen
 HARDWARE         := -hardware="C:\Program Files (x86)\Arduino/hardware"
 TOOLS            := -tools="C:\Program Files (x86)\Arduino\tools-builder"
 
-LIBRARIES        := -built-in-libraries="C:\Program Files (x86)\Arduino/libraries"
+LIBRARIES        := -built-in-libraries="C:\Program Files (x86)\Arduino\libraries"
 LIBRARIES        := -libraries="C:\Users\k7mdl\Documents\Arduino\libraries"
 UPL_PJRC_B       := C:\PROGRA~2\Arduino\hardware\tools
 UPL_TYCMD_B      := C:\PROGRA~1\TyTools
