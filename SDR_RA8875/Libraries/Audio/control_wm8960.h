@@ -74,10 +74,13 @@ public:
     // Write directly to wm8960
     bool write(uint16_t reg, uint16_t val, uint16_t mask, bool force);
     
+    // return to default fast ramp, max delay 10.7ms
     void dacVolumeRampDisable(void);
 
+    // set slow ramp, max delay 171ms
     void dacVolumeRamp(void);
 
+    // same as RampDisable, set to default fast ramp
     void dacVolumeRampLinear(void);
 
     void dacVolume(float vol);
@@ -96,6 +99,7 @@ public:
     void muteLineout(void);
 
     void adcHighPassFilterEnable(void);
+    void adcHighPassFilterDisable(void);
 
 
 protected:

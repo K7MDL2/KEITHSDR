@@ -201,8 +201,8 @@ bool    MF_default_is_active = true;
 // Audio Library setup stuff
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
+//float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
 //float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 
@@ -422,6 +422,7 @@ AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Outp
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
+//AudioControlWM8960    codec1;
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 // 
@@ -747,7 +748,7 @@ HOT void loop()
         }
     }
 
-    #if defined I2C_ENCODERS || MECH_ENCODERS
+    #if defined I2C_ENCODERS || defined MECH_ENCODERS
         Check_Encoders();
     #endif
 
@@ -1948,7 +1949,7 @@ void RS_HFIQ_Service(void)
 }
 #endif  // USE_RS_HFIQ
 
-#if defined I2C_ENCODERS || MECH_ENCODERS
+#if defined I2C_ENCODERS || defined MECH_ENCODERS
 void Check_Encoders(void)
 {   
     #if defined I2C_ENCODERS

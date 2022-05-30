@@ -206,8 +206,11 @@ bool AudioControlWM8960::enable(void)
 
 
     // Enable speaker outputs
-    write(0x31, 0b011000000, 0b011000000);
-
+    write(0x31, 0b001000000, 0b011000000);
+    // Speaker amp DC boost
+    write(0x33, 0b000000000, 0b000111000);
+    // Speaker amp AC boost
+    write(0x33, 0b000000000, 0b000000111);
 
     //// Configure input
     //// Enable AINL/AINR, and ADCL/ADCR
@@ -232,7 +235,7 @@ bool AudioControlWM8960::volume(float l, float r) {
     return speakerVolume(l,r);
 }
 
-bool AudioControlWM8960::headphoneVolume(float l, float r)
+bool AudioControlWM8960::headphoneVolume(float l, float r)  // 0 to 1.0 to produce 47 to 127
 {
     uint16_t i;
     i = 47 + (uint16_t) (80.0*l+0.5);
@@ -256,7 +259,7 @@ bool AudioControlWM8960::headphonePower(uint8_t p)
     return write(0x1a, value, mask);
 }
 
-bool AudioControlWM8960::speakerVolume(float l, float r)
+bool AudioControlWM8960::speakerVolume(float l, float r)  // 0 to 1.0 to produce 47 to 127
 {
     uint16_t i;
     i = 47 + (uint16_t) (80.0*l+0.5);
@@ -399,21 +402,22 @@ bool AudioControlWM8960::inputSelect(int n)
 
 void AudioControlWM8960::dacVolumeRampDisable(void)
 {
-
+     write(0x06, 0b000000000, 0b000001000);
 }
 
 void AudioControlWM8960::dacVolumeRamp(void)
 {
-
+    write(0x06, 0b000001100, 0b000001100);
 }
+
 void AudioControlWM8960::dacVolumeRampLinear(void)
 {
-    
+    write(0x06, 0b000001000, 0b000001100);    
 }
 
 void AudioControlWM8960::dacVolume(float vol)
 {
-    
+     volume(vol, vol);
 }
 
 void AudioControlWM8960::muteHeadphone(void)
@@ -423,22 +427,7 @@ void AudioControlWM8960::muteHeadphone(void)
 
 void AudioControlWM8960::unmuteHeadphone(void)
 {
-
-}
-
-void AudioControlWM8960::audioProcessorDisable(void)
-{
-    
-}
-
-void AudioControlWM8960::audioPreProcessorEnable(void)   // AVC on Line-In level
-{
-    
-}
-
-void AudioControlWM8960::audioPostProcessorEnable(void)
-{
-    
+    volume(1.0f, 1.0f);
 }
 
 void AudioControlWM8960::lineInLevel(float x)
@@ -448,15 +437,38 @@ void AudioControlWM8960::lineInLevel(float x)
 
 void AudioControlWM8960::unmuteLineout(void)
 {
-    
+    volume(1.0f, 1.0f);
 }
 
 void AudioControlWM8960::muteLineout(void)
 {
-    
+    volume(0.0f, 0.0f);
 }
 
 void AudioControlWM8960::adcHighPassFilterEnable(void)
 {
-    
+    write(0x05, 0b000000000, 0b000000001);
+}
+
+void AudioControlWM8960::adcHighPassFilterDisable(void)
+{
+        // Unmute DAC
+    write(0x05, 0b000000001, 0b000000001);
+}
+
+void AudioControlWM8960::audioProcessorDisable(void)
+{
+    write(0x05, 0b000000000, 0b000000110);  // De-emphasis control 2:1 = 1 = 48Khz sample rate
+    write(0x11, 0b000000000, 0b110000000);  // ALC = OFF
+}
+
+void AudioControlWM8960::audioPreProcessorEnable(void)   // AVC on Line-In level
+{
+    write(0x05, 0b000000110, 0b000000110);  // De-emphasis control 2:1 = 1 = 48Khz sample rate
+    write(0x11, 0b110000000, 0b110000000);  // ALC = Stereo mode
+}
+
+void AudioControlWM8960::audioPostProcessorEnable(void)
+{
+    write(0x05, 0b000000110, 0b000000110);  // De-emphasis control 2:1 = 1 = 48Khz sample rate
 }
