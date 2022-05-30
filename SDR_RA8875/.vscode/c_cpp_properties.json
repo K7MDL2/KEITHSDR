@@ -1,30 +1,28 @@
 {
-    "configurations": [
-        {
-            "name": "VisualTeensy",
-            "includePath": [
-                "C:/Progra~2/Arduino/hardware/teensy/avr/cores/teensy4/**",
-                "C:/Progra~2/Arduino/hardware/teensy/avr/libraries/**",
-                "C:/Progra~2/Arduino/libraries/**",
-                "C:/Program Files (x86)/Arduino/libraries/**",
-                "C:/Users/k7mdl/Documents/Arduino/libraries/**"
-            ],
-            "forcedInclude": [
-                "C:/Progra~2/Arduino/hardware/teensy/avr/cores/teensy4/arduino.h"
-            ],
-            "defines": [
-                "__IMXRT1062__",
-                "TEENSYDUINO=153",
-                "F_CPU=600000000",
-                "USB_SERIAL",
-                "LAYOUT_US_ENGLISH",
-                "ARDUINO",
-                "USBCON"
-            ],
-            "compilerPath": "C:/Progra~2/Arduino/hardware/tools/arm/bin/arm-none-eabi-gcc.exe",
-            "intelliSenseMode": "gcc-arm",
-            "cppStandard": "gnu++14"
-        }
-    ],
-    "version": 4
+  "configurations": [
+    {
+      "name": "VisualTeensy",
+      "includePath": [
+        "C:/Program Files (x86)/Arduino/hardware/teensy/avr/cores/teensy4/**",
+        "C:/Program Files (x86)/Arduino/hardware/teensy/avr/libraries/**",
+        "C:/Program Files (x86)/Arduino/libraries/**",
+        "C:/Users/Mike/Documents/Arduino/libraries/**"
+      ],
+      "forcedInclude": [
+        "C:/Program Files (x86)/Arduino/hardware/teensy/avr/cores/teensy4/arduino.h"
+      ],
+      "defines": [
+        "__IMXRT1062__",
+        "TEENSYDUINO=156",
+        "F_CPU=816000000",
+        "USB_DUAL_SERIAL",
+        "LAYOUT_US_ENGLISH",
+        "ARDUINO=10813"
+      ],
+      "compilerPath": "C:/PROGRA~2/Arduino/hardware/tools/arm/bin/arm-none-eabi-gcc.exe",
+      "intelliSenseMode": "gcc-arm",
+      "cppStandard": "gnu++14"
+    }
+  ],
+  "version": 4
 }

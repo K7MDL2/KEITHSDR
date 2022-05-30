@@ -4,7 +4,7 @@
 # Board              Teensy 4.1
 # USB Type           Dual Serial
 # CPU Speed          816 MHz (overclock)
-# Optimize           Fastest
+# Optimize           Faster
 # Keyboard Layout    US English
 #
 # #******************************************************************************
@@ -18,9 +18,9 @@ MCU              := imxrt1062
 
 BUILDER_BASE     := "C:\Program Files (x86)\Arduino"
 FLAGS            := -verbose=1 -warnings=all
-FQBN             := teensy:avr:teensy41:usb=serial2,speed=816,opt=o3std,keys=en-us
-BUILD_PATH       := "C:\Users\k7mdl\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\build"
-BUILD_CACHE      := "C:\Users\k7mdl\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\cache"
+FQBN             := teensy:avr:teensy41:usb=serial2,speed=816,opt=o2std,keys=en-us
+BUILD_PATH       := "C:\Users\Mike\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\build"
+BUILD_CACHE      := "C:\Users\Mike\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\cache"
 HARDWARE         := -hardware="C:\Program Files (x86)\Arduino/hardware"
 TOOLS            := -tools="C:\Program Files (x86)\Arduino\tools-builder"
 

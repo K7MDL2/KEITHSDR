@@ -24,7 +24,7 @@ sampling frequency: 48000 Hz
   actual attenuation = -80.0073352831158 dB
 
 */
-
+/*
 #define FILTER_TAP_NUM 581
 
 static float fir2[FILTER_TAP_NUM] = {
@@ -611,7 +611,7 @@ static float fir2[FILTER_TAP_NUM] = {
   0.00008572202278216231
 };
 
-
+*/
 
 // 0 Hz - 400 Hz   attenuation = -91.3 dB
 // 900 Hz - 3200 Hz  ripple = 3.5 dB
