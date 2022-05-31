@@ -51,8 +51,6 @@ bool AudioControlWM8960::write(uint16_t reg, uint16_t val, uint16_t mask, bool f
     return true;
 }
 
-
-
 bool AudioControlWM8960::disable(void)
 {
     // Reset
@@ -290,13 +288,11 @@ bool AudioControlWM8960::speakerPower(uint8_t p)
     return write(0x31, value, mask);
 }
 
-
 // Write 1 to disable, 0 to enable, default is enabled
 bool AudioControlWM8960::disableADCHPF(uint8_t v)
 {
     return write(0x05, v, 0b01);
 }
-
 
 // Write 1 to enable
 bool AudioControlWM8960::enableMicBias(uint8_t v)
@@ -310,7 +306,6 @@ bool AudioControlWM8960::enableALC(uint16_t v)
     // FIXME set LINVOL and RINVOL to same value if both are enabled
     return write(0x11, v << 7, 0b110000000);
 }
-
 
 bool AudioControlWM8960::micPower(uint8_t p)
 {
@@ -370,8 +365,6 @@ bool AudioControlWM8960::lineinPower(uint8_t p)
     mask = 0b011 << 4;
     return write(0x2f, value, mask);
 }
-
-
 
 bool AudioControlWM8960::inputLevel(float n)
 {
@@ -447,13 +440,14 @@ void AudioControlWM8960::muteLineout(void)
 
 void AudioControlWM8960::adcHighPassFilterEnable(void)
 {
-    write(0x05, 0b000000000, 0b000000001);
+    disableADCHPF(0);
+    //write(0x05, 0b000000000, 0b000000001);
 }
 
 void AudioControlWM8960::adcHighPassFilterDisable(void)
 {
-        // Unmute DAC
-    write(0x05, 0b000000001, 0b000000001);
+    disableADCHPF(1);
+    //write(0x05, 0b000000001, 0b000000001);
 }
 
 void AudioControlWM8960::audioProcessorDisable(void)
