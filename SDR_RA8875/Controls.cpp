@@ -1643,22 +1643,22 @@ uint32_t find_new_band(uint32_t new_frequency, uint8_t * rs_curr_band)
     for (i=BANDS-1; i>=0; i--)    // start at the top and look for first band that VFOA fits under bandmem[i].edge_upper
     {
         #ifdef DBG  
-        MSG_Serial.print("Edge_Lower Search = "); MSG_Serial.println(rs_bandmem[i].edge_lower);
+        MSG_Serial.print(F("MAIN: Edge_Lower Search = ")); MSG_Serial.println(rs_bandmem[i].edge_lower);
         #endif
         if (new_frequency >= bandmem[i].edge_lower && new_frequency <= bandmem[i].edge_upper)  // found a band lower than new_frequency so search has ended
         {
             #ifdef DBG  
-            MSG_Serial.print("Edge_Lower = "); MSG_Serial.println(rs_bandmem[i].edge_lower);
+            MSG_Serial.print(F("MAIN: Edge_Lower = ")); MSG_Serial.println(rs_bandmem[i].edge_lower);
             #endif
             *rs_curr_band = bandmem[i].band_num;
             #ifdef DBG  
-            MSG_Serial.print("find_band(): New Band = "); MSG_Serial.println(*rs_curr_band);
+            MSG_Serial.printF(("MAIN: find_band(): New Band = ")); MSG_Serial.println(*rs_curr_band);
             #endif
             return new_frequency;
         }        
     }
     //#ifdef DBG  
-        MSG_Serial.println("Invalid Frequency Requested - Out of Band");
+        MSG_Serial.println(F("MAIN: Invalid Frequency Requested - Out of Band"));
     //#endif
     return 0;  // 0 means frequency was not found in the table
 }
