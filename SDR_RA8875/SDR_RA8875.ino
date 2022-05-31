@@ -18,6 +18,8 @@
 #include "hilbert19A.h"
 #include "hilbert121A.h"
 #include "hilbert251A.h"
+//#include "AudioStream_F32.h"
+//#include "USB_Audio_F32.h"
 
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
@@ -255,6 +257,8 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
 #ifdef W7PUA_I2S_CORRECTION
   AudioAlignLR_F32          TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
+//AudioInputUSB_F32           USB_In;
+//AudioOutputUSB_F32          USB_Out;
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
@@ -422,7 +426,7 @@ AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Outp
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
-//AudioControlWM8960    codec1;
+//AudioControlWM8960    codec1;   // Does not work yet, hangs
 
 // -------------------------------------Setup() -------------------------------------------------------------------
 // 
@@ -440,14 +444,14 @@ COLD void setup()
     MSG_Serial.print(F("FFT Size is "));
     MSG_Serial.println(fft_size);
     MSG_Serial.println(F("**** Running I2C Scanner ****"));
-
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
+    //Wire1.begin();
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
     MF_default_is_active = true;
-    MeterInUse = false;    
+    MeterInUse = false;   
 
     #ifdef  I2C_ENCODERS  
         set_I2CEncoders();
@@ -486,7 +490,7 @@ COLD void setup()
         tft.begin(30000000UL);
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
-        tft.touchEnable(false);   // Ensure the resitive ocntroller, if any is off
+        tft.touchEnable(false);   // Ensure the resitive controller, if any is off
         tft.displayImageStartAddress(PAGE1_START_ADDR); 
         tft.displayImageWidth(SCREEN_WIDTH);
         tft.displayWindowStartXY(0,0);
@@ -1169,7 +1173,9 @@ COLD void I2C_Scanner(void)
     // the Write.endTransmisstion to see if
     // a device did acknowledge to the address.
     Wire.beginTransmission(address);
+    //Wire1.beginTransmission(address);
     error = Wire.endTransmission();
+    //error1 = Wire1.endTransmission();
 
     if (error == 0)
     {
@@ -1218,7 +1224,7 @@ COLD void printKnownChips(byte address)
     case 0x13: MSG_Serial.print(F("VCNL4000,AK4558")); break;
     case 0x18: MSG_Serial.print(F("LIS331DLH")); break;
     case 0x19: MSG_Serial.print(F("LSM303,LIS331DLH")); break;
-    case 0x1A: MSG_Serial.print(F("WM8731")); break;
+    case 0x1A: MSG_Serial.print(F("WM8731, WM8960")); break;
     case 0x1C: MSG_Serial.print(F("LIS3MDL")); break;
     case 0x1D: MSG_Serial.print(F("LSM303D,LSM9DS0,ADXL345,MMA7455L,LSM9DS1,LIS3DSH")); break;
     case 0x1E: MSG_Serial.print(F("LSM303D,HMC5883L,FXOS8700,LIS3DSH")); break;
@@ -1365,7 +1371,7 @@ COLD void SetFilter(void)
 
 COLD void initDSP(void)
 {
-    AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions
+    AudioMemory(30);  // Does not look like we need this anymore when using all F32 functions?
     AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     resetCodec();
     delay(50);  // Sometimes a delay avoids a Twin Peaks problem.
@@ -1390,7 +1396,7 @@ COLD void TX_RX_Switch(
     float   ToneB;          // 0.0f(OFF) or 1.0f (ON)
     float ch_on  = 1.0f;    
     float ch_off = 0.0f;
-    
+
     // Covert bool to floats
     if (b_Mic_On) Mic_On = ch_on; else Mic_On = ch_off;
     if (b_ToneA)   ToneA = ch_on; else  ToneA = ch_off;
@@ -1543,7 +1549,7 @@ COLD void TX_RX_Switch(
         if (mode_sel == FM)
             FM_Detector.showError(1);
 
-        AudioInterrupts();
+       AudioInterrupts();
         
         // Restore RX audio in and out levels, squelch large Pop in unmute.
         delay(25);  // let audio chain settle (empty) from transient
@@ -1669,9 +1675,10 @@ HOT void RF_Limiter(float peak_avg)
 // Can be used as a major part of initDSP()
 COLD void resetCodec(void)
 {
+    MSG_Serial.println(F("Start Codec Initialization"));
     setZoom(2);  // 2 = no change requested, set to user settting user profile setting
     //Change_FFT_Size(fft_size, sample_rate_Hz);
-
+    
     codec1.enable(); // MUST be before inputSelect()
     //codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
     codec1.lineInLevel(15); // Set to minimum, maybe prevent false Auto-iI2S detection
@@ -1767,10 +1774,10 @@ COLD void resetCodec(void)
 	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
     RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
     //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-    
+    MSG_Serial.println(F(" Reset Codec Almost Completed"));
     Xmit(0);  // Finish RX audio chain setup
 
-    MSG_Serial.println(F(" Reset Codec "));
+    MSG_Serial.println(F(" Reset Codec Completed"));
 }
 
 #ifdef TEST1

@@ -40,12 +40,12 @@ bool AudioControlWM8960::write(uint16_t reg, uint16_t val, uint16_t mask, bool f
     if ((newval != regmap[reg]) || force) {
         regmap[reg] = newval;
 
-        Wire.beginTransmission(WM8960_I2C_ADDR);
+        Wire1.beginTransmission(WM8960_I2C_ADDR);
 
-        Wire.write((reg << 1) | ((newval >> 8) & 1));
-        Wire.write(newval & 0xFF);
+        Wire1.write((reg << 1) | ((newval >> 8) & 1));
+        Wire1.write(newval & 0xFF);
 
-        if (Wire.endTransmission() == 0) return true;
+        if (Wire1.endTransmission() == 0) return true;
         return false;
     }
     return true;

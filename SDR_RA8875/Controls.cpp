@@ -752,7 +752,7 @@ COLD void ATU(uint8_t state)
     if (bandmem[curr_band].ATU == ON)   
         TwoToneTest = ON;   // For test turn Two Tone test on and off.  When off the Mic is enabled. 
     else
-        TwoToneTest = OFF;   // For test turn Two Tone test on and off.  When off the Mic is enabled.
+        TwoToneTest = OFF;  // For test turn Two Tone test on and off.  When off the Mic is enabled.
     //
     //   Insert any future ATU hardware setup calls
     //
@@ -1120,13 +1120,14 @@ COLD void PAN(int8_t delta)
 COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
 {
     uint8_t mode_idx;
-	
+
     mode_idx = bandmem[curr_band].mode_A;			
 
     if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)  // Transmit OFF
     {
         user_settings[user_Profile].xmit = OFF;
         digitalWrite(PTT_OUT1, HIGH);
+
         #ifdef USE_RS_HFIQ  
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X0");  //RS-HFIQ TX OFF
             delay(5);

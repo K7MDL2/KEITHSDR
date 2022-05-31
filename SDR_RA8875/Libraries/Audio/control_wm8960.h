@@ -29,7 +29,7 @@
 class AudioControlWM8960 : public AudioControl
 {
 public:
-    AudioControlWM8960(void) { Wire.begin(); delay(5); }
+    AudioControlWM8960(void) { Wire1.begin(); delay(5); }
     // Reset and configure ww8960
     bool enable(void);
     // Reset, most settings are in a powered off state when reset
