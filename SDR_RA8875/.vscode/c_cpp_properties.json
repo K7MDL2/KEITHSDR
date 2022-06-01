@@ -6,7 +6,7 @@
                 "C:/Program Files (x86)/Arduino/hardware/teensy/avr/cores/teensy4/**",
                 "C:/Program Files (x86)/Arduino/hardware/teensy/avr/libraries/**",
                 "C:/Program Files (x86)/Arduino/libraries/**",
-                "C:/Users/k7mdl/Documents/Arduino/libraries/**",
+                "C:/Users/Mike/Documents/Arduino/libraries/**",
                 "${workspaceFolder}/**"
             ],
             "forcedInclude": [
@@ -22,9 +22,9 @@
             ],
             "compilerPath": "C:/PROGRA~2/Arduino/hardware/tools/arm/bin/arm-none-eabi-gcc.exe",
             "intelliSenseMode": "${default}",
-            "cppStandard": "gnu++14",
+            "cppStandard": "gnu++20",
             "configurationProvider": "ms-vscode.makefile-tools",
-            "cStandard": "c99",
+            "cStandard": "gnu17",
             "mergeConfigurations": false,
             "browse": {
                 "path": [],
