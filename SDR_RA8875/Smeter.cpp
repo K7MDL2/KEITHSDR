@@ -110,8 +110,8 @@ HOT float Peak_avg(float val)
 
 	P_avg = sum / WINDOW_SIZE;      // Divide the sum of the window by the window size for the result
 
-	//MSG_Serial.print("S meter avg = ");
-	//MSG_Serial.println(P_avg);
+	//DPRINT("S meter avg = "); 
+	//DPRINTLN(P_avg);
 
 	return P_avg;
 }

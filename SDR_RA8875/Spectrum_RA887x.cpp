@@ -264,8 +264,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                 //span_FFT[i] = (int16_t) sp_FFT.read(binsz*i);
             }
             //pout = span_FFT;
-            Serial.print("Zoom Out =");
-            Serial.println(binsz,DEC);
+           DPRINT("Zoom Out =");
+           DPRINTLN(binsz,DEC);
         }              
         else if ( fft_sz > ptr->wf_sp_width-2)  // When FFT data is > available graph area
         {
@@ -292,7 +292,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
         { 
             if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
             {
-                Serial.println(F("FFT Invalid Data INF or NaN"));
+               DPRINTLN(F("FFT Invalid Data INF or NaN"));
                 //Serial.println(*(pout+i));                
                 pixelnew[i] = -200;   // fill in the missing value with somting harmless
                 //pixelnew[i] = sp_FFT.read(i+1);  // hope the next one is better.
@@ -331,7 +331,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                       break; 
             };
 
-            // Serial.println(tft.gradient( (uint16_t) pix_n16));
+            //DPRINTLN(tft.gradient( (uint16_t) pix_n16));
 /* Used for VFO always on center of screen - commented out while trying to shift the VFO up screen to remove DC gap
 // Does not seem to be needed when SetNAverage is 3 or more + maybe AudioHighPassFilterEnable() on?
             // Fc Blanking
@@ -443,7 +443,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
         if (fabsf(pixelnew[i]) > fabsf(avg_pix2) * 1.6f)    // compare to a small average to toss out wild spikes
             pixelnew[i] = (int16_t) avg_pix5;               // average it out over a wider segment to patch the hole   
 
-        //Serial.print("pix min ="); Serial.println(pix_min);
+        //Serial.print("pix min =");DPRINTLN(pix_min);
    
 // 19 - 20ms to get to here.
 
@@ -458,8 +458,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             //#define DBG_SPECTRUM_WINDOWLIMITS
             
             #ifdef DBG_SPECTRUM_PIXEL
-            Serial.print(" raw =");
-            Serial.print(pixelnew[i],DEC);
+           DPRINT(" raw =");
+           DPRINT(pixelnew[i],DEC);
             #endif
             
             // limit the upper and lower dB level to between these ranges (set scale) (User Setting)  Can be limited further by window heights   
@@ -469,19 +469,19 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             // range limit our settings. This number is added to the spectrum floor.  The pixel value will be plotted where ever it lands as along as it is in the window.
 
             #ifdef DBG_SPECTRUM_SCALE
-            Serial.print("   SC_ORG="); Serial.print(ptr->spect_sp_scale);                  
+           DPRINT("   SC_ORG=");DPRINT(ptr->spect_sp_scale);                  
             #endif
         
             ptr->spect_sp_scale = constrain(ptr->spect_sp_scale, spectrum_scale_maxdB, spectrum_scale_mindB);
 
             #ifdef DBG_SPECTRUM_SCALE
-            Serial.print("   SC_LIM="); Serial.print(ptr->spect_sp_scale);                  
+           DPRINT("   SC_LIM=");DPRINT(ptr->spect_sp_scale);                  
             #endif
                 
             #ifdef DBG_SPECTRUM_SCALE
-            Serial.print("   SC_HT="); Serial.print(ptr->spect_sp_scale);
-            Serial.print("   HT="); Serial.print(ptr->sp_height-4);
-            Serial.print("   SC_FLR="); Serial.print(ptr->spect_floor);                  
+           DPRINT("   SC_HT=");DPRINT(ptr->spect_sp_scale);
+           DPRINT("   HT=");DPRINT(ptr->sp_height-4);
+           DPRINT("   SC_FLR=");DPRINT(ptr->spect_floor);                  
             #endif       
             
             // Invert the sign since the display is also inverted, Increasing value = weaker signal strength, they are now going the same direction.  
@@ -494,22 +494,22 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             pixelnew[i] +=  ptr->spect_floor;      
 
             //#if defined (DBG_SPECTRUM_PIXEL) || defined (DBG_SPECTRUM_WINDOWLIMITS)
-            //Serial.print("  NF  pix ="); Serial.println(pixelnew[i],DEC);
+            //Serial.print("  NF  pix =");DPRINTLN(pixelnew[i],DEC);
             //#endif
 
             pixelnew[i] = map(pixelnew[i], fabsf(pix_min), fabsf(ptr->spect_sp_scale), ptr->sp_bottom_line, ptr->sp_top_line); 
             
             #ifdef DBG_SPECTRUM_WINDOWLIMITS 
-            //Serial.print("  win-ht:"); Serial.print(ptr->sp_height-4);
-            Serial.print("  top line="); Serial.print(ptr->sp_top_line+2);
+            //DPRINT("  win-ht:");DPRINT(ptr->sp_height-4);
+           DPRINT("  top line=");DPRINT(ptr->sp_top_line+2);
             #endif
             
             //#if defined (DBG_SPECTRUM_PIXEL) || defined (DBG_SPECTRUM_WINDOWLIMITS)
-            //Serial.print("  MAP pix ="); Serial.println(pixelnew[i],DEC);
+            //DPRINT("  MAP pix =");DPRINTLN(pixelnew[i],DEC);
             //#endif
 
             #ifdef DBG_SPECTRUM_WINDOWLIMITS 
-            Serial.print("  bottom line="); Serial.print(ptr->sp_bottom_line-2);
+           DPRINT("  bottom line=");DPRINT(ptr->sp_bottom_line-2);
             #endif
 
             //#define DBG_SHOW_OVR
@@ -517,7 +517,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             if (pixelnew[i] < ptr->sp_top_line+1)        
             {
                 #if defined(DBG_SPECTRUM_WINDOWLIMITS) || defined(DBG_SPECTRUM_PIXEL) || defined(DBG_SPECTRUM_SCALE) || defined(DBG_SHOW_OVR) 
-                Serial.print(" !!OVR!! = ");    Serial.println(pixelnew[i] - ptr->sp_top_line+2,0);
+               DPRINT(" !!OVR!! = ");   DPRINTLN(pixelnew[i] - ptr->sp_top_line+2,0);
                 #endif
                 pixelnew[i] = ptr->sp_top_line+1;
 
@@ -526,7 +526,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             if (pixelnew[i] > ptr->sp_bottom_line-1)        
             { 
                 #if defined(DBG_SPECTRUM_WINDOWLIMITS) || defined(DBG_SPECTRUM_PIXEL) || defined(DBG_SPECTRUM_SCALE) || defined(DBG_SHOW_OVR)
-                Serial.print(" !!UNDER!! = ");  Serial.println(pixelnew[i] - ptr->sp_top_line+2,0);
+               DPRINT(" !!UNDER!! = "); DPRINTLN(pixelnew[i] - ptr->sp_top_line+2,0);
                 #endif
                 pixelnew[i] = ptr->sp_bottom_line-1;
             }          
@@ -636,7 +636,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
 //   Total spectrum time reduces to 60ms from 80ms
 //time_spectrum = millis();              
 /*        // Calculate and print the frequency of the strongest signal if possible 
-        //Serial.print("Freq="); Serial.println(fftFrequency, 3); 
+        //DPRINT("Freq=");DPRINTLN(fftFrequency, 3); 
         //tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 140, 13, BLACK);
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
         tft.print("F: "); 
@@ -662,7 +662,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
         //tft.fillRect( ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30, 32, 13, BLACK);
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+114, ptr->sp_txt_row+30);
         tft.print(ptr-> spect_floor);
-        //Serial.print("R lvl="); Serial.println(ptr-> spect_floor);
+        //DPRINT("R lvl=");DPRINTLN(ptr-> spect_floor);
         //if (spect_ref_last != ptr->spect_floor)
         //{
             //spect_ref_last = ptr->spect_floor;   // update memory
@@ -735,7 +735,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
     {
         if (spectrum_clear.check() == 1)      // Spectrum Screen blanking timer
         {
-            Serial.println(F("*** Cleared Screen, no data to Draw! ***"));
+           DPRINTLN(F("*** Cleared Screen, no data to Draw! ***"));
             //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width-2, ptr->sp_height-2, myBLACK);
             //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
         }
@@ -977,51 +977,51 @@ void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset, uint16_t fft_binc
 // print out results to the serial terminal for manual copy into the default table.  This is 1 set of data only, for each run.  
 // Change the globals and run again for a new set
 
-    Serial.println(F("Start of Spectrum Parameter Generator List."));
-    Serial.println(F("This is a complete parameter record for the current window."));
-    Serial.println(F("Cut and paste the data in the braces to modify the predefined records."));
-    Serial.print(F("{"));
-    Serial.print(ptr->wf_sp_width); Serial.print(",");
-    Serial.print(ptr->border_space_min); Serial.print(",");
-    Serial.print(ptr->border_space); Serial.print(",");
-    Serial.print(ptr->l_graph_edge); Serial.print(",");
-    Serial.print(ptr->r_graph_edge); Serial.print(",");
-    Serial.print(ptr->c_graph); Serial.print(",");
-    Serial.print(ptr->sp_txt_row_height); Serial.print(",");
-    Serial.print(ptr->tick_height); Serial.print(",");
-    Serial.print(ptr->sp_txt_row); Serial.print(",");
-    Serial.print(ptr->sp_tick_row); Serial.print(",");       
-    Serial.print(ptr->sp_top_line); Serial.print(",");
-    Serial.print(ptr->wf_tick_row); Serial.print(",");
-    Serial.print(ptr->wf_bottom_line); Serial.print(",");
-    Serial.print(ptr->sp_height); Serial.print(",");
-    Serial.print(ptr->wf_height); Serial.print(",");
-    Serial.print(ptr->sp_bottom_line); Serial.print(",");
-    Serial.print(ptr->wf_top_line); Serial.print(",");
-    Serial.print(ptr->spect_x); Serial.print(",");
-    Serial.print(ptr->spect_y); Serial.print(",");
-    Serial.print(ptr->spect_width); Serial.print(",");
-    Serial.print(ptr->spect_height); Serial.print(",");
-    Serial.print(ptr->spect_center); Serial.print(",");
-    Serial.print(ptr->spect_span,1);  Serial.print(",");
-    Serial.print(ptr->spect_wf_style);  Serial.print(",");
-    Serial.print(ptr->spect_wf_colortemp);  Serial.print(",");
-    Serial.print(ptr->spect_wf_scale,1);  Serial.print(",");
-    Serial.print(ptr->spect_LPFcoeff,1);  Serial.print(",");
-    Serial.print(ptr->spect_dot_bar_mode);  Serial.print(",");
-    Serial.print(ptr->spect_sp_scale);  Serial.print(",");
-    Serial.print(ptr->spect_floor);  Serial.print(",");
-    Serial.print(ptr->spect_wf_rate);  Serial.print("}");
+   DPRINTLN(F("Start of Spectrum Parameter Generator List."));
+   DPRINTLN(F("This is a complete parameter record for the current window."));
+   DPRINTLN(F("Cut and paste the data in the braces to modify the predefined records."));
+   DPRINT(F("{"));
+   DPRINT(ptr->wf_sp_width);DPRINT(",");
+   DPRINT(ptr->border_space_min);DPRINT(",");
+   DPRINT(ptr->border_space);DPRINT(",");
+   DPRINT(ptr->l_graph_edge);DPRINT(",");
+   DPRINT(ptr->r_graph_edge);DPRINT(",");
+   DPRINT(ptr->c_graph);DPRINT(",");
+   DPRINT(ptr->sp_txt_row_height);DPRINT(",");
+   DPRINT(ptr->tick_height);DPRINT(",");
+   DPRINT(ptr->sp_txt_row);DPRINT(",");
+   DPRINT(ptr->sp_tick_row);DPRINT(",");       
+   DPRINT(ptr->sp_top_line);DPRINT(",");
+   DPRINT(ptr->wf_tick_row);DPRINT(",");
+   DPRINT(ptr->wf_bottom_line);DPRINT(",");
+   DPRINT(ptr->sp_height);DPRINT(",");
+   DPRINT(ptr->wf_height);DPRINT(",");
+   DPRINT(ptr->sp_bottom_line);DPRINT(",");
+   DPRINT(ptr->wf_top_line);DPRINT(",");
+   DPRINT(ptr->spect_x);DPRINT(",");
+   DPRINT(ptr->spect_y);DPRINT(",");
+   DPRINT(ptr->spect_width);DPRINT(",");
+   DPRINT(ptr->spect_height);DPRINT(",");
+   DPRINT(ptr->spect_center);DPRINT(",");
+   DPRINT(ptr->spect_span,1); DPRINT(",");
+   DPRINT(ptr->spect_wf_style); DPRINT(",");
+   DPRINT(ptr->spect_wf_colortemp); DPRINT(",");
+   DPRINT(ptr->spect_wf_scale,1); DPRINT(",");
+   DPRINT(ptr->spect_LPFcoeff,1); DPRINT(",");
+   DPRINT(ptr->spect_dot_bar_mode); DPRINT(",");
+   DPRINT(ptr->spect_sp_scale); DPRINT(",");
+   DPRINT(ptr->spect_floor); DPRINT(",");
+   DPRINT(ptr->spect_wf_rate); DPRINT("}");
 
-    Serial.println(F("\nEnd of Spectrum Parameter Generator List"));
-    Serial.print(F("Current Preset="));
-    Serial.print(preset);  // display extrnal specified frame drawing definition 
-    Serial.print(F("  Selected Preset="));
-    Serial.print(parm_set);
-    Serial.print(F("  Current Waterfall Style="));
-    Serial.print(c_ptr->spectrum_wf_style);
-    Serial.print(F("  Current Color Temp="));
-    Serial.println(c_ptr->spectrum_wf_colortemp);
+   DPRINTLN(F("\nEnd of Spectrum Parameter Generator List"));
+   DPRINT(F("Current Preset="));
+   DPRINT(preset);  // display extrnal specified frame drawing definition 
+   DPRINT(F("  Selected Preset="));
+   DPRINT(parm_set);
+   DPRINT(F("  Current Waterfall Style="));
+   DPRINT(c_ptr->spectrum_wf_style);
+   DPRINT(F("  Current Color Temp="));
+   DPRINTLN(c_ptr->spectrum_wf_colortemp);
 }
 //
 //--------------------------------------------------  find_FFT_Max(min, max) ------------------------------------------------------------------------
@@ -1073,14 +1073,14 @@ int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz)    //
         if (ii == bin_center -1)        
             ii += 3;   // advance ii to skip the center few bins around our center frequency.
 
-//Serial.print("ii="); Serial.print(ii); Serial.print("  binval="); Serial.println(*(pPwr + ii));  
+//Serial.print("ii=");DPRINT(ii);DPRINT("  binval=");DPRINTLN(*(pPwr + ii));  
         if (*(pPwr + ii) > specMax && *(pPwr + ii) < -1.0)   // filter out periodic blocks of 0 values 
         { // Find highest peak of range
           specMax = *(pPwr + ii);
           iiMax = ii;         
         }
     }
-//Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" specMax="); Serial.println(specMax);   
+//Serial.print("iiMax=");DPRINT(iiMax);DPRINT(" specMax=");DPRINTLN(specMax);   
     if (specMax != 0.0)
     {
         float vm =  *(pPwr + iiMax - 1);
@@ -1112,7 +1112,7 @@ int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz)    //
             if (fft_sz == 1024) fftMaxPower = myFFT_1024.read(fftMaxPower)-20;    
         #endif
     }
-//Serial.print("iiMax="); Serial.print(iiMax); Serial.print(" fftMaxPower="); Serial.print(fftMaxPower); Serial.print(" fpeak="); Serial.println(f_peak);
+//DPRINT("iiMax=");DPRINT(iiMax);DPRINT(" fftMaxPower=");DPRINT(fftMaxPower);DPRINT(" fpeak=");DPRINTLN(f_peak);
     return f_peak;    // return -200 unless there is a good value to send out
 }
 
@@ -1138,7 +1138,7 @@ int16_t _colorMap(int16_t val, int16_t color_temp)
     float green;
     float blue;
     float temp = val / 65536.0 * (color_temp);
-  //Serial.print("temp="); Serial.println(temp);
+  //DPRINT("temp=");DPRINTLN(temp);
     if (temp < 0.5) 
     {
         red = 0.0;
@@ -1151,7 +1151,7 @@ int16_t _colorMap(int16_t val, int16_t color_temp)
         green = (1.0 - color_temp);
         blue = 0.0;
     }
-    //Serial.print("  CM="); Serial.print(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val="); Serial.println(val);Color24To565
+    //DPRINT("  CM=");DPRINT(tft.Color565(red * 256, green * 256, blue * 256));Serial.print("  val=");DPRINTLN(val);Color24To565
     return _Color565(red * 256, green * 256, blue * 256);
 }
 
@@ -1308,6 +1308,6 @@ int16_t _waterfall_color_update(float sample, int16_t waterfall_low)
     //}
     
     int16_t pval = _Color565(rgb[0], rgb[1], rgb[2]);
-    //Serial.print("Final color = "); Serial.println(pval,HEX);
+    //DPRINT("Final color = ");DPRINTLN(pval,HEX);
     return pval;
 }

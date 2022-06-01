@@ -129,7 +129,7 @@ void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
 COLD void Set_Spectrum_Scale(int8_t zoom_dir)
 {
-    //MSG_Serial.println(zoom_dir);
+    //DPRINTLN(zoom_dir);
     //extern struct Spectrum_Parms Sp_Parms_Def[];    
     //extern Spectrum_RA887x spectrum_RA887x;    // Spectrum Display Libary
     if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale > 2.0) 
@@ -139,30 +139,30 @@ COLD void Set_Spectrum_Scale(int8_t zoom_dir)
     if (zoom_dir == 1)
     {
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale += 0.1;
-        //MSG_Serial.println("ZOOM IN");
+        //DPRINTLN("ZOOM IN");
     }
     else
     {        
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale -= 0.1;
-        //MSG_Serial.println("ZOOM OUT"); 
+        //DPRINTLN("ZOOM OUT"); 
     }
-    //MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale);
+    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_scale);
 }
 
 // Use gestures to raise and lower the spectrum reference level relative to the bottom of the window (noise floor)
 COLD void Set_Spectrum_RefLvl(int8_t zoom_dir)
 {
-    //MSG_Serial.println(zoom_dir);    
+    //DPRINTLN(zoom_dir);    
     
     if (zoom_dir == 1)
     {
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= 1;
-        //MSG_Serial.print("RefLvl=UP");
+        //DPRINT("RefLvl=UP");
     }        
     else
     {
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += 1;
-        //MSG_Serial.print("RefLvl=DOWN");
+        //DPRINT("RefLvl=DOWN");
     }
     if (Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor < -400)
         Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = -400; 
@@ -186,9 +186,9 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     int8_t target_band;
     // TODO search bands column for match to account for mapping that does not start with 0 and bands could be in odd order and disabled.
     
-    //MSG_Serial.print("\nCurrent Band is "); MSG_Serial.println(bandmem[curr_band].band_name);
-    //MSG_Serial.print("Current Freq is "); MSG_Serial.println(VFOA);
-    //MSG_Serial.print("Current Last_VFOA is "); MSG_Serial.println(bandmem[curr_band].vfo_A_last);
+    //DPRINT("\nCurrent Band is "); DPRINTLN(bandmem[curr_band].band_name);
+    //DPRINT("Current Freq is "); DPRINTLN(VFOA);
+    //DPRINT("Current Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
 
     // Find new band index based on frequency range
     #ifdef USE_RS_HFIQ 
@@ -198,14 +198,14 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
         if (uint32_t temp_VFO = find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
             VFOA = temp_VFO;
     #endif
-    //MSG_Serial.print("Band after Lookup is "); MSG_Serial.println(bandmem[curr_band].band_name);
-    //MSG_Serial.print("Freq is "); MSG_Serial.println(VFOA);
-    //MSG_Serial.print("Last_VFOA is "); MSG_Serial.println(bandmem[curr_band].vfo_A_last);
+    //DPRINT("Band after Lookup is "); DPRINTLN(bandmem[curr_band].band_name);
+    //DPRINT("Freq is "); DPRINTLN(VFOA);
+    //DPRINT("Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
 
     // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
     target_band = bandmem[curr_band].band_num + direction;
     
-    //MSG_Serial.print("Target Band is "); MSG_Serial.println(target_band);
+    //DPRINT("Target Band is "); DPRINTLN(target_band);
 
     #ifdef USE_RS_HFIQ
         if (target_band > BAND10M)    // top
@@ -221,8 +221,8 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
             target_band = BAND6M;    
     #endif
 
-    //MSG_Serial.print("Corrected Target Band is "); MSG_Serial.println(target_band); 
-    //MSG_Serial.print("Target Band Last_VFOA is "); MSG_Serial.println(bandmem[target_band].vfo_A_last);
+    //DPRINT("Corrected Target Band is "); DPRINTLN(target_band); 
+    //DPRINT("Target Band Last_VFOA is "); DPRINTLN(bandmem[target_band].vfo_A_last);
 
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     codec1.muteHeadphone();  // remove audio thumps during hardware transients
@@ -230,8 +230,8 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
         curr_band = target_band;    // Set out new band
     #endif
     VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
-    //MSG_Serial.print("New Band is "); MSG_Serial.print(bandmem[curr_band].band_name); MSG_Serial.println("");
-    //MSG_Serial.print("Target Freq is "); MSG_Serial.println(VFOA);
+    //DPRINT("New Band is "); DPRINT(bandmem[curr_band].band_name); DPRINTLN("");
+    //DPRINT("Target Freq is "); DPRINTLN(VFOA);
     selectFrequency(0);  // change band and preselector
     
     setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
@@ -289,7 +289,7 @@ COLD void setMode(int8_t dir)
 	
     // Update the filter setting per mode 
     Filter(2);
-    //MSG_Serial.print("Set Mode: ");  MSG_Serial.println(bandmem[curr_band].mode_A);
+    //DPRINT("Set Mode: ");  DPRINTLN(bandmem[curr_band].mode_A);
     displayMode();
     selectFrequency(0);  // Call in case a mode change requires a frequency offset
 }
@@ -366,8 +366,8 @@ COLD void Filter(int dir)
         modeList[_mode].Width = _bndx;  //if filter changed without a mode change, store it in last use per mode table.
 
     selectBandwidth(_bndx);
-    //MSG_Serial.print("Set Filter to ");
-    //MSG_Serial.println(bandmem[curr_band].filter);
+    //DPRINT("Set Filter to ");
+    //DPRINTLN(bandmem[curr_band].filter);
     displayFilter();
 }
 
@@ -425,8 +425,8 @@ COLD void Rate(int8_t swiped)
 	else 
 		bandmem[curr_band].tune_step = _fndx;  // Fine tunig mode is off, allow all steps 10hz and higher
      
-    //MSG_Serial.print("Set Rate to ");
-    //MSG_Serial.println(tstep[bandmem[curr_band].tune_step].ts_name);
+    //DPRINT("Set Rate to ");
+    //DPRINTLN(tstep[bandmem[curr_band].tune_step].ts_name);
     displayRate();
 }
 
@@ -434,8 +434,8 @@ COLD void Rate(int8_t swiped)
 COLD void AGC()
 {
     selectAgc(bandmem[curr_band].agc_mode + 1);            
-    //MSG_Serial.print("Set AGC to ");
-    //MSG_Serial.println(bandmem[curr_band].agc_mode);            
+    //DPRINT("Set AGC to ");
+    //DPRINTLN(bandmem[curr_band].agc_mode);            
     sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
     sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
     displayAgc();
@@ -478,11 +478,11 @@ COLD void Menu()
     tft.setCursor(CENTER, CENTER, true);
     tft.print(F("this is a future keyboard"));
     delay(1000);    
-    //MSG_Serial.print("spectrum_wf_colortemp = ");
-    //MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp); 
+    //DPRINT("spectrum_wf_colortemp = ");
+    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_wf_colortemp); 
     pop_win_down(SPECTUNE_BTN);  // remove window, restore old screen info, clear popup flag and timer
     displayMenu();
-    MSG_Serial.println("Menu Pressed");
+    DPRINTLN("Menu Pressed");
 }
 
 // VFO A/B - swap VFO A and B values.
@@ -506,22 +506,22 @@ COLD void VFO_AB(void)
     #endif
     {
         // all good, now start swapping
-        //MSG_Serial.print("\nStart Swapping -  VFO A: ");
-        //MSG_Serial.print(old_VFOB);
-        //MSG_Serial.print("  VFO A Mode: ");
-        //MSG_Serial.print(old_B_mode);
-        //MSG_Serial.print(" VFO A band: ");
-        //MSG_Serial.println(curr_band);
+        //DPRINT("\nStart Swapping -  VFO A: ");
+        //DPRINT(old_VFOB);
+        //DPRINT("  VFO A Mode: ");
+        //DPRINT(old_B_mode);
+        //DPRINT(" VFO A band: ");
+        //DPRINTLN(curr_band);
         VFOA = bandmem[curr_band].vfo_A_last = old_VFOB;   // Update VFOA to new freq, then update the band index to match
         bandmem[curr_band].mode_A = old_B_mode;
         selectMode(old_B_mode);  // copy to VFOA mode and apply
         
-        //MSG_Serial.print("Stash sub_VFO values - VFO B: ");
-        //MSG_Serial.print(old_VFOA);
-        //MSG_Serial.print("  VFO B Mode: ");
-        //MSG_Serial.print(old_A_mode);
-        //MSG_Serial.print(" VFO B band: ");
-        //MSG_Serial.println(old_A_band);
+        //DPRINT("Stash sub_VFO values - VFO B: ");
+        //DPRINT(old_VFOA);
+        //DPRINT("  VFO B Mode: ");
+        //DPRINT(old_A_mode);
+        //DPRINT(" VFO B band: ");
+        //DPRINTLN(old_A_band);
         VFOB = user_settings[user_Profile].sub_VFO = old_VFOA;   // save A into the database
         user_settings[user_Profile].sub_VFO_mode = old_A_mode; // Udpate VFOB
     }
@@ -529,8 +529,8 @@ COLD void VFO_AB(void)
     changeBands(0);
     displayVFO_AB();
     displayMode();
-    MSG_Serial.print("Set VFO_A to "); MSG_Serial.println(VFOA);
-    MSG_Serial.print("Set VFO_B to "); MSG_Serial.println(VFOB);
+    DPRINT("Set VFO_A to "); DPRINTLN(VFOA);
+    DPRINT("Set VFO_B to "); DPRINTLN(VFOB);
 }
 
 // ATT
@@ -540,7 +540,7 @@ COLD void VFO_AB(void)
 //   toogle = 2 toggles attenuator state
 COLD void setAtten(int8_t toggle)
 {
-    //MSG_Serial.print("toggle = "); MSG_Serial.println(toggle);
+    //DPRINT("toggle = "); DPRINTLN(toggle);
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
@@ -589,12 +589,12 @@ COLD void setAtten(int8_t toggle)
     #endif
 
     displayAttn();
-    //MSG_Serial.print("Set Attenuator Relay to ");
-    //MSG_Serial.print(bandmem[curr_band].attenuator);
-    //MSG_Serial.print(" Atten_dB is ");
-    //MSG_Serial.print(bandmem[curr_band].attenuator_dB);
-    //MSG_Serial.print(" and Ref Level is ");
-    //MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+    //DPRINT("Set Attenuator Relay to ");
+    //DPRINT(bandmem[curr_band].attenuator);
+    //DPRINT(" Atten_dB is ");
+    //DPRINT(bandmem[curr_band].attenuator_dB);
+    //DPRINT(" and Ref Level is ");
+    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 /*******************************************************************************
@@ -625,7 +625,7 @@ COLD void Atten(int8_t delta)
         _atten = 0;
     bandmem[curr_band].attenuator_dB = (uint8_t) _atten;  // Assign new valid value
     
-    MSG_Serial.print("Setting attenuator value to "); MSG_Serial.println(bandmem[curr_band].attenuator_dB);
+    DPRINT("Setting attenuator value to "); DPRINTLN(bandmem[curr_band].attenuator_dB);
     displayAttn();  // update the button value
     
     // CALL HARDWARE SPECIFIC ATENUATOR or FIXED ATTEN HERE
@@ -673,8 +673,8 @@ COLD void Preamp(int8_t toggle)
     #endif
     
     displayPreamp();
-    //MSG_Serial.print("Set Preamp to ");
-    //MSG_Serial.println(bandmem[curr_band].preamp);
+    //DPRINT("Set Preamp to ");
+    //DPRINTLN(bandmem[curr_band].preamp);
 }
 
 // RIT button
@@ -685,8 +685,8 @@ COLD void RIT()
     else if (bandmem[curr_band].RIT_en == OFF)
         bandmem[curr_band].RIT_en = ON;
     displayRIT();
-    //MSG_Serial.print("Set RIT to ");
-    //MSG_Serial.println(bandmem[curr_band].RIT_en);
+    //DPRINT("Set RIT to ");
+    //DPRINTLN(bandmem[curr_band].RIT_en);
 }
     
 // XIT button
@@ -697,8 +697,8 @@ COLD void XIT()
     else if (bandmem[curr_band].XIT_en == OFF)
         bandmem[curr_band].XIT_en = ON;
     displayXIT();
-    //MSG_Serial.print("Set XIT to ");
-    //MSG_Serial.println(bandmem[curr_band].XIT_en);
+    //DPRINT("Set XIT to ");
+    //DPRINTLN(bandmem[curr_band].XIT_en);
 }
 
 // SPLIT button
@@ -720,8 +720,8 @@ COLD void Split(uint8_t state)
     }
     displaySplit();
     displayFreq();
-    //MSG_Serial.print("Set Split to ");
-    //MSG_Serial.println(bandmem[curr_band].split);
+    //DPRINT("Set Split to ");
+    //DPRINTLN(bandmem[curr_band].split);
 
 }
 
@@ -736,8 +736,8 @@ COLD void Xvtr()
     //   Insert any future hardware setup calls
     //
     displayXVTR();
-    //MSG_Serial.print("Set Xvtr Enable to ");
-    //MSG_Serial.println(bandmem[curr_band].xvtr_en);
+    //DPRINT("Set Xvtr Enable to ");
+    //DPRINTLN(bandmem[curr_band].xvtr_en);
 }
 
 // ATU button
@@ -758,8 +758,8 @@ COLD void ATU(uint8_t state)
     //
      
     displayATU();
-    //MSG_Serial.print("Set ATU to ");
-    //MSG_Serial.println(bandmem[curr_band].ATU);
+    //DPRINT("Set ATU to ");
+    //DPRINTLN(bandmem[curr_band].ATU);
 }
 
 // ---------------------------setZoom() ---------------------------
@@ -814,8 +814,8 @@ COLD void setZoom(int8_t dir)
         default:     Change_FFT_Size(FFT_SIZE, sample_rate_Hz);  break;  // Zoom farthest in
     }
 
-    //MSG_Serial.print("Zoom level set to  "); 
-    //MSG_Serial.println(zoom[_zoom_Level].zoom_name);
+    //DPRINT("Zoom level set to  "); 
+    //DPRINTLN(zoom[_zoom_Level].zoom_name);
     displayZoom();  
 }
 
@@ -838,8 +838,8 @@ COLD void Fine()
     displayFine();
     displayRate();
     
-    //MSG_Serial.print("Set Fine to ");
-    //MSG_Serial.println(user_settings[user_Profile].fine);
+    //DPRINT("Set Fine to ");
+    //DPRINTLN(user_settings[user_Profile].fine);
 }
 
 // ANT button
@@ -855,8 +855,8 @@ COLD void Ant()
     }
     
     displayANT();
-    //MSG_Serial.print("Set Ant Sw to ");
-    //MSG_Serial.println(bandmem[curr_band].ant_sw);
+    //DPRINT("Set Ant Sw to ");
+    //DPRINTLN(bandmem[curr_band].ant_sw);
 
 }
 
@@ -891,8 +891,8 @@ COLD void setAFgain(int8_t toggle)
             clearMeter();
     }
 
-    //MSG_Serial.print(" AF Gain ON/OFF set to  "); 
-    //MSG_Serial.println(user_settings[user_Profile].afGain_en);
+    //DPRINT(" AF Gain ON/OFF set to  "); 
+    //DPRINTLN(user_settings[user_Profile].afGain_en);
     displayAFgain();
 }
 
@@ -916,11 +916,11 @@ COLD void AFgain(int8_t delta)
     else
         _afLevel = user_settings[user_Profile].mic_Gain_level;   // Get last absolute volume setting as a value 0-100 
         
-//MSG_Serial.print(" TEST AF Level requested "); MSG_Serial.println(_afLevel);
+//DPRINT(" TEST AF Level requested "); DPRINTLN(_afLevel);
     
     _afLevel += delta*4;      // convert percentage request to a single digit float
 
-//MSG_Serial.print(" TEST AF Level absolute "); MSG_Serial.println(_afLevel);
+//DPRINT(" TEST AF Level absolute "); DPRINTLN(_afLevel);
 
     if (_afLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
         _afLevel = 100;
@@ -938,14 +938,14 @@ COLD void AFgain(int8_t delta)
         user_settings[user_Profile].mic_Gain_level = _afLevel;  // 0 to 100 mic gain range
         codec1.micGain(user_settings[user_Profile].mic_Gain_level * 0.63);  // adjust for 0 to 63dB
         codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX * _afLevel/100); // skip when in TX to act as Mic Level Adjust control    }
-        MSG_Serial.print("Mic Gain (0-63dB)= "); MSG_Serial.println(_afLevel * 0.63);
-        MSG_Serial.print("Power Out(0-100%)= "); MSG_Serial.println(_afLevel);
+        DPRINT("Mic Gain (0-63dB)= "); DPRINTLN(_afLevel * 0.63);
+        DPRINT("Power Out(0-100%)= "); DPRINTLN(_afLevel);
     }
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
     float val =log10f(_afLevel)/2.0f;
-    //MSG_Serial.print(" Volume set to  log = "); 
-    //MSG_Serial.println(val);
+    //DPRINT(" Volume set to  log = "); 
+    //DPRINTLN(val);
 
 #ifdef USE_FFT_LO_MIXERxxxx
     AudioNoInterrupts();
@@ -956,8 +956,8 @@ COLD void AFgain(int8_t delta)
 
     // RampVolume handles the scaling. Must set the LineOutLevel to the desired max though.
     RampVolume((float) val, 2); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
-    //MSG_Serial.print(" Volume set to  "); 
-    //MSG_Serial.println(_afLevel);
+    //DPRINT(" Volume set to  "); 
+    //DPRINTLN(_afLevel);
     displayAFgain();
 }
 
@@ -987,8 +987,8 @@ COLD void setRFgain(int8_t toggle)
             clearMeter();
     }
 
-    //MSG_Serial.print(" RF Gain ON/OFF set to  "); 
-    //MSG_Serial.println(user_settings[user_Profile].rfGain_en);
+    //DPRINT(" RF Gain ON/OFF set to  "); 
+    //DPRINTLN(user_settings[user_Profile].rfGain_en);
     displayRFgain();
 }
 
@@ -1021,10 +1021,10 @@ COLD void RFgain(int8_t delta)
     I_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
     Q_Switch.gain(0, (float) _rfLevel/100); //  1 is RX, 0 is TX
 
-    //MSG_Serial.print("CodecLine IN level set to "); 
-    //MSG_Serial.println(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);
-    //MSG_Serial.print("RF Gain level set to  "); 
-    //MSG_Serial.println(_rfLevel);
+    //DPRINT("CodecLine IN level set to "); 
+    //DPRINTLN(user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100);
+    //DPRINT("RF Gain level set to  "); 
+    //DPRINTLN(_rfLevel);
     displayRFgain();
 }
 
@@ -1036,7 +1036,7 @@ COLD void RFgain(int8_t delta)
 // 3  is center the pan window
 COLD void setPAN(int8_t toggle)
 {
-    MSG_Serial.print("PAN toggle = "); MSG_Serial.println(toggle);
+    DPRINT("PAN toggle = "); DPRINTLN(toggle);
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
@@ -1069,8 +1069,8 @@ COLD void setPAN(int8_t toggle)
 
     if (toggle == 3)
 
-    //MSG_Serial.print(" PAN state is  "); 
-    //MSG_Serial.println(user_settings[user_Profile].pan_state);
+    //DPRINT(" PAN state is  "); 
+    //DPRINTLN(user_settings[user_Profile].pan_state);
     displayPan();
 }
 
@@ -1111,8 +1111,8 @@ COLD void PAN(int8_t delta)
         user_settings[user_Profile].pan_level = _panLevel;
     }
 
-    //MSG_Serial.print("Control Change: PAN set to  "); 
-    //MSG_Serial.print(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
+    //DPRINT("Control Change: PAN set to  "); 
+    //DPRINT(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
     displayPan();
 }
 
@@ -1141,7 +1141,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
         // float   ToneA,          // 0.0f(OFF) or 1.0f (ON)
         // float   ToneB,          // 0.0f(OFF) or 1.0f (ON)
         // float   TestTone_Vol)   // 0.90 is max, clips if higher. Use 0.45f with 2 tones
-        MSG_Serial.println("XMIT(): TX OFF");
+        DPRINTLN("XMIT(): TX OFF");
     }
     else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)  // Transmit ON
     {
@@ -1157,11 +1157,11 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
             TX_RX_Switch(ON, mode_idx, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones            
         else  // Mic on, turn off test tones
             TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
-        MSG_Serial.println("XMIT(): TX ON");
+        DPRINTLN("XMIT(): TX ON");
     }
     displayXMIT();
     displayFreq();
-    //MSG_Serial.print("Set XMIT to "); MSG_Serial.println(user_settings[user_Profile].xmit);
+    //DPRINT("Set XMIT to "); DPRINTLN(user_settings[user_Profile].xmit);
 }
 
 // NB button
@@ -1190,8 +1190,8 @@ COLD void setNB(int8_t toggle)
             clearMeter();
     }
 
-    //MSG_Serial.print("Set NB to ");
-    //MSG_Serial.println(user_settings[user_Profile].nb_en);
+    //DPRINT("Set NB to ");
+    //DPRINTLN(user_settings[user_Profile].nb_en);
     displayNB();
 }
 
@@ -1200,11 +1200,11 @@ COLD void NBLevel(int8_t delta)
 {
     float _nbLevel;
 
-    //MSG_Serial.print(" TEST NB delta "); MSG_Serial.println(delta);
+    //DPRINT(" TEST NB delta "); DPRINTLN(delta);
 
     _nbLevel = user_settings[user_Profile].nb_level;   // Get last known value
 
-    //MSG_Serial.print(" TEST NB Level "); MSG_Serial.println(_nbLevel);
+    //DPRINT(" TEST NB Level "); DPRINTLN(_nbLevel);
 
     _nbLevel += delta;      // increment up or down
 
@@ -1213,12 +1213,12 @@ COLD void NBLevel(int8_t delta)
     if (_nbLevel < 0)
         _nbLevel = 0;
     
-    MSG_Serial.print(" TEST NB New Level "); MSG_Serial.println(_nbLevel);
+    DPRINT(" TEST NB New Level "); DPRINTLN(_nbLevel);
     user_settings[user_Profile].nb_level = _nbLevel;  // We have our new table index value 
 
     // Convert from 0 to 100% to number of valid steps
     _nbLevel *= round(NB_SET_NUM-1 +0.5)/100;
-    MSG_Serial.print(" TEST NB Converted Level "); MSG_Serial.println(_nbLevel);
+    DPRINT(" TEST NB Converted Level "); DPRINTLN(_nbLevel);
 */
     if (_nbLevel > NB_SET_NUM-1)         // Limit the value
         _nbLevel = NB_SET_NUM-1;
@@ -1245,8 +1245,8 @@ COLD void NBLevel(int8_t delta)
         NoiseBlanker.enable(false);  //  NB block is bypassed
     }
     
-    //MSG_Serial.print("NB level set to  "); 
-    //MSG_Serial.println(_nbLevel);
+    //DPRINT("NB level set to  "); 
+    //DPRINTLN(_nbLevel);
     displayNB();
 }
 
@@ -1262,12 +1262,12 @@ COLD void setNR()
     {
         user_settings[user_Profile].nr_en = NR1;
         LMS_Notch.enable(true);
-        MSG_Serial.println(LMS_Notch.initializeLMS(1, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+        DPRINTLN(LMS_Notch.initializeLMS(1, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
         LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     }
     displayNR();
-    MSG_Serial.print("Set NR to ");
-    MSG_Serial.println(user_settings[user_Profile].nr_en);
+    DPRINT("Set NR to ");
+    DPRINTLN(user_settings[user_Profile].nr_en);
 }
 
 // Enet button
@@ -1279,8 +1279,8 @@ COLD void Enet()
         user_settings[user_Profile].enet_output = ON;
    
     displayEnet();
-    //MSG_Serial.print("Set Ethernet to ");
-    //MSG_Serial.println(user_settings[user_Profile].enet_output);
+    //DPRINT("Set Ethernet to ");
+    //DPRINTLN(user_settings[user_Profile].enet_output);
 }
 
 // Spot button
@@ -1291,8 +1291,8 @@ COLD void Spot()
     else
         user_settings[user_Profile].spot = OFF;
     //displaySpot();
-    //MSG_Serial.print("Set Spot to ");
-    //MSG_Serial.println(user_settings[user_Profile].spot);
+    //DPRINT("Set Spot to ");
+    //DPRINTLN(user_settings[user_Profile].spot);
 }
 
 // REF LEVEL button activate control
@@ -1314,8 +1314,8 @@ COLD void setRefLevel(int8_t toggle)
             MeterInUse = true;
             setMeter(REFLVL_BTN);
         }
-        //MSG_Serial.print("Set REFLVL to ON ");
-        //MSG_Serial.print(std_btn[REFLVL_BTN].enabled);
+        //DPRINT("Set REFLVL to ON ");
+        //DPRINT(std_btn[REFLVL_BTN].enabled);
     }
     
     if (toggle == 0 || toggle == -1)
@@ -1324,13 +1324,13 @@ COLD void setRefLevel(int8_t toggle)
         MeterInUse = false; 
         if (toggle != -1)
             clearMeter();
-        //MSG_Serial.print("Set REFLVL to OFF ");
-        //MSG_Serial.print(std_btn[REFLVL_BTN].enabled);
+        //DPRINT("Set REFLVL to OFF ");
+        //DPRINT(std_btn[REFLVL_BTN].enabled);
     }
 
     displayRefLevel();
-    //MSG_Serial.print(" and Ref Level is ");
-    //MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+    //DPRINT(" and Ref Level is ");
+    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // Ref Level adjust
@@ -1346,8 +1346,8 @@ COLD void RefLevel(int8_t newval)
     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
 #endif
     displayRefLevel();
-    //MSG_Serial.print("Set Reference Level to ");
-    //MSG_Serial.println(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+    //DPRINT("Set Reference Level to ");
+    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // Notch button
@@ -1362,13 +1362,13 @@ COLD void Notch()
     {
         user_settings[user_Profile].notch = ON;
         LMS_Notch.enable(true);
-        MSG_Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+        DPRINTLN(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
         LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     }    
 
     displayNotch();
-    MSG_Serial.print("Set Notch to ");
-    MSG_Serial.println(user_settings[user_Profile].notch);
+    DPRINT("Set Notch to ");
+    DPRINTLN(user_settings[user_Profile].notch);
 }
 
 // BAND UP button
@@ -1376,18 +1376,18 @@ COLD void BandUp()
 {
     changeBands(1);
     displayBandUp();
-    //MSG_Serial.print("Set Band UP to ");
-    //MSG_Serial.println(bandmem[curr_band].band_num,DEC);
+    //DPRINT("Set Band UP to ");
+    //DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 
 // BAND DOWN button
 COLD void BandDn()
 {
-    //MSG_Serial.println("BAND DN");
+    //DPRINTLN("BAND DN");
     changeBands(-1);
     displayBandDn();
-    //MSG_Serial.print("Set Band DN to ");
-    //MSG_Serial.println(bandmem[curr_band].band_num,DEC);
+    //DPRINT("Set Band DN to ");
+    //DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 
 // BAND button
@@ -1400,7 +1400,7 @@ COLD void Band(uint8_t new_band)
         {
             if (curr_band == new_band) // already on this band so new request must be for bandstack, cycle through, saving changes each time
             {   
-                MSG_Serial.print("Previous VFO A on Band "); MSG_Serial.println(curr_band);
+                DPRINT("Previous VFO A on Band "); DPRINTLN(curr_band);
                 uint32_t temp_vfo_last;
                 uint8_t  temp_mode_last;
                 temp_vfo_last = bandmem[curr_band].vfo_A_last;  // Save  current freq and mode
@@ -1415,7 +1415,7 @@ COLD void Band(uint8_t new_band)
             }
             else
             {
-                MSG_Serial.print("Last VFO A on Band "); MSG_Serial.println(new_band);
+                DPRINT("Last VFO A on Band "); DPRINTLN(new_band);
                 VFOA = bandmem[new_band].vfo_A_last;  // let changeBands compute new band based on VFO frequency
             }
             changeBands(0);
@@ -1432,7 +1432,7 @@ COLD void Band(uint8_t new_band)
     displayMode();
     displayFilter();
     //displayRefresh();
-    //MSG_Serial.print("Set Band to "); MSG_Serial.println(bandmem[curr_band].band_num,DEC);
+    //DPRINT("Set Band to "); DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 
 // DISPLAY button
@@ -1454,8 +1454,8 @@ COLD void Display()
     //popup = 1;
     //pop_win_up(1);
     displayDisplay();
-    //MSG_Serial.print("Set Display Button to ");
-    //MSG_Serial.println(display_state);
+    //DPRINT("Set Display Button to ");
+    //DPRINTLN(display_state);
 }
 
 COLD void TouchTune(int16_t touch_Freq)
@@ -1470,15 +1470,15 @@ COLD void TouchTune(int16_t touch_Freq)
     touch_Freq -= Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_width/2 - pk;// adjust coordinate relative to center accounting for pan offset
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
     // We have our new target frequency from touch
-    //MSG_Serial.print(F("\npan offset (bins from center)     =")); MSG_Serial.println(pk);
-    //MSG_Serial.print(F("touch_Freq (bins from center)     =")); MSG_Serial.println(touch_Freq);
-    //MSG_Serial.print(F("Touch target change in Hz         =")); MSG_Serial.println(_newfreq);
-    //MSG_Serial.print(F("New target touch VFO (Hz)         =")); MSG_Serial.println(formatVFO(VFOA+_newfreq));
+    //DPRINT(F("\npan offset (bins from center)     =")); DPRINTLN(pk);
+    //DPRINT(F("touch_Freq (bins from center)     =")); DPRINTLN(touch_Freq);
+    //DPRINT(F("Touch target change in Hz         =")); DPRINTLN(_newfreq);
+    //DPRINT(F("New target touch VFO (Hz)         =")); DPRINTLN(formatVFO(VFOA+_newfreq));
     // Suggested frequency from the Peak Frequency function in the spectrum library - may not be the one we want! It is just the strongest.
-    //MSG_Serial.print(F("\nFreq_Peak (Hz)                  =")); MSG_Serial.println(formatVFO(Freq_Peak)); 
-    //MSG_Serial.print(F("Target VFOA - VFO_peak (Hz)       =")); MSG_Serial.println((int32_t) VFOA+_newfreq-Freq_Peak);
+    //DPRINT(F("\nFreq_Peak (Hz)                  =")); DPRINTLN(formatVFO(Freq_Peak)); 
+    //DPRINT(F("Target VFOA - VFO_peak (Hz)       =")); DPRINTLN((int32_t) VFOA+_newfreq-Freq_Peak);
     
-    MSG_Serial.print(F("Touch-Tune frequency is "));
+    DPRINT(F("Touch-Tune frequency is "));
     VFOA += _newfreq;
 
     // If the Peak happens to be close to the touch target frequency then we can use that to fine tune the new VFO
@@ -1489,7 +1489,7 @@ COLD void TouchTune(int16_t touch_Freq)
         else
             VFOA = Freq_Peak;  // bin number from spectrum
     }
-    MSG_Serial.println(formatVFO(VFOA));
+    DPRINTLN(formatVFO(VFOA));
 #endif    
     selectFrequency(0);
     displayFreq();
@@ -1553,7 +1553,7 @@ COLD void selectAgc(uint8_t andx)
 // Turns meter off
 void clearMeter(void)
 {
-    MSG_Serial.println("Turn OFF meter");
+    DPRINTLN("Turn OFF meter");
     MeterInUse = false;
     set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
     MF_default_is_active = true;
@@ -1564,7 +1564,7 @@ void setMeter(uint8_t id)
 {
     if (MF_client != id) 
     {
-        //MSG_Serial.println("Turn ON meter");
+        //DPRINTLN("Turn ON meter");
         set_MF_Service(id);  // reset encoder counter and set up for next read if any until another functionm takes ownership
         MF_default_is_active = false;  
     }
@@ -1576,7 +1576,7 @@ void setMeter(uint8_t id)
 COLD void digital_step_attenuator_PE4302(int16_t _atten)
 {
     #ifndef PE4302
-        MSG_Serial.println(F("Error: PE4302 digital step attenuator not configured, exiting"));
+        DPRINTLN(F("Error: PE4302 digital step attenuator not configured, exiting"));
         return;   // Wrong hardware if not PE4302
     #else
 
@@ -1595,7 +1595,7 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
         if (atten <0)
             atten = 0;
         
-        MSG_Serial.print("digital step converted = "); MSG_Serial.println(atten);
+        DPRINT("digital step converted = "); DPRINTLN(atten);
 
         atten *= 2; //shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
         /* Convert to 8 bits of  0 and 1 format */
@@ -1643,22 +1643,22 @@ uint32_t find_new_band(uint32_t new_frequency, uint8_t * rs_curr_band)
     for (i=BANDS-1; i>=0; i--)    // start at the top and look for first band that VFOA fits under bandmem[i].edge_upper
     {
         #ifdef DBG  
-        MSG_Serial.print(F("MAIN: Edge_Lower Search = ")); MSG_Serial.println(rs_bandmem[i].edge_lower);
+        DPRINT(F("MAIN: Edge_Lower Search = ")); DPRINTLN(rs_bandmem[i].edge_lower);
         #endif
         if (new_frequency >= bandmem[i].edge_lower && new_frequency <= bandmem[i].edge_upper)  // found a band lower than new_frequency so search has ended
         {
             #ifdef DBG  
-            MSG_Serial.print(F("MAIN: Edge_Lower = ")); MSG_Serial.println(rs_bandmem[i].edge_lower);
+            DPRINT(F("MAIN: Edge_Lower = ")); DPRINTLN(rs_bandmem[i].edge_lower);
             #endif
             *rs_curr_band = bandmem[i].band_num;
             #ifdef DBG  
-            MSG_Serial.printF(("MAIN: find_band(): New Band = ")); MSG_Serial.println(*rs_curr_band);
+            DPRINTF(("MAIN: find_band(): New Band = ")); DPRINTLN(*rs_curr_band);
             #endif
             return new_frequency;
         }        
     }
     //#ifdef DBG  
-        MSG_Serial.println(F("MAIN: Invalid Frequency Requested - Out of Band"));
+        DPRINTLN(F("MAIN: Invalid Frequency Requested - Out of Band"));
     //#endif
     return 0;  // 0 means frequency was not found in the table
 }

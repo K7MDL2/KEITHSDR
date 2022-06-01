@@ -133,8 +133,8 @@ COLD void selectBandwidth(uint8_t bndx)
     } 
 
     bandmem[curr_band].filter = bndx; // Set new filter into memory
-    //MSG_Serial.print("Filter Set to ");
-    //MSG_Serial.println(filter[bandmem[curr_band].filter].Filter_name);
+    //DPRINT("Filter Set to ");
+    //DPRINTLN(filter[bandmem[curr_band].filter].Filter_name);
     
     //displayFilter();
 }

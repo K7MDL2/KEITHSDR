@@ -130,7 +130,7 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		NBLevel(-100);	// Turn off NB for FM mode
 	}
 
-	//MSG_Serial.print("Set ModeOffset "); MSG_Serial.println(ModeOffset);
-	//MSG_Serial.print("Set mode to "); MSG_Serial.println(modeList[mndx].mode_label);  	
+	//DPRINT("Set ModeOffset "); DPRINTLN(ModeOffset);
+	//DPRINT("Set mode to "); DPRINTLN(modeList[mndx].mode_label);  	
   	//displayMode();
 }

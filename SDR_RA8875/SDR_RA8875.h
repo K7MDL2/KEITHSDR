@@ -18,8 +18,8 @@
 #include <SPI.h>                // included with Arduino
 //#include <SD.h>                 // included with Arduino
 #include <Wire.h>               // included with Arduino
-#include <WireIMXRT.h>          // gets installed with wire.h
-#include <WireKinetis.h>        // included with Arduino
+//#include <WireIMXRT.h>          // gets installed with wire.h
+//#include <WireKinetis.h>        // included with Arduino
 #define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
@@ -29,8 +29,41 @@
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
+//#define DEBUG  //set to true for debug output, false for no debug output
+
+#ifdef DEBUG
+#define DEBUG_ERROR true
+#define DEBUG_ERROR_SERIAL if(DEBUG_ERROR)Serial
+
+#define DEBUG_WARNING true
+#define DEBUG_WARNING_SERIAL if(DEBUG_WARNING)Serial
+
+#define DEBUG_INFORMATION true
+#define DEBUG_INFORMATION_SERIAL if(DEBUG_INFORMATION)Serial
+#define DSERIALBEGIN(...)    Serial.begin(__VA_ARGS__)
+#define DPRINTLN(...)       Serial.println(__VA_ARGS__)
+#define DPRINT(...)         Serial.print(__VA_ARGS__)
+#define DRINTF(...)         Serial.print(F(__VA_ARGS__))
+#define DPRINTLNF(...)      Serial.println(F(__VA_ARGS__)) //printing text using the F macro
+#define DELAY(...)          delay(__VA_ARGS__)
+#define PINMODE(...)        pinMode(__VA_ARGS__)
+#define TOGGLEd13           PINB = 0x20                    //UNO's pin D13
+#define DEBUG_PRINT(...)    Serial.print(F(#__VA_ARGS__" = ")); Serial.print(__VA_ARGS__); Serial.print(F(" ")) 
+#define DEBUG_PRINTLN(...)  DEBUG_PRINT(__VA_ARGS__); Serial.println()
+#else
+#define DSERIALBEGIN(...)
+#define DPRINTLN(...)
+#define DPRINT(...)
+#define DPRINTF(...)      
+#define DPRINTLNF(...)    
+#define DELAY(...)        
+#define PINMODE(...)      
+#define TOGGLEd13      
+#define DEBUG_PRINT(...)    
+#define DEBUG_PRINTLN(...) 
+#endif
+
 // Below are local project files
-#define MSG_Serial Serial
 #include "RadioConfig.h"        // Our main configuration file
 #ifndef BYPASS_SPECTRUM_MODULE
     #include "Spectrum_RA887x.h"    // Library has been merged into the main code, no library download required as of May 7, 2022
