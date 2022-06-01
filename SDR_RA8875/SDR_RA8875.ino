@@ -6,8 +6,6 @@
 //      XXXX can be the 1024, 2048 or 4096 versions.
 //  Spectrum uses the raw FFT output and is not calibrated.
 //
-//  Test tones are enabled in spectrum only, not in audio path.
-//
 // _______________________________________ Setup_____________________________________________
 //
 // Pickup build time options from RadioConfig.h
@@ -18,8 +16,8 @@
 #include "hilbert19A.h"
 #include "hilbert121A.h"
 #include "hilbert251A.h"
-//#include "AudioStream_F32.h"
-//#include "USB_Audio_F32.h"
+#include "AudioStream_F32.h"
+#include "USB_Audio_F32.h"
 
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
@@ -257,8 +255,12 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
 #ifdef W7PUA_I2S_CORRECTION
   AudioAlignLR_F32          TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
-//AudioInputUSB_F32           USB_In;
-//AudioOutputUSB_F32          USB_Out;
+AudioInputUSB_F32           USB_In;
+AudioOutputUSB_F32          USB_Out;
+//AudioConvert_I16toF32       convertL_In;
+//AudioConvert_I16toF32       convertR_In;
+//AudioConvert_F32toI16       convertL_Out;
+//AudioConvert_F32toI16       convertR_Out;
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
@@ -317,7 +319,13 @@ DMAMEM AudioFilterFIR_F32          bpf1(audio_settings);
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
-AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
+
+//AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
+//AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,0);
+AudioConnection_F32     patchcord_Mic_InU(USB_In,0,                             TX_Source,0); 
+
+//AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
+
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,1);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,2);
 
@@ -424,6 +432,12 @@ AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output to headphone jack Right
 AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
+//AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
+//AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
+//AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
+//AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
+AudioConnection_F32     patchcord_Out_L16U(Amp1_L,0,                        USB_Out,0);  // output to headphone jack Right
+AudioConnection_F32     patchcord_Out_R16U(Amp1_R,0,                        USB_Out,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
 //AudioControlWM8960    codec1;   // Does not work yet, hangs
@@ -438,15 +452,14 @@ COLD void setup()
     pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
     pinMode(PTT_OUT1, OUTPUT);
     digitalWrite(PTT_OUT1, HIGH);
-    MSG_Serial.begin(115200);
+    DSERIALBEGIN(115200);
     delay(500);
-    MSG_Serial.println(F("Initializing SDR_RA887x Program"));
-    MSG_Serial.print(F("FFT Size is "));
-    MSG_Serial.println(fft_size);
-    MSG_Serial.println(F("**** Running I2C Scanner ****"));
+    DPRINTLN(F("Initializing SDR_RA887x Program"));
+    DPRINT(F("FFT Size is "));
+    DPRINTLN(fft_size);
+    DPRINTLN(F("**** Running I2C Scanner ****"));
     // ---------------- Setup our basic display and comms ---------------------------
     Wire.begin();
-    //Wire1.begin();
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
     MF_client = user_settings[user_Profile].default_MF_client;
@@ -472,7 +485,7 @@ COLD void setup()
     #endif
 
     #ifdef USE_RA8875
-        MSG_Serial.println(F("Initializing RA8875 Display"));
+        DPRINTLN(F("Initializing RA8875 Display"));
         tft.begin(RA8875_800x480);
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees
         #ifdef USE_FT5206_TOUCH
@@ -486,7 +499,7 @@ COLD void setup()
             #endif  // USE_RA8875
         #endif // USE_FT5206_TOUCH
     #else 
-        MSG_Serial.println(F("Initializing RA8876 Display"));   
+        DPRINTLN(F("Initializing RA8876 Display"));   
         tft.begin(30000000UL);
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
@@ -532,9 +545,9 @@ COLD void setup()
         if (!enet_ready)
         {
             enet_start_fail_time = millis(); // set timer for 10 minute self recovery in main loop
-            MSG_MSG_Serial.println(F("Ethernet System Startup Failed, setting retry timer (10 minutes)"));
+            MSG_DPRINTLN(F("Ethernet System Startup Failed, setting retry timer (10 minutes)"));
         }
-        MSG_Serial.println(F("Ethernet System Startup Completed"));
+        DPRINTLN(F("Ethernet System Startup Completed"));
         //setSyncProvider(getNtpTime);
     }
     #endif
@@ -543,10 +556,12 @@ COLD void setup()
     // Later if enet is up, get time from NTP periodically.
     setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
     if(timeStatus()!= timeSet) // try this other way
-        MSG_Serial.println(F("Unable to sync with the RTC"));
+        DPRINTLN(F("Unable to sync with the RTC"));
     else
-        MSG_Serial.println(F("RTC has set the system time")); 
-    if (MSG_Serial.available()) 
+        DPRINTLN(F("RTC has set the system time")); 
+   
+    #ifdef DEBUG
+    if (Serial.available()) 
     {
         time_t t = processSyncMessage();
         if (t != 0) 
@@ -556,7 +571,8 @@ COLD void setup()
         }
     }
     digitalClockDisplay(); // print time to terminal
-    MSG_Serial.println(F("Clock Update"));
+    DPRINTLN(F("Clock Update"));
+    #endif
     
 
 #ifndef BYPASS_SPECTRUM_MODULE
@@ -610,7 +626,7 @@ COLD void setup()
     #endif
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
-        MSG_Serial.println(F("Initializing RS-HFIQ Radio via USB Host port"));
+        DPRINTLN(F("Initializing RS-HFIQ Radio via USB Host port"));
         tft.setFont(Arial_14);
         tft.setTextColor(BLUE);
         tft.setCursor(50, 100);
@@ -642,9 +658,9 @@ COLD void setup()
     //sp.drawSpectrumFrame(6);   // for 2nd window
 #endif  
 
-    MSG_Serial.print(F("\nInitial Dial Frequency is "));
-    MSG_Serial.print(formatVFO(VFOA));
-    MSG_Serial.println(F("MHz"));
+    DPRINT(F("\nInitial Dial Frequency is "));
+    DPRINT(formatVFO(VFOA));
+    DPRINTLN(F("MHz"));
 
     //--------------------------   Setup our Audio System -------------------------------------
     initVfo(); // initialize the si5351 vfo
@@ -655,11 +671,13 @@ COLD void setup()
                         // Call changeBands() here after volume to get proper startup volume
 
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
+    #ifdef DEBUG
     printHelp();
+    #endif
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
    
     #ifdef FT817_CAT
-        MSG_Serial.println(F("Starting the CAT port and reading some radio information if available"));
+        DPRINTLN(F("Starting the CAT port and reading some radio information if available"));
         init_CAT_comms();  // initialize the CAT port
         print_CAT_status();  // Test Line to read data from FT-817 if attached.
     #endif
@@ -677,14 +695,18 @@ HOT void loop()
     static int32_t newFreq = 0;
     static uint32_t time_old = 0;
     static uint32_t time_n  = 0;
+    #ifdef DEBUG
     static uint32_t time_sp;
+    #endif
 
     #ifndef BYPASS_SPECTRUM_MODULE
         // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
         //if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
         if (!popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
-        {      
-            time_sp = millis();        
+        {    
+            #ifdef DEBUG  
+            time_sp = millis();
+            #endif     
         //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
             Freq_Peak = spectrum_update(
                 user_settings[user_Profile].sp_preset,
@@ -708,10 +730,10 @@ HOT void loop()
     if (time_n > delta)
     {
         delta = time_n;
-        MSG_Serial.print(F("Loop T="));
-        MSG_Serial.print(delta);
-        MSG_Serial.print(F("  Spectrum T="));
-        MSG_Serial.println(millis() - time_sp);
+        DPRINT(F("Loop T="));
+        DPRINT(delta);
+        DPRINT(F("  Spectrum T="));
+        DPRINTLN(millis() - time_sp);
     }
     time_old = millis();
 
@@ -745,8 +767,8 @@ HOT void loop()
         //if (MF_client != user_settings[user_Profile].default_MF_client)
         if (!MF_default_is_active)
         {
-            //MSG_Serial.print(F("Switching to Default MF knob assignment, current owner is = "));
-            //MSG_Serial.println(MF_client);
+            //DPRINT(F("Switching to Default MF knob assignment, current owner is = "));
+            //DPRINTLN(MF_client);
             set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
             MF_default_is_active = true;
         }
@@ -763,8 +785,8 @@ HOT void loop()
     {
         //if(!bandmem[curr_band].XIT_en)
             S_Meter_Peak_Avg = Peak();   // return an average for RF AGC limiter if used
-        //MSG_Serial.print("S-Meter Peak Avg = ");
-        //MSG_Serial.println(S_Meter_Peak_Avg);
+        //DPRINT("S-Meter Peak Avg = ");
+        //DPRINTLN(S_Meter_Peak_Avg);
     }
 
     //RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
@@ -794,12 +816,13 @@ HOT void loop()
     }
 
     //respond to MSG_Serial commands
-    while (!popup && MSG_Serial.available())
+    #ifdef DEBUG
+    while (!popup && Serial.available())
     {
-        //char ch = (MSG_Serial.peek());
-        char ch = (MSG_Serial.read());
+        //char ch = (Serial.peek());
+        char ch = (Serial.read());
         ch = toupper(ch);
-        MSG_Serial.println(ch);
+        DPRINTLN(ch);
         switch (ch)
         {
             case 'C':
@@ -810,7 +833,7 @@ HOT void loop()
                             time_t t = processSyncMessage();
                             if (t != 0) 
                             {
-                                MSG_Serial.println(F("Time Update"));
+                                DPRINTLN(F("Time Update"));
                                 Teensy3Clock.set(t); // set the RTC
                                 setTime(t);
                                 digitalClockDisplay();
@@ -821,9 +844,11 @@ HOT void loop()
                         break;  
         }
     }
+    
     //check to see whether to print the CPU and Memory Usage
     if (enable_printCPUandMemory)
         printCPUandMemory(millis(), 3000); //print every 3000 msec
+    #endif
 
 #ifdef USE_RS_HFIQ
         RS_HFIQ_Service();
@@ -876,14 +901,14 @@ HOT void loop()
 HOT void Check_PTT(void)
 {
     PTT_pin_state = digitalRead(PTT_INPUT);
-    //MSG_Serial.print("PTT State "); MSG_Serial.println(PTT_pin_state);
+    //DPRINT("PTT State "); DPRINTLN(PTT_pin_state);
     // Start debounce timer if a new pin change of state detected
     if (PTT_pin_state != last_PTT_Input)   // user_settings[user_Profile].xmit == OFF)
     {   
-        //MSG_Serial.print("PTT Changed State "); MSG_Serial.println(PTT_pin_state);
+        //DPRINT("PTT Changed State "); DPRINTLN(PTT_pin_state);
         if (!PTT_Input_debounce)
         {
-            //MSG_Serial.println("Start PTT Settle Timer");
+            //DPRINTLN("Start PTT Settle Timer");
             PTT_Input_debounce = 1;     // Start debounce timer
             PTT_Input_time = millis();  // Start of transition
             last_PTT_Input = PTT_pin_state;
@@ -892,7 +917,7 @@ HOT void Check_PTT(void)
     // Debounce timer in progress?  If so exit.
     if (PTT_Input_debounce && ((PTT_Input_time - millis()) < 30)) 
     {
-        //MSG_Serial.println("Waiting for PTT Settle Time");
+        //DPRINTLN("Waiting for PTT Settle Time");
         return;
     }
     // If the timer is satisfied, change the TX/RX state
@@ -901,12 +926,12 @@ HOT void Check_PTT(void)
         PTT_Input_debounce= 0;     // Reset timer for next change
         if (!last_PTT_Input)  // if TX
         {
-            MSG_Serial.println("\nPTT TX Detected");
+            DPRINTLN("\nPTT TX Detected");
             Xmit(1);  // transmit state
         }
         else // if RX
         {
-            MSG_Serial.println("\nPTT TX Released");
+            DPRINTLN("\nPTT TX Released");
             Xmit(0);  // receive state
         }
     }
@@ -930,7 +955,7 @@ COLD void RampVolume(float vol, int16_t rampType)
     //    "Normal Ramp",       // graceful transition between volume levels
     //    "Linear Ramp"        // slight click/chirp
     //};
-    //MSG_Serial.println(rampName[rampType]);
+    //DPRINTLN(rampName[rampType]);
 
     // configure which type of volume transition to use
     if (rampType == 0)
@@ -951,6 +976,8 @@ COLD void RampVolume(float vol, int16_t rampType)
     // that is, the range 0.0 to 1.0 gets converted to -90dB to 0dB in 0.5dB steps
     codec1.dacVolume(vol);
 }
+
+#ifdef DEBUG
 //
 // _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
 //
@@ -965,25 +992,25 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
         lastUpdate_millis = 0; //handle wrap-around of the clock
     if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis)
     { //is it time to update the user interface?
-        MSG_Serial.print(F("\nCPU Cur/Peak: "));
-        MSG_Serial.print(audio_settings.processorUsage());
-        MSG_Serial.print(F("%/"));
-        MSG_Serial.print(audio_settings.processorUsageMax());
-        MSG_Serial.println(F("%"));
-        MSG_Serial.print(F("CPU Temperature:"));
-        MSG_Serial.print(InternalTemperature.readTemperatureF(), 1);
-        MSG_Serial.print(F("F "));
-        MSG_Serial.print(InternalTemperature.readTemperatureC(), 1);
-        MSG_Serial.println(F("C"));
-        MSG_Serial.print(F(" Audio MEM Float32 Cur/Peak: "));
-        MSG_Serial.print(AudioMemoryUsage_F32());
-        MSG_Serial.print(F("/"));
-        MSG_Serial.println(AudioMemoryUsageMax_F32());
-        MSG_Serial.print(F(" Audio MEM 16-Bit  Cur/Peak: "));
-        MSG_Serial.print(AudioMemoryUsage());
-        MSG_Serial.print(F("/"));
-        MSG_Serial.println(AudioMemoryUsageMax());
-        MSG_Serial.println(F("*** End of Report ***"));
+        DPRINT(F("\nCPU Cur/Peak: "));
+        DPRINT(audio_settings.processorUsage());
+        DPRINT(F("%/"));
+        DPRINT(audio_settings.processorUsageMax());
+        DPRINTLN(F("%"));
+        DPRINT(F("CPU Temperature:"));
+        DPRINT(InternalTemperature.readTemperatureF(), 1);
+        DPRINT(F("F "));
+        DPRINT(InternalTemperature.readTemperatureC(), 1);
+        DPRINTLN(F("C"));
+        DPRINT(F(" Audio MEM Float32 Cur/Peak: "));
+        DPRINT(AudioMemoryUsage_F32());
+        DPRINT(F("/"));
+        DPRINTLN(AudioMemoryUsageMax_F32());
+        DPRINT(F(" Audio MEM 16-Bit  Cur/Peak: "));
+        DPRINT(AudioMemoryUsage());
+        DPRINT(F("/"));
+        DPRINTLN(AudioMemoryUsageMax());
+        DPRINTLN(F("*** End of Report ***"));
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
@@ -999,7 +1026,9 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
 //switch yard to determine the desired action
 COLD void respondToByte(char c)
 {
+    #ifdef DEBUG
     char s[2];
+    #endif
     s[0] = c;
     s[1] = 0;
     if (!isalpha((int)c) && c != '?' && c != '*')
@@ -1013,13 +1042,13 @@ COLD void respondToByte(char c)
         break;
     case 'C':
     case 'c':
-        MSG_Serial.println(F("Toggle printing of memory and CPU usage."));
+        DPRINTLN(F("Toggle printing of memory and CPU usage."));
         togglePrintMemoryAndCPU();
         break;
     default:
-        MSG_Serial.print(F("You typed "));
-        MSG_Serial.print(s);
-        MSG_Serial.println(F(".  What command?"));
+        DPRINT(F("You typed "));
+        DPRINT(s);
+        DPRINTLN(F(".  What command?"));
     }
 }
 //
@@ -1027,15 +1056,16 @@ COLD void respondToByte(char c)
 //
 COLD void printHelp(void)
 {
-    MSG_Serial.println();
-    MSG_Serial.println(F("Help: Available Commands:"));
-    MSG_Serial.println(F("   h: Print this help"));
-    MSG_Serial.println(F("   C: Toggle printing of CPU and Memory usage"));
-    MSG_Serial.println(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
+    DPRINTLN();
+    DPRINTLN(F("Help: Available Commands:"));
+    DPRINTLN(F("   h: Print this help"));
+    DPRINTLN(F("   C: Toggle printing of CPU and Memory usage"));
+    DPRINTLN(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
     //#ifdef USE_RS_HFIQ
-      //MSG_Serial.println(F("   R to display the RS-HFIQ Menu"));
+      //DPRINTLN(F("   R to display the RS-HFIQ Menu"));
     //#endif
 }
+#endif
 
 #ifdef MECH_ENCODERS
 //
@@ -1113,8 +1143,8 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
     MF_client = new_client_name;        // Now assign new owner
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
                          // When it expires it will be switched to default
-    //MSG_Serial.print("New MF Knob Client ID is ");
-    //MSG_Serial.println(MF_client);
+    //DPRINT("New MF Knob Client ID is ");
+    //DPRINTLN(MF_client);
 }
 
 // ------------------------------------ MF_Service --------------------------------------
@@ -1131,7 +1161,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         MF_Timeout.reset();  // if it is the MF_Client then reset (extend) timeout timer as long as there is activity.  
                             // When it expires it will be switched to default
 
-    //MSG_Serial.print("MF Knob Client ID is "); MSG_Serial.println(MF_client);
+    //DPRINT("MF Knob Client ID is "); DPRINTLN(MF_client);
 
     switch (knob)      // Give this owner control until timeout
     {
@@ -1164,7 +1194,7 @@ COLD void I2C_Scanner(void)
   //WIRE.setSDA(36);
   //WIRE.begin();
   
-  MSG_Serial.println(F("Scanning..."));
+  DPRINTLN(F("Scanning..."));
 
   nDevices = 0;
   for (address = 1; address < 127; address++ )
@@ -1179,28 +1209,28 @@ COLD void I2C_Scanner(void)
 
     if (error == 0)
     {
-      MSG_Serial.print(F("I2C device found at address 0x"));
+      DPRINT(F("I2C device found at address 0x"));
       if (address < 16)
-        MSG_Serial.print("0");
-      MSG_Serial.print(address, HEX);
-      MSG_Serial.print("  (");
+        DPRINT("0");
+      DPRINT(address, HEX);
+      DPRINT("  (");
       printKnownChips(address);
-      MSG_Serial.println(")");
-      //MSG_Serial.println("  !");
+      DPRINTLN(")");
+      //DPRINTLN("  !");
       nDevices++;
     }
     else if (error == 4)
     {
-      MSG_Serial.print(F("Unknown error at address 0x"));
+      DPRINT(F("Unknown error at address 0x"));
       if (address < 16)
-        MSG_Serial.print("0");
-      MSG_Serial.println(address, HEX);
+        DPRINT("0");
+      DPRINTLN(address, HEX);
     }
   }
   if (nDevices == 0)
-    MSG_Serial.println(F("No I2C devices found\n"));
+    DPRINTLN(F("No I2C devices found\n"));
   else
-    MSG_Serial.println(F("done\n"));
+    DPRINTLN(F("done\n"));
 
   //delay(500); // wait 5 seconds for the next I2C scan
 }
@@ -1212,85 +1242,85 @@ COLD void printKnownChips(byte address)
   // Please suggest additions here:
   // https://github.com/PaulStoffregen/Wire/issues/new
   switch (address) {
-    case 0x00: MSG_Serial.print(F("AS3935")); break;
-    case 0x01: MSG_Serial.print(F("AS3935")); break;
-    case 0x02: MSG_Serial.print(F("AS3935")); break;
-    case 0x03: MSG_Serial.print(F("AS3935")); break;
-    case 0x0A: MSG_Serial.print(F("SGTL5000")); break; // MCLK required
-    case 0x0B: MSG_Serial.print(F("SMBusBattery?")); break;
-    case 0x0C: MSG_Serial.print(F("AK8963")); break;
-    case 0x10: MSG_Serial.print(F("CS4272")); break;
-    case 0x11: MSG_Serial.print(F("Si4713")); break;
-    case 0x13: MSG_Serial.print(F("VCNL4000,AK4558")); break;
-    case 0x18: MSG_Serial.print(F("LIS331DLH")); break;
-    case 0x19: MSG_Serial.print(F("LSM303,LIS331DLH")); break;
-    case 0x1A: MSG_Serial.print(F("WM8731, WM8960")); break;
-    case 0x1C: MSG_Serial.print(F("LIS3MDL")); break;
-    case 0x1D: MSG_Serial.print(F("LSM303D,LSM9DS0,ADXL345,MMA7455L,LSM9DS1,LIS3DSH")); break;
-    case 0x1E: MSG_Serial.print(F("LSM303D,HMC5883L,FXOS8700,LIS3DSH")); break;
-    case 0x20: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574,FXAS21002,SoilMoisture")); break;
-    case 0x21: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574")); break;
-    case 0x22: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574")); break;
-    case 0x23: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574")); break;
-    case 0x24: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574")); break;
-    case 0x25: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574")); break;
-    case 0x26: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574")); break;
-    case 0x27: MSG_Serial.print(F("MCP23017,MCP23008,PCF8574,LCD16x2,DigoleDisplay")); break;
-    case 0x28: MSG_Serial.print(F("BNO055,EM7180,CAP1188")); break;
-    case 0x29: MSG_Serial.print(F("TSL2561,VL6180,TSL2561,TSL2591,BNO055,CAP1188")); break;
-    case 0x2A: MSG_Serial.print(F("SGTL5000,CAP1188")); break;
-    case 0x2B: MSG_Serial.print(F("CAP1188")); break;
-    case 0x2C: MSG_Serial.print(F("MCP44XX ePot")); break;
-    case 0x2D: MSG_Serial.print(F("MCP44XX ePot")); break;
-    case 0x2E: MSG_Serial.print(F("MCP44XX ePot")); break;
-    case 0x2F: MSG_Serial.print(F("MCP44XX ePot")); break;
-    case 0x33: MSG_Serial.print(F("MAX11614,MAX11615")); break;
-    case 0x34: MSG_Serial.print(F("MAX11612,MAX11613")); break;
-    case 0x35: MSG_Serial.print(F("MAX11616,MAX11617")); break;
-    case 0x38: MSG_Serial.print(F("RA8875,FT6206")); break;
-    case 0x39: MSG_Serial.print(F("TSL2561, APDS9960")); break;
-    case 0x3C: MSG_Serial.print(F("SSD1306,DigisparkOLED")); break;
-    case 0x3D: MSG_Serial.print(F("SSD1306")); break;
-    case 0x40: MSG_Serial.print(F("PCA9685,Si7021")); break;
-    case 0x41: MSG_Serial.print(F("STMPE610,PCA9685")); break;
-    case 0x42: MSG_Serial.print(F("PCA9685")); break;
-    case 0x43: MSG_Serial.print(F("PCA9685")); break;
-    case 0x44: MSG_Serial.print(F("PCA9685, SHT3X")); break;
-    case 0x45: MSG_Serial.print(F("PCA9685, SHT3X")); break;
-    case 0x46: MSG_Serial.print(F("PCA9685")); break;
-    case 0x47: MSG_Serial.print(F("PCA9685")); break;
-    case 0x48: MSG_Serial.print(F("ADS1115,PN532,TMP102,PCF8591")); break;
-    case 0x49: MSG_Serial.print(F("ADS1115,TSL2561,PCF8591")); break;
-    case 0x4A: MSG_Serial.print(F("ADS1115")); break;
-    case 0x4B: MSG_Serial.print(F("ADS1115,TMP102")); break;
-    case 0x50: MSG_Serial.print(F("EEPROM")); break;
-    case 0x51: MSG_Serial.print(F("EEPROM")); break;
-    case 0x52: MSG_Serial.print(F("Nunchuk,EEPROM")); break;
-    case 0x53: MSG_Serial.print(F("ADXL345,EEPROM")); break;
-    case 0x54: MSG_Serial.print(F("EEPROM")); break;
-    case 0x55: MSG_Serial.print(F("EEPROM")); break;
-    case 0x56: MSG_Serial.print(F("EEPROM")); break;
-    case 0x57: MSG_Serial.print(F("EEPROM")); break;
-    case 0x58: MSG_Serial.print(F("TPA2016,MAX21100")); break;
-    case 0x5A: MSG_Serial.print(F("MPR121")); break;
-    case 0x60: MSG_Serial.print(F("MPL3115,MCP4725,MCP4728,TEA5767,Si5351")); break;
-    case 0x61: MSG_Serial.print(F("MCP4725,AtlasEzoDO,DuPPaEncoder")); break;
-    case 0x62: MSG_Serial.print(F("LidarLite,MCP4725,AtlasEzoORP,DuPPaEncoder")); break;
-    case 0x63: MSG_Serial.print(F("MCP4725,AtlasEzoPH,DuPPaEncoder")); break;
-    case 0x64: MSG_Serial.print(F("AtlasEzoEC,DuPPaEncoder")); break;
-    case 0x66: MSG_Serial.print(F("AtlasEzoRTD,DuPPaEncoder")); break;
-    case 0x67: MSG_Serial.print(F("DuPPaEncoder")); break;
-    case 0x68: MSG_Serial.print(F("DS1307,DS3231,MPU6050,MPU9050,MPU9250,ITG3200,ITG3701,LSM9DS0,L3G4200D,DuPPaEncoder")); break;
-    case 0x69: MSG_Serial.print(F("MPU6050,MPU9050,MPU9250,ITG3701,L3G4200D")); break;
-    case 0x6A: MSG_Serial.print(F("LSM9DS1")); break;
-    case 0x6B: MSG_Serial.print(F("LSM9DS0")); break;
-    case 0x70: MSG_Serial.print(F("HT16K33")); break;
-    case 0x71: MSG_Serial.print(F("SFE7SEG,HT16K33")); break;
-    case 0x72: MSG_Serial.print(F("HT16K33")); break;
-    case 0x73: MSG_Serial.print(F("HT16K33")); break;
-    case 0x76: MSG_Serial.print(F("MS5607,MS5611,MS5637,BMP280")); break;
-    case 0x77: MSG_Serial.print(F("BMP085,BMA180,BMP280,MS5611")); break;
-    default: MSG_Serial.print(F("unknown chip"));
+    case 0x00: DPRINT(F("AS3935")); break;
+    case 0x01: DPRINT(F("AS3935")); break;
+    case 0x02: DPRINT(F("AS3935")); break;
+    case 0x03: DPRINT(F("AS3935")); break;
+    case 0x0A: DPRINT(F("SGTL5000")); break; // MCLK required
+    case 0x0B: DPRINT(F("SMBusBattery?")); break;
+    case 0x0C: DPRINT(F("AK8963")); break;
+    case 0x10: DPRINT(F("CS4272")); break;
+    case 0x11: DPRINT(F("Si4713")); break;
+    case 0x13: DPRINT(F("VCNL4000,AK4558")); break;
+    case 0x18: DPRINT(F("LIS331DLH")); break;
+    case 0x19: DPRINT(F("LSM303,LIS331DLH")); break;
+    case 0x1A: DPRINT(F("WM8731, WM8960")); break;
+    case 0x1C: DPRINT(F("LIS3MDL")); break;
+    case 0x1D: DPRINT(F("LSM303D,LSM9DS0,ADXL345,MMA7455L,LSM9DS1,LIS3DSH")); break;
+    case 0x1E: DPRINT(F("LSM303D,HMC5883L,FXOS8700,LIS3DSH")); break;
+    case 0x20: DPRINT(F("MCP23017,MCP23008,PCF8574,FXAS21002,SoilMoisture")); break;
+    case 0x21: DPRINT(F("MCP23017,MCP23008,PCF8574")); break;
+    case 0x22: DPRINT(F("MCP23017,MCP23008,PCF8574")); break;
+    case 0x23: DPRINT(F("MCP23017,MCP23008,PCF8574")); break;
+    case 0x24: DPRINT(F("MCP23017,MCP23008,PCF8574")); break;
+    case 0x25: DPRINT(F("MCP23017,MCP23008,PCF8574")); break;
+    case 0x26: DPRINT(F("MCP23017,MCP23008,PCF8574")); break;
+    case 0x27: DPRINT(F("MCP23017,MCP23008,PCF8574,LCD16x2,DigoleDisplay")); break;
+    case 0x28: DPRINT(F("BNO055,EM7180,CAP1188")); break;
+    case 0x29: DPRINT(F("TSL2561,VL6180,TSL2561,TSL2591,BNO055,CAP1188")); break;
+    case 0x2A: DPRINT(F("SGTL5000,CAP1188")); break;
+    case 0x2B: DPRINT(F("CAP1188")); break;
+    case 0x2C: DPRINT(F("MCP44XX ePot")); break;
+    case 0x2D: DPRINT(F("MCP44XX ePot")); break;
+    case 0x2E: DPRINT(F("MCP44XX ePot")); break;
+    case 0x2F: DPRINT(F("MCP44XX ePot")); break;
+    case 0x33: DPRINT(F("MAX11614,MAX11615")); break;
+    case 0x34: DPRINT(F("MAX11612,MAX11613")); break;
+    case 0x35: DPRINT(F("MAX11616,MAX11617")); break;
+    case 0x38: DPRINT(F("RA8875,FT6206")); break;
+    case 0x39: DPRINT(F("TSL2561, APDS9960")); break;
+    case 0x3C: DPRINT(F("SSD1306,DigisparkOLED")); break;
+    case 0x3D: DPRINT(F("SSD1306")); break;
+    case 0x40: DPRINT(F("PCA9685,Si7021")); break;
+    case 0x41: DPRINT(F("STMPE610,PCA9685")); break;
+    case 0x42: DPRINT(F("PCA9685")); break;
+    case 0x43: DPRINT(F("PCA9685")); break;
+    case 0x44: DPRINT(F("PCA9685, SHT3X")); break;
+    case 0x45: DPRINT(F("PCA9685, SHT3X")); break;
+    case 0x46: DPRINT(F("PCA9685")); break;
+    case 0x47: DPRINT(F("PCA9685")); break;
+    case 0x48: DPRINT(F("ADS1115,PN532,TMP102,PCF8591")); break;
+    case 0x49: DPRINT(F("ADS1115,TSL2561,PCF8591")); break;
+    case 0x4A: DPRINT(F("ADS1115")); break;
+    case 0x4B: DPRINT(F("ADS1115,TMP102")); break;
+    case 0x50: DPRINT(F("EEPROM")); break;
+    case 0x51: DPRINT(F("EEPROM")); break;
+    case 0x52: DPRINT(F("Nunchuk,EEPROM")); break;
+    case 0x53: DPRINT(F("ADXL345,EEPROM")); break;
+    case 0x54: DPRINT(F("EEPROM")); break;
+    case 0x55: DPRINT(F("EEPROM")); break;
+    case 0x56: DPRINT(F("EEPROM")); break;
+    case 0x57: DPRINT(F("EEPROM")); break;
+    case 0x58: DPRINT(F("TPA2016,MAX21100")); break;
+    case 0x5A: DPRINT(F("MPR121")); break;
+    case 0x60: DPRINT(F("MPL3115,MCP4725,MCP4728,TEA5767,Si5351")); break;
+    case 0x61: DPRINT(F("MCP4725,AtlasEzoDO,DuPPaEncoder")); break;
+    case 0x62: DPRINT(F("LidarLite,MCP4725,AtlasEzoORP,DuPPaEncoder")); break;
+    case 0x63: DPRINT(F("MCP4725,AtlasEzoPH,DuPPaEncoder")); break;
+    case 0x64: DPRINT(F("AtlasEzoEC,DuPPaEncoder")); break;
+    case 0x66: DPRINT(F("AtlasEzoRTD,DuPPaEncoder")); break;
+    case 0x67: DPRINT(F("DuPPaEncoder")); break;
+    case 0x68: DPRINT(F("DS1307,DS3231,MPU6050,MPU9050,MPU9250,ITG3200,ITG3701,LSM9DS0,L3G4200D,DuPPaEncoder")); break;
+    case 0x69: DPRINT(F("MPU6050,MPU9050,MPU9250,ITG3701,L3G4200D")); break;
+    case 0x6A: DPRINT(F("LSM9DS1")); break;
+    case 0x6B: DPRINT(F("LSM9DS0")); break;
+    case 0x70: DPRINT(F("HT16K33")); break;
+    case 0x71: DPRINT(F("SFE7SEG,HT16K33")); break;
+    case 0x72: DPRINT(F("HT16K33")); break;
+    case 0x73: DPRINT(F("HT16K33")); break;
+    case 0x76: DPRINT(F("MS5607,MS5611,MS5637,BMP280")); break;
+    case 0x77: DPRINT(F("BMP085,BMA180,BMP280,MS5611")); break;
+    default: DPRINT(F("unknown chip"));
   }
 }
 
@@ -1319,10 +1349,10 @@ COLD void touchBeep(bool enable)
 COLD void printDigits(int digits)
 {
   // utility function for digital clock display: prints preceding colon and leading 0
-  MSG_Serial.print(":");
+  DPRINT(":");
   if(digits < 10)
-    MSG_Serial.print('0');
-  MSG_Serial.print(digits);
+    DPRINT('0');
+  DPRINT(digits);
 }
 
 COLD time_t getTeensy3Time()
@@ -1338,11 +1368,11 @@ COLD unsigned long processSyncMessage()
     unsigned long pctime = 0L;
     const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013 
 
-    if (MSG_Serial.find(TIME_HEADER)) // Search for the 'T' char in incoming serial stream of chars
+    if (Serial.find(TIME_HEADER)) // Search for the 'T' char in incoming serial stream of chars
     {
-        pctime = MSG_Serial.parseInt();  // following the 'T' get the digits and convert to an int
+        pctime = Serial.parseInt();  // following the 'T' get the digits and convert to an int
         //return pctime;
-        //MSG_Serial.println(pctime);
+        //DPRINTLN(pctime);
         if( pctime < DEFAULT_TIME) { // check the value is a valid time (greater than Jan 1 2013)
             pctime = 0L; // return 0 to indicate that the time is not valid
         }
@@ -1352,16 +1382,16 @@ COLD unsigned long processSyncMessage()
 
 COLD void digitalClockDisplay() {
   // digital clock display of the time
-  MSG_Serial.print(hour());
+  DPRINT(hour());
   printDigits(minute());
   printDigits(second());
-  MSG_Serial.print(" ");
-  MSG_Serial.print(day());
-  MSG_Serial.print(" ");
-  MSG_Serial.print(month());
-  MSG_Serial.print(" ");
-  MSG_Serial.print(year()); 
-  MSG_Serial.println(); 
+  DPRINT(" ");
+  DPRINT(day());
+  DPRINT(" ");
+  DPRINT(month());
+  DPRINT(" ");
+  DPRINT(year()); 
+  DPRINTLN(); 
 }
 
 COLD void SetFilter(void)
@@ -1371,7 +1401,7 @@ COLD void SetFilter(void)
 
 COLD void initDSP(void)
 {
-    AudioMemory(30);  // Does not look like we need this anymore when using all F32 functions?
+    AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions?
     AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     resetCodec();
     delay(50);  // Sometimes a delay avoids a Twin Peaks problem.
@@ -1430,7 +1460,7 @@ COLD void TX_RX_Switch(
     
     if (TX)  // Switch to Mic input on TX
     {
-        MSG_Serial.println(F("Switching to Tx")); 
+        DPRINTLN(F("Switching to Tx")); 
 
         AudioNoInterrupts();
 
@@ -1482,7 +1512,7 @@ COLD void TX_RX_Switch(
     //   Back to RX
     //  *******************************************************************************************
     {
-        MSG_Serial.println(F("Switching to Rx"));
+        DPRINTLN(F("Switching to Rx"));
 
         AudioNoInterrupts();
 
@@ -1622,10 +1652,10 @@ HOT void RF_Limiter(float peak_avg)
     if (s > 100.0)  // Anyting over rf gain setting is excess, reduce RFGain
     {
         rf_agc_limit = s - 100.0f;
-        //MSG_Serial.print("Peak Power = ");
-        //MSG_Serial.print(s);    
-        //MSG_Serial.print("  RF_AGC_Limit = ");
-        //MSG_Serial.print(rf_agc_limit);
+        //DPRINT("Peak Power = ");
+        //DPRINT(s);    
+        //DPRINT("  RF_AGC_Limit = ");
+        //DPRINT(rf_agc_limit);
         
         if(rf_agc_limit > 20.0f)
             rf_agc_limit *= 4; // for large changes speed up gain reduction
@@ -1636,16 +1666,16 @@ HOT void RF_Limiter(float peak_avg)
         
         if (rf_agc_limit >= 100.0f)  // max percent we can adjust anything
             rf_agc_limit = 99.0f; // limit to 100% change
-        //MSG_Serial.print(" 2=");
-        //MSG_Serial.print(rf_agc_limit); 
+        //DPRINT(" 2=");
+        //DPRINT(rf_agc_limit); 
 
         rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta        
-        //MSG_Serial.print(" 3=%");
-        //MSG_Serial.print(rf_agc_limit); 
+        //DPRINT(" 3=%");
+        //DPRINT(rf_agc_limit); 
 
         rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;        
-        MSG_Serial.print(F("*** RF AGC Limit (0-15) = "));
-        MSG_Serial.println(rf_agc_limit); 
+        DPRINT(F("*** RF AGC Limit (0-15) = "));
+        DPRINTLN(rf_agc_limit); 
         
         if (rf_agc_limit !=0)
             codec1.lineInLevel(rf_agc_limit);
@@ -1661,12 +1691,12 @@ HOT void RF_Limiter(float peak_avg)
         // Time interval is set by the S meter timer multiplied by the number of samples in avg function                                
         if (peak_avg < 0.10 && rf_agc_limit_last < temp)   // Value os peal_avg is experimentally determined
         {
-            //MSG_Serial.print("RF AGC Limit Last = ");
-            //MSG_Serial.print(rf_agc_limit_last); 
+            //DPRINT("RF AGC Limit Last = ");
+            //DPRINT(rf_agc_limit_last); 
             rf_agc_limit_last = temp;
             codec1.lineInLevel(temp);   // retore to normal level
-            MSG_Serial.print(F("*** Restore LineIn Level = "));
-            MSG_Serial.println(temp);             
+            DPRINT(F("*** Restore LineIn Level = "));
+            DPRINTLN(temp);             
         }
     }
 }
@@ -1675,7 +1705,7 @@ HOT void RF_Limiter(float peak_avg)
 // Can be used as a major part of initDSP()
 COLD void resetCodec(void)
 {
-    MSG_Serial.println(F("Start Codec Initialization"));
+    DPRINTLN(F("Start Codec Initialization"));
     setZoom(2);  // 2 = no change requested, set to user settting user profile setting
     //Change_FFT_Size(fft_size, sample_rate_Hz);
     
@@ -1688,16 +1718,16 @@ COLD void resetCodec(void)
     delay(50);
 
     #ifdef W7PUA_I2S_CORRECTION 
-        MSG_Serial.println(F("Start W7PUA AutoI2S Error Correction"));
+        DPRINTLN(F("Start W7PUA AutoI2S Error Correction"));
         TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin       
     #endif
 
     AudioNoInterrupts();
     
     // The FM detector has error checking during object construction
-    // when MSG_Serial.print is not available.  See RadioFMDetector_F32.h:
-    MSG_Serial.print(F("FM Initialization errors: "));
-    MSG_Serial.println(FM_Detector.returnInitializeFMError() );
+    // when DPRINT is not available.  See RadioFMDetector_F32.h:
+    DPRINT(F("FM Initialization errors: "));
+    DPRINTLN(FM_Detector.returnInitializeFMError() );
     //FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
     //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
     FM_LO_Mixer.frequency(15000);
@@ -1708,7 +1738,7 @@ COLD void resetCodec(void)
         // Configure the FFT parameters algorithm
         int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
         int N_FFT = audio_block_samples * overlap_factor;  
-        MSG_Serial.print(F("    : N_FFT = ")); MSG_Serial.println(N_FFT);
+        DPRINT(F("    : N_FFT = ")); DPRINTLN(N_FFT);
         FFT_SHIFT_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
         FFT_SHIFT_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
 
@@ -1718,9 +1748,9 @@ COLD void resetCodec(void)
         int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
 
         //shiftFreq_Hz = shift_bins * Hz_per_bin;
-        MSG_Serial.print(F("Setting shift to ")); MSG_Serial.print(shiftFreq_Hz);
-        MSG_Serial.print(F(" Hz, which is ")); MSG_Serial.print(shift_bins); 
-        MSG_Serial.println(F(" bins"));
+        DPRINT(F("Setting shift to ")); DPRINT(shiftFreq_Hz);
+        DPRINT(F(" Hz, which is ")); DPRINT(shift_bins); 
+        DPRINTLN(F(" bins"));
         FFT_SHIFT_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
         FFT_SHIFT_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
     #endif
@@ -1761,8 +1791,8 @@ COLD void resetCodec(void)
     FFT_90deg_Hilbert.showError(1);
 
     // experiment with numbers  ToDo: enable/disable this via the Notch button
-    MSG_Serial.print(F("Initializing Notch/NR Feature = "));
-    MSG_Serial.println(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+    DPRINT(F("Initializing Notch/NR Feature = "));
+    DPRINTLN(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
     LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     LMS_Notch.enable(false);
     NoiseBlanker.useTwoChannel(true);
@@ -1774,10 +1804,10 @@ COLD void resetCodec(void)
 	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
     RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
     //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-    MSG_Serial.println(F(" Reset Codec Almost Completed"));
+    DPRINTLN(F(" Reset Codec Almost Completed"));
     Xmit(0);  // Finish RX audio chain setup
 
-    MSG_Serial.println(F(" Reset Codec Completed"));
+    DPRINTLN(F(" Reset Codec Completed"));
 }
 
 #ifdef TEST1
@@ -1827,11 +1857,11 @@ COLD void resetCodec(void)
         uint32_t twoPeriods;
         uint32_t tMillis = millis();
         #if SIGNAL_HARDWARE==TP_SIGNAL_CODEC
-            MSG_Serial.println(F("Using SGTL5000 Codec output for cross-correlation test signal."));
+            DPRINTLN(F("Using SGTL5000 Codec output for cross-correlation test signal."));
         #endif
         #if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
             pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
-            MSG_Serial.println(F("Using I/O pin for cross-correlation test signal."));
+            DPRINTLN(F("Using I/O pin for cross-correlation test signal."));
         #endif
         
         //TwinPeak.setLRfilter(true);
@@ -1857,18 +1887,18 @@ COLD void resetCodec(void)
             TwinPeak.stateAlignLR(TP_RUN);  // TP is done, not TP_MEASURE
             digitalWrite(PIN_FOR_TP, 0);    // Set pin to zero
 
-            MSG_Serial.println("");
-            MSG_Serial.println(F("Update  ------------ Outputs  ------------"));
-            MSG_Serial.println(F("Number  xNorm     -1        0         1   Shift Error State"));// Column headings
-            MSG_Serial.print(pData->nMeas); MSG_Serial.print(",  ");
-            MSG_Serial.print(pData->xNorm, 6); MSG_Serial.print(", ");
-            MSG_Serial.print(pData->xcVal[3], 6); MSG_Serial.print(", ");
-            MSG_Serial.print(pData->xcVal[0], 6); MSG_Serial.print(", ");
-            MSG_Serial.print(pData->xcVal[1], 6); MSG_Serial.print(", ");
-            MSG_Serial.print(pData->neededShift); MSG_Serial.print(",   ");
-            MSG_Serial.print(pData->TPerror); MSG_Serial.print(",    ");
-            MSG_Serial.println(pData->TPstate);
-            MSG_Serial.println("");
+            DPRINTLN("");
+            DPRINTLN(F("Update  ------------ Outputs  ------------"));
+            DPRINTLN(F("Number  xNorm     -1        0         1   Shift Error State"));// Column headings
+            DPRINT(pData->nMeas); DPRINT(",  ");
+            DPRINT(pData->xNorm, 6); DPRINT(", ");
+            DPRINT(pData->xcVal[3], 6); DPRINT(", ");
+            DPRINT(pData->xcVal[0], 6); DPRINT(", ");
+            DPRINT(pData->xcVal[1], 6); DPRINT(", ");
+            DPRINT(pData->neededShift); DPRINT(",   ");
+            DPRINT(pData->TPerror); DPRINT(",    ");
+            DPRINTLN(pData->TPstate);
+            DPRINTLN("");
 
             // You can see the injected signal level by the printed variable, pData->xNorm
             // It is the sum of the 4 cross-correlation numbers and if it is below 0.0001 the
@@ -1898,7 +1928,7 @@ void RS_HFIQ_Service(void)
 
         if (bandmem[curr_band].split != split_last)
         {
-            MSG_Serial.println("Split VFOs");
+            DPRINTLN("Split VFOs");
             split_last = bandmem[curr_band].split;
             Split(bandmem[curr_band].split);
             return;
@@ -1906,39 +1936,39 @@ void RS_HFIQ_Service(void)
 
         if (swap_VFO != swap_VFO_last)
         {
-            MSG_Serial.println("Swap VFOs: "); 
+            DPRINTLN("Swap VFOs: "); 
             swap_VFO_last = swap_VFO;
             VFO_AB();
         }
 
-        //MSG_Serial.print(F("Main New Band: ")); MSG_Serial.println(curr_band);
-        //MSG_Serial.print(F("Main VFOA: ")); MSG_Serial.println(VFOA);
-        //MSG_Serial.print(F("Main VFOB: ")); MSG_Serial.println(VFOB);
+        //DPRINT(F("Main New Band: ")); DPRINTLN(curr_band);
+        //DPRINT(F("Main VFOA: ")); DPRINTLN(VFOA);
+        //DPRINT(F("Main VFOB: ")); DPRINTLN(VFOB);
 
         // Now we possibly have a new band so load up the per-band settings, update both VFOs for that band
         if (last_VFOA != VFOA)
         {                     
             bandmem[curr_band].vfo_A_last = VFOA; 
-            //MSG_Serial.print(F("Main1A VFOA: ")); MSG_Serial.println(VFOA);
+            //DPRINT(F("Main1A VFOA: ")); DPRINTLN(VFOA);
         }
         if (last_VFOB != VFOB)
         {     
             bandmem[curr_band].vfo_B_last = VFOB; 
             user_settings[user_Profile].sub_VFO = VFOB;
-            //MSG_Serial.print(F("Main1B VFOB: ")); MSG_Serial.println(VFOB);
+            //DPRINT(F("Main1B VFOB: ")); DPRINTLN(VFOB);
         }
 
         if (last_curr_band != curr_band)
         {
             changeBands(0);
             last_curr_band = curr_band;
-            //MSG_Serial.print(F("New Band Number: ")); MSG_Serial.println(curr_band);  
+            //DPRINT(F("New Band Number: ")); DPRINTLN(curr_band);  
         }
     }
 
     if (CAT_xmit_last != CAT_xmit) // Pass on any change in Xmit state from CAT port
     {
-        //MSG_Serial.print(F("CAT Port: TX = ")); MSG_Serial.println(CAT_xmit);
+        //DPRINT(F("CAT Port: TX = ")); DPRINTLN(CAT_xmit);
         CAT_xmit_last = CAT_xmit;
         Xmit(CAT_xmit);
     }
@@ -1971,7 +2001,7 @@ void Check_Encoders(void)
             {            
                 mfg = MF_ENC.readStatus();
                 if (mfg) {}
-                //if (mfg) { MSG_Serial.print(F("****Checked MF_Enc status = ")); MSG_Serial.println(mfg); }
+                //if (mfg) { DPRINT(F("****Checked MF_Enc status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef ENC2_ADDR
@@ -1979,7 +2009,7 @@ void Check_Encoders(void)
             {
                 mfg = ENC2.readStatus();
                 if (mfg) {}
-                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #2 status = ")); MSG_Serial.println(mfg); }
+                //if (mfg) {DPRINT(F("****Checked Encoder #2 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef ENC3_ADDR
@@ -1987,7 +2017,7 @@ void Check_Encoders(void)
             {
                 mfg = ENC3.readStatus();
                 if (mfg) {}
-                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #3 status = ")); MSG_Serial.println(mfg); }
+                //if (mfg) {DPRINT(F("****Checked Encoder #3 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef ENC4_ADDR
@@ -1995,7 +2025,7 @@ void Check_Encoders(void)
             {
                 mfg = ENC4.readStatus();
                 if (mfg) {}
-                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #4 status = ")); MSG_Serial.println(mfg); }
+                //if (mfg) {DPRINT(F("****Checked Encoder #4 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef ENC5_ADDR
@@ -2003,7 +2033,7 @@ void Check_Encoders(void)
             {
                 mfg = ENC5.readStatus();
                 if (mfg) {}
-                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #5 status = ")); MSG_Serial.println(mfg); }
+                //if (mfg) {DPRINT(F("****Checked Encoder #5 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef ENC6_ADDR
@@ -2011,7 +2041,7 @@ void Check_Encoders(void)
             {
                 mfg = ENC6.readStatus();
                 if (mfg) {}
-                //if (mfg) {MSG_Serial.print(F("****Checked Encoder #6 status = ")); MSG_Serial.println(mfg); }
+                //if (mfg) {DPRINT(F("****Checked Encoder #6 status = ")); DPRINTLN(mfg); }
             }
             #endif
         }
@@ -2034,7 +2064,7 @@ void Check_Encoders(void)
 
                 if (counts_last && abs(counts) && ENC_Read_timer.check() == 1)
                 { 
-                    //MSG_Serial.println(counts/4);
+                    //DPRINTLN(counts/4);
                     MF_Service(counts/4, MF_client);
                     multiKnob(1); // clear buffer
                     counts = 0;
