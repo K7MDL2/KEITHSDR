@@ -16,8 +16,8 @@
 #include "hilbert19A.h"
 #include "hilbert121A.h"
 #include "hilbert251A.h"
-#include "AudioStream_F32.h"
-#include "USB_Audio_F32.h"
+//#include "AudioStream_F32.h"
+//#include "USB_Audio_F32.h"
 
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
@@ -255,12 +255,14 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
 #ifdef W7PUA_I2S_CORRECTION
   AudioAlignLR_F32          TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
-AudioInputUSB_F32           USB_In;
-AudioOutputUSB_F32          USB_Out;
-//AudioConvert_I16toF32       convertL_In;
-//AudioConvert_I16toF32       convertR_In;
-//AudioConvert_F32toI16       convertL_Out;
-//AudioConvert_F32toI16       convertR_Out;
+//AudioInputUSB_F32           USB_In;
+//AudioOutputUSB_F32          USB_Out;
+AudioInputUSB               USB_In;
+AudioOutputUSB              USB_Out;
+AudioConvert_I16toF32       convertL_In;
+AudioConvert_I16toF32       convertR_In;
+AudioConvert_F32toI16       convertL_Out;
+AudioConvert_F32toI16       convertR_Out;
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
 AudioMixer4_F32             I_Switch(audio_settings); // Select between Input from RX board or Mic/TestTone
 AudioMixer4_F32             Q_Switch(audio_settings);
@@ -320,9 +322,9 @@ DMAMEM AudioFilterFIR_F32          bpf1(audio_settings);
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
 
-//AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
-//AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,0);
-AudioConnection_F32     patchcord_Mic_InU(USB_In,0,                             TX_Source,0); 
+AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
+AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,0);
+//AudioConnection_F32     patchcord_Mic_InU(USB_In,0,                             TX_Source,0); 
 
 //AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
 
@@ -432,12 +434,12 @@ AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output to headphone jack Right
 AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
 AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
-//AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
-//AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
-//AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
-//AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
-AudioConnection_F32     patchcord_Out_L16U(Amp1_L,0,                        USB_Out,0);  // output to headphone jack Right
-AudioConnection_F32     patchcord_Out_R16U(Amp1_R,0,                        USB_Out,1);  // output to headphone jack Right
+AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
+AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
+AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
+AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
+//AudioConnection_F32     patchcord_Out_L16U(Amp1_L,0,                        USB_Out,0);  // output to headphone jack Right
+//AudioConnection_F32     patchcord_Out_R16U(Amp1_R,0,                        USB_Out,1);  // output to headphone jack Right
 
 AudioControlSGTL5000    codec1;
 //AudioControlWM8960    codec1;   // Does not work yet, hangs

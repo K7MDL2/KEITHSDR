@@ -16,7 +16,7 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
-#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+//#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
                             // UN-comment this line to use RA8876  ******** AND in the Spectrum_RA887x.h **********
@@ -165,7 +165,7 @@
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
+#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -176,9 +176,9 @@
     #else // My RA8876 7" specific build items
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
-      #define MECH_ENCODERS
+      //#define MECH_ENCODERS
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
-      #define NO_RSHFIQ_BLOCKING      // When combined with RS-HFIQ config, bypasses waiting for serial messages from hardwre allowing testign with no hardware connected
+      //#define NO_RSHFIQ_BLOCKING      // When combined with RS-HFIQ config, bypasses waiting for serial messages from hardwre allowing testign with no hardware connected
     #endif
 
     // Config items common or NA to both builds        
