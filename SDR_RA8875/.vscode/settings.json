@@ -16,7 +16,7 @@
   "C_Cpp.default.includePath": [
     "C:\\ProgramFiles\\Arduino",
     "C:\\Program Files (x86)\\Arduino",
-    "C:\\Users\\Mike\\Documents\\Arduino\\libraries",
+    "C:\\Users\\%USERPROFILE%\\Documents\\Arduino\\libraries",
     "C:\\Program Files (x86)\\Arduino\\hardware\\teensy\\avr\\libraries"
   ],
   "task.autoDetect": "off",
@@ -24,7 +24,7 @@
   "compiler-explorer.compiler": "g54",
   "compiler-explorer.options": [
     "-D__IMXRT1062__ -DTEENSYDUINO=156",
-    "-DF_CPU=816000000",
+    "-DF_CPU=720000000",
     "-DUSB_MIDI_AUDIO_SERIAL",
     "-DLAYOUT_US_ENGLISH",
     "-DARDUINO_TEENSY41",

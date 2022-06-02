@@ -6,7 +6,7 @@
                 "C:/Program Files (x86)/Arduino/hardware/teensy/avr/cores/teensy4/**",
                 "C:/Program Files (x86)/Arduino/hardware/teensy/avr/libraries/**",
                 "C:/Program Files (x86)/Arduino/libraries/**",
-                "C:/Users/Mike/Documents/Arduino/libraries/**",
+                "C:/Users/%USERPROFILE%/Documents/Arduino/libraries/**",
                 "${workspaceFolder}/**"
             ],
             "forcedInclude": [
@@ -15,7 +15,7 @@
             "defines": [
                 "__IMXRT1062__",
                 "TEENSYDUINO=156",
-                "F_CPU=816000000",
+                "F_CPU=720000000",
                 "USB_MIDI_AUDIO_SERIAL",
                 "LAYOUT_US_ENGLISH",
                 "ARDUINO=10813"
