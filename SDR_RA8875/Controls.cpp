@@ -54,7 +54,7 @@ extern          void                touchBeep(bool enable);
 extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
-extern          void                TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
+extern          void                TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_USBIn_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 extern          int32_t 		    ModeOffset;
 extern AudioMixer4_F32              I_Switch;
 extern AudioMixer4_F32              Q_Switch;
@@ -1134,7 +1134,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
             selectFrequency(0);
         #endif
         // enable line input to pass to headphone jack on audio card, set audio levels
-        TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, 0.5f);  
+        TX_RX_Switch(OFF, mode_idx, OFF, OFF, OFF, OFF, 0.5f);  
         // int TX,                 // TX == 1, RX == 0
         // uint8_t mode_sel,       // Current VFO mode index
         // float   Mic_On,         // 0.0f(OFF) or 1.0f (ON)
@@ -1154,9 +1154,11 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
         #endif
         // enable mic input to pass to line out on audio card, set audio levels
         if (TwoToneTest)  // do test tones
-            TX_RX_Switch(ON, mode_idx, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones            
-        else  // Mic on, turn off test tones
-            TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
+            TX_RX_Switch(ON, mode_idx, OFF, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones            
+        else  if(mode_idx == DATA || mode_idx == DATA_REV) // Mic on, turn off test tones
+            TX_RX_Switch(ON, mode_idx, OFF, ON, OFF, OFF, OFF);  // Turn on USB input, Turn Mic OFF
+        else
+            TX_RX_Switch(ON, mode_idx, ON, OFF, OFF, OFF, OFF);  // Turn Mic input ON, Turn USB IN OFF
         DPRINTLN("XMIT(): TX ON");
     }
     displayXMIT();

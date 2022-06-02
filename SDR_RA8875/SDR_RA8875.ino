@@ -17,7 +17,7 @@
 #include "hilbert121A.h"
 #include "hilbert251A.h"
 
-//#define USB32
+#define USB32   // Switch between F32 and I16 versions of USB Audio interface
 
 #ifdef USB32
 #include "AudioStream_F32.h"
@@ -115,7 +115,7 @@ HOT  void Check_PTT(void);
 COLD void initDSP(void);
 COLD void SetFilter(void);
 HOT  void RF_Limiter(float peak_avg);
-COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
+COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_USBIn_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
@@ -262,8 +262,8 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
 #endif
 
 #ifdef USB32
-AudioInputUSB_F32           USB_In;
-AudioOutputUSB_F32          USB_Out;
+AudioInputUSB_F32           USB_In(audio_settings);
+AudioOutputUSB_F32          USB_Out(audio_settings);
 #else
 AudioInputUSB               USB_In;
 AudioOutputUSB              USB_Out;
@@ -334,7 +334,8 @@ DMAMEM AudioFilterFIR_F32          bpf1(audio_settings);
 
 // ToDo: create a user switch to select inputs.  In DATA mode USB in should be default, mic in voice modes
 #ifdef USB32
-AudioConnection_F32     patchcord_Mic_InU(USB_In,0,                             TX_Source,0); 
+AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                             TX_Source,0);
+AudioConnection_F32     patchcord_Mic_InUR(USB_In,1,                             TX_Source,1); 
 #else
 AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
 AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,0);
@@ -342,8 +343,8 @@ AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         
 // Analog micinoput
 //AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
 
-AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,1);   // Combine mic, tone B and B into L channel
-AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,2);
+AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,2);   // Combine mic, tone B and B into L channel
+AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,3);
 
 AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
 AudioConnection_F32     patchCord_Audio_Filter_L(bpf1,0,                        FFT_90deg_Hilbert,0);  // variable filter for TX    
@@ -446,8 +447,11 @@ AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_L,1,         Outp
 // Selected source goes to output (selected as headphone or lineout in the code) and boosted if needed
 AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1_L,0);  // output to headphone jack Left
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output to headphone jack Right
-AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
-AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
+//AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
+//AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
+
+AudioConnection_F32     patchCord_Output_L(OutputSwitch_I,0,               Output,0);  // output to headphone jack Left
+AudioConnection_F32     patchCord_Output_R(OutputSwitch_Q,0,               Output,1);  // output to headphone jack Right
 
 #ifdef USB32
 AudioConnection_F32     patchcord_Out_L16U(Amp1_L,0,                        USB_Out,0);  // output to headphone jack Right
@@ -1436,31 +1440,35 @@ COLD void initDSP(void)
 COLD void TX_RX_Switch(
         bool    TX,           // TX = ON, RX = OFF
         uint8_t mode_sel,       // Current VFO mode index
-        bool    b_Mic_On,        // Tun Mic source on or off
+        bool    b_Mic_On,       // Turn Mic source on or off
+        bool    b_USBIn_On,     // Turn on USB input source (typically for Data modes)
         bool    b_ToneA,        // Test Tone A
         bool    b_ToneB,        // Test Tone B
         float   TestTone_Vol)   // 0.90 is max, clips if higher. Use 0.45f with 2 tones
 {
     float   Mic_On;         // 0.0f(OFF) or 1.0f (ON)
+    float   USBIn_On;       // 0.0f(OFF) or 1.0f (ON)
     float   ToneA;          // 0.0f(OFF) or 1.0f (ON)
     float   ToneB;          // 0.0f(OFF) or 1.0f (ON)
     float ch_on  = 1.0f;    
     float ch_off = 0.0f;
 
     // Covert bool to floats
-    if (b_Mic_On) Mic_On = ch_on; else Mic_On = ch_off;
-    if (b_ToneA)   ToneA = ch_on; else  ToneA = ch_off;
-    if (b_ToneB)   ToneB = ch_on; else  ToneB = ch_off;
+    if (b_Mic_On)   Mic_On   = ch_on; else Mic_On   = ch_off;
+    if (b_USBIn_On) USBIn_On = ch_on; else USBIn_On = ch_off;
+    if (b_ToneA)    ToneA    = ch_on; else  ToneA   = ch_off;
+    if (b_ToneB)    ToneB    = ch_on; else  ToneB   = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
     TxTestTone_A.frequency(700.0f/2); // for some reason this is doubled but Tone B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TestTone_Vol); //
     TxTestTone_B.frequency(1900.0f); 
 
-    // Select Mic (0), Tone A(1), and/or Tone B (2) in any combo.
+    // Select Mic (0), USBIn(1), Tone A(2), and/or Tone B (3) in any combo.
     TX_Source.gain(0, Mic_On); //  Mono Mic audio
-    TX_Source.gain(1, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
-    TX_Source.gain(2, ToneB); //  Test Tone B
+    TX_Source.gain(1, USBIn_On); //  Test Tone B
+    TX_Source.gain(2, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
+    TX_Source.gain(3, ToneB); //  Test Tone B
 
     // use mode to control sideband switching
     float invert;
