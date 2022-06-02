@@ -19,7 +19,7 @@
 
 #include <Arduino.h>
 #include <USBHost_t36.h>
-#include <SDR_RS_HFIQ.h>
+#include "SDR_RS_HFIQ.h"
 
 //#define DEBUG_RSHFIQ  //set to true for debug output, false for no debug output
 #ifdef DEBUG_RSHFIQ

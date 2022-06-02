@@ -24,7 +24,7 @@
 #include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 #include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-#include <InternalTemperature.h>// V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
+#include <InternalTemperature.h> // V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 #include <TimeLib.h>            // TODO  - list where to find this
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
@@ -80,7 +80,7 @@
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
 #ifdef USE_RS_HFIQ
-    #include <SDR_RS_HFIQ.h>   // https://github.com/K7MDL2/Teensy4_USB_Host_RS-HFIQ_Library
+    #include "SDR_RS_HFIQ.h"   // https://github.com/K7MDL2/Teensy4_USB_Host_RS-HFIQ_Library
 #endif
 
 // Simple ways to designate functions to run out of fast or slower memory to help save RAM

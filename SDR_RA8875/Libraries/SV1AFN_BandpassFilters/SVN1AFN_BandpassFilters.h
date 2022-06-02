@@ -57,7 +57,7 @@ class SVN1AFN_BandpassFilters
     void setAttenuator(bool on);
     
     private:
-      Adafruit_MCP23017 *_mcp;
+      Adafruit_MCP23X17 *_mcp;
       void setBandBit(uint8_t);
       void setNoFilters();
 };

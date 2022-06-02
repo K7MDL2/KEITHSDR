@@ -91,7 +91,7 @@ int16_t spectrum_scale_mindB = 80;   // min value in dB above the spectrum floor
 //static int16_t fftFrequency         = 0;  // Used to hold the FFT peak signal's frequency offsewt from Fc. Use a RF sig gen to measure its frequency and spot it on the display, useful for calibration
 int16_t fftMaxPower;//          = 0;    // Used to hold the FFT peak power for the strongest signal
 //static int16_t fft_avg              = 0;    // Internal FFT averaging feature. Must be >= 1.  Set this > 1 to trigger usage
-const int8_t  NAvg                  = 5;
+const int8_t  NAvg                  = 6; //5;
 //static uint32_t time_spectrum;
 
 // Place to hold custom data for creating new layouts using the Generator function
