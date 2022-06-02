@@ -254,7 +254,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
         if (ptr->spect_span == 50)   //span width in KHz.   50 is just used for dev test.
         {      
             // pack all bins into the available display width.  
-            int wd = ptr->wf_sp_width;
+            //int wd = ptr->wf_sp_width;
             //int div = ptr->spect_span;
             //int binsz = round(fft_sz/wd);  // bins that will be compressed into 1 pixel to fit the screen
             for (i = 0; i < ptr->wf_sp_width; i++)
