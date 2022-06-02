@@ -332,16 +332,17 @@ DMAMEM AudioFilterFIR_F32          bpf1(audio_settings);
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
 // Mic and Test Tones need to be converted to I and Q
 
-// ToDo: create a user switch to select inputs.  In DATA mode USB in should be default, mic in voice modes
+// switch to select inputs.  In DATA mode USB in should be default, mic in voice modes
+
+// Analog mic input
+AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
+
 #ifdef USB32
-AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                             TX_Source,0);
-AudioConnection_F32     patchcord_Mic_InUR(USB_In,1,                             TX_Source,1); 
+AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                            TX_Source,1);
 #else
 AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
-AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,0);
+AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,1);
 #endif
-// Analog micinoput
-//AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
 
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,2);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,3);
