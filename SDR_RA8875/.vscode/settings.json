@@ -16,7 +16,7 @@
   "C_Cpp.default.includePath": [
     "C:\\ProgramFiles\\Arduino",
     "C:\\Program Files (x86)\\Arduino",
-    "C:\\Users\\k7mdl\\Documents\\Arduino\\libraries",
+    "C:\\Users\\Mike\\Documents\\Arduino\\libraries",
     "C:\\Program Files (x86)\\Arduino\\hardware\\teensy\\avr\\libraries"
   ],
   "task.autoDetect": "off",
