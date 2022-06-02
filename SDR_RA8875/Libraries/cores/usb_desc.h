@@ -742,10 +742,10 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
 #elif defined(USB_MIDI_AUDIO_SERIAL)
   #define VENDOR_ID		0x16C0
   #define PRODUCT_ID		0x048A
-  #define MANUFACTURER_NAME	{'T','e','e','n','s','y','d','u','i','n','o'}
-  #define MANUFACTURER_NAME_LEN	11
-  #define PRODUCT_NAME		{'T','e','e','n','s','y',' ','M','I','D','I','/','A','u','d','i','o'}
-  #define PRODUCT_NAME_LEN	17
+  #define MANUFACTURER_NAME	{'T','e','e','n','s','y',' ','S','D','R'}
+  #define MANUFACTURER_NAME_LEN	10
+  #define PRODUCT_NAME		{'K','7','M','D','L',' ','S','D','R'}
+  #define PRODUCT_NAME_LEN	9
   #define EP0_SIZE		64
   #define NUM_ENDPOINTS         6
   #define NUM_INTERFACE		6

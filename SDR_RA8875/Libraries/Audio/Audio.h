@@ -68,7 +68,6 @@
 #include "async_input_spdif3.h"
 #include "control_sgtl5000.h"
 #include "control_wm8731.h"
-#include "control_wm8960.h"
 #include "control_ak4558.h"
 #include "control_cs4272.h"
 #include "control_cs42448.h"
