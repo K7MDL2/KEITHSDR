@@ -19,13 +19,13 @@ MCU              := imxrt1062
 BUILDER_BASE     := "C:\Program Files (x86)\Arduino"
 FLAGS            := -verbose=1 -warnings=all
 FQBN             := teensy:avr:teensy41:usb=serialmidiaudio,speed=816,opt=o2std,keys=en-us
-BUILD_PATH       := "C:\Users\%USERPROFILE%\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\build"
-BUILD_CACHE      := "C:\Users\%USERPROFILE%\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\cache"
+BUILD_PATH       := "C:\Users\${USERNAME}\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\build"
+BUILD_CACHE      := "C:\Users\${USERNAME}\Documents\GitHub\KEITHSDR\SDR_RA8875\.vsteensy\cache"
 HARDWARE         := -hardware="C:\Program Files (x86)\Arduino\hardware"
 TOOLS            := -tools="C:\Program Files (x86)\Arduino\tools-builder"
 
 LIBRARIES        := -built-in-libraries="C:\Program Files (x86)\Arduino\libraries"
-LIBRARIES        := -libraries="C:\Users\%USERPROFILE%\Documents\Arduino\libraries"
+LIBRARIES        := -libraries="C:\Users\${USERNAME}\Documents\Arduino\libraries"
 UPL_PJRC_B       := C:\PROGRA~2\Arduino\hardware\tools
 UPL_TYCMD_B      := C:\PROGRA~1\TyTools
 UPL_CLICMD_B     := 

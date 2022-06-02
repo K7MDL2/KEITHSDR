@@ -6,7 +6,7 @@
                 "C:/Program Files (x86)/Arduino/hardware/teensy/avr/cores/teensy4/**",
                 "C:/Program Files (x86)/Arduino/hardware/teensy/avr/libraries/**",
                 "C:/Program Files (x86)/Arduino/libraries/**",
-                "C:/Users/%USERPROFILE%/Documents/Arduino/libraries/**",
+                "C:\\Users\\${username}\\Documents\\Arduino\\libraries\\**",
                 "${workspaceFolder}/**"
             ],
             "forcedInclude": [
