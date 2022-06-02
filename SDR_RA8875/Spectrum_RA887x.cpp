@@ -256,7 +256,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             // pack all bins into the available display width.  
             int wd = ptr->wf_sp_width;
             //int div = ptr->spect_span;
-            int binsz = round(fft_sz/wd);  // bins that will be compressed into 1 pixel to fit the screen
+            //int binsz = round(fft_sz/wd);  // bins that will be compressed into 1 pixel to fit the screen
             for (i = 0; i < ptr->wf_sp_width; i++)
             {        
                 if ( i > SCREEN_WIDTH) // do not overrun our buffer size.  Ideally wf_sp_width would never be > SCREENWIDTH but....
@@ -264,8 +264,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                 //span_FFT[i] = (int16_t) sp_FFT.read(binsz*i);
             }
             //pout = span_FFT;
-           DPRINT("Zoom Out =");
-           DPRINTLN(binsz,DEC);
+           // DPRINT("Zoom Out =");
+           //DPRINTLN(binsz,DEC);
         }              
         else if ( fft_sz > ptr->wf_sp_width-2)  // When FFT data is > available graph area
         {
