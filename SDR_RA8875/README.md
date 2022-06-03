@@ -14,6 +14,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     8. 6/3/2022: Tweaked the RS-HFIQ startup delays.  The USB Audio/Serial/Midi config seems to take a long time to settle affecting the USB Host setup timing for some reason.
     9. Added Customizable Startup screen text.  In RadioConfig.h there are new #defines BANNER and CALLSIGN that are printed to the display on startup.  Also print the RS-HFIQ serial device info and any retry counts.
     10. Added CPU temperature to upper right corner ot the Band Select Window until there is a better place to put it.
+    11. Fixed several errors in the OmniRig V1 extended RS-HFIQ.ini files. RS-HFIQ-1 and RS-HFIQ-2 are extended versions of the original file. They add VFO A, VFOB, Swap VFO, Split on/off support. RS-HFIQ-2 file has queries for VFO A and B added but is not working well. WSJT-X with RS-HFIQ and RS-HFIQ-1 (on OmniRig V1). Set 'Split Operation' to 'None' or 'Fake-It' mode.  While split is working, something in the WSJT-X sequence does not work well with it.
     
 ## May 2022
 
