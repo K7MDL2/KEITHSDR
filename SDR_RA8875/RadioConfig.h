@@ -16,6 +16,9 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
+#define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
+#define CALLSIGN  "K7MDL"   // Personalized Startup Screen Text
+
 #define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
@@ -165,7 +168,7 @@
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
+//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
 
 //******************************************************************************************
 
