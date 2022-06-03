@@ -19,6 +19,8 @@
 
 #include <Arduino.h>
 #include <USBHost_t36.h>
+#include "RadioConfig.h"
+#include "SDR_RA8875.h"
 #include "SDR_RS_HFIQ.h"
 
 //#define DEBUG_RSHFIQ  //set to true for debug output, false for no debug output
@@ -46,6 +48,12 @@
 #define DEBUG_PRINT(...)    
 #define DEBUG_PRINTLN(...) 
 #define DEBUG_PRINTF(...) 
+#endif
+
+#ifdef USE_RA8875
+    extern RA8875 tft;
+#else
+    extern RA8876_t3 tft;
 #endif
 
 // Serial port for external CAT control
@@ -116,22 +124,32 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 b
     DPRINTLN("\nStart of RS-HFIQ Setup"); 
     rs_freq = VFO;
     blocking = _blocking;
-    //DPRINTLN(F("Looking for USB Host Connection to RS-HFIQ"));
+
+    tft.setFont(Arial_14);
+    tft.setTextColor(BLUE);
+    tft.setCursor(60, 320);
+    tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
+    DPRINTLN(F("Looking for USB Host Connection to RS-HFIQ"));
+    delay(5000);
     RSHFIQ.begin();
-    delay(2000);
-    DPRINTLN(F("Waiting for RS-HFIQ device to register on USB Host port"));
+    //delay(1000);
+    DPRINTLN(F("Waiting for RS-HFIQ device to register on USB Host port  "));
+
+    int retry_count = 0;
     while (!refresh_RSHFIQ())  // observed about 500ms required.
     {        
-        if (!blocking) break;
+        if (!blocking) break; 
+        tft.setFont(Arial_14);
+        tft.setTextColor(RED);
+        tft.setCursor(60, 420);
+        tft.printf("Retry Count: %d", retry_count++);
         // wait until we have a valid USB 
         DPRINT(F("Retry RS-HFIQ USB connection (~500ms) = ")); DPRINTLN(counter++);
     }
     delay(2000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
     
     while (userial.available() > 0)  // Clear out RX channel garbage if any
-    {
         DPRINTLN(userial.read());
-    }
 
     send_fixed_cmd_to_RSHFIQ(q_dev_name); // get our device ID name
     DPRINT(F("Device Name: ")); print_RSHFIQ_User(blocking);  // waits for serial available (BLOCKING call);
@@ -639,13 +657,33 @@ bool SDR_RS_HFIQ::refresh_RSHFIQ(void)
                 driver_active[i] = true;
                 Proceed = true;
 
+                tft.setFont(Arial_14);
+                tft.setTextColor(BLUE);
+                
                 const uint8_t *psz = drivers[i]->manufacturer();
-                if (psz && *psz) DEBUG_PRINTF("  manufacturer: %s\n", psz);
+                if (psz && *psz)
+                {
+                    tft.setTextColor(CYAN);
+                    tft.setCursor(60, 360);
+                    tft.printf("  Manufacturer: %s\n", psz);
+                    DEBUG_PRINTF("  Manufacturer: %s\n", psz);
+                }
                 psz = drivers[i]->product();
-                if (psz && *psz) DEBUG_PRINTF("  product: %s\n", psz);
+                if (psz && *psz)
+                {
+                    tft.setTextColor(YELLOW);
+                    tft.setCursor(60, 380);
+                    tft.printf("  Product: %s\n", psz); 
+                    DEBUG_PRINTF("  Product: %s\n", psz);
+                }
                 psz = drivers[i]->serialNumber();
-                if (psz && *psz) DEBUG_PRINTF("  Serial: %s\n", psz);
-
+                if (psz && *psz)
+                {
+                    tft.setTextColor(GREEN);
+                    tft.setCursor(60, 400);
+                    tft.printf("  Serial: %s\n", psz);
+                    DEBUG_PRINTF("  Serial: %s\n", psz);
+                }
                 // If this is a new Serial device.
                 if (drivers[i] == &userial) 
                 {

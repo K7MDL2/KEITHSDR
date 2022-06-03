@@ -555,6 +555,16 @@ COLD void setup()
                         // RA8876 touch controller is upside down compared to the RA8875 so correcting for it there.
     #endif
 
+    // Display Startup Banner
+    tft.setFont(Arial_28_Bold);
+    tft.setTextColor(BLUE);
+    tft.setCursor(70, 100);
+    tft.print(F(BANNER));   // Customize the Startup Banner Text
+    tft.setCursor(140, 200);
+    tft.setFont(Arial_28_Bold);
+    tft.setTextColor(WHITE);
+    tft.print(F(CALLSIGN));   // Put your callsign here
+
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
     #ifdef ENET
     if (user_settings[user_Profile].enet_enabled)
@@ -652,10 +662,6 @@ COLD void setup()
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
         DPRINTLN(F("Initializing RS-HFIQ Radio via USB Host port"));
-        tft.setFont(Arial_14);
-        tft.setTextColor(BLUE);
-        tft.setCursor(50, 100);
-        tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
         #ifndef NO_RSHFIQ_BLOCKING
             RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         #else
