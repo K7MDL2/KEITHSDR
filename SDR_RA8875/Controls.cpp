@@ -189,7 +189,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //DPRINT("\nCurrent Band is "); DPRINTLN(bandmem[curr_band].band_name);
     //DPRINT("Current Freq is "); DPRINTLN(VFOA);
     //DPRINT("Current Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
-
+    Split(0);
     // Find new band index based on frequency range
     #ifdef USE_RS_HFIQ 
         if (uint32_t temp_VFO = RS_HFIQ.find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
@@ -233,7 +233,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     //DPRINT("New Band is "); DPRINT(bandmem[curr_band].band_name); DPRINTLN("");
     //DPRINT("Target Freq is "); DPRINTLN(VFOA);
     selectFrequency(0);  // change band and preselector
-    
+    //Split(0);
     setAtten(-1);      // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     selectBandwidth(bandmem[curr_band].filter);
      //dB level is set elsewhere and uses value in the dB in this function.
@@ -702,9 +702,9 @@ COLD void XIT()
 }
 
 // SPLIT button
-//   state = 0 sets Preamp state off
-//   state = 1 sets Preamp state on
-//   state = 2 toggles Preamp state
+//   state = 0 sets Split state off
+//   state = 1 sets Split state on
+//   state = 2 toggles Split state
 COLD void Split(uint8_t state)
 {
     if (state == 0)

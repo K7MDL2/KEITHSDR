@@ -20,7 +20,7 @@
 #define USB32   // Switch between F32 and I16 versions of USB Audio interface
 
 #ifdef USB32
-#include "AudioStream_F32.h"
+#include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version
 #include "USB_Audio_F32.h"
 #endif
 

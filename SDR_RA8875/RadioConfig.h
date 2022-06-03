@@ -16,7 +16,7 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
-//#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
                             // UN-comment this line to use RA8876  ******** AND in the Spectrum_RA887x.h **********
@@ -188,7 +188,7 @@
       #define ENET
     #endif
     #undef AUDIOBOOST
-    #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation.  1.0f is pass through.
+    #define AUDIOBOOST   (0.01f)       // Final stage audio boost or attenuation in dB.  1.0f is pass through.
     #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #define W7PUA_I2S_CORRECTION
 
