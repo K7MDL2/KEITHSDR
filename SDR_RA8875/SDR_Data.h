@@ -27,6 +27,7 @@ struct Band_Memory bandmem[BANDS] = {
     {  "6M",50000000, 54000000, 50125000, USB,  50313000, DATA, 50100000, CW,  50313000, DATA,BW3_2, BAND6M,    1,AGC_SLOW,OFF,OFF,0,OFF,0,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  0, 10,  5},
 };
 
+// Fields are label text, enable band, Xvtr band ID, RF frequency, IF frequency, power, calibration offset, Band decoder output pattern
 struct Transverter xvtr[XVTRS] = {
     {"50",      OFF,  XVTR1,    50,   28, 0.50, 0.0, XVTR1},
     {"144",     OFF,  XVTR2,   144,   28, 0.50, 0.0, XVTR2},
