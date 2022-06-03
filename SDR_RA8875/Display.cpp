@@ -498,11 +498,14 @@ void displayBand_Menu(uint8_t state)
 			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->off_color);	
 			tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->br, ptr->outline_color);
 		#endif
+
+		int tempC = InternalTemperature.readTemperatureC();
 		tft.setFont(Arial_20);
 		tft.setTextColor(ptr->txtclr);
 		tft.setCursor(CENTER, ptr->by+30, true);
-		tft.print(F("Band Select Menu"));
-		// loop through record with panelnum == 100 and panelpos !255.  
+		tft.printf("                  Band Select Menu     CPU:%dC", tempC);
+		
+		// loop through records with panelnum == 100 and panelpos !255.  
 		// In the future draw the buttons in the panelpos order, not the x,y values. For now using x,y from table.
 		ptr = std_btn;
 		tft.setFont(Arial_12);
