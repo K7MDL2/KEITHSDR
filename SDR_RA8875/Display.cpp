@@ -509,7 +509,7 @@ void displayBand_Menu(uint8_t state)
 		// In the future draw the buttons in the panelpos order, not the x,y values. For now using x,y from table.
 		ptr = std_btn;
 		tft.setFont(Arial_12);
-		for (int i = 0; i <= STD_BTN_NUM; i++)   // look thorugh whole table
+		for (int i = 0; i <= STD_BTN_NUM; i++)   // look through whole table
 		{
 			ptr = std_btn + i;
 			if (ptr->Panelnum == 100 && ptr->Panelpos != 255)

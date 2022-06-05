@@ -20,7 +20,6 @@ extern Metro popup_timer; // used to check for popup screen request
     extern FT5206       cts;
     uint8_t registers[FT5206_REGISTERS];
 #endif
-//extern int16_t spectrum_preset;   // Specify the default layout option for spectrum window placement and size.
 extern void RampVolume(float vol, int16_t rampType);
 //extern void Spectrum_Parm_Generator(int);
 //extern struct Spectrum_Parms Sp_Parms_Def[];
@@ -29,7 +28,7 @@ extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before
 extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct User_Settings user_settings[];
-extern const struct Filter_Settings filter[];
+extern struct Filter_Settings filter[];
 extern struct Standard_Button std_btn[];
 extern struct Label labels[];
 extern uint8_t user_Profile;

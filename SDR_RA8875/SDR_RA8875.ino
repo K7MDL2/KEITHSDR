@@ -285,8 +285,8 @@ AudioMixer4_F32             OutputSwitch_I(audio_settings); // Processed audio f
 AudioMixer4_F32             OutputSwitch_Q(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
-//DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
-//DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
+DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
+DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
 AudioFilterConvolution_F32  RX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 //AudioFilterConvolution_F32  TX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
@@ -347,11 +347,11 @@ AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,2);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,3);
 
-AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
-AudioConnection_F32     patchCord_Audio_Filter_L(bpf1,0,                        FFT_90deg_Hilbert,0);  // variable filter for TX    
-AudioConnection_F32     patchCord_Audio_Filter_R(bpf1,0,                        FFT_90deg_Hilbert,1);  // variable filter for TX
-AudioConnection_F32     patchCord_Feed_L(FFT_90deg_Hilbert,1,                   I_Switch,1); // Feed into normal chain 
-AudioConnection_F32     patchCord_Feed_R(FFT_90deg_Hilbert,0,                   Q_Switch,1); 
+//AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
+//AudioConnection_F32     patchCord_Audio_Filter_L(bpf1,0,                        FFT_90deg_Hilbert,0);  // variable filter for TX    
+//AudioConnection_F32     patchCord_Audio_Filter_R(bpf1,0,                        FFT_90deg_Hilbert,1);  // variable filter for TX
+//AudioConnection_F32     patchCord_Feed_L(FFT_90deg_Hilbert,1,                   I_Switch,1); // Feed into normal chain 
+//AudioConnection_F32     patchCord_Feed_R(FFT_90deg_Hilbert,0,                   Q_Switch,1); 
 
 //AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     TX_FilterConv,0);  // variable filter for TX    
 //AudioConnection_F32     patchCord_Audio_Filter_L(TX_FilterConv,0,               FFT_90deg_Hilbert,0);  // variable filter for TX    
@@ -359,11 +359,11 @@ AudioConnection_F32     patchCord_Feed_R(FFT_90deg_Hilbert,0,                   
 //AudioConnection_F32     patchCord_Feed_L(FFT_90deg_Hilbert,1,                   I_Switch,1); // Feed into normal chain 
 //AudioConnection_F32     patchCord_Feed_R(FFT_90deg_Hilbert,0,                   Q_Switch,1); 
 
-//AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
-//AudioConnection_F32     patchCord_IQ_Mix_L(bpf1,0,                              TX_Hilbert_Plus_45,0); 
-//AudioConnection_F32     patchCord_IQ_Mix_R(bpf1,0,                              TX_Hilbert_Minus_45,0); 
-//AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 I_Switch,1); // Feed into normal chain 
-//AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  Q_Switch,1); 
+AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
+AudioConnection_F32     patchCord_IQ_Mix_L(bpf1,0,                              TX_Hilbert_Plus_45,0); 
+AudioConnection_F32     patchCord_IQ_Mix_R(bpf1,0,                              TX_Hilbert_Minus_45,0); 
+AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 I_Switch,1); // Feed into normal chain 
+AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  Q_Switch,1); 
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 #if defined (USE_FFT_LO_MIXER)
@@ -446,17 +446,16 @@ AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_R,1,         Outp
 AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_L,1,         OutputSwitch_Q,1);  // Using L source twice since mic source is mono
 
 // Selected source goes to output (selected as headphone or lineout in the code) and boosted if needed
-AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1_L,0);  // output to headphone jack Left
-AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output to headphone jack Right
-//AudioConnection_F32     patchCord_Output_L(Amp1_L,0,                        Output,0);  // output to headphone jack Left
-//AudioConnection_F32     patchCord_Output_R(Amp1_R,0,                        Output,1);  // output to headphone jack Right
-
-AudioConnection_F32     patchCord_Output_L(OutputSwitch_I,0,               Output,0);  // output to headphone jack Left
-AudioConnection_F32     patchCord_Output_R(OutputSwitch_Q,0,               Output,1);  // output to headphone jack Right
+AudioConnection_F32     patchCord_Output_L(OutputSwitch_I,0,                Output,0);  // output to headphone jack/Line out Left
+AudioConnection_F32     patchCord_Output_R(OutputSwitch_Q,0,                Output,1);  // output to headphone jack/Line out Right
+AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1_L,0);  // output audio to USB, line out
+AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output audio to USB, line out
 
 #ifdef USB32
-AudioConnection_F32     patchcord_Out_L16U(Amp1_L,0,                        USB_Out,0);  // output to headphone jack Right
-AudioConnection_F32     patchcord_Out_R16U(Amp1_R,0,                        USB_Out,1);  // output to headphone jack Right
+AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
+AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
+//AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
+//AudioConnection_F32     patchcord_Out_USB_R(USB_In,0,                       USB_Out,1);  // output to USB Audio Out R
 #else
 AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
 AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
@@ -1457,17 +1456,17 @@ COLD void TX_RX_Switch(
     float   USBIn_On;       // 0.0f(OFF) or 1.0f (ON)
     float   ToneA;          // 0.0f(OFF) or 1.0f (ON)
     float   ToneB;          // 0.0f(OFF) or 1.0f (ON)
-    float ch_on  = 1.0f;    
-    float ch_off = 0.0f;
+    float   ch_on  = 1.0f;    
+    float   ch_off = 0.0f;
 
     // Covert bool to floats
-    if (b_Mic_On)   Mic_On   = ch_on; else Mic_On   = ch_off;
-    if (b_USBIn_On) USBIn_On = ch_on; else USBIn_On = ch_off;
+    if (b_Mic_On)   Mic_On   = 2.0f; else Mic_On   = ch_off;
+    if (b_USBIn_On) USBIn_On = 1.0f; else USBIn_On = ch_off;
     if (b_ToneA)    ToneA    = ch_on; else  ToneA   = ch_off;
     if (b_ToneB)    ToneB    = ch_on; else  ToneB   = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
-    TxTestTone_A.frequency(700.0f/2); // for some reason this is doubled but Tone B is not.   Also getting mirror image.
+    TxTestTone_A.frequency(700.0f); // for some reason this is doubled but Tone B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TestTone_Vol); //
     TxTestTone_B.frequency(1900.0f); 
 
@@ -1510,8 +1509,8 @@ COLD void TX_RX_Switch(
         I_Switch.gain(1, ch_on);        // Ch 1 is test tone and Mic I - 
         Q_Switch.gain(1, invert);       // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
 
-        FFT_Atten_I.gain(0, 0.001f);    // Attenuate signals to FFT while in TX
-        FFT_Atten_Q.gain(0, 0.001f);  
+        FFT_Atten_I.gain(0, 0.000000001f);    // Attenuate signals to FFT while in TX
+        FFT_Atten_Q.gain(0, 0.000000001f);  
 
         // On switch back to RX the setMode() function on RX will restore this to RX path.
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)/
@@ -1531,8 +1530,8 @@ COLD void TX_RX_Switch(
         OutputSwitch_I.gain(2, ch_off);     // Turn ON for FM   ToDO: automate this based on mode
         OutputSwitch_Q.gain(2, ch_off);     // Turn ON for FM       
 
-        Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(1.0f);   
+        Amp1_L.setGain(0.0f);    // Mute output to USB during TX
+        Amp1_R.setGain(0.0f);   
         codec1.lineInLevel(0);      // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
         //TX_FilterConv.initFilter((float32_t)TX_filterCenter, 90, 2, TX_filterBandwidth);
 
@@ -1601,8 +1600,8 @@ COLD void TX_RX_Switch(
             OutputSwitch_Q.gain(2, ch_on); // Turn ON for FM
         }   
 
-        Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(AUDIOBOOST);  
+        Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB. Turn on USB Out during RX
+        Amp1_R.setGain_dB(1.0f);  
 
         // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
         codec1.audioPreProcessorEnable();   // AVC on Line-In level
@@ -1815,15 +1814,15 @@ COLD void resetCodec(void)
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
     
-    //TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
-    //TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
+    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
+    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
     bpf1.begin(fir1, 197, 128);
     
     // Pick one of the three.
-    //FFT_90deg_Hilbert.begin(hilbert19A, 19);
-    //FFT_90deg_Hilbert.begin(hilbert121A, 121);
-    FFT_90deg_Hilbert.begin(hilbert251A, 251);
-    FFT_90deg_Hilbert.showError(1);
+    ///FFT_90deg_Hilbert.begin(hilbert19A, 19);
+    ///FFT_90deg_Hilbert.begin(hilbert121A, 121);
+    //FFT_90deg_Hilbert.begin(hilbert251A, 251);
+    //FFT_90deg_Hilbert.showError(1);
 
     // experiment with numbers  ToDo: enable/disable this via the Notch button
     DPRINT(F("Initializing Notch/NR Feature = "));

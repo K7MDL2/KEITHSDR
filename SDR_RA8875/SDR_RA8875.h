@@ -11,27 +11,24 @@
 //
 //  Test tones are enabled in spectrum only, not in audio path.
 //
-#include <Arduino.h>
-#include <avr/pgmspace.h>
-// #include <T4_PowerButton.h>     // https://github.com/FrankBoesing/T4_PowerButton for the FlexInfo() and Hardfault reporting tools
-//  T4_Powerbutton is not compatible with newer versions of Arduino, worked for 1.8.13, does not for 1.8.19.
-#include <SPI.h>                // included with Arduino
-//#include <SD.h>                 // included with Arduino
-#include <Wire.h>               // included with Arduino
-//#include <WireIMXRT.h>          // gets installed with wire.h
-//#include <WireKinetis.h>        // included with Arduino
-#define  ENCODER_OPTIMIZE_INTERRUPTS  // leave this one here.  Not normally user changed
-#include <Encoder.h>            // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
-#include <Metro.h>              // GitHub https://github.com/nusolar/Metro
-#include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-#include <InternalTemperature.h> // V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
-#include <TimeLib.h>            // TODO  - list where to find this
+#include <Arduino.h>                    // from Arduino
+#include <avr/pgmspace.h>               // from Arduino
+#include <SPI.h>                        // from Arduino
+#include <Wire.h>                       // from Arduino
+#include <TimeLib.h>                    // from Arduino
+
+// External libraries - These are not all of them as some appear with #ifdef blocks based on feature selection
+#define  ENCODER_OPTIMIZE_INTERRUPTS    // leave this one here.  Not normally user changed
+#include <Encoder.h>                    // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
+#include <Metro.h>                      // GitHub https://github.com/nusolar/Metro
+#include <OpenAudio_ArduinoLibrary.h>   // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
+#include <InternalTemperature.h>        // V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
 //#define DEBUG  //set to true for debug output, false for no debug output
 
-#ifdef DEBUG
+#ifdef  DEBUG
 #define DEBUG_ERROR true
 #define DEBUG_ERROR_SERIAL if(DEBUG_ERROR)Serial
 
@@ -84,33 +81,33 @@
 #endif
 
 // Simple ways to designate functions to run out of fast or slower memory to help save RAM
-#define HOT FASTRUN    __attribute__((hot))
-#define COLD FLASHMEM  __attribute__((cold))
+#define HOT     FASTRUN     __attribute__((hot))
+#define COLD    FLASHMEM    __attribute__((cold))
 
 #ifndef BYPASS_SPECTRUM_MODULE
 //
 //--------------------------------- RA8875 LCD TOUCH DISPLAY INIT & PINS --------------------------
 //
-//  Usually also defined in main program header file such as RadioConfig.h for SDR_887x program
+//  Usually defined in main program header file such as RadioConfig.h for SDR_887x program
     #ifdef USE_RA8875
         #define  SCREEN_WIDTH       800 
         #define  SCREEN_HEIGHT      480
         #if defined(SMALL_PCB_V1)
-            #define  RA8875_INT        28  //for John's small V1 motherboard
+            #define  RA8875_INT        28   //for John's small V1 motherboard
         #elif defined(V1_4_3_PCB) || defined (V2_4_3_PCB)
-            #define  RA8875_INT        27  //27 for John's larger 4.3" motherboard
+            #define  RA8875_INT        27   //27 for John's larger 4.3" motherboard
         #else
-            #define  RA8875_INT        14  //14 for K7MDL old prototype board
+            #define  RA8875_INT        14   //14 for K7MDL old prototype board
         #endif    
-        #define  RA8875_CS         10   //any digital pin
-        #define  RA8875_RESET      9    //any pin or nothing!
-        #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
-        #include <SPI.h>                // included with Arduino
-        #include <RA8875.h>           // internal Teensy library with ft5206 cap touch enabled in user_setting.h
+        #define  RA8875_CS         10       //any digital pin
+        #define  RA8875_RESET      9        //any pin or nothing!
+        #define  MAXTOUCHLIMIT     3        //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch
+        #include <SPI.h>                    // included with Arduino
+        #include <RA8875.h>                 // internal Teensy library with ft5206 cap touch enabled in user_setting.h
         #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
         #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
     #else 
-        #define USE_RA8876_t3
+        #define  USE_RA8876_t3
         #define  SCREEN_WIDTH      1024 
         #define  SCREEN_HEIGHT     600
         #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
@@ -125,17 +122,9 @@
             #define  CTP_INT        14  //14 for K7MDL old prototype board
         #endif
         #define  RA8876_CS         10   //any digital pin
-        #define  RA8876_RESET      9    //any pin or nothing!
-        #define  MAXTOUCHLIMIT     3    //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch      
+        #define  RA8876_RESET       9   //any pin or nothing!
+        #define  MAXTOUCHLIMIT      3   //1...5  using 3 for 3 finger swipes, otherwise 2 for pinches or just 1 for touch              
     #endif // USE_RA8876_t3
-
-    // use the generator function to create 1 set of data to define preset values for window size and placement.  
-    // Just copy and paste from the serial terminal into each record row.
-    #define PRESETS 12  // number of parameter records with our preset spectrum window values
-    ///******************************************************************************************************************************
-    //   *************  Set Preset to select your configuration record to use.  The rest are ignored for operation ******************
-    ///
-    #define SPECTRUM_PRESET 0
 
 #endif // BYPASS_SPECTRUM_MODULE
 
@@ -177,7 +166,7 @@
 // Some defines for ease of use 
 #define myDARKGREY    31727u
 
-// My custom mixes
+// Some custom color mixes
 const uint16_t myDARK_GREEN         = 0x03C0;
 const uint16_t myVERY_DARK_GREEN    = 0x02C0;
 const uint16_t myDARK_BLUE          = 0x02B0;
@@ -290,8 +279,11 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   22      // number of labels in the table
-#define STD_BTN_NUM 46      // number of buttons in the table
-
+#ifdef USE_RA8875
+#define STD_BTN_NUM 46      // number of rows in the buttons table
+#else
+#define STD_BTN_NUM 46      // number of rows in the buttons table
+#endif
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
 // using #define method as it is easiet to relate the purpose and more obvious which row it is mapped to.

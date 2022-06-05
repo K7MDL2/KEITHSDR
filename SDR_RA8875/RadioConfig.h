@@ -86,10 +86,6 @@
 
 //#define TEST_SINEWAVE_SIG   // Turns on sinewave generators for display in the spectrum FFT only.
 
-#define SPECTRUM_PRESET  0    // The spectrum layout record default value.
-                              // 0 is recommended for full screen.
-                              // 5 for smaller 2 window size.
-
 //#define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
                               // Comment this ouot to dispable all PANADAPTER settings.
 
@@ -191,7 +187,7 @@
       #define ENET
     #endif
     #undef AUDIOBOOST
-    #define AUDIOBOOST   (0.01f)       // Final stage audio boost or attenuation in dB.  1.0f is pass through.
+    #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation in dB.  1.0f is pass through.
     #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #define W7PUA_I2S_CORRECTION
 

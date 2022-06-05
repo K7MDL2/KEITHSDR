@@ -43,118 +43,217 @@ struct Transverter xvtr[XVTRS] = {
     {"47100",   OFF, XVTR12, 47100, 1296, 0.50, 0.0, XVTR12}
 };
 
-// Button Position variables for easy bulk size, place and move.
-const uint16_t x_0 = 1; // reserved for Menu row select button (Fucntion button)
-const uint16_t x_1 = 118;  // x_ valuesa are the left side refernce for button. combine with y_1 for anchor point in upper left.
-const uint16_t x_2 = 235;
-const uint16_t x_3 = 350;
-const uint16_t x_4 = 467;
-const uint16_t x_5 = 583;
-const uint16_t x_6 = 699;
-// rest of standard button dimensions
-#ifdef USE_RA8875 
-    const uint16_t y_1 = 419;  // upper position in px.  A Ra8875 4.3" display is 800px wide x 460px high
-#else
-    const uint16_t y_1 = 539;
-#endif
-const uint16_t w_1 = 100;  // button width px
-const uint16_t h_1 = 60;   // button height px
-const uint16_t r_1 = 20;   // button corner radius in px
-
 // Shared button placement for both RA8875 800x480 and RA8876 1024x600 displays
-struct Standard_Button std_btn[STD_BTN_NUM] = {
-  //  en  show  pnl pos  x   y    w    h    r   outline_color      txtcolor           on_color     off_color     padx pady  label
-    // Special button for function button is presented on every row to advance to the next row.
-    // Enable value is used to store th actiuve panel number for the function button operation. Starts at offset of 2. (2-1 to get panel 1 for example)   Do not change this value
-    {  2,  ON, 0, 0, x_0, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 25, 20, "Fn 1\0"},
-    
-    // Panel 1  - this table is organized in sorted order for convenience but can be in any order using Panelnum an Panelpos
-    // Show == ON unhides ths button for display on a panel.   Enable usually tracks the on/off state of the button.
-    { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Mode\0"},
-    { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, "Filter\0"},
-    { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, "Rate\0"},
-    { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  4, 20, "ATT\0"},
-    { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Preamp\0"},
-    { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
-    //Panel 2
-    { ON, OFF, 2, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "NB\0"},
-    { ON, OFF, 2, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 32, 20, "NR\0"},
-    { ON, OFF, 2, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 18, 20, "Notch\0"},
-    { ON, OFF, 2, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  8, 20, "AGC- \0"},
-    { ON, OFF, 2, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  7, 20, "Zoom\0"},
-    { ON, OFF, 2, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Pan\0"},
-    //Panel 3
-    { ON, OFF, 3, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "Menu\0"},
-    { ON, OFF, 3, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "ANT  \0"},
-    { ON, OFF, 3, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 25, 20, "ATU\0"},
-    { ON, OFF, 3, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "XMIT\0"},
-    { ON, OFF, 3, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band -\0"},
-    { ON, OFF, 3, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band +\0"},
-    //Panel 4
-    { ON, OFF, 4, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "RIT\0"},
-    { ON, OFF, 4, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "XIT\0"},   
-    { ON, OFF, 4, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 26, 20, "Fine\0"},
-    { ON, OFF, 4, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Split\0"},
-    { ON, OFF, 4, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Display\0"},
-    { ON, OFF, 4, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLUE,  31, 20, "A/B\0"},
-    //Panel 5
-    { ON, OFF, 5, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Enet\0"},
-    { ON, OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, "Xvtr\0"},
-    { ON, OFF, 5, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "RF:\0"},
-    {OFF, OFF, 5, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 14, 20, "RefLvl\0"},
-    { ON, OFF, 5, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "AF:\0"},
-    { ON, OFF, 5, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Mute\0"},
-
 #ifdef USE_RA8875   // These rows differ between display sizes. 
-    #define BS_ANCHOR_X 100
-    #define BS_ANCHOR_Y 80
-    // Panelpos ==255 means it is a special type button not on a panel
-    //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
-    { ON,  ON, 0, 255, 630,   1, 170,  36,   3, BLACK,      LIGHTGREY,  BLACK, BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
-    { ON,  ON, 0, 255, 645,  40, 140,  85,   8, LIGHTGREY,  BLUE,       BLACK, BLACK,  7, 10, ""},  // S/MF meter for RA8875 4.3"
-    { ON, OFF, 0, 255,   0, 200, 800, 180, r_1, BLACK,      BLACK,      BLACK, BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
-    // This defines the Band Select window
-    { OFF, OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
-    // Spare
-    //    { ON, OFF, 2, 255, 467, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 23, 20, "Spot\0"},
-#else
-    #define BS_ANCHOR_X 210
-    #define BS_ANCHOR_Y 160
-    { ON,  ON, 0, 255, 865,   1, 170,  36,   3, BLACK,      LIGHTGREY,  BLACK, BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
-    { ON,  ON, 0, 255, 880,  41, 140,  85,   8, LIGHTGREY,  BLUE,       BLACK, BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
-    { ON, OFF, 0, 255,   0, 190,1023, 320, r_1, BLACK,      BLACK,      BLACK, BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
-    // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
-    // This defines the Band Select window
-    { OFF,OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
+    // Button Position variables for easy bulk size, place and move.
+    const uint16_t x_0 = 1; // reserved for Menu row select button (Fucntion button)
+    const uint16_t x_1 = 118;  // x_ valuesa are the left side refernce for button. combine with y_1 for anchor point in upper left.
+    const uint16_t x_2 = 235;
+    const uint16_t x_3 = 350;
+    const uint16_t x_4 = 467;
+    const uint16_t x_5 = 583;
+    const uint16_t x_6 = 699;
+    // rest of standard button dimensions
+    const uint16_t y_1 = 419;  // upper position in px.  A Ra8875 4.3" display is 800px wide x 460px high
+    const uint16_t w_1 = 100;  // button width px
+    const uint16_t h_1 = 60;   // button height px
+    const uint16_t r_1 = 20;   // button corner radius in px
+
+    //#define STD_BTN_NUM 46      // number of buttons in the table **defined in SDR_RA8875.h**
+    struct Standard_Button std_btn[STD_BTN_NUM] = 
+    {
+        // Special button for function button is presented on every row to advance to the next row.
+        // Enable value is used to store th actiuve panel number for the function button operation. Starts at offset of 2. (2-1 to get panel 1 for example)   Do not change this value
+        {  2,  ON, 0, 0, x_0, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 25, 20, "Fn 1\0"},
+        
+        // Panel 1  - this table is organized in sorted order for convenience but can be in any order using Panelnum an Panelpos
+        // Show == ON unhides ths button for display on a panel.   Enable usually tracks the on/off state of the button.
+        //en show pnl pos  x   y    w    h    r   outline_clr txtclr    on_clr off_clr padx pady label
+        { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Mode\0"},
+        { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, "Filter\0"},
+        { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, "Rate\0"},
+        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  4, 20, "ATT\0"},
+        { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Preamp\0"},
+        { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        //Panel 2
+        { ON, OFF, 2, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "NB\0"},
+        { ON, OFF, 2, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 32, 20, "NR\0"},
+        { ON, OFF, 2, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 18, 20, "Notch\0"},
+        { ON, OFF, 2, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  8, 20, "AGC- \0"},
+        { ON, OFF, 2, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  7, 20, "Zoom\0"},
+        { ON, OFF, 2, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Pan\0"},
+        //Panel 3
+        { ON, OFF, 3, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "Menu\0"},
+        { ON, OFF, 3, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "ANT  \0"},
+        { ON, OFF, 3, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 25, 20, "ATU\0"},
+        { ON, OFF, 3, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "XMIT\0"},
+        { ON, OFF, 3, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band -\0"},
+        { ON, OFF, 3, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band +\0"},
+        //Panel 4
+        { ON, OFF, 4, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "RIT\0"},
+        { ON, OFF, 4, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "XIT\0"},   
+        { ON, OFF, 4, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 26, 20, "Fine\0"},
+        { ON, OFF, 4, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Split\0"},
+        { ON, OFF, 4, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Display\0"},
+        { ON, OFF, 4, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLUE,  31, 20, "A/B\0"},
+        //Panel 5
+        { ON, OFF, 5, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Enet\0"},
+        { ON, OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, "Xvtr\0"},
+        { ON, OFF, 5, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "RF:\0"},
+        {OFF, OFF, 5, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 14, 20, "RefLvl\0"},
+        { ON, OFF, 5, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "AF:\0"},
+        { ON, OFF, 5, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Mute\0"},
+
+        // Panelpos ==255 means it is a special type button not on a panel
+        //use outside of panel in upper right of screen.  Show wil be turned off when there is no clock time source to display
+        { ON,  ON, 0, 255, 630,   1, 170,  36,   3, BLACK,      LIGHTGREY,  BLACK, BLACK, 16, 10, "UTC:\0"},  // For RA8875 4.3"
+        { ON,  ON, 0, 255, 645,  40, 140,  85,   8, LIGHTGREY,  BLUE,       BLACK, BLACK,  7, 10, ""},  // S/MF meter for RA8875 4.3"
+        { ON, OFF, 0, 255,   0, 200, 800, 180, r_1, BLACK,      BLACK,      BLACK, BLACK,  9, 20, ""},  // Spectrum TouchTune area definition.
+
+        // This defines the Band Select window and buttons
+        #define BS_ANCHOR_X 100
+        #define BS_ANCHOR_Y 80
+        { OFF, OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
+        // Spare
+        //    { ON, OFF, 2, 255, 467, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 23, 20, "Spot\0"},
+        
+        // These are the Band buttons.  Use panel_num 100
+        // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
+        #define BSX_0  (BS_ANCHOR_X+20)
+        #define BSX_1  (BS_ANCHOR_X+20+(w_1+14))
+        #define BSX_2 ((BS_ANCHOR_X+20+(w_1+14)*2))
+        #define BSX_3 ((BS_ANCHOR_X+20+(w_1+14)*3))
+        #define BSX_4 ((BS_ANCHOR_X+20+(w_1+14)*4))
+
+        #define BSY_0 (BS_ANCHOR_Y+80)
+        #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
+        #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
+        
+        // This group is used for the Band Select Menu Window buttons.
+        // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
+        { OFF, OFF, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, "160M\0"},
+        { OFF, OFF, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "80M\0"},   
+        { OFF, OFF, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "60M\0"},
+        { OFF, OFF, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "40M\0"},
+        { OFF, OFF, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "30M\0"},
+        { OFF, OFF, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "20M\0"},
+        { OFF, OFF, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20,  "17M\0"},
+        { OFF, OFF, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "15M\0"},
+        { OFF, OFF, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "12M\0"},
+        { OFF, OFF, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "10M\0"},
+        { OFF, OFF, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 30,   "6M\0"}
+    };
+#else   // Use the below RA8876 layout
+    // Button Position variables for easy bulk size, place and move.
+    const uint16_t x_0 = 1; // reserved for Menu row select button (Fucntion button)
+    const uint16_t x_1 = 118;  // x_ valuesa are the left side refernce for button. combine with y_1 for anchor point in upper left.
+    const uint16_t x_2 = 235;
+    const uint16_t x_3 = 350;
+    const uint16_t x_4 = 467;
+    const uint16_t x_5 = 583;
+    const uint16_t x_6 = 699;
+    const uint16_t x_7 = 815;
+    const uint16_t x_8 = 931;
+    // rest of standard button dimensions
+    const uint16_t y_1 = 539;
+    const uint16_t w_1 = 100;  // button width px
+    const uint16_t h_1 = 60;   // button height px
+    const uint16_t r_1 = 20;   // button corner radius in px
+    //#define STD_BTN_NUM 49      // number of buttons in the table **defined in SDR_RA8875.h**
+    struct Standard_Button std_btn[STD_BTN_NUM] = 
+    {
+        // Special button for function button is presented on every row to advance to the next row.
+        // Enable value is used to store th actiuve panel number for the function button operation. Starts at offset of 2. (2-1 to get panel 1 for example)   Do not change this value
+        {  2,  ON, 0, 0, x_0, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 25, 20, "Fn 1\0"},
+        
+        // Panel 1  - this table is organized in sorted order for convenience but can be in any order using Panelnum an Panelpos
+        // Show == ON unhides ths button for display on a panel.   Enable usually tracks the on/off state of the button.
+        //en show pnl pos  x   y    w    h    r   outline_clr txtclr    on_clr off_clr padx pady label
+        { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Mode\0"},
+        { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, "Filter\0"},
+        { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, "Rate\0"},
+        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  4, 20, "ATT\0"},
+        { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Preamp\0"},
+        { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        //{ OFF, ON, 1, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band1\0"},
+        //{ OFF, ON, 1, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        //Panel 2
+        { ON, OFF, 2, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "NB\0"},
+        { ON, OFF, 2, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 32, 20, "NR\0"},
+        { ON, OFF, 2, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 18, 20, "Notch\0"},
+        { ON, OFF, 2, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  8, 20, "AGC- \0"},
+        { ON, OFF, 2, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  7, 20, "Zoom\0"},
+        { ON, OFF, 2, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, "Pan\0"},
+        //{ OFF, ON, 2, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band2\0"},
+        //{ OFF, ON, 2, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        //Panel 3
+        { ON, OFF, 3, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "Menu\0"},
+        { ON, OFF, 3, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, "ANT  \0"},
+        { ON, OFF, 3, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 25, 20, "ATU\0"},
+        { ON, OFF, 3, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, "XMIT\0"},
+        { ON, OFF, 3, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band -\0"},
+        { ON, OFF, 3, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, "Band +\0"},
+        //{ OFF, ON, 3, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band3\0"},
+        //{ OFF, ON, 3, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        //Panel 4
+        { ON, OFF, 4, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "RIT\0"},
+        { ON, OFF, 4, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 31, 20, "XIT\0"},   
+        { ON, OFF, 4, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 26, 20, "Fine\0"},
+        { ON, OFF, 4, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Split\0"},
+        { ON, OFF, 4, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Display\0"},
+        { ON, OFF, 4, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLUE,  31, 20, "A/B\0"},
+        //{ OFF, ON, 4, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band4\0"},
+        //{ OFF, ON, 4, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        //Panel 5
+        { ON, OFF, 5, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Enet\0"},
+        { ON, OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, "Xvtr\0"},
+        { ON, OFF, 5, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "RF:\0"},
+        { OFF,OFF, 5, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 14, 20, "RefLvl\0"},
+        { ON, OFF, 5, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, "AF:\0"},
+        { ON, OFF, 5, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, "Mute\0"},
+        //{ OFF, ON, 5, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band5\0"},
+        //{ OFF, ON, 5, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
+        // End of panel buitton definitions
+
+        //  These are special button types
+        { ON,  ON, 0, 255, 865,   1, 170,  36,   3, BLACK,      LIGHTGREY,  BLACK, BLACK, 16, 10, "UTC:\0"},  // for RA8876 7.0"
+        { ON,  ON, 0, 255, 880,  41, 140,  85,   8, LIGHTGREY,  BLUE,       BLACK, BLACK,  7, 10, ""},  // for RA8876 7.0" S/MF Meter hotspot
+        { ON, OFF, 0, 255,   0, 190,1023, 320, r_1, BLACK,      BLACK,      BLACK, BLACK,  9, 20, ""},  // Spectrum TouchTune hotspot area definition.
+        // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
+        
+        // Define the Band Stack window and buttons
+        #define BS_ANCHOR_X 210
+        #define BS_ANCHOR_Y 160
+        // This defines the Band Select window
+        { OFF,OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
+
+        // These are the Band buttons.  Use panel_num 100
+        // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
+        #define BSX_0  (BS_ANCHOR_X+20)
+        #define BSX_1  (BS_ANCHOR_X+20+(w_1+14))
+        #define BSX_2 ((BS_ANCHOR_X+20+(w_1+14)*2))
+        #define BSX_3 ((BS_ANCHOR_X+20+(w_1+14)*3))
+        #define BSX_4 ((BS_ANCHOR_X+20+(w_1+14)*4))
+
+        #define BSY_0 (BS_ANCHOR_Y+80)
+        #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
+        #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
+        
+        // This group is used for the Band Select Menu Window buttons.
+        // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
+        { OFF, OFF, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, "160M\0"},
+        { OFF, OFF, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "80M\0"},   
+        { OFF, OFF, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "60M\0"},
+        { OFF, OFF, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "40M\0"},
+        { OFF, OFF, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "30M\0"},
+        { OFF, OFF, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "20M\0"},
+        { OFF, OFF, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20,  "17M\0"},
+        { OFF, OFF, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "15M\0"},
+        { OFF, OFF, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "12M\0"},
+        { OFF, OFF, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "10M\0"},
+        { OFF, OFF, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 30,   "6M\0"}
+    };
 #endif  // USE_RA8875
-
-    // These are the Band buttons.  Use panel_num 100
-    // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
-    #define BSX_0  (BS_ANCHOR_X+20)
-    #define BSX_1  (BS_ANCHOR_X+20+(w_1+14))
-    #define BSX_2 ((BS_ANCHOR_X+20+(w_1+14)*2))
-    #define BSX_3 ((BS_ANCHOR_X+20+(w_1+14)*3))
-    #define BSX_4 ((BS_ANCHOR_X+20+(w_1+14)*4))
-
-    #define BSY_0 (BS_ANCHOR_Y+80)
-    #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
-    #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
-    
-    // This group is used for the Band Select Menu Window buttons.
-    // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
-    { OFF, OFF, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, "160M\0"},
-    { OFF, OFF, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "80M\0"},   
-    { OFF, OFF, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "60M\0"},
-    { OFF, OFF, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "40M\0"},
-    { OFF, OFF, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "30M\0"},
-    { OFF, OFF, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "20M\0"},
-    { OFF, OFF, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20,  "17M\0"},
-    { OFF, OFF, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "15M\0"},
-    { OFF, OFF, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "12M\0"},
-    { OFF, OFF, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20,  "10M\0"},
-    { OFF, OFF, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 30,   "6M\0"}
-};
-
 
 // Labels are screen display objects that are used mostly to show status.
 // They may be used for touch events, usually in combination with a button.  Take NR for example
@@ -196,9 +295,9 @@ struct Label labels[LABEL_NUM] = {
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn  sub_VFO  sv_md uc1 uc2 uc3  lastB   mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB DefMFknob  enc1   enc1_sw   enc1_swl     enc2     enc2_sw   enc2_swl  enc3     enc3_sw   enc3_swl    enc4    enc4_sw enc4_swl   enc5        enc5_sw   enc5_swl enc6        enc6_sw     enc6_swl    Zoom_lvl panEn panlvl
-    {"ENET ON Config",    0, 0, 28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND30M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50},
-    {"PanAdapter Config", 0, 0, 1420000,  USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  23,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}
+    {"ENET ON Config",    0, 0, 28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
+    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND30M,   OFF, MIC_ON,  90.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  20,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50},
+    {"PanAdapter Config", 0, 0, 1420000,  USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
@@ -288,28 +387,14 @@ struct Modes_List modeList[MODES_NUM] = {
 
 // Use the generator function to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
-#define PRESETS 12  // number of parameter records with our preset spectrum window values
+#define PRESETS 1  // number of parameter records with our preset spectrum window values
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
         //W        LE  RE CG                                         x   y   w  h  c sp st clr sc mode      scal reflvl wfrate
     #ifdef USE_RA8875
-        {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 5, 0},
-        {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 90}, // hal
-        {796,2, 2,  2,798,400,14,8,143,165,165,408,400, 94,141,259,259,  0,139,800,270,40,20,2,310,1.0,0.9,1,40, 5, 90},
-        {500,2,49,150,650,400,14,8,133,155,155,478,470, 94,221,249,249,130,129,540,350,30,25,2,550,1.0,0.9,1,30, 8, 70}, // hal
+        {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 5, 0}      // Default layout for 4.3" RA8875 800 x480
     #else
-        {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,6,890,1.5,0.9,1,20,10, 80},
-        { 508,1,1,  1, 509,254,14,8,214,236,236,528,520,113,171,349,349,  0,210, 510,319,40,20,2,310,1.0,0.9,0,40, 8,100},
-        { 508,1,1,513,1021,766,14,8,214,236,236,528,520,113,171,349,349,512,210, 510,319,40,20,2,310,1.0,0.9,1,40, 8,100},
-        { 298,1,1,601, 899,749,14,8,304,326,326,499,491, 99, 66,425,425,600,300, 300,200,60,20,2,310,1.0,0.9,0,40, 6,100},
+        {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,6,890,1.5,0.9,1,20,10, 80}   // Default layout for 7" RA8876 1024 x 600
     #endif        
-        {512,2,43,143,655,399,14,8,354,376,376,479,471, 57, 38,433,433,100,350,599,130,60,25,2,340,1.7,0.9,0,60, 8, 80},  // Small wide bottom screen area to fit under pop up wndows.
-        {498,1, 1,  1,499,249,14,8,143,165,165,408,400, 94,141,259,259,  0,139,500,270,40,20,2,310,1.0,0.9,0,40, 6,100},    //smaller centered
-        {198,1, 1,551,749,649,14,8,183,205,205,408,400,136, 59,341,341,550,179,200,230,70,20,2,310,1.0,0.9,1,40, 0,100},  // low wide high gain
-        {500,2, 2,150,650,400,14,8,133,155,155,418,410,102,153,257,257,130,129,540,290,40,25,2,320,1.0,0.9,1,30, 8, 75},     //60-100 good
-        {512,2,43,143,655,399,14,8,223,245,245,348,340, 57, 38,302,302,100,219,599,130,60,25,2,310,1.7,0.9,0,60, 8,100},
-        {396,2, 2,102,498,300,14,8,243,265,265,438,430, 99, 66,364,364,100,239,400,200,60,25,2,310,1.7,0.9,0,40, 8,100},
-        {512,2,43,143,655,399,14,8,183,205,205,478,470,106,159,311,311,100,179,599,300,40,25,2,450,0.7,0.9,1,40, 8, 40},
-        {796,2, 2,  2,798,400,14,8,183,205,205,478,470,106,159,311,311,  0,179,800,300,40,25,5,440,1.0,0.9,0,40, 8, 30}
 };
 
 // To create new layout records for the above table the below paramaters.
