@@ -17,7 +17,8 @@
 #include "hilbert121A.h"
 #include "hilbert251A.h"
 
-#define USB32   // Switch between F32 and I16 versions of USB Audio interface
+//#define USB32   // Switch between F32 and I16 versions of USB Audio interface
+// So far I16 method has been working better.  
 
 #ifdef USB32
 #include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version
@@ -452,15 +453,18 @@ AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output audio to USB, line out
 
 #ifdef USB32
-AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
-AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
-//AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
-//AudioConnection_F32     patchcord_Out_USB_R(USB_In,0,                       USB_Out,1);  // output to USB Audio Out R
+//AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
+//AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
+AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
+AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
 #else
 AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
 AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
 AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
 AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
+//AudioConnection         patchcord_Out_USB_L16U(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
+//AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
+
 #endif
 
 AudioControlSGTL5000    codec1;
