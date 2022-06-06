@@ -16,6 +16,24 @@
 // Your connected hardware is the primary reason to change these.
 // Compiling in code that talks to an I2C device for example will hang if the device is not present.
 
+/*******************************  !!!!!!! IMPROTANT CONFIGURATION NOTE !!!!!!!!!! ****************************************
+
+                        Teensy Configuration Requirement - Please READ!
+
+To compile sucessfully you must configure the Teensy 4.0 or 4.1 USB mode.
+
+For this build it must be set to SERIAL+MIDI+AUDIO.   
+
+The previous builds were Dual Serial. No changing this mode wil result in a complie time error about AudioInputUSB not found
+
+There is only 1 USB serial port active now so debug is globally shut off with '#define DEBUG' to allow the 
+OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
+
+
+******************************  !!!!!!! IMPROTANT CONFIGURATION NOTE !!!!!!!!!! *****************************************/
+
+
+
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
 #define CALLSIGN  "K7MDL"   // Personalized Startup Screen Text
 
