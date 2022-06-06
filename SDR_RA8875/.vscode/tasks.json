@@ -6,7 +6,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "%VIRTUAL_TEENSY_PATH%/make.exe",
       "args": [
         "all",
         "",
@@ -19,7 +19,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "%VIRTUAL_TEENSY_PATH%/make.exe",
       "args": [
         "clean"
       ]
@@ -30,7 +30,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "%VIRTUAL_TEENSY_PATH%/make.exe",
       "args": [
         "upload",
         "",
@@ -43,12 +43,17 @@
         "kind": "build",
         "isDefault": true
       },
-      "command": "E:/VisualTeensy_v1.5.0/make.exe",
+      "command": "%VIRTUAL_TEENSY_PATH%/make.exe",
       "args": [
         "uploadTy",
         "",
         ""
       ]
+    },
+    {
+      "label": "Echo Path",
+      "type": "shell",
+      "command": "echo %VIRTUAL_TEENSY_PATH%"
     }
   ],
   "version": "2.0.0",
