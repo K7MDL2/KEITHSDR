@@ -24,7 +24,7 @@
   "compiler-explorer.compiler": "g54",
   "compiler-explorer.options": [
     "-D__IMXRT1062__ -DTEENSYDUINO=156",
-    "-DF_CPU=720000000",
+    "-DF_CPU=816000000",
     "-DUSB_MIDI_AUDIO_SERIAL",
     "-DLAYOUT_US_ENGLISH",
     "-DARDUINO_TEENSY41",
