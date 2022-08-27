@@ -32,8 +32,6 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 ******************************  !!!!!!! ********************************** !!!!!! *****************************************/
 
-
-
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
 #define CALLSIGN  "K7MDL"   // Personalized Startup Screen Text
 
@@ -95,7 +93,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // Hardware verson 2.1, Arduino library version 1.40.
 
 //#define MECH_ENCODERS     // Use regular mechanical (non-I2C) connected encoders.  If this is defined and there are no encoders connected,
-                            // *** AND *** ENET is defined, you will get reboot right after enet initialization comletes.
+                            // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
 
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE     // Depends on ENET
@@ -135,14 +133,15 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // The 7" RA8876 display has a better off-center viewing angle when horizantal when the touch panel ribbon is at the top.  This requires the touch to be rotated.
                             // The rotation will be 0, touch rotation will be "defined"
                             // When the 7" is vertically mounted the ribbon should be down with Touch Rotation "undefined".
+
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
 #define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-#define PTT_INPUT    0     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_INPUT     2     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
-#define PTT_OUT1     1    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+#define PTT_OUT1      1    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  
@@ -228,7 +227,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // Choose your actual pin assignments for any you may have.
 
 // VFO Encoder (not I2C).  ENCx is the same as on the PCBs
-#if defined(SMALL_PCB_V1)
+#if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
   #define ENC1_PIN_A      3   // used for VFO
   #define ENC1_PIN_B      4
   #define ENC2_PIN_A     30   // Encoder 2.
@@ -237,7 +236,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define ENC3_PIN_A     34   // Encoder 3
   #define ENC3_PIN_B     35
   #define ENC3_PIN_SW    33
-#elif defined(V1_4_3_PCB)
+#elif defined(V1_4_3_PCB)     // V1 4.3" Display PCB
   #define ENC1_PIN_A      3   // used for VFO
   #define ENC1_PIN_B      4
   #define ENC2_PIN_A     30   // Encoder 2.
@@ -246,15 +245,15 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define ENC3_PIN_A     33   // Encoder 3
   #define ENC3_PIN_B     34
   #define ENC3_PIN_SW    35
-#elif defined (V2_4_3_PCB)
+#elif defined (V2_4_3_PCB)    // V2 4.3" Display PCB
   #define ENC1_PIN_A     15   // used for VFO
   #define ENC1_PIN_B     16
-  #define ENC2_PIN_A     30   // Encoder 2.
-  #define ENC2_PIN_B     31
-  #define ENC2_PIN_SW    32
-  #define ENC3_PIN_A     33   // Encoder 3
+  #define ENC2_PIN_A     36   // Encoder 2.   conflicts with I2C encoders if they are enabled
+  #define ENC2_PIN_B     37
+  #define ENC2_PIN_SW    38
+  #define ENC3_PIN_A     35   // Encoder 3
   #define ENC3_PIN_B     34
-  #define ENC3_PIN_SW    35
+  #define ENC3_PIN_SW    33
 #else // else old proto board assignments
   #define ENC1_PIN_A      4   // used for VFO
   #define ENC1_PIN_B      5
