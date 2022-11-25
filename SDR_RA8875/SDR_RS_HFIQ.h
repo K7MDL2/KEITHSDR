@@ -31,7 +31,7 @@ class SDR_RS_HFIQ
         void        print_RSHFIQ_User(int flag);  // reads response from RS-HFIQ and prints to the user terminal
         
     private:  
-        char freq_str[15] = "7074000";  // *Fxxxx command to set LO freq, PLL Clock 0
+        char freq_str[16] = "7074000";  // *Fxxxx command to set LO freq, PLL Clock 0
         const char s_initPLL[5]       = "*OF3";   // turns on LO clock0 output and sets drive current.
         const char q_freq[4]          = "*F?";    // returns current LO frequency
         const char s_freq[3]          = "*F";     // set LO frequency template.  3 to 30Mhz range
