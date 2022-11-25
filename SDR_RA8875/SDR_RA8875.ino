@@ -583,7 +583,7 @@ COLD void setup()
         if (!enet_ready)
         {
             enet_start_fail_time = millis(); // set timer for 10 minute self recovery in main loop
-            MSG_DPRINTLN(F("Ethernet System Startup Failed, setting retry timer (10 minutes)"));
+            DPRINTLN(F("Ethernet System Startup Failed, setting retry timer (10 minutes)"));
         }
         DPRINTLN(F("Ethernet System Startup Completed"));
         //setSyncProvider(getNtpTime);
