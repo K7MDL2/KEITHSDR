@@ -1120,7 +1120,7 @@ int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz)    //
 //char* Spectrum_RA887x::_formatFreq(uint32_t Freq)
 char* _formatFreq(uint32_t Freq)
 {
-	static char Freq_str[15];
+	static char Freq_str[16];
 	
 	uint16_t MHz = (Freq/1000000 % 1000000);
 	uint16_t Hz  = (Freq % 1000);
