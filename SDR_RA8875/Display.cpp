@@ -427,18 +427,18 @@ COLD void displaySplit()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
-	char sp_label[15];
+	char sp_label[20];
 
 	if (bandmem[curr_band].split)
 	{
 		tft.setTextColor(GREEN);
-		sprintf(sp_label, "%s %s",  std_btn[SPLIT_BTN].label, ">>>");
+		sprintf(sp_label, "%.15s %.3s",  std_btn[SPLIT_BTN].label, ">>>");
 		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
 	}
 	else
 	{
 		tft.setTextColor(myDARKGREY);
-		sprintf(sp_label, "%s %s", std_btn[SPLIT_BTN].label, "Off");
+		sprintf(sp_label, "%.15s %.3s", std_btn[SPLIT_BTN].label, "Off");
 		sprintf(labels[SPLIT_LBL].label, "%s",  sp_label);
 	}
 	//DPRINT(F("Split is ")); DPRINTLN(bandmem[curr_band].split);
@@ -483,7 +483,7 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 void displayBand_Menu(uint8_t state)
 {
     struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
-	char temp[30];
+	char temp[32];
  	
 	if (state)
     {
