@@ -54,7 +54,8 @@
     //  SDA -> 18
     //  SCL -> 19
     //  INT -> 29 - Dependent on particular board pin assignments
-    #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          // Hardware verson 2.1, Arduino library version 1.40.                                 // Hardware verson 2.1, Arduino library version 1.40.
+    #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          
+    // Hardware verson 2.1, Arduino library version 1.40.                                 
     //Class initialization with the I2C addresses
     #ifdef MF_ENC_ADDR
       extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
@@ -220,8 +221,8 @@ float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft si
 // defined in Spectrum_RA887x.h, included here for FYI.
 //#define FFT_SIZE 4096               // 4096 //2048//1024     
 uint16_t    fft_size            = FFT_SIZE;       // This value wil lbe passed to the lib init function.
-                                    // Ensure the matching FFT resources are enabled in the lib .h file!                            
-int16_t     fft_bins            = fft_size;     // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
+                                                  // Ensure the matching FFT resources are enabled in the lib .h file!                            
+int16_t     fft_bins            = fft_size;       // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float       fft_bin_size        = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 const int   audio_block_samples = 128;          // do not change this!
 const int   RxAudioIn = AUDIO_INPUT_LINEIN;
@@ -236,26 +237,26 @@ uint16_t    TX_filterBandwidth = 2000;
 #endif
 
 #ifdef BETATEST
-    DMAMEM  float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
-    DMAMEM  float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
-    DMAMEM  float32_t  fftBuffer[8192];  // Used by FFT, 4096 real, 4096 imag, interleaved
-    DMAMEM  float32_t  sumsq[4096];      // Required ONLY if power averaging is being done
+  DMAMEM  float32_t  fftOutput[4096];  // Array used for FFT Output to the INO program
+  DMAMEM  float32_t  window[2048];     // Windows reduce sidelobes with FFT's *Half Size*
+  DMAMEM  float32_t  fftBuffer[8192];  // Used by FFT, 4096 real, 4096 imag, interleaved
+  DMAMEM  float32_t  sumsq[4096];      // Required ONLY if power averaging is being done
 #endif
 
 AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);    
 
 #ifdef FFT_4096
-    #ifndef BETATEST
-        DMAMEM  AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
-    #else
-        AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // with power averaging array 
-    #endif
+  #ifndef BETATEST
+    DMAMEM  AudioAnalyzeFFT4096_IQ_F32  myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
+  #else
+    AudioAnalyzeFFT4096_IQEM_F32 myFFT_4096(fftOutput, window, fftBuffer, sumsq);  // with power averaging array 
+  #endif
 #endif
 #ifdef FFT_2048   
-    DMAMEM AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
+  DMAMEM AudioAnalyzeFFT2048_IQ_F32  myFFT_2048;
 #endif
 #ifdef FFT_1024
-    DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
+  DMAMEM AudioAnalyzeFFT1024_IQ_F32  myFFT_1024;
 #endif
 
 #ifdef W7PUA_I2S_CORRECTION
@@ -263,15 +264,15 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
 #endif
 
 #ifdef USB32
-AudioInputUSB_F32           USB_In(audio_settings);
-AudioOutputUSB_F32          USB_Out(audio_settings);
+  AudioInputUSB_F32           USB_In(audio_settings);
+  AudioOutputUSB_F32          USB_Out(audio_settings);
 #else
-AudioInputUSB               USB_In;
-AudioOutputUSB              USB_Out;
-AudioConvert_I16toF32       convertL_In;
-AudioConvert_I16toF32       convertR_In;
-AudioConvert_F32toI16       convertL_Out;
-AudioConvert_F32toI16       convertR_Out;
+  AudioInputUSB               USB_In;
+  AudioOutputUSB              USB_Out;
+  AudioConvert_I16toF32       convertL_In;
+  AudioConvert_I16toF32       convertR_In;
+  AudioConvert_F32toI16       convertL_Out;
+  AudioConvert_F32toI16       convertR_Out;
 #endif
 
 AudioInputI2S_F32           Input(audio_settings);  // Input from Line In jack (RX board)
@@ -453,10 +454,10 @@ AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output audio to USB, line out
 
 #ifdef USB32
-//AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
-//AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
-AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
-AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
+AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
+AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
+//AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
+//AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
 #else
 AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
 AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
@@ -1239,7 +1240,7 @@ COLD void I2C_Scanner(void)
     Wire.beginTransmission(address);
     //Wire1.beginTransmission(address);
     error = Wire.endTransmission();
-    //error1 = Wire1.endTransmission();
+    //error = Wire1.endTransmission();
 
     if (error == 0)
     {

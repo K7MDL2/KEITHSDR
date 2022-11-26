@@ -47,9 +47,10 @@
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <Arduino.h>
-#include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-#include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
-#include <Metro.h>              // GitHub https://github.com/nusolar/Metro
+//#include <OpenAudio_ArduinoLibrary.h> // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
+//#include <ili9488_t3_font_Arial.h>  
+//#include "ILI9341_t3.h"    
+//#include <Metro.h>              // GitHub https://github.com/nusolar/Metro
 
 // Vars from main program.  Eventually pass these into function at run time.
 extern struct Spectrum_Parms        Sp_Parms_Def[]; // The main program should have at least 1 layout record defined 

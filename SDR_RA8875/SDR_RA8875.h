@@ -17,7 +17,7 @@
 #include <Wire.h>                       // from Arduino
 #include <TimeLib.h>                    // from Arduino
 
-// External libraries - These are not all of them as some appear with #ifdef blocks based on feature selection
+// External libraries - These are not all of them as some appear with #ifdef blocks based on feature selection - See Github Wiki "Libraries" page for a full listing.
 #define  ENCODER_OPTIMIZE_INTERRUPTS    // leave this one here.  Not normally user changed
 #include <Encoder.h>                    // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
 #include <Metro.h>                      // GitHub https://github.com/nusolar/Metro
@@ -37,7 +37,7 @@
 
 #define DEBUG_INFORMATION true
 #define DEBUG_INFORMATION_SERIAL if(DEBUG_INFORMATION)Serial
-#define DSERIALBEGIN(...)    Serial.begin(__VA_ARGS__)
+#define DSERIALBEGIN(...)   Serial.begin(__VA_ARGS__)
 #define DPRINTLN(...)       Serial.println(__VA_ARGS__)
 #define DPRINT(...)         Serial.print(__VA_ARGS__)
 #define DRINTF(...)         Serial.print(F(__VA_ARGS__))
@@ -47,6 +47,7 @@
 #define TOGGLEd13           PINB = 0x20                    //UNO's pin D13
 #define DEBUG_PRINT(...)    Serial.print(F(#__VA_ARGS__" = ")); Serial.print(__VA_ARGS__); Serial.print(F(" ")) 
 #define DEBUG_PRINTLN(...)  DEBUG_PRINT(__VA_ARGS__); Serial.println()
+#define DEBUG_PRINTF(...)   Serial.printf(__VA_ARGS__)
 #else
 #define DSERIALBEGIN(...)
 #define DPRINTLN(...)
@@ -57,7 +58,8 @@
 #define PINMODE(...)      
 #define TOGGLEd13      
 #define DEBUG_PRINT(...)    
-#define DEBUG_PRINTLN(...) 
+#define DEBUG_PRINTLN(...)
+#define DEBUG_PRINTF(...)
 #endif
 
 // Below are local project files
@@ -110,9 +112,9 @@
         #define  USE_RA8876_t3
         #define  SCREEN_WIDTH      1024 
         #define  SCREEN_HEIGHT     600
+        #include <RA8876_t3.h>                  // https://github.com/wwatson4506/Ra8876LiteTeensy
         #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
         #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
-        #include <RA8876_t3.h>           // Github
         #include <FT5206.h>
         #if defined(SMALL_PCB_V1)
             #define  CTP_INT        28  //for John's small V1 motherboard

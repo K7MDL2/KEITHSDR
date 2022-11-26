@@ -22,34 +22,34 @@
 #include "RadioConfig.h"
 #include "SDR_RA8875.h"
 #include "SDR_RS_HFIQ.h"
-
+/*
 //#define DEBUG_RSHFIQ  //set to true for debug output, false for no debug output
 #ifdef DEBUG_RSHFIQ
-#define DSERIALBEGIN(...)    Serial.begin(__VA_ARGS__)
-#define DPRINTLN(...)       Serial.println(__VA_ARGS__)
-#define DPRINT(...)         Serial.print(__VA_ARGS__)
-#define DRINTF(...)         Serial.print(F(__VA_ARGS__))
-#define DPRINTLNF(...)      Serial.println(F(__VA_ARGS__)) //printing text using the F macro
-#define DELAY(...)          delay(__VA_ARGS__)
-#define PINMODE(...)        pinMode(__VA_ARGS__)
-#define TOGGLEd13           PINB = 0x20                    //UNO's pin D13
-#define DEBUG_PRINT(...)    Serial.print(F(#__VA_ARGS__" = ")); Serial.print(__VA_ARGS__); Serial.print(F(" ")) 
-#define DEBUG_PRINTLN(...)  DEBUG_PRINT(__VA_ARGS__); Serial.println()
-#define DEBUG_PRINTF(...)   Serial.printf(__VA_ARGS__)
+    //#define DSERIALBEGIN(...)    Serial.begin(__VA_ARGS__)
+    //#define DPRINTLN(...)       Serial.println(__VA_ARGS__)
+    //#define DPRINT(...)         Serial.print(__VA_ARGS__)
+    //#define DRINTF(...)         Serial.print(F(__VA_ARGS__))
+    //#define DPRINTLNF(...)      Serial.println(F(__VA_ARGS__)) //printing text using the F macro
+    //#define DELAY(...)          delay(__VA_ARGS__)
+    //#define PINMODE(...)        pinMode(__VA_ARGS__)
+    //#define TOGGLEd13           PINB = 0x20                    //UNO's pin D13
+    #define DEBUG_PRINT(...)    Serial.print(F(#__VA_ARGS__" = ")); Serial.print(__VA_ARGS__); Serial.print(F(" ")) 
+    #define DEBUG_PRINTLN(...)  DEBUG_PRINT(__VA_ARGS__); Serial.println()
+    #define DEBUG_PRINTF(...)   Serial.printf(__VA_ARGS__)
 #else
-#define DSERIALBEGIN(...)
-#define DPRINTLN(...)
-#define DPRINT(...)
-#define DPRINTF(...)      
-#define DPRINTLNF(...)    
-#define DELAY(...)        
-#define PINMODE(...)      
-#define TOGGLEd13      
-#define DEBUG_PRINT(...)    
-#define DEBUG_PRINTLN(...) 
-#define DEBUG_PRINTF(...) 
+    //#define DSERIALBEGIN(...)
+    //#define DPRINTLN(...)
+    //#define DPRINT(...)
+    //#define DPRINTF(...)      
+    //#define DPRINTLNF(...)    
+    //#define DELAY(...)        
+    //#define PINMODE(...)      
+    //#define TOGGLEd13      
+    #define DEBUG_PRINT(...)    
+    #define DEBUG_PRINTLN(...) 
+    #define DEBUG_PRINTF(...) 
 #endif
-
+*/
 #ifdef USE_RA8875
     extern RA8875 tft;
 #else
