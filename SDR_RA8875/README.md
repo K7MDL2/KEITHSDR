@@ -2,6 +2,12 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Nov 2022
+
+    1. Nov 29, 2022: Updated to work with Arduino IDE 2.0.2 with TeensyDuino 1.57.  Updated OpenAudio_Library.   VS Code now supports Teensy natively like normal Arduino boards.  No longer using the VisualTeensy tool.
+    2. USB audio and out now working pretty good.  Occasionally misses a command to stop TX and resolves with the next key up.  Been making FT-8 contacts for a few days now.  Using the RS-HFIQ for the RF portion.  USB AUdio connects WSJT-X runnig on a PC.  OmniRig v1 for CAT control.
+    3. Fixed several string length mismatch errors flagged by IDE 2.0.2.
+
 ## June 2022
 
     1. June 1, 2022: Converted all Serial status/debug message statements to use macros. This permits the ability to globally swtich them off which was necessary to enable USBAudio+MIDI+Serial configuration and retain a USB CAT control serial port for external programs like loggers and WSJT-X. It also allows easy groupings such as INFO/WARNING/ERROR and/or functional areas like CONTROL/TUNE/SPECTRUM.
