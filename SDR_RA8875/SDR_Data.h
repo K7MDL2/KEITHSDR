@@ -113,10 +113,7 @@ struct Transverter xvtr[XVTRS] = {
         // This defines the Band Select window and buttons
         #define BS_ANCHOR_X 100
         #define BS_ANCHOR_Y 80
-        { OFF, OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
-        // Spare
-        //    { ON, OFF, 2, 255, 467, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 23, 20, "Spot\0"},
-        
+
         // These are the Band buttons.  Use panel_num 100
         // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
         #define BSX_0  (BS_ANCHOR_X+20)
@@ -128,6 +125,12 @@ struct Transverter xvtr[XVTRS] = {
         #define BSY_0 (BS_ANCHOR_Y+80)
         #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
         #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
+        #define BSY_3 (BS_ANCHOR_Y+80+(h_1+40)*3)
+        
+        // This defines the Band Select window
+        { OFF, OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
+        // Spare
+        //    { ON, OFF, 2, 255, 467, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 23, 20, "Spot\0"},
         
         // This group is used for the Band Select Menu Window buttons.
         // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
@@ -224,13 +227,11 @@ struct Transverter xvtr[XVTRS] = {
         // Define the Band Stack window and buttons
         #define BS_ANCHOR_X 210
         #define BS_ANCHOR_Y 160
-        // This defines the Band Select window
-        { OFF,OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
 
         // These are the Band buttons.  Use panel_num 100
         // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
-        #define BSX_0  (BS_ANCHOR_X+20)
-        #define BSX_1  (BS_ANCHOR_X+20+(w_1+14))
+        #define BSX_0 (BS_ANCHOR_X+20)
+        #define BSX_1 (BS_ANCHOR_X+20+(w_1+14))
         #define BSX_2 ((BS_ANCHOR_X+20+(w_1+14)*2))
         #define BSX_3 ((BS_ANCHOR_X+20+(w_1+14)*3))
         #define BSX_4 ((BS_ANCHOR_X+20+(w_1+14)*4))
@@ -238,6 +239,10 @@ struct Transverter xvtr[XVTRS] = {
         #define BSY_0 (BS_ANCHOR_Y+80)
         #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
         #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
+        #define BSY_3 (BS_ANCHOR_Y+80+(h_1+40)*3)
+
+        // This defines the Band Select window
+        { OFF,OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, "Band Select"},   // Band Select menu Window
         
         // This group is used for the Band Select Menu Window buttons.
         // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
@@ -296,7 +301,7 @@ struct Label labels[LABEL_NUM] = {
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn  sub_VFO  sv_md uc1 uc2 uc3  lastB   mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB DefMFknob  enc1   enc1_sw   enc1_swl     enc2     enc2_sw   enc2_swl  enc3     enc3_sw   enc3_swl    enc4    enc4_sw enc4_swl   enc5        enc5_sw   enc5_swl enc6        enc6_sw     enc6_swl    Zoom_lvl panEn panlvl
     {"ENET ON Config",    0, 0, 28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND30M,   OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 100,  22,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50},
+    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND30M,   OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 100,  22,  14,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50},
     {"PanAdapter Config", 0, 0, 1420000,  USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE, RATE_BTN, FILTER_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, PAN_BTN, ZOOM_BTN, VFO_AB_BTN, NB_BTN, NR_BTN, NOTCH_BTN, AFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}
 };
 

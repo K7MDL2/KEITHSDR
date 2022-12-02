@@ -1238,9 +1238,9 @@ COLD void I2C_Scanner(void)
     // the Write.endTransmisstion to see if
     // a device did acknowledge to the address.
     Wire.beginTransmission(address);
-    //Wire1.beginTransmission(address);
+    //Wire1.beginTransmission(address);   // Wire1 is the name for 2nd set of i2c port pins.
     error = Wire.endTransmission();
-    //error = Wire1.endTransmission();
+    //error = Wire1.endTransmission();    
 
     if (error == 0)
     {
@@ -1439,7 +1439,7 @@ COLD void initDSP(void)
     AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions?
     AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     resetCodec();
-    delay(50);  // Sometimes a delay avoids a Twin Peaks problem.
+    delay(50);        // Sometimes a delay avoids a Twin Peaks problem.
 }
 
 // initDSP() and startup in RX mode enables our resources.  
@@ -1449,7 +1449,7 @@ COLD void initDSP(void)
 // 100% output results in 3Vp-p at LineOut.  Power control varies 0 to 100% of 3V (LineOutLevel => 31)  
 // Also controls test tone state.  TX often uses two tones at high level, RX single tone at low level.  
 COLD void TX_RX_Switch(
-        bool    TX,           // TX = ON, RX = OFF
+        bool    TX,             // TX = ON, RX = OFF
         uint8_t mode_sel,       // Current VFO mode index
         bool    b_Mic_On,       // Turn Mic source on or off
         bool    b_USBIn_On,     // Turn on USB input source (typically for Data modes)

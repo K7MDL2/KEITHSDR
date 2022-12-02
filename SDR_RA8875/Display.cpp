@@ -479,10 +479,11 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 }
 
 // state == 1 to draw in the window, draw and enable the buttons.
-// state == 0 to remnove teh window and disable the buttons.
+// state == 0 to remnove the window and disable the buttons.
 void displayBand_Menu(uint8_t state)
 {
     struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
+	struct Standard_Button *ptr_temp = std_btn;
 	char temp[32];
  	
 	if (state)
@@ -490,7 +491,17 @@ void displayBand_Menu(uint8_t state)
 		ptr += BAND_MENU;
 		sprintf(temp, "\nWindow is %s\n",ptr->label);
 		DPRINT(temp);
+
+		ptr_temp += BAND_MENU+1;
+		for (int i=(BAND_MENU+1); i < STD_BTN_NUM; i++)    // search all button rows
+		{
+			if ((ptr_temp->by >= ptr->bh) && (ptr_temp-> Panelpos != 255)) // ignore disabled buttons			
+				ptr->bh = (ptr_temp->by - 80);  // find largest row number Y position, add button height and spacing, save it
+			++ptr_temp;  // go to next band button row
+		}
+
 		pop_win_up(BAND_MENU);   // arg is index into table with size of window in the record.
+
 		#ifdef USE_RA8875
 			tft.fillRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->off_color);
 			tft.drawRoundRect(ptr->bx, ptr->by, ptr->bw, ptr->bh, ptr->br, ptr->outline_color);
@@ -1447,12 +1458,13 @@ COLD void drawCircleHelper( int16_t x0, int16_t y0, int16_t r, uint8_t cornernam
 COLD void pop_win_up(uint8_t win_num)
 {  
     struct Standard_Button *ptr = std_btn + win_num;     // pointer to button object passed by calling function
-
+		
     if(win_num)  // Future index to a window size
     {
         popup_timer.interval(5000);
         tft.setFont(Arial_14);
         popup = 1;
+
         #ifdef USE_RA8875
             tft.setActiveWindow(ptr->bx, ptr->bx+ptr->bw, ptr->by, ptr->by+ptr->bh);  
             // Save the current screen to Layer 2
@@ -1461,14 +1473,14 @@ COLD void pop_win_up(uint8_t win_num)
             tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR  
         #else   // RA8876  
 			int offset = 5;  // an offset is required because the activeWindow, boxGet, and boxPut x values do not line up right
-            tft.canvasImageStartAddress(PAGE2_START_ADDR);
-            tft.boxPut(PAGE2_START_ADDR, ptr->bx-offset, ptr->by, ptr->bx+offset+ptr->bw, ptr->by+ptr->bh, ptr->bx-offset, ptr->by);
+			tft.canvasImageStartAddress(PAGE2_START_ADDR);            
+			tft.boxPut(PAGE2_START_ADDR, ptr->bx-offset, ptr->by, ptr->bx+offset+ptr->bw, ptr->by+ptr->bh, ptr->bx-offset, ptr->by);
             tft.check2dBusy();    
             tft.canvasImageStartAddress(PAGE1_START_ADDR);
             // Blank the plot area and we will draw a new line, flicker free!
        		setActiveWindow(ptr->bx-offset, ptr->bx+offset+ptr->bw, ptr->by, ptr->by+ptr->bh);
         #endif  // USE_RA8875
-        // Let the calling function handle the rest of the screen drawing then call pop_win_down
+        //   Let the calling function handle the rest of the screen drawing then call pop_win_down
         //   to tear down the window and restore the original screen
     }
 }
@@ -1489,14 +1501,14 @@ COLD void pop_win_down(uint8_t win_num)
 			int offset = 5;  // an offset is required because the activeWindow, boxGet, and boxPut x values do not line up right
             // BTE block copy from our saved image on Page 2 back to page 1.            
             tft.boxGet(PAGE2_START_ADDR, ptr->bx-offset, ptr->by, ptr->bx+offset+ptr->bw, ptr->by+ptr->bh, ptr->bx-offset, ptr->by);
-            tft.check2dBusy();            
+			tft.check2dBusy();
 			tft.canvasImageStartAddress(PAGE1_START_ADDR);
 			setActiveWindow_default();
         #endif
         popup = 0;   // resume our normal schedule broadcast
         popup_timer.interval(500);      
         //displayRefresh();
-   }
+    }
 }
 
 //	#endif // ifndef USE_RA8875
