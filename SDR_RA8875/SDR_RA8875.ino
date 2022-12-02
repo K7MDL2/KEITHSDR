@@ -209,8 +209,8 @@ bool    MF_default_is_active = true;
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-float sample_rate_Hz = 48000.0f;  //46Hz /bin  24K spectrum for 1024.  
-//float sample_rate_Hz = 96000.0f;    // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+float sample_rate_Hz = 48000.0f;  //46.875Hz /bin  24K spectrum for 1024.  
+//float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 
 float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft size for zoom level
@@ -1095,7 +1095,7 @@ COLD void printHelp(void)
     DPRINTLN(F("Help: Available Commands:"));
     DPRINTLN(F("   h: Print this help"));
     DPRINTLN(F("   C: Toggle printing of CPU and Memory usage"));
-    DPRINTLN(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
+    //DPRINTLN(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
     //#ifdef USE_RS_HFIQ
       //DPRINTLN(F("   R to display the RS-HFIQ Menu"));
     //#endif
