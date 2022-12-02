@@ -2,10 +2,15 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Dec 2022
+
+    1. Dec 1:  Removed the T from the serial help menu.  Code accidentually deleted likely during RS-HFIQ integration.
+    2. Band window size dynamically adjusts depending on number of rows of buttons.  More specifically, it looks a the last button in the table and assumes this is on the last row and sets the bottom edge of the window to match it.  Use the std_btn.Panel_Pos field values to enable (0-254) or disable (255) bands.  Eventually the value will be used to dynamically build a list of buttons in order of their assigned value.
+    
 ## Nov 2022
 
     1. Nov 29, 2022: Updated to work with Arduino IDE 2.0.2 with TeensyDuino 1.57.  Updated OpenAudio_Library.   VS Code now supports Teensy natively like normal Arduino boards.  No longer using the VisualTeensy tool.
-    2. USB audio and out now working pretty good.  Occasionally misses a command to stop TX and resolves with the next key up.  Been making FT-8 contacts for a few days now.  Using the RS-HFIQ for the RF portion.  USB AUdio connects WSJT-X runnig on a PC.  OmniRig v1 for CAT control.
+    2. USB audio and out now working pretty good.  Occasionally misses a command to stop TX and resolves with the next key up.  Been making FT-8 contacts for a few days now.  Using the RS-HFIQ for the RF portion.  USB Audio connects WSJT-X running on a PC.  OmniRig v1 for CAT control.
     3. Fixed several string length mismatch errors flagged by IDE 2.0.2.
 
 ## June 2022
