@@ -207,20 +207,23 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     
     //DPRINT("Target Band is "); DPRINTLN(target_band);
 
-    #ifdef USE_RS_HFIQ
-        if (target_band > BAND10M)    // top
-            target_band = BAND80M;    
+    // quick fix to allow for Bands 160M and 6M to be skipped.  Will break if 80M or 10M skipped.
+    struct Standard_Button *ptr = std_btn;
+    uint16_t top_band = BAND6M;
+    uint16_t bottom_band = BAND160M;
 
-        if (target_band < BAND80M)    // bottom
-            target_band = BAND10M;     
-    #else
-        if (target_band > BAND6M)     // top
-            target_band = BAND160M;    
+    if ((ptr+BS_6M)-> Panelpos == 255)  // See if we skip this band
+        top_band = BAND10M;     // if skip then assign to teh next one down.
 
-        if (target_band < BAND160M)   // bottom 
-            target_band = BAND6M;    
-    #endif
-
+    if ((ptr+BS_160M)-> Panelpos == 255)  // See if we skip this band
+        bottom_band = BAND80M;  // if skip then assign to the next one up.
+    
+    if (target_band > top_band)
+        target_band = bottom_band;
+    
+    if (target_band < bottom_band)   // bottom 
+        target_band = top_band;
+        
     //DPRINT("Corrected Target Band is "); DPRINTLN(target_band); 
     //DPRINT("Target Band Last_VFOA is "); DPRINTLN(bandmem[target_band].vfo_A_last);
 
