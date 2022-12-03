@@ -4,8 +4,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## Dec 2022
 
-    1. Dec 1:  Removed the T from the serial help menu.  Code accidentually deleted likely during RS-HFIQ integration.
+    1. Dec 2:  Removed the T from the serial help menu.  Code accidentually deleted likely during RS-HFIQ integration.
     2. Band window size dynamically adjusts depending on number of rows of buttons.  More specifically, it looks a the last button in the table and assumes this is on the last row and sets the bottom edge of the window to match it.  Use the std_btn.Panel_Pos field values to enable (0-254) or disable (255) bands.  Eventually the value will be used to dynamically build a list of buttons in order of their assigned value.
+    3. Dec 3: Added Band skip configuration to RadioConfig.h.  255 skips the band. 160M and 6M only for now. Skip any other bands and stuff will break. For RS-HFIQ config 160M and 6M will be automatically skipped. This should sync up the band menu buttons visible to the actual bands available when changing bands for any RF hardware.
     
 ## Nov 2022
 
