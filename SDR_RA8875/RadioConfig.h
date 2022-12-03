@@ -185,19 +185,19 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //      BAND ENABLE/DISABLE
 //  Specify what bands should be skipped. Set to 255 to skip.  Value < 255 is button order (future feature)
-// For the shrot term, do not disable bands inteh middle, it will likely break things.
+//  For now, only disable 160M and/or 6M or it will break things
 // *****************************************************************************************
-#define ENABLE_160M_BAND 255
-#define ENABLE_80M_BAND  1
-#define ENABLE_60M_BAND  2
-#define ENABLE_40M_BAND  3
-#define ENABLE_30M_BAND  4
-#define ENABLE_20M_BAND  5
-#define ENABLE_17M_BAND  6
-#define ENABLE_15M_BAND  7
-#define ENABLE_12M_BAND  8
-#define ENABLE_10M_BAND  9
-#define ENABLE_6M_BAND   255
+#define ENABLE_160M_BAND 255  // OK to set to 255 or any other value
+#define ENABLE_80M_BAND  1  // Do not change
+#define ENABLE_60M_BAND  2  // Do not change
+#define ENABLE_40M_BAND  3  // Do not change
+#define ENABLE_30M_BAND  4  // Do not change
+#define ENABLE_20M_BAND  5  // Do not change
+#define ENABLE_17M_BAND  6  // Do not change
+#define ENABLE_15M_BAND  7  // Do not change
+#define ENABLE_12M_BAND  8  // Do not change
+#define ENABLE_10M_BAND  9  // Do not change
+#define ENABLE_6M_BAND   255  // OK to set to 255 or any other value
 
 
 // *****************************************************************************************
