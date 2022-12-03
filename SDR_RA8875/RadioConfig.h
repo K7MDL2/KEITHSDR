@@ -183,24 +183,6 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 
 // *****************************************************************************************
-//      BAND ENABLE/DISABLE
-//  Specify what bands should be skipped. Set to 255 to skip.  Value < 255 is button order (future feature)
-//  For now, only disable 160M and/or 6M or it will break things
-// *****************************************************************************************
-#define ENABLE_160M_BAND 255  // OK to set to 255 or any other value
-#define ENABLE_80M_BAND  1  // Do not change
-#define ENABLE_60M_BAND  2  // Do not change
-#define ENABLE_40M_BAND  3  // Do not change
-#define ENABLE_30M_BAND  4  // Do not change
-#define ENABLE_20M_BAND  5  // Do not change
-#define ENABLE_17M_BAND  6  // Do not change
-#define ENABLE_15M_BAND  7  // Do not change
-#define ENABLE_12M_BAND  8  // Do not change
-#define ENABLE_10M_BAND  9  // Do not change
-#define ENABLE_6M_BAND   255  // OK to set to 255 or any other value
-
-
-// *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
 //#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
@@ -239,7 +221,33 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     
 #endif  // K7MDL_BUILD
 
-//
+
+// *****************************************************************************************
+//      BAND ENABLE/DISABLE
+//  Specify what bands should be skipped. Set to 255 to skip.  Value < 255 is button order (future feature)
+//  For now, only disable 160M and/or 6M or it will break things
+// *****************************************************************************************
+#ifdef USE_RS_HFIQ
+ #define ENABLE_160M_BAND 255  // Do not change this, only applies to RS-HFIQ which does not support this band
+#else
+ #define ENABLE_160M_BAND 0  // OK to set to 255 or any other value for non-RS-HFIQ hardware
+#endif
+#define ENABLE_80M_BAND  1  // Do not change
+#define ENABLE_60M_BAND  2  // Do not change
+#define ENABLE_40M_BAND  3  // Do not change
+#define ENABLE_30M_BAND  4  // Do not change
+#define ENABLE_20M_BAND  5  // Do not change
+#define ENABLE_17M_BAND  6  // Do not change
+#define ENABLE_15M_BAND  7  // Do not change
+#define ENABLE_12M_BAND  8  // Do not change
+#define ENABLE_10M_BAND  9  // Do not change
+#ifdef USE_RS_HFIQ
+ #define ENABLE_6M_BAND 255  // Do not change this, only applies to RS-HFIQ which does not support this band
+#else
+ #define ENABLE_6M_BAND 10  // OK to set to 255 or any other value for non-RS-HFIQ hardware
+#endif
+
+
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
 //
 // ---------------------------------------ENCODERS----------------------------------------------
@@ -293,7 +301,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #define I2C_INT_PIN     29
   #endif 
   #define MF_ENC_ADDR     (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
-  #define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+  //#define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
   //#define ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  
   //#define ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
   //#define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
