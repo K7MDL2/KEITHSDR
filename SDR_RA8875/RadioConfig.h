@@ -181,6 +181,25 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 //#define NO_RSHFIQ_BLOCKING      // When combined with USE_RS-HFIQ, bypasses wait loops for queries from hardware allowing testing with no hardware connected
 
+
+// *****************************************************************************************
+//      BAND ENABLE/DISABLE
+//  Specify what bands should be skipped. Set to 255 to skip.  Value < 255 is button order (future feature)
+// For the shrot term, do not disable bands inteh middle, it will likely break things.
+// *****************************************************************************************
+#define ENABLE_160M_BAND 255
+#define ENABLE_80M_BAND  1
+#define ENABLE_60M_BAND  2
+#define ENABLE_40M_BAND  3
+#define ENABLE_30M_BAND  4
+#define ENABLE_20M_BAND  5
+#define ENABLE_17M_BAND  6
+#define ENABLE_15M_BAND  7
+#define ENABLE_12M_BAND  8
+#define ENABLE_10M_BAND  9
+#define ENABLE_6M_BAND   255
+
+
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
@@ -196,6 +215,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
       //#define MECH_ENCODERS
+      #define I2C_ENCODERS            // Use I2C connected encoders
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
       //#define NO_RSHFIQ_BLOCKING      // When combined with RS-HFIQ config, bypasses waiting for serial messages from hardwre allowing testign with no hardware connected
     #endif

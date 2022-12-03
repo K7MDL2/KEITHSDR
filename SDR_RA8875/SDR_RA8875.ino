@@ -613,6 +613,20 @@ COLD void setup()
     DPRINTLN(F("Clock Update"));
     #endif
     
+    // Initialize Band Map.  255 means band is inactive.  
+    // Overwrites Panel_Pos default values in std_btn table band rows.
+    struct Standard_Button *ptr = std_btn;
+    (ptr+BS_160M)->Panelpos = ENABLE_160M_BAND;
+    (ptr+BS_80M)-> Panelpos = ENABLE_80M_BAND;
+    (ptr+BS_60M)-> Panelpos = ENABLE_60M_BAND;
+    (ptr+BS_40M)-> Panelpos = ENABLE_40M_BAND;
+    (ptr+BS_30M)-> Panelpos = ENABLE_30M_BAND;
+    (ptr+BS_20M)-> Panelpos = ENABLE_20M_BAND;
+    (ptr+BS_17M)-> Panelpos = ENABLE_17M_BAND;
+    (ptr+BS_15M)-> Panelpos = ENABLE_15M_BAND;
+    (ptr+BS_12M)-> Panelpos = ENABLE_12M_BAND;
+    (ptr+BS_10M)-> Panelpos = ENABLE_10M_BAND;
+    (ptr+BS_6M)->  Panelpos = ENABLE_6M_BAND;
 
 #ifndef BYPASS_SPECTRUM_MODULE
     initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
