@@ -139,7 +139,6 @@ COLD void displayFreq(void)
 	tft.setTextColor(pMStby->txt_clr);
 	tft.print("B");	
 
-	// Update VFO only if they change	
 	// Update the active VFO frequency (top line)
 	tft.fillRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->bg_clr);
 	tft.drawRect(pVAct->bx, pVAct->by, pVAct->bw, pVAct->bh, pVAct->ol_clr);
@@ -151,7 +150,8 @@ COLD void displayFreq(void)
 		lcd.setCursor(0,0);
 		lcd.print(formatVFO(VFOA));
 	#endif
-
+	
+	// Update VFO B only on change	
 	if (vfo_b_last != VFOB)
 	{
 		tft.fillRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->bg_clr);

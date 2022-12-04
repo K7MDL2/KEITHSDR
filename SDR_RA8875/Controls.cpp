@@ -1437,6 +1437,7 @@ COLD void Band(uint8_t new_band)
     displayMode();
     displayFilter();
     //displayRefresh();
+    displayFreq(); // show freq on display
     //DPRINT("Set Band to "); DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 

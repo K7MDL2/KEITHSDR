@@ -92,10 +92,10 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 		#endif
 	#endif
   
-    //displayFreq(); // show freq on display
 	#ifdef USE_RS_HFIQ
 		RS_HFIQ.send_variable_cmd_to_RSHFIQ("*F", RS_HFIQ.convert_freq_to_Str(Freq));
 	#else
     	SetFreq(Freq); // send freq to SI5351
+		displayFreq(); // show freq on display
 	#endif
 }
