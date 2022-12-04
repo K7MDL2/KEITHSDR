@@ -632,7 +632,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             fftPower_pk_last = -200;  // reset the timer since we have new good data
             //Serial.println("Reset");
         }
-//  The next 4 screen updates take 19-20ms.  Not likely worth it so leaving these commetned out.  
+//  The next 4 screen updates take 19-20ms.  Not likely worth it so leaving these commented out.  
 //   Total spectrum time reduces to 60ms from 80ms
 //time_spectrum = millis();              
 /*        // Calculate and print the frequency of the strongest signal if possible 
@@ -712,21 +712,22 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
 
         if (old_VFO_ != _VFO_ || old_fft_sz != fft_sz || old_pan != pan)
         {
-            float pan_freq = pan*fft_bin_sz*2;
+            int32_t pan_freq = pan*fft_bin_sz*2;
+
             tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, BLACK);
             tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-            tft.print(_formatFreq((uint32_t) _VFO_ - pan_freq -(ptr->wf_sp_width*fft_bin_sz)));       // Write left side of graph Freq
+            tft.print(_formatFreq(_VFO_ + (uint32_t) (pan_freq - (int32_t)(ptr->wf_sp_width*fft_bin_sz))));       // Write left side of graph Freq
             
             tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, BLACK);
             tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
-            tft.print(_formatFreq((uint32_t) _VFO_ + pan_freq));   // Write center of graph Freq   
+            tft.print(_formatFreq(_VFO_ + (uint32_t) pan_freq));   // Write center of graph Freq   
             
             tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, BLACK);
             tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
-            tft.print(_formatFreq((uint32_t) _VFO_ + pan_freq + (ptr->wf_sp_width*fft_bin_sz)));  // Write right side of graph Freq
+            tft.print(_formatFreq(_VFO_ + (uint32_t) (pan_freq + (int32_t)(ptr->wf_sp_width*fft_bin_sz))));  // Write right side of graph Freq
             
             // Update our change detector vars
-            old_VFO_ = _VFO_;           // save to minimize updates for no reason.
+            old_VFO_ = _VFO_;       // save to minimize updates for no reason.
             old_fft_sz = fft_sz;    // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
             old_pan = pan;          // update when the pan control changes
         }
@@ -1121,7 +1122,7 @@ int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz)    //
 char* _formatFreq(uint32_t Freq)
 {
 	static char Freq_str[16];
-	
+
 	uint16_t MHz = (Freq/1000000 % 1000000);
 	uint16_t Hz  = (Freq % 1000);
 	uint16_t KHz = ((Freq % 1000000) - Hz)/1000;
