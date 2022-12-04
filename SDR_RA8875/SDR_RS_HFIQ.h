@@ -40,14 +40,14 @@ class SDR_RS_HFIQ
         const char s_TX_OFF[4]        = "*X0";    // Transmit OFF 
         const char s_TX_ON[4]         = "*X1";    // Transmit ON - power is controlled via audio input level
         const char q_Temp[3]          = "*T";     // Temp on board in degrees C
-        const char q_Analog_Read[3]   = "*L";    // analog read
+        const char q_Analog_Read[3]   = "*L";     // analog read
         const char q_EXT_freq[4]      = "*E?";    // query the setting for PLL Clock 2 frequency presented on EX-RF jack or used for CW
-        const char s_EXT_freq[15]     = "*E";// sets PLL Clock 1.  4KHz to 225Mhz range
+        const char s_EXT_freq[15]     = "*E";     // sets PLL Clock 1.  4KHz to 225Mhz range
         const char q_F_Offset[4]      = "*D?";    // Query Offset added to LO, BIT, or EXT frequency
-        const char s_F_Offset[15]     = "*D";// Sets Offset to add to LO, BIT, or EXT frequency
+        const char s_F_Offset[15]     = "*D";     // Sets Offset to add to LO, BIT, or EXT frequency
         const char q_clip_on[3]       = "*C";     // clipping occuring, add external attenuation
         const char q_BIT_freq[4]      = "*B?";    // Built In Test. Uses PLL clock 1        // Internal band validation.  Can be bypassed for any frequency if desired in the code.
-        const char s_BIT_freq[4]      = "*B";    // Built In Test. Uses PLL clock 1        // Internal band validation.  Can be bypassed for any frequency if desired in the code.
+        const char s_BIT_freq[4]      = "*B";     // Built In Test. Uses PLL clock 1        // Internal band validation.  Can be bypassed for any frequency if desired in the code.
             
         bool refresh_RSHFIQ(void);
         void disp_Menu(void);
