@@ -685,13 +685,16 @@ COLD void setup()
         #else
             RS_HFIQ.setup_RSHFIQ(0, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         #endif
-        #ifdef USE_RA8875
-            tft.clearScreen();
-        #else
-            tft.clearActiveScreen();
-        #endif    
+    #else
+        delay(1000);  // Give time to see the slash screen
     #endif
-        
+
+    #ifdef USE_RA8875
+        tft.clearScreen();
+    #else
+        tft.clearActiveScreen();
+    #endif    
+       
 
 #ifndef BYPASS_SPECTRUM_MODULE    
     Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
