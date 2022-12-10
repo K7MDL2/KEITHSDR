@@ -10,6 +10,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     4. Dec 4: Clear splash screen after delay.
     5. Fixed some data type cast issues in spectrum frequency marker calculations.
     6. When in non-RSHFIQ config, VFOA was not updating after band change button or Band up or down and tune-drag or encoder-tune until the screen was touched. Spectrum markers updated properly. Fixed.
+    7. Dec 10: Zero out VFO digits according to step size.  Odd values are rounded down to the nearest step size.
 
 ## Nov 2022
 
