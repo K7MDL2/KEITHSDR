@@ -42,19 +42,21 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 {
     uint16_t fstep = tstep[bandmem[curr_band].tune_step].step;
   	uint32_t Freq;
-  
+
   	if (bandmem[curr_band].split && user_settings[user_Profile].xmit)
     	Freq = user_settings[user_Profile].sub_VFO;
 	else
-		Freq = VFOA;
-  
-  	Freq = (Freq + newFreq*fstep); 
+		Freq = VFOA - (VFOA % fstep);   // Round down to step size if step > 1Hz
+  	 
+    Freq += newFreq * fstep; 
+    
+    // Keep frequency within limits
   	if (Freq >= topFreq)            
-  		  Freq = topFreq;        
+  		Freq = topFreq;        
   	if (Freq <= bottomFreq)            
-  		  Freq = bottomFreq;   
+  		Freq = bottomFreq;   
 
-// If this is configured to be a pandapter then change from VFO to fixed LO.	
+// If this is configured to be a panadapter then change from VFO to fixed LO.	
 	#ifdef PANADAPTER
 		Freq = PANADAPTER_LO;
 		if (bandmem[curr_band].mode_A == DATA)      
