@@ -394,11 +394,11 @@ struct Modes_List modeList[MODES_NUM] = {
 // Just copy and paste from the serial terminal into each record row.
 #define PRESETS 1  // number of parameter records with our preset spectrum window values
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
-        //W        LE  RE CG                                         x   y   w  h  c sp st clr sc mode      scal reflvl wfrate
+        //W        LE  RE CG                                                    x   y   w  h  c sp st clr sc mode      scal reflvl wfrate
     #ifdef USE_RA8875
-        {798,0, 0,  0,798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 5, 0}      // Default layout for 4.3" RA8875 800 x480
+        {798,0, 0,  0, 798,398,14,8,157,179,179,408,400,110,111,289,289,  0,153,799,256,50,20,6,240,1.0,0.9,1,20, 5, 0}      // Default layout for 4.3" RA8875 800 x480
     #else
-        {1020,1,1,  1,1021,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1022,390,40,20,6,890,1.5,0.9,1,20,10, 80}   // Default layout for 7" RA8876 1024 x 600
+        {1022,1,1,  1,1022,510,14,8,143,165,165,528,520,142,213,307,307,  0,139,1023,390,40,20,6,890,1.5,0.9,1,20,10, 80}   // Default layout for 7" RA8876 1024 x 600
     #endif        
 };
 
