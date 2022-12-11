@@ -269,22 +269,22 @@ struct Transverter xvtr[XVTRS] = {
 // The UserInput.h "Button handler" will scan all reported touch events x,y coordinates for a match to any touch enabled buttons and labels.
 
 struct Label labels[LABEL_NUM] = {
-  //  en  show   x   y    w    h   r   outline_color     on_txtclr      on_color    off_txtclr     off_color  padx pady  label 
+  //  en  show   x   y    w   h   r out_col on_txtclr on_color off_txtclr off_color padx pady label 
     {OFF, OFF,   0,   0,  40, 29, 3, BLACK, BLUE,  BLACK, CYAN,       BLACK, 3, 7, "B:\0"},   
     {OFF,  ON,  20, 110,  90, 28, 3, BLACK, YELLOW,BLACK, YELLOW,     BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
     {OFF,  ON, 130, 110, 105, 28, 3, BLACK, CYAN,  BLACK, CYAN,       BLACK, 3, 7, "F:\0"},
     {OFF,  ON, 280, 110,  96, 28, 3, BLACK, BLUE,  BLACK, ORANGE,     BLACK, 3, 7, "R:\0"},
     {OFF,  ON, 430, 110,  72, 28, 3, BLACK, ORANGE,BLACK, BLUE,       BLACK, 3, 7, "AGC-\0"},
     {OFF,  ON, 560, 110,  60, 28, 3, BLACK, RED,   BLACK, YELLOW,     BLACK, 3, 7, "ANT-\0"}, 
-    {OFF,  ON,  10,  15,  48, 22, 3, BLACK, CYAN,  BLACK, myDARKGREY, BLACK, 3, 4, "ATT\0"},
-    {OFF,  ON,  70,  15,  48, 22, 3, BLACK, BLACK, BLUE,  myDARKGREY, BLACK, 6, 4, "Pre\0"},
-    {OFF,  ON, 130,  15,  48, 22, 3, CYAN,  GREEN, BLACK, myDARKGREY, BLACK, 6, 4, "ATU\0"},
-    {OFF,  ON,  10,  40,  48, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 5, 4, "RIT\0"},
-    {OFF,  ON,  70,  40,  48, 22, 3, BLACK, RED,   BLACK, myDARKGREY, BLACK, 8, 4, "XIT\0"},
-    {OFF,  ON, 130,  40,  60, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 5, 4, "Fine\0"},
-    {OFF,  ON,  10,  65,  48, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 8, 4, "NB\0"},
-    {OFF,  ON,  70,  65,  48, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 9, 4, "NR\0"},
-    {OFF,  ON, 130,  65,  60, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 2, 4, "Notch\0"},
+    {OFF,  ON,  10,  15,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 4, 4, "ATT\0"},
+    {OFF,  ON,  70,  15,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 5, 4, "PRE\0"},
+    {OFF,  ON, 130,  15,  60, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 8, 4, "ATU\0"},
+    {OFF,  ON,  10,  40,  48, 22, 3, BLACK, WHITE, DARKGREEN,  myDARKGREY, BLACK, 7, 4, "RIT\0"},
+    {OFF,  ON,  70,  40,  48, 22, 3, BLACK, WHITE, RED,   myDARKGREY, BLACK, 8, 4, "XIT\0"},
+    {OFF,  ON, 130,  40,  60, 22, 3, BLACK, WHITE, BLUE,  myDARKGREY, BLACK, 7, 4, "FINE\0"},
+    {OFF,  ON,  10,  65,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 9, 4, "NB\0"},
+    {OFF,  ON,  70,  65,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 9, 4, "NR\0"},
+    {OFF,  ON, 130,  65,  60, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 4, 4, "NTCH\0"},
     #ifdef USE_RA8875
     {OFF,  ON, 220,  65,  90, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Split\0"},
     #else

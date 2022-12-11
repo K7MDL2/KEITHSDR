@@ -13,6 +13,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     7. Dec 10: Zero out VFO digits according to step size.  Odd values are rounded down to the nearest step size.
     8. Fixed issue with PAN scroll between -50 and 0.   
     9. Default AFGain level to 10.  Changed defaults to ENC 1, 2 and 3. As always, change to suit your perferences and hardware.
+    10. Standardized the Status Icon colors in upper left corner. Going with colored backgrounds.
 
 ## Nov 2022
 
