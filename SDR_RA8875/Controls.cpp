@@ -1087,18 +1087,18 @@ COLD void PAN(int8_t delta)
 {
     int8_t _panLevel;
 
-    _panLevel = user_settings[user_Profile].pan_level;   // Get last absolute setting as a value 0-100
+    _panLevel = (int8_t) user_settings[user_Profile].pan_level;   // Get last absolute setting as a value 0-100
     _panLevel += delta;      // convert percentage request to a single digit float
 
-    if (_panLevel > 100)         // Limit the value between 0.0 and 1.0 (100%)
+    if (_panLevel >= 100)         // Limit the value between 0.0 and 1.0 (100%)
         _panLevel = 100;
-    if (_panLevel < 0)
+    if (_panLevel <= 0)
         _panLevel = 0;
  
-    if (user_settings[user_Profile].pan_state == OFF && delta ==0)
+    if (user_settings[user_Profile].pan_state == OFF && delta == 0)
     {   
         pan = 0.0f;   
-        _panLevel = 50;  // 50 is halfway or 0
+        _panLevel = 50;  // 50 is halfway or 0.0f
         user_settings[user_Profile].pan_level = _panLevel;
         //use for testing frequency shift methods  
         #ifdef USE_FFT_LO_MIXERxxxx
@@ -1115,7 +1115,7 @@ COLD void PAN(int8_t delta)
     }
 
     //DPRINT("Control Change: PAN set to  "); 
-    //DPRINT(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
+    //DPRINTLN(user_settings[user_Profile].pan_level-50); // convert to -100 to +100 for UI
     displayPan();
 }
 

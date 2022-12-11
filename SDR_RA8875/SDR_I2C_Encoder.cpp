@@ -110,7 +110,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
     //DPRINTLN(obj->id);
 	
 	if (obj->id == user_settings[user_Profile].encoder1_client)
-		knob_assigned = MF_client; 	// 2nd encoder 
+		knob_assigned = MF_client; 
 	else
 		knob_assigned = obj->id;
 
@@ -141,7 +141,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							displayMeter(user_settings[user_Profile].afGain/10, string, 5);   // val, string label, color scheme
 							if (user_settings[user_Profile].afGain < 2 || user_settings[user_Profile].afGain >98)
 								tval = 0xFF0000;  // Change to red
-							AFgain(0);
+							//AFgain(0);
 							#ifdef USE_MIDI
 								note(CHANNEL, 52, (user_settings[user_Profile].afGain * 1.27));  // scale 100% to 127 for MIDI max of 127.
 							#endif  
@@ -151,28 +151,27 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme
 							if (bandmem[curr_band].attenuator_dB < 2  || bandmem[curr_band].attenuator_dB > 98)
 								tval = 0xFF0000;  // Change to red
-							Atten(0);
+							//Atten(0);
 							break;
 		case REFLVL_BTN:   	sprintf(string, "Lvl:%d", bandmem[curr_band].sp_ref_lvl);
 							MeterInUse = true; 
 							displayMeter((bandmem[curr_band].sp_ref_lvl+50)/10, string, 5);   // val, string label, color scheme
 							if (bandmem[curr_band].sp_ref_lvl < -48 || bandmem[curr_band].sp_ref_lvl > 48)
 								tval = 0xFF0000;  // Change to red
-							RefLevel(0);
+							//RefLevel(0);
 							break;
 		case NB_BTN:   		sprintf(string, "  NB:%1d", user_settings[user_Profile].nb_level);
 							MeterInUse = true;
 							displayMeter((int) user_settings[user_Profile].nb_level*1.7, string, 5);   // val, string label, color scheme 
 							if (user_settings[user_Profile].nb_level >= 6 || user_settings[user_Profile].nb_level <=0)
 								tval = 0xFF0000;  // Change to red
-							NBLevel(0);
+							//NBLevel(0);
 							break;
 		case PAN_BTN:       sprintf(string, "Pan:%3d", user_settings[user_Profile].pan_level-50);
 							MeterInUse = true;
 							displayMeter(user_settings[user_Profile].pan_level/10, string, 5);   // val, string label, color scheme
 							if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
 								tval = 0xFF0000;  // Change to red
-							PAN(1);
 							break;
 		default:  
 							#ifdef USE_MIDI
@@ -450,7 +449,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
 		ENC3.id = user_settings[user_Profile].encoder3_client;   
 		ENC3.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC3.writeMax((int32_t) 100); /* Set the maximum threshold*/
