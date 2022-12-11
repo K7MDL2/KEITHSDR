@@ -59,9 +59,9 @@ extern struct New_Spectrum_Layout   Custom_Layout[1];
 struct Spectrum_Parms {
     int16_t wf_sp_width;        // User specified active graphing area width with no padding. Max is fft_bins, can be smaller.
     int16_t border_space_min;   // Left and right side minimum border space. Total width minimum is graph width*2*border_space_minimum.
-    int16_t border_space;       // Self-calculated value. Border padding size used on both sideds of graphing area 
-    int16_t l_graph_edge;       // Self calculated. Left side opf active graph
-    int16_t r_graph_edge;       // Self calculated. Right side opf active graph
+    int16_t border_space;       // Self-calculated value. Border padding size used on both sides of graphing area 
+    int16_t l_graph_edge;       // Self calculated. Left side of active graph
+    int16_t r_graph_edge;       // Self calculated. Right side of active graph
     int16_t c_graph;            // Self calculated. Center of graph window area
     int16_t sp_txt_row_height;  // Self calculated. Space for span frequency marker labels
     int16_t tick_height;        // Self calculated. Frequency markers top and bottom of display regions. 
