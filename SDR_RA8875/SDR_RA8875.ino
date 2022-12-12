@@ -671,11 +671,11 @@ COLD void setup()
 
     //==================================== Frequency Set ==========================================
     #ifdef PANADAPTER
-    VFOA = PANADAPTER_LO;
-    VFOB = PANADAPTER_LO;
+        VFOA = PANADAPTER_LO;
+        VFOB = PANADAPTER_LO;
     #else
-    VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
-    VFOB = user_settings[user_Profile].sub_VFO;
+        VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
+        VFOB = user_settings[user_Profile].sub_VFO;
     #endif
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO

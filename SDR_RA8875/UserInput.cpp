@@ -6,10 +6,10 @@
 #include "RadioConfig.h"
 #include "UserInput.h"
 
-#define BUTTON_TOUCH    10  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
+#define BUTTON_TOUCH    8  // distance in pixels that defines a button vs a gesture. A drag and gesture will be > this value.
 //#define MAXTOUCHLIMIT    2  //1...5
 
-Metro gesture_timer=Metro(300);  // Change this to tune the button press timing. A drag will be > than this time.
+Metro gesture_timer=Metro(250);  // Change this to tune the button press timing. A drag will be > than this time.
 extern Metro popup_timer; // used to check for popup screen request
 
 // Our  extern declarations. Mostly needed for button activities.
