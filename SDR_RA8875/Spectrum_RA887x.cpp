@@ -160,7 +160,7 @@ void updateActiveWindow(bool full)
 //
 // -------------------------------------------------------------------------------------
 //
-int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc)
+int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float shift_pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.
@@ -185,7 +185,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
     static int16_t pix_min              = ptr->spect_floor;
     static int32_t freq_peak            = 0;
     static float old_fft_sz             = 0;        // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
-    static int32_t L_EDGE_no_pan        = 0;        // internediate calculation used to pan
+    static int32_t L_EDGE_no_pan        = 0;        // intermediate calculation used to pan
+    static float pan                    = 0;
     static float old_pan                = 0;        // update screen freq data when pan setting changes
     static uint8_t breakout             = 0;        // control index for sequencing through sections of code to make it more like "Non-blocking" behavior
     static uint32_t _VFO_;   // Get active VFO frequency
@@ -229,6 +230,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                 process_FFT = 1;
             }
         #endif
+
+        pan = shift_pan;
         ++breakout;   // increment to next section
         return freq_peak;  // freq_peak;  // for use by the main program for more accurate touch tuning
     }
