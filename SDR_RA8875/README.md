@@ -14,6 +14,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     8. Fixed issue with PAN scroll between -50 and 0.   
     9. Default AFGain level to 10.  Changed defaults to ENC 1, 2 and 3. As always, change to suit your perferences and hardware.
     10. Standardized the Status Icon colors in upper left corner. Going with colored backgrounds.
+    11. Dec 11:  Broke the Spectrum Update function into 4 parts to allow the main loop to service key events Touch and encoder.  Thanks to Jan VA3EPP for sharing his similar work and timing improvements to insire me to make this change.  Loop times are now down to the 50's even with 96K sample rate and no audio dropouts noted.  40's at 48K sample rate.
 
 ## Nov 2022
 
