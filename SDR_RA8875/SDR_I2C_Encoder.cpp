@@ -194,10 +194,12 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							break;
 		case ZOOM_BTN:      z_lvl = user_settings[user_Profile].zoom_level;
 							if (z_lvl == 0)
+								z_lvl = 1;
+							else
 								z_lvl *= 2;
 							sprintf(string, "Zoom:%1d",z_lvl);
 							MeterInUse = true;
-							displayMeter(user_settings[user_Profile].zoom_level, string, 5);   // val, string label, color scheme
+							displayMeter(z_lvl, string, 5);   // val, string label, color scheme
 							if (z_lvl < 2 || z_lvl > 3)
 							tval = 0xFF0000;  // Change to red
 							break;
