@@ -192,10 +192,18 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
 								tval = 0xFF0000;  // Change to red
 							break;
-		case ZOOM_BTN:      //break;
-		case FILTER_BTN:    //break;
-		case RATE_BTN:      //break;
-		case MODE_BTN:      //break;
+		case ZOOM_BTN:      if (user_settings[user_Profile].zoom_level < 1 ||user_settings[user_Profile].zoom_level > 1)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case FILTER_BTN:    if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case RATE_BTN:      if (bandmem[curr_band].tune_step < 1 || bandmem[curr_band].tune_step >= TS_STEPS-1)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case MODE_BTN:      if (bandmem[curr_band].mode_A < 1 || bandmem[curr_band].mode_A >= MODES_NUM-1)
+							tval = 0xFF0000;  // Change to red
+							break;
 		default:  
 							#ifdef USE_MIDI
 								note(CHANNEL, 50, 64+count);   // MIDI jog wheel uses 64 as center
