@@ -201,6 +201,13 @@ uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales
 uint8_t MF_client;  // Flag for current owner of MF knob services
 bool    MF_default_is_active = true;
 
+bool ENC1b_active = 0;  // ENCxb is the alternate encoder shaft function. A switch push toggles between the primary and alternate functions.
+bool ENC2b_active = 0;
+bool ENC3b_active = 0;
+bool ENC4b_active = 0;
+bool ENC5b_active = 0;
+bool ENC6b_active = 0;
+
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
@@ -209,8 +216,8 @@ bool    MF_default_is_active = true;
 //float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 //float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float sample_rate_Hz = 48000.0f;  //46.875Hz /bin  24K spectrum for 1024.  
-float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+float sample_rate_Hz = 48000.0f;  //46.875Hz /bin  24K spectrum for 1024.  
+//float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 
 float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft size for zoom level
@@ -544,9 +551,10 @@ COLD void setup()
         //tft.activeWindowXY(0,0);
         //tft.activeWindowWH(SCREEN_WIDTH,SCREEN_HEIGHT);
 
-#ifndef BYPASS_SPECTRUM_MODULE        
-        setActiveWindow_default();
-#endif        
+        #ifndef BYPASS_SPECTRUM_MODULE        
+            setActiveWindow_default();
+        #endif 
+
         tft.graphicMode(true);
         tft.clearActiveScreen();
         tft.selectScreen(0);  // Select screen page 0
@@ -628,9 +636,9 @@ COLD void setup()
     (ptr+BS_10M)-> Panelpos = ENABLE_10M_BAND;
     (ptr+BS_6M)->  Panelpos = ENABLE_6M_BAND;
 
-#ifndef BYPASS_SPECTRUM_MODULE
-    initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
-#endif
+    #ifndef BYPASS_SPECTRUM_MODULE
+        initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    #endif
 
     #ifdef PE4302
         // Initialize the I/O for digital step attenuator if used.
@@ -726,6 +734,7 @@ COLD void setup()
     #ifdef DEBUG
     printHelp();
     #endif
+    
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
    
     #ifdef FT817_CAT
@@ -733,6 +742,7 @@ COLD void setup()
         init_CAT_comms();  // initialize the CAT port
         print_CAT_status();  // Test Line to read data from FT-817 if attached.
     #endif
+    
     #ifdef ALL_CAT
         CAT_setup();   // Setup the MSG_Serial port for cnfigured Radio comm port
     #endif
@@ -779,7 +789,7 @@ HOT void loop()
 
     time_n = millis() - time_old;
     
-    if (time_n > delta)
+    if (time_n > delta)    // Main loop performance timer probe
     {
         delta = time_n;
         DPRINT(F("Loop T="));
@@ -813,6 +823,10 @@ HOT void loop()
         newFreq = 0;
     }
 
+    #if defined I2C_ENCODERS || defined MECH_ENCODERS
+        Check_Encoders();
+    #endif
+
     if (MF_Timeout.check() == 1)
     {
         MeterInUse = false;  
@@ -825,10 +839,6 @@ HOT void loop()
             MF_default_is_active = true;
         }
     }
-
-    #if defined I2C_ENCODERS || defined MECH_ENCODERS
-        Check_Encoders();
-    #endif
 
     if (!popup)
         Check_PTT();
@@ -902,37 +912,37 @@ HOT void loop()
         printCPUandMemory(millis(), 3000); //print every 3000 msec
     #endif
 
-#ifdef USE_RS_HFIQ
-        RS_HFIQ_Service();
-#endif
-                            
-#ifdef ENET // Don't compile this code if no ethernet usage intended
+    #ifdef USE_RS_HFIQ
+            RS_HFIQ_Service();
+    #endif
+                                
+    #ifdef ENET // Don't compile this code if no ethernet usage intended
 
-    if (user_settings[user_Profile].enet_enabled) // only process enet if enabled.
-    {
-        if (!enet_ready)
-            if ((millis() - enet_start_fail_time) > 600000) // check every 10 minutes (600K ms) and attempt a restart.
-                enet_start();
-        enet_read(); // Check for Control head commands
-        if (rx_count != 0)
+        if (user_settings[user_Profile].enet_enabled) // only process enet if enabled.
         {
-        } //get_remote_cmd();       // scan buffer for command strings
+            if (!enet_ready)
+                if ((millis() - enet_start_fail_time) > 600000) // check every 10 minutes (600K ms) and attempt a restart.
+                    enet_start();
+            enet_read(); // Check for Control head commands
+            if (rx_count != 0)
+            {
+            } //get_remote_cmd();       // scan buffer for command strings
 
-        if (NTP_updateTx.check() == 1)
-        {
-            //while (Udp_NTP.parsePacket() > 0)
-            //{};  // discard any previously received packets
-            sendNTPpacket(timeServer);  // send an NTP packet to a time server
-            NTP_updateRx.interval(100); // Start a timer to check RX reply
+            if (NTP_updateTx.check() == 1)
+            {
+                //while (Udp_NTP.parsePacket() > 0)
+                //{};  // discard any previously received packets
+                sendNTPpacket(timeServer);  // send an NTP packet to a time server
+                NTP_updateRx.interval(100); // Start a timer to check RX reply
+            }
+            if (NTP_updateRx.check() == 1) // Time to check for a reply
+            {
+                if (getNtpTime());                         // Get our reply
+                NTP_updateRx.interval(65000); // set it long until we need it again later
+                Ethernet.maintain();          // keep our connection fresh
+            }
         }
-        if (NTP_updateRx.check() == 1) // Time to check for a reply
-        {
-            if (getNtpTime());                         // Get our reply
-            NTP_updateRx.interval(65000); // set it long until we need it again later
-            Ethernet.maintain();          // keep our connection fresh
-        }
-    }
-#endif // End of Ethernet related functions here
+    #endif // End of Ethernet related functions here
 
     // Check if the time has updated (1 second) and update the clock display
     if (timeStatus() != timeNotSet) // && enet_ready) // Only display if ethernet is active and have a valid time source
@@ -1202,6 +1212,7 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
 // ------------------------------------ MF_Service --------------------------------------
 //
 //  Called in the main loop to look for an encoder event and if found, call the registered function
+//  All encoder rotation events pass through here in case it is a MF knob, otherwise the counts are passed on to the control function
 //
 //static uint16_t old_ts;
 COLD void MF_Service(int8_t counts, uint8_t knob)
@@ -1224,6 +1235,16 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         case PAN_BTN:       PAN(counts);            break;
         case ATTEN_BTN:     Atten(counts);          break;  // set attenuator level to value in database for this band
         case NB_BTN:        NBLevel(counts);        break;
+        case ZOOM_BTN:      setZoom(counts);        break;
+        case FILTER_BTN:    if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            Filter(counts);         break;
+		case RATE_BTN:      if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            Rate(counts);           break;
+		case MODE_BTN:      if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            setMode(counts);        break;
         case MFTUNE :
         default     : {   
             //old_ts = bandmem[curr_band].tune_step;
@@ -2053,6 +2074,7 @@ void Check_Encoders(void)
         {
             #ifdef MF_ENC_ADDR
             // Check the status of the encoder (if enabled) and call the callback
+            
             if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
             {            
                 mfg = MF_ENC.readStatus();

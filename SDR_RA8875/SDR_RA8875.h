@@ -335,7 +335,15 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define SMETER_BTN  32      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
 #define SPECTUNE_BTN 33     // Converts a touch in the spectrum window to a frequency to tune too.
 #define BAND_MENU   34      // Band selection window 
-//#define SPOT_BTN    35      // will display the NR value in the button - Not used today but a function exists.
+#define ENC1_BTN    35      // Encoder push switch entry function (Can change modes of encoder like filer mode vs rate mode on rotation, or call a function direct like change filter)
+#define ENC2_BTN    36
+#define ENC3_BTN    37
+#define ENC4_BTN    38
+#define ENC5_BTN    39
+#define ENC6_BTN    40
+
+//#define SPOT_BTN          // will display the NR value in the button - Not used today but a function exists.
+
 // Band select Window buttons
 #define BS_160M     35
 #define BS_80M      36
@@ -473,24 +481,30 @@ struct User_Settings {
     uint8_t     fine;               // Fine tune state.  0 is off.  1+ is mode
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
     uint8_t     default_MF_client;  // The default "client" assignment for the the MF Knob.
-    uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up   
-    uint8_t     encoder1_client_sw; // The "client" action for one of the encoder switches - Set to 0 if not encoder is wired up
-    uint8_t     encoder1_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if not encoder is wired up
-    uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
-    uint8_t     encoder2_client_sw; // The "client" action for one of the encoder switches - Set to 0 if not encoder is wired up
-    uint8_t     encoder2_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if not encoder is wired up
-    uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up    
-    uint8_t     encoder3_client_sw; // The "client" action for one of the encoder switches - Set to 0 if not encoder is wired up
-    uint8_t     encoder3_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if not encoder i
-    uint8_t     encoder4_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
-    uint8_t     encoder4_client_sw; // The "client" action for one of the encoder switches - Set to 0 if not encoder is wired up
-    uint8_t     encoder4_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if not encoder is wired up
-    uint8_t     encoder5_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up
-    uint8_t     encoder5_client_sw; // The "client" action for one of the encoder switches - Set to 0 if not encoder is wired up
-    uint8_t     encoder5_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if not encoder is wired up
-    uint8_t     encoder6_client;    // The "client" action for one of the encoder knobs - Set to 0 if not encoder is wired up   
-    uint8_t     encoder6_client_sw; // The "client" action for one of the encoder switches - Set to 0 if not encoder is wired up
-    uint8_t     encoder6_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if not encoder i
+    uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder1_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder1_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
+    uint8_t     encoder1_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
+    uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
+    uint8_t     encoder2_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder2_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
+    uint8_t     encoder2_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
+    uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up    
+    uint8_t     encoder3_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder3_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
+    uint8_t     encoder3_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder i
+    uint8_t     encoder4_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
+    uint8_t     encoder4_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder4_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
+    uint8_t     encoder4_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
+    uint8_t     encoder5_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
+    uint8_t     encoder5_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder5_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
+    uint8_t     encoder5_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
+    uint8_t     encoder6_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder6_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder6_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
+    uint8_t     encoder6_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder i
     uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
     uint8_t     pan_state;          // 0 = OFF, 1 = ON
     uint8_t     pan_level;          // 0-100 converts to pan range of -0.50 to 0.50 for the pan memory.  0  is centered.

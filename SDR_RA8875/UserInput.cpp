@@ -44,6 +44,7 @@ extern void MF_Service(int8_t counts, uint8_t knob);
 extern uint8_t MF_client;  // Flag for current owner of MF knob services
 extern struct Spectrum_Parms Sp_Parms_Def[];
 extern void PhaseChange(uint8_t chg);
+extern void setEncoderMode(uint8_t id);
 
 // Function declarations
 void zero_coordinates(void);
@@ -739,7 +740,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 // used the index to the table to match up a function to call
                 switch (i)
                 {
-                    case MODE_LBL:      setMode(1);     break; //Increment the mode from current value
+                    case MODE_LBL:      setMode(0);     break; //Increment the mode from current value
                     case FILTER_LBL:    Filter(0);      break;
                     case RATE_LBL:      Rate(0);        break;
                     case AGC_LBL:       AGC();          break;
@@ -781,7 +782,7 @@ void Button_Action(uint16_t button_name)
     {
         switch (button_name)
         {
-            case MODE_BTN:      setMode(1);     break; //Increment the mode from current value
+            case MODE_BTN:      setMode(0);     break; //Increment the mode from current value
             case FILTER_BTN:    Filter(0);      break;
             case RATE_BTN:      Rate(0);        break; //Increment from current value 
             case AGC_BTN:       AGC();          break;
@@ -809,12 +810,19 @@ void Button_Action(uint16_t button_name)
             case NOTCH_BTN:     Notch();        break;
             case BANDUP_BTN:    BandUp();       break;
             case BANDDN_BTN:    BandDn();       break;
-            case BAND_BTN:      Band(255);        break;
+            case BAND_BTN:      Band(255);      break;
             case DISPLAY_BTN:   Display();      break;
             case FN_BTN:        setPanel();     break;
             case ZOOM_BTN:      setZoom(0);     break;
             case UTCTIME_BTN:   break;        //nothing to do
             case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
+            case ENC1_BTN:      setEncoderMode(ENC1_BTN); break;
+            case ENC2_BTN:      setEncoderMode(ENC2_BTN); break;
+            case ENC3_BTN:      setEncoderMode(ENC3_BTN); break;
+            case ENC4_BTN:      setEncoderMode(ENC4_BTN); break;
+            case ENC5_BTN:      setEncoderMode(ENC5_BTN); break;
+            case ENC6_BTN:      setEncoderMode(ENC6_BTN); break;
+            
             default: 
                     if (button_name != SPECTUNE_BTN) 
                     {

@@ -66,6 +66,12 @@ Metro press_timer3 = Metro(600);
 Metro press_timer4 = Metro(600);
 Metro press_timer5 = Metro(600);
 Metro press_timer6 = Metro(600);
+extern bool ENC1b_active;  // ENCxb is the alternate encoder shaft function. A switch push toggles between the primary and alternate functions.
+extern bool ENC2b_active;
+extern bool ENC3b_active;
+extern bool ENC4b_active;
+extern bool ENC5b_active;
+extern bool ENC6b_active;
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -108,7 +114,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 
 	//DPRINT(F("Encoder ID = "));
     //DPRINTLN(obj->id);
-	
+
 	if (obj->id == user_settings[user_Profile].encoder1_client)
 		knob_assigned = MF_client; 
 	else
@@ -120,6 +126,19 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 		{}//DPRINT(F("Decrement: "));
 	int16_t count = obj->readCounterInt();
 	//DPRINTLN(count);
+
+	// reassign knob functionality to alternate mode if alternate active
+	if (ENC2b_active && knob_assigned == user_settings[user_Profile].encoder2_client)
+		knob_assigned = user_settings[user_Profile].encoder2_clientb;
+	if (ENC3b_active && knob_assigned == user_settings[user_Profile].encoder3_client)
+		knob_assigned = user_settings[user_Profile].encoder3_clientb;
+	if (ENC4b_active && knob_assigned == user_settings[user_Profile].encoder4_client)
+		knob_assigned = user_settings[user_Profile].encoder4_clientb;
+	if (ENC5b_active && knob_assigned == user_settings[user_Profile].encoder5_client)
+		knob_assigned = user_settings[user_Profile].encoder5_clientb;
+	if (ENC6b_active && knob_assigned == user_settings[user_Profile].encoder6_client)
+		knob_assigned = user_settings[user_Profile].encoder6_clientb;
+	
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
@@ -173,6 +192,10 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
 								tval = 0xFF0000;  // Change to red
 							break;
+		case ZOOM_BTN:      //break;
+		case FILTER_BTN:    //break;
+		case RATE_BTN:      //break;
+		case MODE_BTN:      //break;
 		default:  
 							#ifdef USE_MIDI
 								note(CHANNEL, 50, 64+count);   // MIDI jog wheel uses 64 as center

@@ -75,6 +75,12 @@ extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
 #endif
 extern          float               pan;
 extern          void                send_fixed_cmd_to_RSHFIQ(const char * str);
+extern          bool ENC1b_active;  // ENCxb is the alternate encoder shaft function. A switch push toggles between the primary and alternate functions.
+extern          bool ENC2b_active;
+extern          bool ENC3b_active;
+extern          bool ENC4b_active;
+extern          bool ENC5b_active;
+extern          bool ENC6b_active;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -95,10 +101,10 @@ void setNB(int8_t toggle);
 void Xmit(uint8_t state);
 void Ant();
 void Fine();
-void Rate(int8_t direction);
+void Rate(int8_t dir);
 void setMode(int8_t dir);
 void AGC();
-void Filter(int dir);
+void Filter(int8_t dir);
 void ATU();
 void Xvtr();
 void Split();
@@ -124,6 +130,7 @@ void setZoom(int8_t dir);
 void PAN(int8_t delta);
 void setPAN(int8_t toggle);
 void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
+void setEncoderMode(uint8_t id);
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -266,29 +273,52 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
 //
 //  -----------------------   Button Functions --------------------------------------------
 //   Called by Touch, Encoder, or Switch events
+//
 
-// ---------------------------Mode() ----------------------------------
-//   Input: 0 = set to current value in the database 
-//          1 = increment the mode (circular rotation through all modes)
-//         -1 = decrement the mode (circular rotation through all modes)
-    
-// MODE button
+// ---------------------------setMode() ---------------------------
+//   Input: 0 = step to next based on last direction (starts upwards).  Ramps up then down then up.
+//          1 = step up 1 mode
+//         -1 = step down 1 mode
+//          2 = use last mode
+//
 COLD void setMode(int8_t dir)
-{
-	uint8_t mndx;
+{ 
+    static int8_t direction = 1;
+	int8_t _mndx;
 
-	mndx = bandmem[curr_band].mode_A;			
-	
-	mndx += dir; // Make the change
-
-  	if (mndx > FM)		// Validate change and fix if needed
-   		mndx=0;
-	if (mndx < CW)
-		mndx = CW;
-
-    selectMode(mndx);   // Select the mode for the Active VFO 
+    _mndx = (int8_t) bandmem[curr_band].mode_A;	// get current mode	
     
-	bandmem[curr_band].mode_A = mndx;  // store it
+    if (dir != 2)
+	{
+	    // 1. Limit to allowed step range
+        // 2. Cycle up and at top, cycle back down, do nto roll over.
+        if (_mndx <= 0)
+        {
+            _mndx = 0;   // mode = 0 then change to -1 will add direction == +1 to get 0 later.
+            direction = 1;   // cycle upwards
+        }
+
+        if (_mndx >= MODES_NUM-1)
+        {
+            _mndx = MODES_NUM -1;
+            direction = -1;  // go downward
+        }
+        
+        if (dir == 0)
+            _mndx += direction; // Index our step up or down, if dir == 0 then no change to current value
+        else
+            _mndx += dir;  // forces a step higher or lower then current
+            
+        if (_mndx > MODES_NUM-1)  // limit in case of encoder counts
+            _mndx = MODES_NUM-1;
+
+        if (_mndx < 0)  // limit in case of encoder counts
+            _mndx = 0;	
+
+        bandmem[curr_band].mode_A = (uint8_t) _mndx;  // store it
+    }
+
+    selectMode((uint8_t) _mndx);   // Select the mode for the Active VFO 
 	
     // Update the filter setting per mode 
     Filter(2);
@@ -305,24 +335,24 @@ COLD void setMode(int8_t dir)
 //      This is mode-aware. In non-CW modes we will only cycle through SSB width filters as set in the filter tables
 
 // FILTER button
-COLD void Filter(int dir)
+COLD void Filter(int8_t dir)
 { 
-    static int direction = -1;
-    int _bndx = bandmem[curr_band].filter; // Change Bandwidth  - cycle down then back to the top
+    static int8_t direction = 1;
+    int8_t _bw = bandmem[curr_band].filter; // Change Bandwidth  - cycle down then back to the top
     
     uint8_t _mode;
 
     // 1. Limit to allowed step range
     // 2. Cycle up and at top, cycle back down, do nto roll over.
-    if (_bndx <= 0)
+    if (_bw <= 0)
     {
-        _bndx = -1;
+        _bw = -1;
         direction = 1;   // cycle upwards
     }
 
-    if (_bndx >= FILTER-1)
+    if (_bw >= FILTER-1)
     {
-        _bndx = FILTER-1;
+        _bw = FILTER-1;
         direction = -1;
     }
 
@@ -330,45 +360,51 @@ COLD void Filter(int dir)
 
     if (_mode == CW || _mode == CW_REV)  // CW modes
     {
-        if (_bndx > FILTER-1)   // go to bottom band   
+        if (_bw > FILTER-1)   // go to bottom band   
         {
-            _bndx = FILTER-1;
+            _bw = FILTER-1;
             direction = -1;     // cycle downwards
         }
-        if (_bndx <=BW0_25)
+        if (_bw <=BW0_25)
         {
-            _bndx = BW0_25;          
+            _bw = BW0_25+1;          
             direction = 1;      // cycle upwards
         }
     }
     else  // Non-CW modes
     {
-        if (_bndx > FILTER-1)   // go to bottom band  
+        if (_bw > FILTER-1)   // go to bottom band  
         { 
-            _bndx = FILTER-1;    
+            _bw = FILTER-1;    
             direction = -1;     // cycle downwards
         }
-        if (_bndx <= BW1_8)
+        if (_bw <= BW1_8)
         {
-            _bndx = BW1_8;
+            _bw = BW1_8+1;
             direction = 1;      // cycle upwards
         }
     }
 
     if (dir == 0)
-        _bndx += direction; // Index our step up or down
-    else	
-        _bndx += dir;  // forces a step higher or lower then current
+        _bw += direction; // Index our step up or down
+    else
+        _bw += dir;  // forces a step higher or lower then current
     
+    if (_bw > FILTER-1)  // limit in case of encoder counts
+        _bw = FILTER-1;
+    
+    if (_bw < 0)  // limit in case of encoder counts
+        _bw = 0; 
+
     if (dir == 2) // Use last filter width used in this mode, ignore the rest (hopefully it is valid)
     {    
         if (modeList[_mode].Width <= BW4_0 && modeList[_mode].Width >= 0)
-            _bndx = modeList[_mode].Width;
+            _bw = modeList[_mode].Width;
     }
     else
-        modeList[_mode].Width = _bndx;  //if filter changed without a mode change, store it in last use per mode table.
+        modeList[_mode].Width = _bw;  //if filter changed without a mode change, store it in last use per mode table.
 
-    selectBandwidth(_bndx);
+    selectBandwidth(_bw);
     //DPRINT("Set Filter to ");
     //DPRINTLN(bandmem[curr_band].filter);
     displayFilter();
@@ -381,52 +417,52 @@ COLD void Filter(int dir)
 //      If FINE is OFF, we will not use 1Hz. If FINE = ON we only use 1 and 10Hz steps.
 
 // RATE button
-COLD void Rate(int8_t swiped)
+COLD void Rate(int8_t dir)
 {
     static int direction = 1;
-	int _fndx = bandmem[curr_band].tune_step;
+	int _tstep = bandmem[curr_band].tune_step;
 
 	if (user_settings[user_Profile].fine == 0)
 	{
 		// 1. Limit to allowed step range
 		// 2. Cycle up and at top, cycle back down, do nto roll over.
-		if (_fndx <= 1)
+		if (_tstep <= 1)
 		{
-			_fndx = 1;
+			_tstep = 1;
 			direction = 1;   // cycle upwards
 		}
 
-		if (_fndx >= 3)   //TS_STEPS-1)
+		if (_tstep >= 3)   //TS_STEPS-1)
 		{
-			_fndx = 3;  //TS_STEPS-1;
+			_tstep = 3;  //TS_STEPS-1;
 			direction = -1;
 		}
 		
-		if (swiped == 0)
-			_fndx += direction; // Index our step up or down
+		if (dir == 0)
+			_tstep += direction; // Index our step up or down
 		else	
-			_fndx += swiped;  // forces a step higher or lower then current
+			_tstep += dir;  // forces a step higher or lower then current
 		
-		if (_fndx >= 3)  //TS_STEPS-1)   // ensure we are still in range
-			_fndx = 3;  //TS_STEPS - 1;  // just in case it over ranges, bad stuff happens when it does
-		if (_fndx < 1)
-			_fndx = 1;  // just in case it over ranges, bad stuff happens when it does		
+		if (_tstep >= 3)  //TS_STEPS-1)   // ensure we are still in range
+			_tstep = 3;  //TS_STEPS - 1;  // just in case it over ranges, bad stuff happens when it does
+		if (_tstep < 1)
+			_tstep = 1;  // just in case it over ranges, bad stuff happens when it does		
 	}
 
-	if (user_settings[user_Profile].fine && swiped == -1)  // 1 Hz steps
+	if (user_settings[user_Profile].fine && dir == -1)  // 1 Hz steps
 		bandmem[curr_band].tune_step = 0;   // set to 1 hz steps
-	else if (user_settings[user_Profile].fine && swiped == 1)
+	else if (user_settings[user_Profile].fine && dir == 1)
 		bandmem[curr_band].tune_step = 1;    // normally swiped is +1 or -1
-	else if (user_settings[user_Profile].fine && swiped == 0)
+	else if (user_settings[user_Profile].fine && dir == 0)
 	{
-		if (_fndx > 0)
-			_fndx = 0;			
+		if (_tstep > 0)
+			_tstep = 0;			
 		else
-			_fndx = 1;
-		bandmem[curr_band].tune_step = _fndx;
+			_tstep = 1;
+		bandmem[curr_band].tune_step = _tstep;
 	}
 	else 
-		bandmem[curr_band].tune_step = _fndx;  // Fine tunig mode is off, allow all steps 10hz and higher
+		bandmem[curr_band].tune_step = _tstep;  // Fine tunig mode is off, allow all steps 10hz and higher
      
     //DPRINT("Set Rate to ");
     //DPRINTLN(tstep[bandmem[curr_band].tune_step].ts_name);
@@ -1575,6 +1611,30 @@ void setMeter(uint8_t id)
         MF_default_is_active = false;  
     }
 }
+
+// Toggle the assigned function on an encoder shaft.
+void setEncoderMode(uint8_t id)
+{
+    if (MF_client != id) 
+    {
+        DPRINT("Encoder Switch ID = ");
+        DPRINTLN(id);
+        switch (id)
+        {
+            case ENC1_BTN:  break;      // Do nothing as Enc1 is usually the MF knob (this is not the VFO encoder)
+            case ENC2_BTN:  ENC2b_active ^= 1;
+            DPRINT(" Alternate mode active = ");
+            DPRINTLN(ENC2b_active);
+             break;   // when switch is pressed, toggle which function is assigned to the encoder rotation
+            case ENC3_BTN:  ENC3b_active ^= 1; break;
+            case ENC4_BTN:  ENC4b_active ^= 1; break;
+            case ENC5_BTN:  ENC5b_active ^= 1; break;
+            case ENC6_BTN:  ENC6b_active ^= 1; break;
+            default: break;
+        }
+    }
+}
+
 
 // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
 // Code is for the PE4302 digital step attenuator
