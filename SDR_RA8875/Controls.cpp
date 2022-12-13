@@ -1658,15 +1658,12 @@ void setEncoderMode(uint8_t id)
 {
     if (MF_client != id) 
     {
-        DPRINT("Encoder Switch ID = ");
-        DPRINTLN(id);
+        //DPRINT("Encoder Switch ID = ");
+        //DPRINTLN(id);
         switch (id)
         {
-            case ENC1_BTN:  break;      // Do nothing as Enc1 is usually the MF knob (this is not the VFO encoder)
-            case ENC2_BTN:  ENC2b_active ^= 1;
-            DPRINT(" Alternate mode active = ");
-            DPRINTLN(ENC2b_active);
-             break;   // when switch is pressed, toggle which function is assigned to the encoder rotation
+            case ENC1_BTN:  ENC1b_active ^= 1; break;   
+            case ENC2_BTN:  ENC2b_active ^= 1; break;   // when switch is tapped, toggle which function is assigned to the encoder rotation
             case ENC3_BTN:  ENC3b_active ^= 1; break;
             case ENC4_BTN:  ENC4b_active ^= 1; break;
             case ENC5_BTN:  ENC5b_active ^= 1; break;
@@ -1675,7 +1672,6 @@ void setEncoderMode(uint8_t id)
         }
     }
 }
-
 
 // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
 // Code is for the PE4302 digital step attenuator

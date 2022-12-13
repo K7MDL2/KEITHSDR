@@ -128,6 +128,8 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	//DPRINTLN(count);
 
 	// reassign knob functionality to alternate mode if alternate active
+	if (ENC1b_active && knob_assigned == user_settings[user_Profile].encoder1_client)
+		knob_assigned = user_settings[user_Profile].encoder1_clientb;
 	if (ENC2b_active && knob_assigned == user_settings[user_Profile].encoder2_client)
 		knob_assigned = user_settings[user_Profile].encoder2_clientb;
 	if (ENC3b_active && knob_assigned == user_settings[user_Profile].encoder3_client)
