@@ -189,7 +189,7 @@ Metro meter             = Metro(400);   // used to update the meters
 Metro popup_timer       = Metro(500);   // used to check for popup screen request
 Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
-Metro MF_Timeout        = Metro(2000);  // MultiFunction Knob and Switch 
+Metro MF_Timeout        = Metro(3000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
 Metro ENC_Read_timer    = Metro(250);   // time allowed to accumulate counts for slow moving detented encoders
 
@@ -1215,7 +1215,7 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
 //  Called in the main loop to look for an encoder event and if found, call the registered function
 //  All encoder rotation events pass through here in case it is a MF knob, otherwise the counts are passed on to the control function
 //
-//static uint16_t old_ts;
+static uint16_t old_ts;
 COLD void MF_Service(int8_t counts, uint8_t knob)
 {  
     if (counts == 0)  // no knob movement, nothing to do.
@@ -1236,7 +1236,9 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         case PAN_BTN:       PAN(counts);            break;
         case ATTEN_BTN:     Atten(counts);          break;  // set attenuator level to value in database for this band
         case NB_BTN:        NBLevel(counts);        break;
-        case ZOOM_BTN:      Zoom(counts);           break;
+        case ZOOM_BTN:      if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            Zoom(counts);           break;
         case FILTER_BTN:    if (counts > 0) counts =  1;
                             if (counts < 0) counts = -1;
                             Filter(counts);         break;
@@ -1248,10 +1250,10 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
                             setMode(counts);        break;
         case MFTUNE :
         default     : {   
-            //old_ts = bandmem[curr_band].tune_step;
-            //bandmem[curr_band].tune_step =0;
+            old_ts = bandmem[curr_band].tune_step;   // Use MFTune as coarse Tune
+            bandmem[curr_band].tune_step = old_ts+1;
             selectFrequency(counts);
-            //bandmem[curr_band].tune_step = old_ts;
+            bandmem[curr_band].tune_step = old_ts;
         } break;        
     };
 }
@@ -1784,7 +1786,8 @@ HOT void RF_Limiter(float peak_avg)
 COLD void resetCodec(void)
 {
     DPRINTLN(F("Start Codec Initialization"));
-    setZoom(2);  // 2 = no change requested, set to user setting user profile setting
+    user_settings[user_Profile].zoom_level = 0;
+    setZoom(0);  // set to user setting user profile setting
     //Change_FFT_Size(fft_size, sample_rate_Hz);
     
     codec1.enable(); // MUST be before inputSelect()

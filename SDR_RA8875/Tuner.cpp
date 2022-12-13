@@ -48,7 +48,7 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 	else
 		Freq = VFOA - (VFOA % fstep);   // Round down to step size if step > 1Hz
   	 
-    Freq += newFreq * fstep; 
+	Freq += newFreq * fstep;
     
     // Keep frequency within limits
   	if (Freq >= topFreq)            

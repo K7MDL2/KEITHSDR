@@ -250,7 +250,7 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
      //dB level is set elsewhere and uses value in the dB in this function.
     Preamp(-1);     // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.  Operate relays if any.
     //selectMode(0);  
-    setMode(0);     // 0 is set value in database for both VFOs
+    setMode(2);     // 0 is set value in database for both VFOs
     RefLevel(0);    // 0 just updates things to be current value
     RFgain(0);
     AFgain(0);
@@ -803,53 +803,47 @@ COLD void ATU(uint8_t state)
 }
 
 // setZoom()
-//   toogle = -1 sets attenuator state to current database value. Used for startup or changing bands.
-//   toogle = 0 sets attenuator state off
-//   toogle = 1 sets attenuator state on
-//   toogle = 2 toggles attenuator state
+//   toogle = 0 sets Zoom state to current database value. Used for startup or changing bands.
+//   toogle = -1 deregisters Zoom MF control
+//   toogle = 1 sets Zoom state on
+//   toogle = 2 toggles Zoom state
 COLD void setZoom(int8_t toggle)
 {
     //DPRINT("toggle = "); DPRINTLN(toggle);
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
-        if (user_settings[user_Profile].zoom_level > OFF)  // toggle the attenuator tracking state
-        {
-            toggle = 0;
-            user_settings[user_Profile].zoom_level = OFF;   //Turn relay off bypassing hardware attenuator
-        }
-        else
-        { 
-            toggle = 1;
-            user_settings[user_Profile].zoom_level = ON;    //Turn relay ON for hardware attenuator
-        }
+        if (user_settings[user_Profile].zoom_level >= 2)  // toggle the tracking state
+            user_settings[user_Profile].zoom_level = 0;
+        else 
+            user_settings[user_Profile].zoom_level += 1;
+        toggle = 1;
+    }
+
+    if (toggle == 1)      // Set button to on to track as active 
+    {
+        MeterInUse = true;
+        setMeter(ZOOM_BTN);
+        Zoom(0);
     }
     
-    if (toggle == 1)    // toggle is 1, turn on Atten
-    {
-        user_settings[user_Profile].zoom_level = ON;  // le the attenuator tracking state to ON
-        MeterInUse=true;
-        setMeter(ZOOM_BTN);
-    }
-
     if (toggle == 0 || toggle == -1)
-    {   
-        user_settings[user_Profile].zoom_level = OFF;  // set attenuator tracking state to OFF
+    {
+        if (toggle == 0) Zoom(0);
         MeterInUse = false;
-        if (toggle != -1)
-            clearMeter();
+        if (toggle != -1) clearMeter();
     }
 
-    displayZoom();
-    DPRINT("Set Zoom to ");
-    DPRINTLN(user_settings[user_Profile].zoom_level);
+    //displayZoom();
+    //DPRINT("Set Zoom to ");
+    //DPRINTLN(user_settings[user_Profile].zoom_level);
 }
 
 // ---------------------------Zoom() ---------------------------
-//   Input: 0 = step to next based on last direction (starts upwards).  Ramps up then down then up.
+//   Input: 2 = step to next based on last direction (starts upwards).  Ramps up then down then up.
 //          1 = step up 1 (zoomed in more)
 //         -1 = step down 1 (zoom out more )
-//          2 = use last zoom level used from user profile
+//          0 = use last zoom level used from user profile
 //   Zoom levels are x1, x2 and x4  Off is same as x1.
 //
 COLD void Zoom(int8_t dir)
@@ -857,8 +851,11 @@ COLD void Zoom(int8_t dir)
     static int8_t   direction   = -1;  // remember last direction
     int8_t   _zoom_Level = user_settings[user_Profile].zoom_level;   // Get last known value from user profile
 
-    if (dir != 2)
+    if (dir != 0)
     {
+        if (dir >= 2) 
+            dir = 1;
+
         // 1. Limit to allowed step range
         // 2. Cycle up and at top, cycle back down, do not roll over.
         if (_zoom_Level <= 0)
