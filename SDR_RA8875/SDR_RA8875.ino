@@ -1182,6 +1182,7 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
         case AFGAIN_BTN:    setAFgain(-1);      break;
         case REFLVL_BTN:    setRefLevel(-1);    break;
         case PAN_BTN:       setPAN(-1);         break;
+        case ZOOM_BTN:      setZoom(-1);        break;
         case ATTEN_BTN:     setAtten(-1);       break;
         case NB_BTN:        setNB(-1);          break;
         case MFTUNE:
@@ -1235,7 +1236,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         case PAN_BTN:       PAN(counts);            break;
         case ATTEN_BTN:     Atten(counts);          break;  // set attenuator level to value in database for this band
         case NB_BTN:        NBLevel(counts);        break;
-        case ZOOM_BTN:      setZoom(counts);        break;
+        case ZOOM_BTN:      Zoom(counts);           break;
         case FILTER_BTN:    if (counts > 0) counts =  1;
                             if (counts < 0) counts = -1;
                             Filter(counts);         break;
@@ -1783,7 +1784,7 @@ HOT void RF_Limiter(float peak_avg)
 COLD void resetCodec(void)
 {
     DPRINTLN(F("Start Codec Initialization"));
-    setZoom(2);  // 2 = no change requested, set to user settting user profile setting
+    setZoom(2);  // 2 = no change requested, set to user setting user profile setting
     //Change_FFT_Size(fft_size, sample_rate_Hz);
     
     codec1.enable(); // MUST be before inputSelect()

@@ -813,7 +813,7 @@ void Button_Action(uint16_t button_name)
             case BAND_BTN:      Band(255);      break;
             case DISPLAY_BTN:   Display();      break;
             case FN_BTN:        setPanel();     break;
-            case ZOOM_BTN:      setZoom(0);     break;
+            case ZOOM_BTN:      setZoom(2);     break;
             case UTCTIME_BTN:   break;        //nothing to do
             case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
             case ENC1_BTN:      setEncoderMode(ENC1_BTN); break;

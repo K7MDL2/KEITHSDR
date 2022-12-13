@@ -110,7 +110,7 @@ extern void MF_Service(int8_t counts, uint8_t knob);
 //Callback when the MF Gain encoder is rotated
 COLD void encoder_rotated(i2cEncoderLibV2* obj) 
 {
-	uint8_t knob_assigned;
+	uint8_t knob_assigned, z_lvl;
 
 	//DPRINT(F("Encoder ID = "));
     //DPRINTLN(obj->id);
@@ -192,7 +192,13 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							if (user_settings[user_Profile].pan_level < 2 || user_settings[user_Profile].pan_level > 98)
 								tval = 0xFF0000;  // Change to red
 							break;
-		case ZOOM_BTN:      if (user_settings[user_Profile].zoom_level < 1 ||user_settings[user_Profile].zoom_level > 1)
+		case ZOOM_BTN:      z_lvl = user_settings[user_Profile].zoom_level;
+							if (z_lvl == 0)
+								z_lvl *= 2;
+							sprintf(string, "Zoom:%1d",z_lvl);
+							MeterInUse = true;
+							displayMeter(user_settings[user_Profile].zoom_level, string, 5);   // val, string label, color scheme
+							if (z_lvl < 2 || z_lvl > 3)
 							tval = 0xFF0000;  // Change to red
 							break;
 		case FILTER_BTN:    if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)

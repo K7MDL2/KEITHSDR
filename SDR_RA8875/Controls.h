@@ -52,7 +52,8 @@ void RefLevel(int8_t newval);
 void TouchTune(int16_t touch_Freq);
 void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
-void setZoom(int8_t dir);
+void Zoom(int8_t dir);
+void setZoom(int8_t toggle);
 void setPAN(int8_t toggle);
 void PAN(int8_t delta);
 void digital_step_attenuator_PE4305(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps

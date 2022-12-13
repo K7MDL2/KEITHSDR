@@ -126,7 +126,8 @@ void selectStep(uint8_t fndx);
 void selectAgc(uint8_t andx);
 void clearMeter(void);
 void setMeter(uint8_t id);
-void setZoom(int8_t dir);
+void Zoom(int8_t dir);
+void setZoom(int8_t toggle);
 void PAN(int8_t delta);
 void setPAN(int8_t toggle);
 void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
@@ -801,14 +802,57 @@ COLD void ATU(uint8_t state)
     //DPRINTLN(bandmem[curr_band].ATU);
 }
 
-// ---------------------------setZoom() ---------------------------
+// setZoom()
+//   toogle = -1 sets attenuator state to current database value. Used for startup or changing bands.
+//   toogle = 0 sets attenuator state off
+//   toogle = 1 sets attenuator state on
+//   toogle = 2 toggles attenuator state
+COLD void setZoom(int8_t toggle)
+{
+    //DPRINT("toggle = "); DPRINTLN(toggle);
+
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (user_settings[user_Profile].zoom_level > OFF)  // toggle the attenuator tracking state
+        {
+            toggle = 0;
+            user_settings[user_Profile].zoom_level = OFF;   //Turn relay off bypassing hardware attenuator
+        }
+        else
+        { 
+            toggle = 1;
+            user_settings[user_Profile].zoom_level = ON;    //Turn relay ON for hardware attenuator
+        }
+    }
+    
+    if (toggle == 1)    // toggle is 1, turn on Atten
+    {
+        user_settings[user_Profile].zoom_level = ON;  // le the attenuator tracking state to ON
+        MeterInUse=true;
+        setMeter(ZOOM_BTN);
+    }
+
+    if (toggle == 0 || toggle == -1)
+    {   
+        user_settings[user_Profile].zoom_level = OFF;  // set attenuator tracking state to OFF
+        MeterInUse = false;
+        if (toggle != -1)
+            clearMeter();
+    }
+
+    displayZoom();
+    DPRINT("Set Zoom to ");
+    DPRINTLN(user_settings[user_Profile].zoom_level);
+}
+
+// ---------------------------Zoom() ---------------------------
 //   Input: 0 = step to next based on last direction (starts upwards).  Ramps up then down then up.
 //          1 = step up 1 (zoomed in more)
 //         -1 = step down 1 (zoom out more )
 //          2 = use last zoom level used from user profile
 //   Zoom levels are x1, x2 and x4  Off is same as x1.
 //
-COLD void setZoom(int8_t dir)
+COLD void Zoom(int8_t dir)
 {
     static int8_t   direction   = -1;  // remember last direction
     int8_t   _zoom_Level = user_settings[user_Profile].zoom_level;   // Get last known value from user profile
