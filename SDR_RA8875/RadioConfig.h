@@ -199,7 +199,6 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       //#define MECH_ENCODERS
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
-      //#define NO_RSHFIQ_BLOCKING      // When combined with RS-HFIQ config, bypasses waiting for serial messages from hardwre allowing testign with no hardware connected
     #endif
 
     // Config items common or NA to both builds        
@@ -211,7 +210,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #undef AUDIOBOOST
     #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation in dB.  1.0f is pass through.
     #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-    #define W7PUA_I2S_CORRECTION
+    #define W7PUA_I2S_CORRECTION      // Attempt to resolve twin peak problem on SGTL5000 codec chip
 
     // Experimental features - use only one or none!
     //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
@@ -287,7 +286,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define ENC1_PIN_B      5
 #endif 
 
-#define VFO_PPR 6  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+#define VFO_PPR 10  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
 // I2C connected encoders use this this pin to signal interrupts
