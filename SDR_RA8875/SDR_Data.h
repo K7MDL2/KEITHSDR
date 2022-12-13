@@ -373,9 +373,9 @@ PROGMEM struct TuneSteps  tstep[TS_STEPS] = {
     {"1",   "Hz",      1, CW},
     {"10",  "Hz",     10, USB},
     {"100", "Hz",    100, USB},
-    {"1.0", "KHz",  1000, USB},
-    {"2.5", "KHz",  2500, USB},
-    {"5.0", "KHz",  5000, USB}
+    {"1",  "KHz",   1000, USB},
+    {"5",  "KHz",   5000, USB},
+    {"10", "KHz",  10000, USB}
 };
 
 //Remember filter per mode  Last field "Width" is writable
