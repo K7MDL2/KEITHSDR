@@ -1116,7 +1116,7 @@ COLD void RFgain(int8_t delta)
 // 3  is center the pan window
 COLD void setPAN(int8_t toggle)
 {
-    DPRINT("PAN toggle = "); DPRINTLN(toggle);
+    //DPRINT("PAN toggle = "); DPRINTLN(toggle);
 
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
