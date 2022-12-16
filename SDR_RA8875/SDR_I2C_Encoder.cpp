@@ -58,6 +58,7 @@ extern uint8_t curr_band;     // global tracks our current band setting.
 extern uint8_t user_Profile;  // global tracks our current user profile
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
+extern struct Label labels[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
 Metro press_timer  = Metro(600);
@@ -205,13 +206,21 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							if (z_lvl < 2 || z_lvl > 3)
 							tval = 0xFF0000;  // Change to red
 							break;
-		case FILTER_BTN:    if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)
+		case FILTER_BTN:    labels[FILTER_BTN].outline_color = CYAN;
+							labels[MODE_BTN].outline_color = BLACK;
+							displayFilter();
+							displayMode();
+							if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)
 							tval = 0xFF0000;  // Change to red
 							break;
 		case RATE_BTN:      if (bandmem[curr_band].tune_step < 1 || bandmem[curr_band].tune_step >= TS_STEPS-1)
 							tval = 0xFF0000;  // Change to red
 							break;
-		case MODE_BTN:      if (bandmem[curr_band].mode_A < 1 || bandmem[curr_band].mode_A >= MODES_NUM-1)
+		case MODE_BTN:      labels[MODE_BTN].outline_color = CYAN;
+							labels[FILTER_BTN].outline_color = BLACK;
+							displayFilter();
+							displayMode();
+							if (bandmem[curr_band].mode_A < 1 || bandmem[curr_band].mode_A >= MODES_NUM-1)
 							tval = 0xFF0000;  // Change to red
 							break;
 		default:  
@@ -411,7 +420,7 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 
 COLD void set_I2CEncoders()
 {
-    pinMode(I2C_INT_PIN, INPUT_PULLUP);
+	pinMode(I2C_INT_PIN, INPUT_PULLUP);
     DPRINTLN(F("Setup ENC"));
 
 	#ifdef MF_ENC_ADDR
@@ -457,7 +466,7 @@ COLD void set_I2CEncoders()
 		delay(20);
 		ENC2.begin(
 			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
@@ -487,7 +496,7 @@ COLD void set_I2CEncoders()
 		delay(20);
 		ENC3.begin(
 			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
@@ -517,7 +526,7 @@ COLD void set_I2CEncoders()
 		delay(20);
 		ENC4.begin(
 			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
