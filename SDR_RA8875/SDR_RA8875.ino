@@ -121,7 +121,7 @@ COLD void TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_USBIn_On,bo
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
-HOT void Check_Encoders(void);
+HOT  void Check_Encoders(void);
 #ifdef USE_RS_HFIQ
   HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
 #endif
@@ -227,17 +227,17 @@ float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft si
 // Pick the one to run through the whole audio chain and FFT on the display
 // defined in Spectrum_RA887x.h, included here for FYI.
 //#define FFT_SIZE 4096               // 4096 //2048//1024     
-uint16_t    fft_size            = FFT_SIZE;       // This value wil lbe passed to the lib init function.
+uint16_t    fft_size            = FFT_SIZE;       // This value will be passed to the init function.
                                                   // Ensure the matching FFT resources are enabled in the lib .h file!                            
-int16_t     fft_bins            = fft_size;       // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
+int16_t     fft_bins            = (int16_t) fft_size;       // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
 float       fft_bin_size        = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 const int   audio_block_samples = 128;          // do not change this!
 const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-uint16_t    TX_filterCenter = 1800;
-uint16_t    TX_filterBandwidth = 2000;
+uint16_t    TX_filterCenter = 1500;
+uint16_t    TX_filterBandwidth = 2800;
 #ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -710,7 +710,7 @@ COLD void setup()
                                                               // 2nd arg is current empty layout record (preset) value - usually 0
                                                               // calling generator before drawSpectrum() will create a new set of values based on the globals
                                                               // Generator only reads the global values, it does not change them or the database, just prints the new params                                                             
-    drawSpectrumFrame(user_settings[user_Profile].sp_preset); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
+    drawSpectrumFrame((uint8_t) (user_settings[user_Profile].sp_preset)); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
                                                               // DrawSpectrum does not read the globals but does update them to match the current preset.
                                                               // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
                                                               // Generator never modifies the globals so never affects the layout itself.
@@ -761,6 +761,21 @@ HOT void loop()
     static uint32_t time_sp;
     #endif
 
+ //JH
+    static uint16_t loopcount=0;
+    static uint32_t jhTime=millis();
+    loopcount++;
+    if(loopcount>10) {
+        tft.fillRect(210,20, 60,25, BLACK);
+        tft.setFont(Arial_16);
+    tft.setCursor(235,30, true);
+    tft.setTextColor(WHITE);
+    uint32_t jhElapsed=millis()-jhTime;
+    tft.print(jhElapsed/10); 
+    jhTime=millis();
+    loopcount=0; 
+    }
+
     #ifndef BYPASS_SPECTRUM_MODULE
         // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
         //if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
@@ -772,7 +787,7 @@ HOT void loop()
         //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
             Freq_Peak = spectrum_update(
                 user_settings[user_Profile].sp_preset,
-                1,  // No longer used, se tto 1
+                1,  // No longer used, set to 1
                 VFOA,               // for onscreen freq info
                 VFOB,               // Not really needed today
                 ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
@@ -1472,7 +1487,7 @@ COLD void digitalClockDisplay() {
 
 COLD void SetFilter(void)
 {
-    RX_FilterConv.initFilter((float32_t)filterCenter, 90, 2, filterBandwidth);
+    RX_FilterConv.initFilter((float32_t)filterCenter, 90.0f, 2, (float32_t)filterBandwidth);
 }
 
 COLD void initDSP(void)
