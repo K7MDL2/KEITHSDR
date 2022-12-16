@@ -236,8 +236,8 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-uint16_t    TX_filterCenter = 1500;
-uint16_t    TX_filterBandwidth = 2800;
+uint16_t    TX_filterCenter     = 1500;
+uint16_t    TX_filterBandwidth  = 2800;
 #ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -461,17 +461,17 @@ AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output audio to USB, line out
 
 #ifdef USB32
-AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
-AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
-//AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
-//AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
+    AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
+    AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
+    //AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
+    //AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
 #else
-AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
-AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
-AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
-AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
-//AudioConnection         patchcord_Out_USB_L16U(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
-//AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
+    AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
+    AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
+    AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
+    AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
+    //AudioConnection         patchcord_Out_USB_L16U(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
+    //AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
 
 #endif
 
@@ -704,19 +704,19 @@ COLD void setup()
     #endif    
        
 
-#ifndef BYPASS_SPECTRUM_MODULE    
-    Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
-                                                              // 1st arg is new target layout record - usually 0 unless you create more examples
-                                                              // 2nd arg is current empty layout record (preset) value - usually 0
-                                                              // calling generator before drawSpectrum() will create a new set of values based on the globals
-                                                              // Generator only reads the global values, it does not change them or the database, just prints the new params                                                             
-    drawSpectrumFrame((uint8_t) (user_settings[user_Profile].sp_preset)); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
-                                                              // DrawSpectrum does not read the globals but does update them to match the current preset.
-                                                              // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
-                                                              // Generator never modifies the globals so never affects the layout itself.
-                                                              // Print out our starting frequency for testing
-    //sp.drawSpectrumFrame(6);   // for 2nd window
-#endif  
+    #ifndef BYPASS_SPECTRUM_MODULE    
+        Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
+                                                                // 1st arg is new target layout record - usually 0 unless you create more examples
+                                                                // 2nd arg is current empty layout record (preset) value - usually 0
+                                                                // calling generator before drawSpectrum() will create a new set of values based on the globals
+                                                                // Generator only reads the global values, it does not change them or the database, just prints the new params                                                             
+        drawSpectrumFrame((uint8_t) (user_settings[user_Profile].sp_preset)); // Call after initSpectrum() to draw the spectrum object.  Arg is 0 PRESETS to load a preset record
+                                                                // DrawSpectrum does not read the globals but does update them to match the current preset.
+                                                                // Therefore always call the generator before drawSpectrum() to create a new set of params you can cut anmd paste.
+                                                                // Generator never modifies the globals so never affects the layout itself.
+                                                                // Print out our starting frequency for testing
+        //sp.drawSpectrumFrame(6);   // for 2nd window
+    #endif  
 
     DPRINT(F("\nInitial Dial Frequency is "));
     DPRINT(formatVFO(VFOA));
@@ -732,7 +732,7 @@ COLD void setup()
 
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     #ifdef DEBUG
-    printHelp();
+        printHelp();
     #endif
     
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
@@ -1104,7 +1104,7 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
 COLD void respondToByte(char c)
 {
     #ifdef DEBUG
-    char s[2];
+        char s[2];
     #endif
     s[0] = c;
     s[1] = 0;
@@ -1139,7 +1139,7 @@ COLD void printHelp(void)
     DPRINTLN(F("   C: Toggle printing of CPU and Memory usage"));
     //DPRINTLN(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
     //#ifdef USE_RS_HFIQ
-      //DPRINTLN(F("   R to display the RS-HFIQ Menu"));
+        //DPRINTLN(F("   R to display the RS-HFIQ Menu"));
     //#endif
 }
 #endif
