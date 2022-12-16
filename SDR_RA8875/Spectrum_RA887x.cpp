@@ -11,9 +11,9 @@
     extern RA8876_t3 tft;
 #endif
 
-uint16_t fft_sz = 0;
-int16_t fft_binc = 0;
-float fft_bin_sz = 0;
+//uint16_t fft_sz = 0;
+//int16_t fft_binc = 0;
+//float fft_bin_sz = 0;
 
 #ifdef BETATEST
     extern float32_t  fftOutput[];  // Array used for FFT Output to the INO program
@@ -67,7 +67,7 @@ uint8_t fft_axis = FFT_AXIS;
 // in your INO setup(), or 0 or 1, and pretty soon it will be what you want, maybe.
 
 int16_t _colorMap(int16_t val, int16_t color_temp);
-//int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz);
+int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz);
 char* _formatFreq(uint32_t Freq);
 //static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
 //inline uint16_t _Color565(uint8_t r, uint8_t g, uint8_t b);
@@ -158,9 +158,11 @@ void updateActiveWindow(bool full)
 //
 //      Updates the spectrum/waterfall windows with data from chosen FFT
 //
+//      JH add cyclecounter to track sequential partial updates
+//
 // -------------------------------------------------------------------------------------
 //
-int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc)
+int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float _pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.
@@ -169,181 +171,201 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
 //    records set the global variables the call the Spectrum_Generator() function and copy and paste the output displayed 
 //    on the Serial Terminal into the default array init table.
 
-    //if (s >= PRESETS) 
+	//if (s >= PRESETS)
     //    s=PRESETS-1;   // Cycle back to 0
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.    
     //struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
     *ptr = Sp_Parms_Def[s];
  
-    //int16_t blanking = 3; //3;  // used to remove the DC line from the graphs at Fc
+    static uint8_t cycleCounter         = 0; //JH
+	//JH: put this here and make it static
+    static int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
+    //JH moved to top of function
+    static uint32_t old_VFO_            = 0;
+    //JH moved to top of function, made static
+    static uint32_t _VFO_;   // Get active VFO frequency
+	//int16_t blanking = 3; //3;  // used to remove the DC line from the graphs at Fc
     int16_t pix_o16;
     int16_t pix_n16;
-    //static int16_t spect_scale_last     = 0;
+    //static int16_t spect_scale_last   = 0;
     //static int16_t spect_ref_last     = 0;
-    //int16_t fft_pk_bin                  = 0;
+    static int16_t fft_pk_bin           = 0;
     static int16_t fftPower_pk_last     = ptr->spect_floor;
     static int16_t pix_min              = ptr->spect_floor;
-    int32_t freq_peak                   = 0;
+    static int32_t freq_peak            = 0;
     static float old_fft_sz             = 0;        // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
-    int32_t L_EDGE_no_pan               = 0;        // internediate calculation used to pan
-    static float old_pan                = 0;        // update screen freq data when pan setting changes
+    static int16_t L_EDGE               = 0; 
+    static int32_t L_EDGE_no_pan        = 0;        // internediate calculation used to pan
+    static float old_pan                = 0.0f;        // update screen freq data when pan setting changes
+    static int16_t pan                  = 0;
 
     //for testing alignments
     //tft.drawRect(spectrum_x, spectrum_y, spectrum_width, spectrum_height, myBLUE);  // x start, y start, width, height, array of colors w x h
     //tft.drawRect(ptr->spect_x, ptr->spect_y, ptr->spect_width, ptr->spect_height, myBLUE);  // x start, y start, width, height, array of colors w x h
      
     int16_t         i;
-    float           avg = 0.0;
-    int16_t         pixelnew[SCREEN_WIDTH+2];   //  Stores current pixel for spectrum portion only
-    static int16_t  pixelold[SCREEN_WIDTH+2];   //  Stores copy of current pixel so it can be erased in next update
-    //int8_t span_FFT[SCREEN_WIDTH+2];          // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
+    static float    avg = 0.0f;
+	//JH make pixelnew static
+    static int16_t  pixelnew[SCREEN_WIDTH+2];           //  Stores current pixel for spectrum portion only
+    static int16_t  pixelold[SCREEN_WIDTH+2];    //  Stores copy of current pixel so it can be erased in next update
+    //int8_t span_FFT[SCREEN_WIDTH+2];         // Intended to store averaged values representnig a larger FFT set into the smaller screen width set
     float           *pout=NULL;
- 
-    // While more than 1 FFT may be enabled, only 1 (fft_size) is chosen for display
-    uint8_t         process_FFT = 0;
-    #ifdef FFT_4096
-        if (fft_sz == 4096 && myFFT_4096.available())
-        { 
-            #ifndef BETATEST
-                pout = myFFT_4096.getData();
-            #else
-                pout = fftOutput;
-            #endif
-            process_FFT = 1;
-        }
-    #endif
-    #ifdef FFT_2048
-        if (fft_sz == 2048 && myFFT_2048.available()) 
-        {
-            pout = myFFT_2048.getData();
-            process_FFT = 1;
-        }
-    #endif
-    #ifdef FFT_1024
-        if (fft_sz == 1024 && myFFT_1024.available()) 
-        {
-            pout = myFFT_1024.getData();
-            process_FFT = 1;
-        }
-    #endif
 
-    if (process_FFT == 1)
+    // JH first in sequence
+    if (cycleCounter==0) 
     {
-        //float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
-        // Only 1 of the FFT outputs can be displayed
-
-        int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
-        int16_t L_EDGE = 0;
-
-        #ifdef ENET
-            extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
-            extern uint8_t tx_buffer[];
-
-            if (enet_data_out && enet_ready)
+        // While more than 1 FFT may be enabled, only 1 (fft_size) is chosen for display
+        uint8_t         process_FFT = 0;
+        
+        #ifdef FFT_4096
+            if (fft_sz == 4096 && myFFT_4096.available())
             {
-                for (i = 0; i < fft_sz; i++)
-                {
-                    tx_buffer[i] = (uint8_t) fabsf(*(pout+i));
-                }
-                //memcpy(tx_buffer, full_FFT, fft_sz);
-                enet_write(tx_buffer, fft_sz);
+                #ifndef BETATEST
+                    pout = myFFT_4096.getData();
+                #else
+                    pout = fftOutput;
+                #endif
+                process_FFT = 1;
             }
         #endif
-// ToDO: Check if this is needed anymore
-        // Calculate center. If FFT is larger than graph area width, trim ends evently
-        if (ptr->spect_span == 50)   //span width in KHz.   50 is just used for dev test.
-        {   
-            // pack all bins into the available display width.  
-            //int wd = ptr->wf_sp_width;
-            //int div = ptr->spect_span;
-            //int binsz = round(fft_sz/wd);  // bins that will be compressed into 1 pixel to fit the screen
-            for (i = 0; i < ptr->wf_sp_width; i++)
-            {   
-                if ( i > SCREEN_WIDTH) // do not overrun our buffer size.  Ideally wf_sp_width would never be > SCREENWIDTH but....
-                    i = SCREEN_WIDTH;
-                //span_FFT[i] = (int16_t) sp_FFT.read(binsz*i);
+        #ifdef FFT_2048
+            if (fft_sz == 2048 && myFFT_2048.available())
+            {
+                pout = myFFT_2048.getData();
+                process_FFT = 1;
             }
-            //pout = span_FFT;
-           // DPRINT("Zoom Out =");
-           //DPRINTLN(binsz,DEC);
-        }   
-        else if ( fft_sz > ptr->wf_sp_width-2)  // When FFT data is > available graph area
+        #endif
+        #ifdef FFT_1024
+            if (fft_sz == 1024 && myFFT_1024.available())
+            {
+                pout = myFFT_1024.getData();
+                process_FFT = 1;
+            }
+        #endif
+
+        if (process_FFT == 1)
         {
-            pan *= (fft_sz - SCREEN_WIDTH);  // pan comes in as is -0.50f to +0.50f ==> calc # of bins to shift
-            L_EDGE_no_pan = (int16_t) ((fft_sz - ptr->wf_sp_width)/2); // left edge calc from reference center
-            L_EDGE = L_EDGE_no_pan + pan;  // shift the spectrum up to the max that the screen size can handle
-            pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
-        }
-// ToDo: Figure out if this is needed someday.
-        // else   // When FFT data is < available graph area
-        // {      // If our display area is less then our data width, fill in the outside areas with low values.
-            //L_EDGE = (ptr->wf_sp_width - fft_sz - )/2;
-            //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
-            /*
-            for (i=0; i< fft_sz/4; i++)
-                tempfft[i] = -500;
-            for (i=(fft_sz/4)*3; i< fft_size; i++)
-                 tempfft[i] = -500;
-            //L_EDGE = FFT_center - GRAPH_center;
-            */
-        // }
+            cycleCounter=1;     
+            //float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
+            // Only 1 of the FFT outputs can be displayed
 
-        for (i = 0; i < ptr->wf_sp_width; i++)        // Grab all FFT values.  Need to do at one time since averaging is looking at many values in this array
-        { 
-            if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
-            {
-               DPRINTLN(F("FFT Invalid Data INF or NaN"));
-                //Serial.println(*(pout+i));
-                pixelnew[i] = -200;   // fill in the missing value with somting harmless
-                //pixelnew[i] = sp_FFT.read(i+1);  // hope the next one is better.
-            }
-            // Now capture Spectrum value for use later
-            pixelnew[i] = (int16_t) *(pout+i);
+            //JH change to static at top of function
+            // int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
 
-            // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
-            switch (ptr->spect_wf_style)
-            {
-              case 0: if ( i > 1 )  // prevent reading array out of bounds < 1. 
+            #ifdef ENET
+                extern uint8_t enet_write(uint8_t *tx_buffer, const int count);
+                extern uint8_t tx_buffer[];
+
+                if (enet_data_out && enet_ready)
                 {
-                    avg = *(pout+(i*16/10))*0.5 + *(pout+(i-1)*16/10)*0.18 + *(pout+(i-2)*16/10)*0.07 + *(pout+(i+1)*16/10)*0.18 + *(pout+(i+2)*16/10)*0.07;
-                    //line_buffer[i] = (LPFcoeff * 8 * sqrt (100+(abs(avg)*wf_scale)) + (1 - LPFcoeff) * line_buffer[i]);
-                    line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrtf(fabsf(avg)) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);
+                    for (i = 0; i < fft_sz; i++)
+                    {
+                        tx_buffer[i] = (uint8_t) fabsf(*(pout+i));
+                    }
+                    //memcpy(tx_buffer, full_FFT, fft_sz);
+                    enet_write(tx_buffer, fft_sz);
                 }
-                      break;
-              case 1: if ( i > 1 )  // prevent reading array out of bounds < 1.
-                {
-                    avg = *(pout+i)*0.5 + *(pout+i-1)*0.18 + *(pout+i-2)*0.07 + *(pout+i+1)*0.18 + *(pout+i+2)*0.07;
-                    line_buffer[i] = ptr->spect_LPFcoeff * 8 * sqrtf(fabsf(avg)) + (1 - ptr->spect_LPFcoeff);
-                    line_buffer[i] = _colorMap(line_buffer[i], ptr->spect_wf_colortemp);
-                    //Serial.println(line_buffer[i]);
-                }
-                      break;
-              case 2: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)) * 1.9 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
-                      break;
-              case 3: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)) * 0.4 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
-                      break;
-              case 4: avg = line_buffer[i] = _colorMap(16000 - fabsf(*(pout+i)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale;
-                      break;
-              case 6: avg = line_buffer[i] = _waterfall_color_update(*(pout+i), pix_min);//  * ptr->spect_sp_scale;  // test new waterfall colorization method
-                      break;
-              case 5:
-             default: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)), ptr->spect_wf_colortemp);
-                      break;
-            };
-
-            //DPRINTLN(tft.gradient( (uint16_t) pix_n16));
-/* Used for VFO always on center of screen - commented out while trying to shift the VFO up screen to remove DC gap
-// Does not seem to be needed when SetNAverage is 3 or more + maybe AudioHighPassFilterEnable() on?
-            // Fc Blanking
-            if (i >= (ptr->wf_sp_width/2)-blanking  && i <= (ptr->wf_sp_width/2)+blanking+1)
+            #endif
+            // ToDO: Check if this is needed anymore
+            // Calculate center. If FFT is larger than graph area width, trim ends evently
+            if (ptr->spect_span == 50)   //span width in KHz.   50 is just used for dev test.
             {
-                line_buffer[i] = myBLACK;
-                if (i == ((ptr->wf_sp_width)/2) + 1)
-                    line_buffer[i] = myLT_GREY;  // draw center Fc line in waterfall
+                // pack all bins into the available display width.
+                //int wd = ptr->wf_sp_width;
+                //int div = ptr->spect_span;
+                //int binsz = round(fft_sz/wd);  // bins that will be compressed into 1 pixel to fit the screen
+                for (i = 0; i < ptr->wf_sp_width; i++)
+                {
+                    if ( i > SCREEN_WIDTH) // do not overrun our buffer size.  Ideally wf_sp_width would never be > SCREENWIDTH but....
+                        i = SCREEN_WIDTH;
+                    //span_FFT[i] = (int16_t) sp_FFT.read(binsz*i);
+                }
+                //pout = span_FFT;
+            // DPRINT("Zoom Out =");
+            //DPRINTLN(binsz,DEC);
             }
-*/            
-        }   // Done with copying the FFT output array
+            else if ( fft_sz > ptr->wf_sp_width-2)  // When FFT data is > available graph area
+            {
+                pan = (int16_t) (_pan * (fft_sz - SCREEN_WIDTH));  // pan comes in as is -0.50f to +0.50f ==> calc # of bins to shift
+                L_EDGE_no_pan = (int16_t) ((fft_sz - ptr->wf_sp_width)/2); // left edge calc from reference center
+                L_EDGE = L_EDGE_no_pan + pan;  // shift the spectrum up to the max that the screen size can handle
+                pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
+            }
+            // ToDo: Figure out if this is needed someday.
+            // else   // When FFT data is < available graph area
+            // {      // If our display area is less then our data width, fill in the outside areas with low values.
+                //L_EDGE = (ptr->wf_sp_width - fft_sz - )/2;
+                //pout = pout+L_EDGE;  // adjust the starting point up a bit to keep things centered.
+                /*
+                for (i=0; i< fft_sz/4; i++)
+                    tempfft[i] = -500;
+                for (i=(fft_sz/4)*3; i< fft_size; i++)
+                    tempfft[i] = -500;
+                //L_EDGE = FFT_center - GRAPH_center;
+                */
+            // }
 
+            for (i = 0; i < ptr->wf_sp_width; i++)        // Grab all FFT values.  Need to do at one time since averaging is looking at many values in this array
+            {
+                if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
+                {
+                DPRINTLN(F("FFT Invalid Data INF or NaN"));
+                    //Serial.println(*(pout+i));
+                    pixelnew[i] = -200;   // fill in the missing value with somting harmless
+                    //pixelnew[i] = sp_FFT.read(i+1);  // hope the next one is better.
+                }
+                // Now capture Spectrum value for use later
+                pixelnew[i] = (int16_t) *(pout+i);
+
+                // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
+                switch (ptr->spect_wf_style)
+                {
+                    case 0: if ( i > 1 )  // prevent reading array out of bounds < 1. 
+                        {
+                            avg = *(pout+(i*16/10))*0.5 + *(pout+(i-1)*16/10)*0.18 + *(pout+(i-2)*16/10)*0.07 + *(pout+(i+1)*16/10)*0.18 + *(pout+(i+2)*16/10)*0.07;                
+                            //line_buffer[i] = (LPFcoeff * 8 * sqrt (100+(abs(avg)*wf_scale)) + (1 - LPFcoeff) * line_buffer[i]);
+                            line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrtf(fabsf(avg)) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);                      
+                        }
+                            break;
+                    case 1: if ( i > 1 )  // prevent reading array out of bounds < 1.
+                        {
+                            avg = *(pout+i)*0.5 + *(pout+i-1)*0.18 + *(pout+i-2)*0.07 + *(pout+i+1)*0.18 + *(pout+i+2)*0.07;
+                            line_buffer[i] = ptr->spect_LPFcoeff * 8 * sqrtf(fabsf(avg)) + (1 - ptr->spect_LPFcoeff);
+                            line_buffer[i] = _colorMap(line_buffer[i], ptr->spect_wf_colortemp);
+                            //Serial.println(line_buffer[i]);
+                        }
+                            break;
+                    case 2: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)) * 1.9 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
+                            break;
+                    case 3: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)) * 0.4 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
+                            break;
+                    case 4: avg = line_buffer[i] = _colorMap(16000 - fabsf(*(pout+i)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale;
+                            break;
+                    case 6: avg = line_buffer[i] = _waterfall_color_update(*(pout+i), pix_min);//  * ptr->spect_sp_scale;  // test new waterfall colorization method
+                            break;
+                    case 5:
+                    default: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)), ptr->spect_wf_colortemp);
+                        break;
+                };
+
+                //DPRINTLN(tft.gradient( (uint16_t) pix_n16));
+                /* Used for VFO always on center of screen - commented out while trying to shift the VFO up screen to remove DC gap
+                // Does not seem to be needed when SetNAverage is 3 or more + maybe AudioHighPassFilterEnable() on?
+                // Fc Blanking
+                if (i >= (ptr->wf_sp_width/2)-blanking  && i <= (ptr->wf_sp_width/2)+blanking+1)
+                {
+                    line_buffer[i] = myBLACK;
+                    if (i == ((ptr->wf_sp_width)/2) + 1)
+                        line_buffer[i] = myLT_GREY;  // draw center Fc line in waterfall
+                }
+                */
+            }   // Done with copying the FFT output array
+        } 
+    }
+	// start of second sequence:waterfall
+	
+	else if (cycleCounter==1)
+    {
         for (i = 2; i < (ptr->wf_sp_width-1); i++)
         {
             if (i == 2)   // start with 2 because the end values contain special purpose or used for averaging
@@ -356,9 +378,10 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                     pix_min = pixelnew[i];
             }
         }
+
         // ***************************************************************************************************
         //
-        //      UPDATE WATERFALL
+        //      UPDATE WATERFALL 
         //      Takes a snapshot of the current window without the bottom row. Stores it in Layer 2 then brings it back beginning at the 2nd row. 
         //      Then write new row data into the missing top row to get a scroll effect using display hardware, not the CPU.
         //      Documentation for BTE: BTE_move(int16_t SourceX, int16_t SourceY, int16_t Width, int16_t Height, int16_t DestX, int16_t DestY, uint8_t SourceLayer=0, uint8_t DestLayer=0, bool Transparent = false, uint8_t ROP=RA8875_BTEROP_SOURCE, bool Monochrome=false, bool ReverseDir = false);
@@ -392,15 +415,19 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             tft.writeRect(ptr->l_graph_edge+1, ptr->wf_top_line+1, ptr->wf_sp_width, 1, (uint16_t*) &line_buffer);  // x start, y start, width, height, array of colors w x h
 
 //  16ms to get to here
-
+        cycleCounter=2;
+    }
 //--------------------------------  Spectrum Window ------------------------------------------
 //
 //      UPDATE SPECTRUM
 //      Done with waterfall, now UPDATE SPECTRUM section
 //      start at 2 to prevent reading out of bounds during averaging formula
 //      Draw our image on canvas 2 which is not visible
+//    JH - process this part in 8 sequential steps
 //
 // -------------------------------------------------------------------------------------------
+    else if(cycleCounter>1 && cycleCounter < 3) 
+    {  
         #ifdef USE_RA8875
             tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2); 
             tft.writeTo(L2);         //L1, L2, CGRAM, PATTERN, CURSOR     
@@ -414,24 +441,26 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+1, ptr->sp_bottom_line-1);
         #endif
         
-        // Erase old spectrum window
-        tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_height-2, BLACK);
-        
-        // Draw in filter bandwidth "shaded" area
-        int8_t filt_side = 0;
-        if (Offset == 1 || Offset == 0 || Offset == -1)
-        {
-            filt_side = Offset;  //Figure out mode to shade correct side
-        }
-        else
-        {
-            if (Offset > 1) filt_side = 1;
-            else filt_side = -1;
-        }
+		if (cycleCounter==2)
+        {  // do only on first spectrum window sequence
+			// Erase old spectrum window
+			tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_height-2, BLACK);
+			
+			// Draw in filter bandwidth "shaded" area
+			int8_t filt_side = 0;
+			if (Offset == 1 || Offset == 0 || Offset == -1)
+			{
+				filt_side = Offset;  //Figure out mode to shade correct side
+			}
+			else
+			{
+				if (Offset > 1) filt_side = 1;
+				else filt_side = -1;
+			}
 
-        // Draw the filter width shaded box.  Translucent would be better.  Correct for pan offset
-        tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_sz/2)*filt_side)-(filterBandwidth/fft_bin_sz/2/2)-pan, ptr->sp_top_line+1, filterBandwidth/fft_bin_sz/2, ptr->sp_height-2, myVERY_DARK_GREEN);
-
+			// Draw the filter width shaded box.  Translucent would be better.  Correct for pan offset
+			tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_sz/2)*filt_side)-(filterBandwidth/fft_bin_sz/2/2)-pan, ptr->sp_top_line+1, filterBandwidth/fft_bin_sz/2, ptr->sp_height-2, myVERY_DARK_GREEN);
+        }
         //---------------------------------------------------------------------------------------------------
         // Now draw the spectrum lines
         // --------------------------------------------------------------------------------------------------
@@ -445,21 +474,26 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
 
         //Serial.print("pix min =");DPRINTLN(pix_min);
    
-// 19 - 20ms to get to here.
-
-        for (i = 2; i < (ptr->wf_sp_width-1); i++) 
+        // 19 - 20ms to get to here.
+        //JH calculate the appropriate index range for each sequential update
+        uint16_t indexStart= (cycleCounter-2)*(ptr->wf_sp_width);  //  /2 update in 2 parts //  /8 for 8 parts
+        uint16_t indexEnd= indexStart+ptr->wf_sp_width;
+        if (indexStart>2) indexStart=2;
+        if (indexEnd > ptr->wf_sp_width-1) indexEnd=ptr->wf_sp_width-1;
+        // was:  for (i = 2; i < (ptr->wf_sp_width-1); i++) 
+        for (i = indexStart; i < indexEnd; i++)
         {       
-// Temp commented out for fixed offset coding - May not be needed anymore       
-//            if (i >= (ptr->wf_sp_width/2)-blanking-1 && i <= (ptr->wf_sp_width/2)+blanking+1)
-//                pixelnew[i] = -200; 
+            // Temp commented out for fixed offset coding - May not be needed anymore
+            //            if (i >= (ptr->wf_sp_width/2)-blanking-1 && i <= (ptr->wf_sp_width/2)+blanking+1)
+            //                pixelnew[i] = -200;
 
             //#define DBG_SPECTRUM_SCALE
             //#define DBG_SPECTRUM_PIXEL
             //#define DBG_SPECTRUM_WINDOWLIMITS
             
             #ifdef DBG_SPECTRUM_PIXEL
-           DPRINT(" raw =");
-           DPRINT(pixelnew[i],DEC);
+                DPRINT(" raw =");
+                DPRINT(pixelnew[i],DEC);
             #endif
             
             // limit the upper and lower dB level to between these ranges (set scale) (User Setting)  Can be limited further by window heights   
@@ -469,19 +503,19 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             // range limit our settings. This number is added to the spectrum floor.  The pixel value will be plotted where ever it lands as along as it is in the window.
 
             #ifdef DBG_SPECTRUM_SCALE
-           DPRINT("   SC_ORG=");DPRINT(ptr->spect_sp_scale);                  
+                DPRINT("   SC_ORG=");DPRINT(ptr->spect_sp_scale);
             #endif
         
             ptr->spect_sp_scale = constrain(ptr->spect_sp_scale, spectrum_scale_maxdB, spectrum_scale_mindB);
 
             #ifdef DBG_SPECTRUM_SCALE
-           DPRINT("   SC_LIM=");DPRINT(ptr->spect_sp_scale);                  
+                DPRINT("   SC_LIM=");DPRINT(ptr->spect_sp_scale);
             #endif
                 
             #ifdef DBG_SPECTRUM_SCALE
-           DPRINT("   SC_HT=");DPRINT(ptr->spect_sp_scale);
-           DPRINT("   HT=");DPRINT(ptr->sp_height-4);
-           DPRINT("   SC_FLR=");DPRINT(ptr->spect_floor);                  
+                DPRINT("   SC_HT=");DPRINT(ptr->spect_sp_scale);
+                DPRINT("   HT=");DPRINT(ptr->sp_height-4);
+                DPRINT("   SC_FLR=");DPRINT(ptr->spect_floor);
             #endif       
             
             // Invert the sign since the display is also inverted, Increasing value = weaker signal strength, they are now going the same direction.  
@@ -500,8 +534,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             pixelnew[i] = map(pixelnew[i], fabsf(pix_min), fabsf(ptr->spect_sp_scale), ptr->sp_bottom_line, ptr->sp_top_line); 
             
             #ifdef DBG_SPECTRUM_WINDOWLIMITS 
-            //DPRINT("  win-ht:");DPRINT(ptr->sp_height-4);
-           DPRINT("  top line=");DPRINT(ptr->sp_top_line+2);
+                //DPRINT("  win-ht:");DPRINT(ptr->sp_height-4);
+                DPRINT("  top line=");DPRINT(ptr->sp_top_line+2);
             #endif
             
             //#if defined (DBG_SPECTRUM_PIXEL) || defined (DBG_SPECTRUM_WINDOWLIMITS)
@@ -509,7 +543,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             //#endif
 
             #ifdef DBG_SPECTRUM_WINDOWLIMITS 
-           DPRINT("  bottom line=");DPRINT(ptr->sp_bottom_line-2);
+                DPRINT("  bottom line=");DPRINT(ptr->sp_bottom_line-2);
             #endif
 
             //#define DBG_SHOW_OVR
@@ -517,7 +551,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             if (pixelnew[i] < ptr->sp_top_line+1)        
             {
                 #if defined(DBG_SPECTRUM_WINDOWLIMITS) || defined(DBG_SPECTRUM_PIXEL) || defined(DBG_SPECTRUM_SCALE) || defined(DBG_SHOW_OVR) 
-               DPRINT(" !!OVR!! = ");   DPRINTLN(pixelnew[i] - ptr->sp_top_line+2,0);
+                    DPRINT(" !!OVR!! = ");   DPRINTLN(pixelnew[i] - ptr->sp_top_line+2,0);
                 #endif
                 pixelnew[i] = ptr->sp_top_line+1;
 
@@ -526,7 +560,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             if (pixelnew[i] > ptr->sp_bottom_line-1)        
             { 
                 #if defined(DBG_SPECTRUM_WINDOWLIMITS) || defined(DBG_SPECTRUM_PIXEL) || defined(DBG_SPECTRUM_SCALE) || defined(DBG_SHOW_OVR)
-               DPRINT(" !!UNDER!! = "); DPRINTLN(pixelnew[i] - ptr->sp_top_line+2,0);
+                    DPRINT(" !!UNDER!! = "); DPRINTLN(pixelnew[i] - ptr->sp_top_line+2,0);
                 #endif
                 pixelnew[i] = ptr->sp_bottom_line-1;
             }          
@@ -565,10 +599,43 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                 }
 //            }
         } // end of spectrum pixel plotting
+		    
+        #ifdef USE_RA8875
+            // Use BTE_Move to copy our fresh drawn spectrum form layer 2 to Layer 1
+            tft.writeTo(L1);         //L1, L2, CGRAM, PATTERN, CURSOR
+            // tft.BTE_move(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_height-2, ptr->l_graph_edge+1, ptr->sp_top_line+1, 2);  // Move layer 2 up to Layer 1 (1 is assumed).  0 means use current layer.            
+            //while (tft.readStatus());   // Make sure it is done.  Memory moves can take time.
+            tft.setActiveWindow();
+        #else
+            // BTE block copy it to page 1 spectrum window area. No flicker this way, no artifacts since we clear the window each time.            
+            //tft.boxGet(PAGE2_START_ADDR, ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width, ptr->sp_bottom_line-1, ptr->l_graph_edge+1, ptr->sp_top_line+1);
+            //tft.check2dBusy();            
+            tft.canvasImageStartAddress(PAGE1_START_ADDR);
+            setActiveWindow_default();
+        #endif
+		
+		cycleCounter++;
+	}
 
 // 36-44ms to get to here
 
-        // Draw Grid Lines  
+        // Draw Grid Lines 
+    else if (cycleCounter==3)
+    {
+
+        #ifdef USE_RA8875
+            tft.setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+2, ptr->sp_bottom_line-2); 
+            tft.writeTo(L2);         //L1, L2, CGRAM, PATTERN, CURSOR     
+        #else            
+            // NOTE - setActiveWindow() function in the RA8876_t3 library is marked as protected: Can change it to public:
+            // Instead we are using own copies for RA8876
+            // For RA8876 switch to hidden Page 2, draw our line and all label/info text as normal then at end, 
+            // do a BTE mem copy from page 2 to page 1 for a flicker free, clean screen drawn fast.
+            tft.canvasImageStartAddress(PAGE2_START_ADDR);
+            // Blank the plot area and we will draw a new line, flicker free!
+            setActiveWindow(ptr->l_graph_edge+1, ptr->r_graph_edge-1, ptr->sp_top_line+1, ptr->sp_bottom_line-1);
+        #endif
+
         //if (i == (ptr->wf_sp_width/2))  // Just draw once per update cycle
         //{
         // draw a grid line for XX dB level             
@@ -587,7 +654,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                     tft.print(j); 
                 //}
             }
-            
+           
             // redraw the pitch line if in CW modes (Offset not 0).  Offset is in HZ so corect for current fft bin size
             if (Offset < -1 || Offset > 1)  // only draw for CW modes
             {
@@ -600,6 +667,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
                 tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+3-pan, ptr->sp_top_line+1, ptr->sp_height, RED);
             }
         //}
+
 //--------------------------------------------------------------------------------------------------------------------
 //
 //      Drawing work is done, now update the information text
@@ -611,9 +679,8 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
 
 // 39-54ms to get to here.  45-51 more typical
 
- //       fft_pk_bin = _find_FFT_Max(L_EDGE+2, L_EDGE+ptr->wf_sp_width-2, fft_sz);   // get new frequency and power values for strongest signal 
+        fft_pk_bin = _find_FFT_Max(L_EDGE+2, L_EDGE+ptr->wf_sp_width-2, fft_sz);   // get new frequency and power values for strongest signal 
 
-        uint32_t _VFO_;   // Get active VFO frequency
         //if (bandmem[curr_band].VFO_AB_Active == VFO_A)
         if (VFOA_YES)
             _VFO_ = VfoA;
@@ -632,10 +699,12 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             fftPower_pk_last = -200;  // reset the timer since we have new good data
             //Serial.println("Reset");
         }
-//  The next 4 screen updates take 19-20ms.  Not likely worth it so leaving these commented out.  
-//   Total spectrum time reduces to 60ms from 80ms
-//time_spectrum = millis();              
-/*        // Calculate and print the frequency of the strongest signal if possible 
+
+        //  The next 4 screen updates take 19-20ms.  Not likely worth it so leaving these commented out.  
+        //   Total spectrum time reduces to 60ms from 80ms
+        //time_spectrum = millis();
+        
+        // Calculate and print the frequency of the strongest signal if possible 
         //DPRINT("Freq=");DPRINTLN(fftFrequency, 3); 
         //tft.fillRect(ptr->l_graph_edge+109,    ptr->sp_txt_row+30, 140, 13, BLACK);
         tft.setCursor(ptr->l_graph_edge+110,  ptr->sp_txt_row+30);
@@ -644,7 +713,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
         float pk_temp = (2 * (fft_bin_sz * (fft_pk_bin + pan)));   // relate the peak bin to the center bin
         freq_peak = _VFO_ + pk_temp;
         tft.print(_formatFreq(freq_peak));
-        
+        /*
         // Write the Scale value 
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);
         tft.print("S:   "); // actual value is updated elsewhere   
@@ -669,18 +738,18 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
         //}    
             
         // Write the dB range of the window 
-        tft.setTextColor(myLT_GREY, myBLACK);
+        tft.setTextColor(LIGHTGREY, BLACK);
         tft.setFont(Arial_10);
         tft.setCursor(ptr->r_graph_edge-50, ptr->sp_top_line+8);
         tft.print("H:   ");  // actual value is updated elsewhere
         tft.setCursor(ptr->r_graph_edge-38, ptr->sp_top_line+8); 
         tft.print(ptr->sp_height);
-*/
+        */
         // Reset spectrum screen blanking timeout
         spectrum_clear.reset();
     
-//Serial.println(millis()-time_spectrum);
-// 19-21ms from fft_pk_bin to here.
+        //Serial.println(millis()-time_spectrum);
+        // 19-21ms from fft_pk_bin to here.
 
         #ifdef USE_RA8875
             // Use BTE_Move to copy our fresh drawn spectrum form layer 2 to Layer 1
@@ -695,20 +764,20 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             tft.canvasImageStartAddress(PAGE1_START_ADDR);
             setActiveWindow_default();
         #endif
+        cycleCounter=4;
+	}
+    //
+    //------------------------ Code above is writing only in the active spectrum window ----------------------
+    //
+    // 27-28ms from fft_pk_bin to here.
 
-
-// 27-28ms from fft_pk_bin to here.
-
-//
-//------------------------ Code above is writing only in the active spectrum window ----------------------
-//
-//-----------------------   This part onward is outside the active spectrum window and al ------------------------------
-//
+    //-----------------------   This part onward is outside the active spectrum window and al ------------------------------
+    //
+    else if (cycleCounter==4)
+    {
         // Update the span labels with current VFO frequencies    
         tft.setTextColor(LIGHTGREY, BLACK);
         tft.setFont(Arial_12);
-
-        static uint32_t old_VFO_ = 0;
 
         if (old_VFO_ != _VFO_ || old_fft_sz != fft_sz || old_pan != pan)
         {
@@ -731,15 +800,18 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB,
             old_fft_sz = fft_sz;    // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
             old_pan = pan;          // update when the pan control changes
         }
+        cycleCounter=5;
     }                
-    else      // Clear stale data
-    {
+    else if(cycleCounter==5)
+    {     // Clear stale data
         if (spectrum_clear.check() == 1)      // Spectrum Screen blanking timer
         {
            DPRINTLN(F("*** Cleared Screen, no data to Draw! ***"));
             //tft.fillRect(ptr->l_graph_edge+1, ptr->sp_top_line+1, ptr->wf_sp_width-2, ptr->sp_height-2, myBLACK);
             //tft.drawFastVLine(ptr->l_graph_edge+ptr->wf_sp_width/2+1, ptr->sp_top_line+1, ptr->sp_height, myLT_GREY);
         }
+      
+        cycleCounter=0;  //we're done! start a new spectrum
     }
 
 // 0ms to get to here from the  end of spectrum BTW block move
@@ -892,7 +964,7 @@ FLASHMEM void initSpectrum(int16_t preset) // preset is the spectrum frame defin
 //          
 //  TODO:  Store data structure in EEPROM
 //
-void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset, uint16_t fft_binc)
+void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset, int16_t fft_binc)
 {
 //  User Variables used:
 //  int16_t spectrum_x              // 0 to width of display - window's NE corner. Must fit within the button frame edges left and right
