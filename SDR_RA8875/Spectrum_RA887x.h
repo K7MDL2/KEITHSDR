@@ -128,8 +128,8 @@ struct New_Spectrum_Layout {      // Temp storage for generating new layouts
       int16_t spectrum_wf_rate;       // window update rate in ms.  25 is fast enough to see dit and dahs well    
 };
 
-int32_t spectrum_update(int16_t s, int16_t VFOA_YES, int32_t VfoA, int32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float pan, uint16_t zoom_fft_size, float fft_bin_sz, int16_t fft_binc);
-void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset, uint16_t fft_binc);
+int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float _pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc);
+void Spectrum_Parm_Generator(int16_t parm_set, int16_t preset, int16_t fft_binc);
 void drawSpectrumFrame(uint8_t s);
 void initSpectrum(int16_t preset);
 void setActiveWindow(int16_t XL,int16_t XR ,int16_t YT ,int16_t YB);
