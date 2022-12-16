@@ -9,7 +9,7 @@
 //      XXXX can be the 256, 1024, 2048 or 4096 versions.
 //  Spectrum uses the raw FFT output and is not calibrated.
 //
-//  Test tones are enabled in spectrum only, not in audio path.
+//  Two-Tone test tones are enabled for transmit audio path by enabled ATU button before TX.
 //
 #include <Arduino.h>                    // from Arduino
 #include <avr/pgmspace.h>               // from Arduino
