@@ -21,6 +21,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     15. Panel button (and screen icon) MODE control now cycles up and back like Filter, Rate, and Zoom screen buttons (keys) do. This way separate + and - keys are not required saving space.  The encoders run right for max, left for min and do not cycle around.
     16. Zoom button is now MF knob enabled.
     17. MFTune control is now 1 step size higher than current step size for coarse tune.
+    18. Dec 16: Spectrum Chunking code now active again to reduce main loop cycle time.  Reduced the spectrum line write section from 8 passes (1/8 of spectrum per pass) to 1 pass to reduce VFO lag to minimum.  Still running around 10-14ms main loop times with ony slightly detectable VFO lag.  Unchunked there is virtually no lag.
+    19. Related to the ability to have 2 functions per encoder. If a valid encoder compatible function is assigned, AND, if the control has a status icon, the outline for the status icon will be turned on showing it is the active control on an encoder.  By default there is no icon placement near encoders on the edge of a screen since you can put encoders any where you like, or have some, or have none, unlike a production radio with fixed hardware and software.  Nothing stops you from rearranging the screen to have icons line up with your buttons and encoders if that is what you want.  Placement is all data table driven, no coding required.
+    20. More controls are encoder enabled.  AGC, ATU, ANT, FILTER, MODE, RATE, BANDUP, BANDDN, BAND, PAN, ZOOM, NB, ATTEN, REFLEVEL, RFGAIN, AFGAIN. The first 9 inthe above list are not yet MF knob enabled.
+    21. Insalled a more comprehensive tracking system for encoder current function. The initial simple system did not allow usetting outlines since the ID of the previous active control was not memorized.
 
 ## Nov 2022
 

@@ -122,6 +122,8 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
 HOT  void Check_Encoders(void);
+extern void update_icon_outline(void);
+
 #ifdef USE_RS_HFIQ
   HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
 #endif
@@ -200,13 +202,6 @@ uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales
 // Choose any from the MF Knob aware list below.
 uint8_t MF_client;  // Flag for current owner of MF knob services
 bool    MF_default_is_active = true;
-
-bool ENC1b_active = 0;  // ENCxb is the alternate encoder shaft function. A switch push toggles between the primary and alternate functions.
-bool ENC2b_active = 0;
-bool ENC3b_active = 0;
-bool ENC4b_active = 0;
-bool ENC5b_active = 0;
-bool ENC6b_active = 0;
 
 //
 //============================================  Start of Spectrum Setup Section =====================================================
@@ -746,6 +741,9 @@ COLD void setup()
     #ifdef ALL_CAT
         CAT_setup();   // Setup the MSG_Serial port for cnfigured Radio comm port
     #endif
+
+    update_icon_outline();  // update any icons related to active encoders functions
+    displayRefresh();
 }
 
 static uint32_t delta = 0;
@@ -768,12 +766,12 @@ HOT void loop()
     if(loopcount>10) {
         tft.fillRect(210,20, 60,25, BLACK);
         tft.setFont(Arial_16);
-    tft.setCursor(235,30, true);
-    tft.setTextColor(WHITE);
-    uint32_t jhElapsed=millis()-jhTime;
-    tft.print(jhElapsed/10); 
-    jhTime=millis();
-    loopcount=0; 
+        tft.setCursor(235,30, true);
+        tft.setTextColor(WHITE);
+        uint32_t jhElapsed=millis()-jhTime;
+        tft.print(jhElapsed/10); 
+        jhTime=millis();
+        loopcount=0; 
     }
 
     #ifndef BYPASS_SPECTRUM_MODULE
@@ -1263,6 +1261,18 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
 		case MODE_BTN:      if (counts > 0) counts =  1;
                             if (counts < 0) counts = -1;
                             setMode(counts);        break;
+    	case AGC_BTN:       if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            AGC(counts);            break;
+        case ATU_BTN:       if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            ATU(2);                 break;
+        case ANT_BTN:       Ant();                  break;
+        case BANDDN_BTN:    BandUp();               break;
+        case BANDUP_BTN:    BandDn();               break;
+        case BAND_BTN:      if (counts > 0) BandUp();
+                            if (counts < 0) BandDn(); 
+                                                    break;
         case MFTUNE :
         default     : {   
             old_ts = bandmem[curr_band].tune_step;   // Use MFTune as coarse Tune
@@ -2094,7 +2104,7 @@ void Check_Encoders(void)
             #ifdef MF_ENC_ADDR
             // Check the status of the encoder (if enabled) and call the callback
             
-            if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client)
+            if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client_a)
             {            
                 mfg = MF_ENC.readStatus();
                 if (mfg) {}
@@ -2102,7 +2112,7 @@ void Check_Encoders(void)
             }
             #endif
             #ifdef ENC2_ADDR
-            if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client)
+            if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client_a)
             {
                 mfg = ENC2.readStatus();
                 if (mfg) {}
@@ -2110,7 +2120,7 @@ void Check_Encoders(void)
             }
             #endif
             #ifdef ENC3_ADDR
-            if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client)
+            if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client_a)
             {
                 mfg = ENC3.readStatus();
                 if (mfg) {}
@@ -2118,7 +2128,7 @@ void Check_Encoders(void)
             }
             #endif
             #ifdef ENC4_ADDR
-            if(ENC4.updateStatus() && user_settings[user_Profile].encoder4_client)
+            if(ENC4.updateStatus() && user_settings[user_Profile].encoder4_client_a)
             {
                 mfg = ENC4.readStatus();
                 if (mfg) {}
@@ -2126,7 +2136,7 @@ void Check_Encoders(void)
             }
             #endif
             #ifdef ENC5_ADDR
-            if(ENC5.updateStatus() && user_settings[user_Profile].encoder5_client)
+            if(ENC5.updateStatus() && user_settings[user_Profile].encoder5_client_a)
             {
                 mfg = ENC5.readStatus();
                 if (mfg) {}
@@ -2134,7 +2144,7 @@ void Check_Encoders(void)
             }
             #endif
             #ifdef ENC6_ADDR
-            if(ENC6.updateStatus() && user_settings[user_Profile].encoder6_client)
+            if(ENC6.updateStatus() && user_settings[user_Profile].encoder6_client_a)
             {
                 mfg = ENC6.readStatus();
                 if (mfg) {}

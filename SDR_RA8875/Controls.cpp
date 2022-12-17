@@ -37,6 +37,7 @@ extern struct   AGC                 agc_set[];
 extern struct   NB                  nb[];
 extern struct   Spectrum_Parms      Sp_Parms_Def[];
 extern struct   Zoom_Lvl            zoom[];
+extern uint8_t	                    cntl_active[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
 extern AudioControlSGTL5000         codec1;
@@ -75,12 +76,6 @@ extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
 #endif
 extern          float               pan;
 extern          void                send_fixed_cmd_to_RSHFIQ(const char * str);
-extern          bool ENC1b_active;  // ENCxb is the alternate encoder shaft function. A switch push toggles between the primary and alternate functions.
-extern          bool ENC2b_active;
-extern          bool ENC3b_active;
-extern          bool ENC4b_active;
-extern          bool ENC5b_active;
-extern          bool ENC6b_active;
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -103,7 +98,7 @@ void Ant();
 void Fine();
 void Rate(int8_t dir);
 void setMode(int8_t dir);
-void AGC();
+void AGC(int8_t dir);
 void Filter(int8_t dir);
 void ATU();
 void Xvtr();
@@ -339,7 +334,7 @@ COLD void setMode(int8_t dir)
 COLD void Filter(int8_t dir)
 { 
     static int8_t direction = 1;
-    int8_t _bw = bandmem[curr_band].filter; // Change Bandwidth  - cycle down then back to the top
+    int16_t _bw = bandmem[curr_band].filter; // Change Bandwidth  - cycle down then back to the top
     
     uint8_t _mode;
 
@@ -397,15 +392,17 @@ COLD void Filter(int8_t dir)
     if (_bw < 0)  // limit in case of encoder counts
         _bw = 0; 
 
+    //DPRINT("_bw=");DPRINT(_bw);
+
     if (dir == 2) // Use last filter width used in this mode, ignore the rest (hopefully it is valid)
     {    
         if (modeList[_mode].Width <= BW4_0 && modeList[_mode].Width >= 0)
-            _bw = modeList[_mode].Width;
+            _bw = (int16_t) modeList[_mode].Width;
     }
     else
-        modeList[_mode].Width = _bw;  //if filter changed without a mode change, store it in last use per mode table.
+        modeList[_mode].Width = (uint16_t) _bw;  //if filter changed without a mode change, store it in last use per mode table.
 
-    selectBandwidth(_bw);
+    selectBandwidth((uint8_t)_bw);
     //DPRINT("Set Filter to ");
     //DPRINTLN(bandmem[curr_band].filter);
     displayFilter();
@@ -471,9 +468,22 @@ COLD void Rate(int8_t dir)
 }
 
 // AGC button
-COLD void AGC()
+// 2 = cycle around
+// -1, 0, +1  cycle up or down or stay the same
+COLD void AGC(int8_t dir)
 {
-    selectAgc(bandmem[curr_band].agc_mode + 1);            
+    int8_t a_md = bandmem[curr_band].agc_mode;
+    a_md += dir;
+    if (a_md < 0) a_md = 0;
+    if (a_md > AGC_SET_NUM-1) a_md = AGC_SET_NUM-1;
+    
+    if (dir == 2) 
+        selectAgc(bandmem[curr_band].agc_mode + 1);
+    else
+    {
+        bandmem[curr_band].agc_mode = (uint8_t) a_md;
+        selectAgc(bandmem[curr_band].agc_mode);
+    }
     //DPRINT("Set AGC to ");
     //DPRINTLN(bandmem[curr_band].agc_mode);            
     sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
@@ -1660,16 +1670,175 @@ void setEncoderMode(uint8_t id)
     {
         //DPRINT("Encoder Switch ID = ");
         //DPRINTLN(id);
+
+        // when switch is tapped, toggle which function is assigned to the encoder rotation
         switch (id)
         {
-            case ENC1_BTN:  ENC1b_active ^= 1; break;   
-            case ENC2_BTN:  ENC2b_active ^= 1; break;   // when switch is tapped, toggle which function is assigned to the encoder rotation
-            case ENC3_BTN:  ENC3b_active ^= 1; break;
-            case ENC4_BTN:  ENC4b_active ^= 1; break;
-            case ENC5_BTN:  ENC5b_active ^= 1; break;
-            case ENC6_BTN:  ENC6b_active ^= 1; break;
+            uint8_t enca, encb;
+
+                case ENC1_BTN: 
+                    enca = user_settings[user_Profile].encoder1_client_a;
+                    encb = user_settings[user_Profile].encoder1_client_b;
+                    
+                    if (cntl_active[enc1_cli_a] == 0) 
+                    {
+                        cntl_active[enc1_cli_a] = enca;  // store the assigned function into the active status array
+                        if (std_btn[enca].label_idx != 255)
+                            labels[std_btn[enca].label_idx].outline_color = CYAN;  // update status icon outline
+                        
+                        cntl_active[enc1_cli_b] = 0;   // clear the alternate
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = BLACK;  // update status icon outline
+                    }
+                    else   
+                    {
+                        cntl_active[enc1_cli_a] = 0;   // clear the alternate                       
+                        if (std_btn[enca].label_idx != 255)                        
+                            labels[std_btn[enca].label_idx].outline_color = BLACK;  // update status icon outline
+                        
+                        cntl_active[enc1_cli_b] = encb;   // store the assigned function into the active status array
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = CYAN;  // update status icon outline    
+                    }                       		
+                    break;            
+            #ifdef ENC2_ADDR
+                case ENC2_BTN: 
+                    enca = user_settings[user_Profile].encoder2_client_a;
+                    encb = user_settings[user_Profile].encoder2_client_b;
+                     
+                    if (cntl_active[enc2_cli_a] == 0) 
+                    {
+                        cntl_active[enc2_cli_a] = enca;  // store the assigned function into the active status array
+                        if (std_btn[enca].label_idx != 255)
+                            labels[std_btn[enca].label_idx].outline_color = CYAN;  // update status icon outline
+                        
+                        cntl_active[enc2_cli_b] = 0;   // clear the alternate
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = BLACK;  // update status icon outline
+                    }
+                    else   
+                    {
+                        cntl_active[enc2_cli_a] = 0;   // clear the alternate                       
+                        if (std_btn[enca].label_idx != 255)                        
+                            labels[std_btn[enca].label_idx].outline_color = BLACK;  // update status icon outline
+                        
+                        cntl_active[enc2_cli_b] = encb;   // store the assigned function into the active status array
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = CYAN;  // update status icon outline    
+                    }
+                    break;
+            #endif
+            #ifdef ENC3_ADDR
+                case ENC3_BTN:  
+                    enca = user_settings[user_Profile].encoder3_client_a;
+                    encb = user_settings[user_Profile].encoder3_client_b;
+                     
+                    if (cntl_active[enc3_cli_a] == 0) 
+                    {
+                        cntl_active[enc3_cli_a] = enca;  // store the assigned function into the active status array
+                        if (std_btn[enca].label_idx != 255)
+                            labels[std_btn[enca].label_idx].outline_color = CYAN;  // update status icon outline
+                        
+                        cntl_active[enc3_cli_b] = 0;   // clear the alternate
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = BLACK;  // update status icon outline
+                    }
+                    else   
+                    {
+                        cntl_active[enc3_cli_a] = 0;   // clear the alternate                       
+                        if (std_btn[enca].label_idx != 255)                        
+                            labels[std_btn[enca].label_idx].outline_color = BLACK;  // update status icon outline
+                        
+                        cntl_active[enc3_cli_b] = encb;   // store the assigned function into the active status array
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = CYAN;  // update status icon outline    
+                    }
+                    break;
+            #endif
+            #ifdef ENC4_ADDR
+                case ENC4_BTN:  
+                    enca = user_settings[user_Profile].encoder4_client_a;
+                    encb = user_settings[user_Profile].encoder4_client_b;
+                     
+                    if (cntl_active[enc4_cli_a] == 0) 
+                    {
+                        cntl_active[enc4_cli_a] = enca;  // store the assigned function into the active status array
+                        if (std_btn[enca].label_idx != 255)
+                            labels[std_btn[enca].label_idx].outline_color = CYAN;  // update status icon outline
+                        
+                        cntl_active[enc4_cli_b] = 0;   // clear the alternate
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = BLACK;  // update status icon outline
+                    }
+                    else   
+                    {
+                        cntl_active[enc4_cli_a] = 0;   // clear the alternate                       
+                        if (std_btn[enca].label_idx != 255)                        
+                            labels[std_btn[enca].label_idx].outline_color = BLACK;  // update status icon outline
+                        
+                        cntl_active[enc4_cli_b] = encb;   // store the assigned function into the active status array
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = CYAN;  // update status icon outline    
+                    }
+                    break;
+            #endif
+            #ifdef ENC5_ADDR
+                case ENC5_BTN:  
+                    enca = user_settings[user_Profile].encoder5_client_a;
+                    encb = user_settings[user_Profile].encoder5_client_b;
+                     
+                    if (cntl_active[enc5_cli_a] == 0) 
+                    {
+                        cntl_active[enc5_cli_a] = enca;  // store the assigned function into the active status array
+                        if (std_btn[enca].label_idx != 255)
+                            labels[std_btn[enca].label_idx].outline_color = CYAN;  // update status icon outline
+                        
+                        cntl_active[enc5_cli_b] = 0;   // clear the alternate
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = BLACK;  // update status icon outline
+                    }
+                    else   
+                    {
+                        cntl_active[enc5_cli_a] = 0;   // clear the alternate                       
+                        if (std_btn[enca].label_idx != 255)                        
+                            labels[std_btn[enca].label_idx].outline_color = BLACK;  // update status icon outline
+                        
+                        cntl_active[enc5_cli_b] = encb;   // store the assigned function into the active status array
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = CYAN;  // update status icon outline    
+                    }
+                    break;
+            #endif
+            #ifdef ENC6_ADDR
+                case ENC6_BTN:  
+                    enca = user_settings[user_Profile].encoder6_client_a;
+                    encb = user_settings[user_Profile].encoder6_client_b;
+                     
+                    if (cntl_active[enc6_cli_a] == 0) 
+                    {
+                        cntl_active[enc6_cli_a] = enca;  // store the assigned function into the active status array
+                        if (std_btn[enca].label_idx != 255)
+                            labels[std_btn[enca].label_idx].outline_color = CYAN;  // update status icon outline
+                        
+                        cntl_active[enc6_cli_b] = 0;   // clear the alternate
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = BLACK;  // update status icon outline
+                    }
+                    else   
+                    {
+                        cntl_active[enc6_cli_a] = 0;   // clear the alternate                       
+                        if (std_btn[enca].label_idx != 255)                        
+                            labels[std_btn[enca].label_idx].outline_color = BLACK;  // update status icon outline
+                        
+                        cntl_active[enc6_cli_b] = encb;   // store the assigned function into the active status array
+                        if (std_btn[encb].label_idx != 255)
+                            labels[std_btn[encb].label_idx].outline_color = CYAN;  // update status icon outline    
+                    }
+                    break;
+            #endif
             default: break;
         }
+        displayRefresh();
     }
 }
 

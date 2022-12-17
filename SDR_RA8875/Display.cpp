@@ -36,6 +36,7 @@ extern struct 	AGC agc_set[];
 extern struct 	NB nb[];
 extern struct 	Modes_List modeList[];
 extern struct 	TuneSteps tstep[];
+extern uint8_t	cntl_active[];
 extern bool    	MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern uint8_t 	MF_client;  // Flag for current owner of MF knob services
 extern int32_t 	ModeOffset;
@@ -53,6 +54,7 @@ unsigned int rainbow(byte value);
 void _triangle_helper(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color, bool filled);
 void drawQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2,int16_t x3, int16_t y3, uint16_t color);
 void fillQuad(int16_t x0, int16_t y0,int16_t x1, int16_t y1,int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color, bool triangled) ;
+void update_icon_outline(void);
 
 struct User_Settings 	 *pTX    = &user_settings[user_Profile];
 struct Frequency_Display *pVAct  = &disp_Freq[0];     // pointer to Active VFO Digits record
@@ -166,15 +168,16 @@ COLD void displayFreq(void)
 
 COLD void displayMode(void)
 {
-	uint8_t mode;
+	uint8_t _mode;
 
 	if (popup) return;  // Do not write to the screen when a window is active
 
-	mode = bandmem[curr_band].mode_A;
+	_mode = bandmem[curr_band].mode_A;
+
 	//sprintf(std_btn[MODE_BTN].label, "%s", Mode[mode]);
-	sprintf(labels[MODE_LBL].label, "%s", modeList[mode].mode_label);
-	drawLabel(MODE_LBL, &mode);
-	draw_2_state_Button(MODE_BTN, &mode);
+	sprintf(labels[MODE_LBL].label, "%s", modeList[_mode].mode_label);
+	drawLabel(MODE_LBL, &_mode);
+	draw_2_state_Button(MODE_BTN, &_mode);
 }
 
 COLD void displayFilter(void)
@@ -1509,6 +1512,20 @@ COLD void pop_win_down(uint8_t win_num)
         popup_timer.interval(500);      
         //displayRefresh();
     }
+}
+
+// Checks to see if any icons are related to an active assigned encoder to indicate what functon an encoder shaft currently is.
+// Updates the outline color if an active
+// Should only be called on initial startup since this does not unset.  It assumes they are all off.  
+// On button events the colors are then toggled and tracked.
+void update_icon_outline(void)
+{
+	extern void setEncoderMode(uint8_t id);
+	for (uint8_t i=MF_ENC_ADDR; i<= ENC6_BTN; i++)  // search to see if our button is the active encoder assignment
+	{
+		//DPRINT("i=");DPRINT(i);DPRINT("  function=");DPRINTLN(cntl_active[i]);
+		setEncoderMode(i);   // same as pressing all encoder switches to initialize things.
+	}
 }
 
 //	#endif // ifndef USE_RA8875

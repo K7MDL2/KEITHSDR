@@ -704,7 +704,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 switch (i)
                 {
                     case NB_BTN:        setNB(1);       break; //Increment the mode from current value           
-                    case AGC_BTN:       AGC();          break;   
+                    case AGC_BTN:       AGC(0);          break;   
                     case ATTEN_BTN:     setAtten(1);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
@@ -743,7 +743,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case MODE_LBL:      setMode(0);     break; //Increment the mode from current value
                     case FILTER_LBL:    Filter(0);      break;
                     case RATE_LBL:      Rate(0);        break;
-                    case AGC_LBL:       AGC();          break;
+                    case AGC_LBL:       AGC(0);          break;
                     case ANT_LBL:       Ant();          break;
                     default:DPRINT(F("Found a Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
                       DPRINTLN(i); break;
@@ -785,7 +785,7 @@ void Button_Action(uint16_t button_name)
             case MODE_BTN:      setMode(0);     break; //Increment the mode from current value
             case FILTER_BTN:    Filter(0);      break;
             case RATE_BTN:      Rate(0);        break; //Increment from current value 
-            case AGC_BTN:       AGC();          break;
+            case AGC_BTN:       AGC(2);          break;
             case ANT_BTN:       Ant();          break;                    
             case MUTE_BTN:      Mute();         break;
             case MENU_BTN:      Menu();         break;

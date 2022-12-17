@@ -8,7 +8,6 @@
 extern AudioMixer4_F32  	RX_Summer; 
 extern AudioSwitch4_OA_F32  RxTx_InputSwitch_L;
 extern AudioSwitch4_OA_F32  RxTx_InputSwitch_R;
-extern struct Modes_List 	modeList[];
 extern int32_t 				ModeOffset;
 extern struct User_Settings user_settings[];
 extern uint8_t              user_Profile;
@@ -130,6 +129,7 @@ COLD void selectMode(uint8_t mndx)   // Change Mode of the current active VFO by
 		NBLevel(-100);	// Turn off NB for FM mode
 	}
 
+	//extern struct Modes_List 	modeList[];
 	//DPRINT("Set ModeOffset "); DPRINTLN(ModeOffset);
 	//DPRINT("Set mode to "); DPRINTLN(modeList[mndx].mode_label);  	
   	//displayMode();

@@ -53,26 +53,23 @@
 #include <i2cEncoderLibV2.h>
 // These are the per-encoder function declarations
 void set_I2CEncoders(void); 
+void setEncoderMode(uint8_t id);
 extern uint8_t MF_client;     // Flag for current owner of MF knob services
 extern uint8_t curr_band;     // global tracks our current band setting. 
 extern uint8_t user_Profile;  // global tracks our current user profile
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 extern struct Label labels[];
+extern uint8_t	cntl_active[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
-Metro press_timer  = Metro(600);
+
+Metro press_timer1 = Metro(600);
 Metro press_timer2 = Metro(600);
 Metro press_timer3 = Metro(600);
 Metro press_timer4 = Metro(600);
 Metro press_timer5 = Metro(600);
 Metro press_timer6 = Metro(600);
-extern bool ENC1b_active;  // ENCxb is the alternate encoder shaft function. A switch push toggles between the primary and alternate functions.
-extern bool ENC2b_active;
-extern bool ENC3b_active;
-extern bool ENC4b_active;
-extern bool ENC5b_active;
-extern bool ENC6b_active;
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
@@ -116,7 +113,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	//DPRINT(F("Encoder ID = "));
     //DPRINTLN(obj->id);
 
-	if (obj->id == user_settings[user_Profile].encoder1_client)
+	if (obj->id == user_settings[user_Profile].encoder1_client_a)
 		knob_assigned = MF_client; 
 	else
 		knob_assigned = obj->id;
@@ -129,26 +126,39 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	//DPRINTLN(count);
 
 	// reassign knob functionality to alternate mode if alternate active
-	if (ENC1b_active && knob_assigned == user_settings[user_Profile].encoder1_client)
-		knob_assigned = user_settings[user_Profile].encoder1_clientb;
-	if (ENC2b_active && knob_assigned == user_settings[user_Profile].encoder2_client)
-		knob_assigned = user_settings[user_Profile].encoder2_clientb;
-	if (ENC3b_active && knob_assigned == user_settings[user_Profile].encoder3_client)
-		knob_assigned = user_settings[user_Profile].encoder3_clientb;
-	if (ENC4b_active && knob_assigned == user_settings[user_Profile].encoder4_client)
-		knob_assigned = user_settings[user_Profile].encoder4_clientb;
-	if (ENC5b_active && knob_assigned == user_settings[user_Profile].encoder5_client)
-		knob_assigned = user_settings[user_Profile].encoder5_clientb;
-	if (ENC6b_active && knob_assigned == user_settings[user_Profile].encoder6_client)
-		knob_assigned = user_settings[user_Profile].encoder6_clientb;
-	
+	// If a button tap (switch) happens and it is ENCx_BTN, setMode() is called in control.cpp.  The function assigned to that encoder shaft is set to the alternate function (a vs b) and the unset staus s set to 0.
+	#ifdef MF_ENC_ADDR
+	if (cntl_active[enc1_cli_b] && (knob_assigned == user_settings[user_Profile].encoder1_client_a))
+		knob_assigned = user_settings[user_Profile].encoder1_client_b;
+	#endif
+	#ifdef ENC2_ADDR
+	if (cntl_active[enc2_cli_b] && (knob_assigned == user_settings[user_Profile].encoder2_client_a))
+		knob_assigned = user_settings[user_Profile].encoder2_client_b;
+	#endif
+	#ifdef ENC3_ADDR
+	if (cntl_active[enc3_cli_b] && (knob_assigned == user_settings[user_Profile].encoder3_client_a))
+		knob_assigned = user_settings[user_Profile].encoder3_client_b;
+	#endif
+	#ifdef ENC4_ADDR
+	if (cntl_active[enc4_cli_b] && (knob_assigned == user_settings[user_Profile].encoder4_client_a))
+		knob_assigned = user_settings[user_Profile].encoder4_client_b;
+	#endif
+	#ifdef ENC5_ADDR
+	if (cntl_active[enc5_cli_b] && (knob_assigned == user_settings[user_Profile].encoder5_client_a))
+		knob_assigned = user_settings[user_Profile].encoder5_client_b;
+	#endif
+	#ifdef ENC6_ADDR
+	if (cntl_active[enc6_cli_b] && (knob_assigned == user_settings[user_Profile].encoder6_client_a))
+		knob_assigned = user_settings[user_Profile].encoder6_client_b;
+	#endif
+
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
 	//DPRINT(F("Knob Assigned to "));
 	//DPRINTLN(knob_assigned);
-	
+
 	switch(knob_assigned)
 	{
 		char string[80];   // print format stuff
@@ -206,22 +216,28 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							if (z_lvl < 2 || z_lvl > 3)
 							tval = 0xFF0000;  // Change to red
 							break;
-		case FILTER_BTN:    labels[FILTER_BTN].outline_color = CYAN;
-							labels[MODE_BTN].outline_color = BLACK;
-							displayFilter();
-							displayMode();
-							if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)
+		case FILTER_BTN:	if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)
 							tval = 0xFF0000;  // Change to red
 							break;
 		case RATE_BTN:      if (bandmem[curr_band].tune_step < 1 || bandmem[curr_band].tune_step >= TS_STEPS-1)
 							tval = 0xFF0000;  // Change to red
 							break;
-		case MODE_BTN:      labels[MODE_BTN].outline_color = CYAN;
-							labels[FILTER_BTN].outline_color = BLACK;
-							displayFilter();
-							displayMode();
-							if (bandmem[curr_band].mode_A < 1 || bandmem[curr_band].mode_A >= MODES_NUM-1)
+		case MODE_BTN:      if (bandmem[curr_band].mode_A < 1 || bandmem[curr_band].mode_A >= MODES_NUM-1)
 							tval = 0xFF0000;  // Change to red
+							break;
+		case ATU_BTN:       if (bandmem[curr_band].ATU < 1 || bandmem[curr_band].ATU > 0)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case ANT_BTN:       if (bandmem[curr_band].ant_sw < 1 || bandmem[curr_band].ant_sw > 0)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case BANDUP_BTN:    if (bandmem[curr_band].ant_sw < 1 || bandmem[curr_band].ant_sw > 0)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case BANDDN_BTN:    if (bandmem[curr_band].ant_sw < 1 || bandmem[curr_band].ant_sw > 0)
+							tval = 0xFF0000;  // Change to red
+							break;
+		case BAND_BTN:      tval = 0xFF0000;  // Change to red
 							break;
 		default:  
 							#ifdef USE_MIDI
@@ -237,7 +253,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 //Callback when the encoder is pushed
 COLD void encoder_click(i2cEncoderLibV2* obj) 
 {
-	if (obj->id == user_settings[user_Profile].encoder1_client && press_timer.check() == 1)
+	if (obj->id == user_settings[user_Profile].encoder1_client_a && press_timer1.check() == 1)
 	{	
 		DPRINTLN(F("Long MF Knob Push"));
 		obj->writeRGBCode(0x00FF00);
@@ -248,7 +264,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder1_client_swl);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder1_client)
+	else if (obj->id == user_settings[user_Profile].encoder1_client_a)
 	{
 		DPRINTLN(F("MF Knob Push"));
 		obj->writeRGBCode(0xFF0000);
@@ -259,7 +275,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder1_client_sw);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder2_client && press_timer2.check() == 1)
+	else if (obj->id == user_settings[user_Profile].encoder2_client_a && press_timer2.check() == 1)
 	{
 		DPRINTLN(F("Knob #2 Long Push"));
 		obj->writeRGBCode(0x00FF00);
@@ -270,7 +286,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder2_client_swl);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder2_client)
+	else if (obj->id == user_settings[user_Profile].encoder2_client_a)
 	{
 		DPRINTLN(F("Knob #2 Push"));
 		obj->writeRGBCode(0x0000FF);
@@ -281,7 +297,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder2_client_sw);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder3_client && press_timer3.check() == 1)
+	else if (obj->id == user_settings[user_Profile].encoder3_client_a && press_timer3.check() == 1)
 	{
 		DPRINTLN(F("Knob #3 Long Push"));
 		obj->writeRGBCode(0x00FF00);
@@ -292,7 +308,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder3_client_swl);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder3_client)
+	else if (obj->id == user_settings[user_Profile].encoder3_client_a)
 	{
 		DPRINTLN(F("Knob #3 Push"));
 		obj->writeRGBCode(0x0000FF);
@@ -303,7 +319,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder3_client_sw);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder4_client && press_timer4.check() == 1)
+	else if (obj->id == user_settings[user_Profile].encoder4_client_a && press_timer4.check() == 1)
 	{
 		DPRINTLN(F("Knob #4 Long Push"));
 		obj->writeRGBCode(0x00FF00);
@@ -314,7 +330,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder4_client_swl);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder4_client)
+	else if (obj->id == user_settings[user_Profile].encoder4_client_a)
 	{
 		DPRINTLN(F("Knob #4 Push"));
 		obj->writeRGBCode(0x0000FF);
@@ -325,7 +341,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder4_client_sw);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder5_client && press_timer5.check() == 1)
+	else if (obj->id == user_settings[user_Profile].encoder5_client_a && press_timer5.check() == 1)
 	{
 		DPRINTLN(F("Knob #5 Long Push"));
 		obj->writeRGBCode(0x00FF00);
@@ -336,7 +352,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder5_client_swl);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder5_client)
+	else if (obj->id == user_settings[user_Profile].encoder5_client_a)
 	{
 		DPRINTLN(F("Knob #5 Push"));
 		obj->writeRGBCode(0x0000FF);
@@ -347,7 +363,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder5_client_sw);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder6_client && press_timer6.check() == 1)
+	else if (obj->id == user_settings[user_Profile].encoder6_client_a && press_timer6.check() == 1)
 	{
 		DPRINTLN(F("Knob #6 Long Push"));
 		obj->writeRGBCode(0x00FF00);
@@ -358,7 +374,7 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 			Button_Action(user_settings[user_Profile].encoder6_client_swl);
 		#endif
 	}
-	else if (obj->id == user_settings[user_Profile].encoder6_client)
+	else if (obj->id == user_settings[user_Profile].encoder6_client_a)
 	{
 		DPRINTLN(F("Knob #6 Push"));
 		obj->writeRGBCode(0x0000FF);
@@ -375,17 +391,17 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 COLD void encoder_timer_start(i2cEncoderLibV2* obj) {
 	//DPRINTLN(F("Push Timer Start: "));
 	obj->writeRGBCode(0x0000FF);
-	if (obj->id == user_settings[user_Profile].encoder1_client)
-	  	press_timer.reset();
-  	if (obj->id == user_settings[user_Profile].encoder2_client) 
+	if (obj->id == user_settings[user_Profile].encoder1_client_a)
+	  	press_timer1.reset();
+  	if (obj->id == user_settings[user_Profile].encoder2_client_a) 
     	press_timer2.reset();
-	if (obj->id == user_settings[user_Profile].encoder3_client) 
+	if (obj->id == user_settings[user_Profile].encoder3_client_a) 
     	press_timer3.reset();
-	if (obj->id == user_settings[user_Profile].encoder4_client) 
+	if (obj->id == user_settings[user_Profile].encoder4_client_a) 
     	press_timer4.reset();
-	if (obj->id == user_settings[user_Profile].encoder5_client) 
+	if (obj->id == user_settings[user_Profile].encoder5_client_a) 
     	press_timer5.reset();
-	if (obj->id == user_settings[user_Profile].encoder6_client) 
+	if (obj->id == user_settings[user_Profile].encoder6_client_a) 
     	press_timer6.reset();
 }
 
@@ -425,7 +441,7 @@ COLD void set_I2CEncoders()
 
 	#ifdef MF_ENC_ADDR
     // MF KNOB - Multi-Function knob setup.
-	if(user_settings[user_Profile].encoder1_client)  // 0 is no encoder assigned so skip this
+	if(user_settings[user_Profile].encoder1_client_a)  // 0 is no encoder assigned so skip this
 	{
 		DPRINTLN(F("MF Encoder Setup"));
 		MF_ENC.reset();
@@ -436,7 +452,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		MF_ENC.id = user_settings[user_Profile].encoder1_client;
+		MF_ENC.id = user_settings[user_Profile].encoder1_client_a;
 		MF_ENC.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		MF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		MF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -459,7 +475,7 @@ COLD void set_I2CEncoders()
 	// Setup for other encoders. Uses the button number from the user settings database
 	#ifdef ENC2_ADDR
 	// Encoder 2 setup
-	if(user_settings[user_Profile].encoder2_client)  // 0 if no encoder assigned so skip this
+	if(user_settings[user_Profile].encoder2_client_a)  // 0 if no encoder assigned so skip this
     {
 		DPRINTLN(F("Encoder #2 Setup"));
 		ENC2.reset();
@@ -470,7 +486,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC2.id = user_settings[user_Profile].encoder2_client;   
+		ENC2.id = user_settings[user_Profile].encoder2_client_a;   
 		ENC2.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC2.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC2.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -489,7 +505,7 @@ COLD void set_I2CEncoders()
 
 	#ifdef ENC3_ADDR
 	// Encoder 3 setup
-	if(user_settings[user_Profile].encoder3_client)  // 0 if no encoder assigned so skip this
+	if(user_settings[user_Profile].encoder3_client_a)  // 0 if no encoder assigned so skip this
     {
 		DPRINTLN(F("Encoder #3 Setup"));
 		ENC3.reset();
@@ -500,7 +516,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC3.id = user_settings[user_Profile].encoder3_client;   
+		ENC3.id = user_settings[user_Profile].encoder3_client_a;   
 		ENC3.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC3.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC3.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -530,7 +546,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC4.id = user_settings[user_Profile].encoder4_client;   
+		ENC4.id = user_settings[user_Profile].encoder4_client_a;   
 		ENC4.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC4.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -549,7 +565,7 @@ COLD void set_I2CEncoders()
 
 	#ifdef ENC5_ADDR
 	// Encoder 5 setup
-	if(user_settings[user_Profile].encoder5_client)  // 0 if no encoder assigned so skip this
+	if(user_settings[user_Profile].encoder5_client_a)  // 0 if no encoder assigned so skip this
     {
 		DPRINTLN(F("Encoder #5 Setup"));
 		ENC5.reset();
@@ -560,7 +576,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC5.id = user_settings[user_Profile].encoder5_client;   
+		ENC5.id = user_settings[user_Profile].encoder5_client_a;   
 		ENC5.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC5.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -579,7 +595,7 @@ COLD void set_I2CEncoders()
 
 	#ifdef ENC6_ADDR
 	// Encoder 6 setup
-	if(user_settings[user_Profile].encoder6_client)  // 0 if no encoder assigned so skip this
+	if(user_settings[user_Profile].encoder6_client_a)  // 0 if no encoder assigned so skip this
     {
 		DPRINTLN(F("Encoder #6 Setup"));
 		ENC6.reset();
@@ -590,7 +606,7 @@ COLD void set_I2CEncoders()
 			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC6.id = user_settings[user_Profile].encoder6_client;   
+		ENC6.id = user_settings[user_Profile].encoder6_client_a;   
 		ENC6.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 		ENC6.writeMax((int32_t) 100); /* Set the maximum threshold*/
 		ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */

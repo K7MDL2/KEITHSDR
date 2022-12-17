@@ -31,7 +31,7 @@ void Ant();
 void Fine();
 void Rate(int8_t dir);
 void setMode(int8_t dir);
-void AGC();
+void AGC(int8_t dir);
 void Filter(int8_t dir);
 void ATU(uint8_t state);
 void Xvtr();

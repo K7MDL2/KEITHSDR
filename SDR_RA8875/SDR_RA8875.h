@@ -281,6 +281,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   22      // number of labels in the table
+#define NUM_CNTL_ACTIVE 25
 #ifdef USE_RA8875
 #define STD_BTN_NUM 46      // number of rows in the buttons table
 #else
@@ -423,6 +424,7 @@ struct Standard_Button {
     uint16_t off_color;     // fill color when button is OFF state
     uint16_t padx;          // # of pixels to pad label text horizontally shifting right to center the text 
     uint16_t pady;          // # of pixels to pad label text vertically shifting text down to center the text 
+    uint8_t  label_idx;     // index to matching function label structure if there is one.  255 if not.
     char     label[20];     // Text to display for the button label. Use padx and pady to center..
 };
 
@@ -481,33 +483,62 @@ struct User_Settings {
     uint8_t     fine;               // Fine tune state.  0 is off.  1+ is mode
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
     uint8_t     default_MF_client;  // The default "client" assignment for the the MF Knob.
-    uint8_t     encoder1_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder1_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder1_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder1_client_b;  // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
     uint8_t     encoder1_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
     uint8_t     encoder1_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder2_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
-    uint8_t     encoder2_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder2_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
+    uint8_t     encoder2_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
     uint8_t     encoder2_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
     uint8_t     encoder2_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder3_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up    
-    uint8_t     encoder3_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder3_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up    
+    uint8_t     encoder3_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
     uint8_t     encoder3_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
     uint8_t     encoder3_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder i
-    uint8_t     encoder4_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
-    uint8_t     encoder4_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder4_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
+    uint8_t     encoder4_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
     uint8_t     encoder4_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
     uint8_t     encoder4_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder5_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
-    uint8_t     encoder5_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder5_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
+    uint8_t     encoder5_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
     uint8_t     encoder5_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
     uint8_t     encoder5_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder6_client;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder6_clientb;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder6_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     encoder6_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
     uint8_t     encoder6_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
     uint8_t     encoder6_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder i
     uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
     uint8_t     pan_state;          // 0 = OFF, 1 = ON
     uint8_t     pan_level;          // 0-100 converts to pan range of -0.50 to 0.50 for the pan memory.  0  is centered.
+};
+
+// Record active control status.  Most settings have their own status, but controls like what the encoder is assigned to need to 
+enum cntl_active_list {
+    def_MF_cli,
+    enc1_cli_a,
+    enc1_cli_b,
+    enc1_cli_sw, 
+    enc1_cli_swl,
+    enc2_cli_a,
+    enc2_cli_b,
+    enc2_cli_sw, 
+    enc2_cli_swl,
+    enc3_cli_a,    
+    enc3_cli_b,   
+    enc3_cli_sw, 
+    enc3_cli_swl,
+    enc4_cli_a,    
+    enc4_cli_b,   
+    enc4_cli_sw, 
+    enc4_cli_swl,
+    enc5_cli_a,    
+    enc5_cli_b,   
+    enc5_cli_sw, 
+    enc5_cli_swl,
+    enc6_cli_a,    
+    enc6_cli_b,   
+    enc6_cli_sw, 
+    enc6_cli_swl
 };
 
 struct Frequency_Display {
@@ -572,7 +603,7 @@ struct Modes_List {
     uint16_t    Width;             // bandwidth in HZ - look up matching width in Filter table when changing modes
 };
 
-enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL, ZOOM_LBL};
+enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL, ZOOM_LBL, PAN_LBL};
 /*
 #define BAND_LBL    0       // Band label (if used)
 #define MODE_LBL    1       // index to button
@@ -596,6 +627,7 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 #define REFLVL_LBL  19      // not implemented yet
 #define SPOT_LBL    20      // not implemented yet
 #define ZOOM_LBL    21      // not implemented yet
+#define PAN_LBL     22      // not implemented yet
 */
 
 #endif //_SDR_RA8875_H_
