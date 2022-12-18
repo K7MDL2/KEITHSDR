@@ -3,6 +3,9 @@
 //      SDR_RS_HFIQ.cpp 
 //
 //      June 1, 2022 by K7MDL
+//      Dec 17, 2022 Changed CAT side interface to Elecrtaft K3 protocol to enable programs like WSJT-X 
+//                   to set split and follow BAND/VFO changes from the radio side.  The RSHFIQ was only 
+//                   controlled by a computer, this SDR has it own control.
 //
 //      USB host control for RS-HFIQ 5W transciever board
 //      USB Host comms portion from the Teensy4 USBHost_t36 example program
@@ -114,12 +117,17 @@ USBDriver *drivers[] = {&hub1, &hub2, &hid1, &hid2, &hid3, &userial};
 const char * driver_names[CNT_DEVICES] = {"Hub1", "Hub2",  "HID1", "HID2", "HID3", "USERIAL1" };
 bool driver_active[CNT_DEVICES] = {false, false, false, false};
 
+extern struct   User_Settings       user_settings[];
+extern          uint8_t             user_Profile;
+extern struct   Band_Memory         bandmem[];
+extern          uint8_t             curr_band;   // global tracks our current band setting.
+
 // ************************************************* Setup *****************************************
 //
 // *************************************************************************************************
 void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 blocking
 {   
-    CAT_RS_Serial.begin(115200);
+    CAT_RS_Serial.begin(38400);
     delay(100);
     DPRINTLN("\nStart of RS-HFIQ Setup"); 
     rs_freq = VFO;
@@ -211,103 +219,130 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
 */
     while (CAT_RS_Serial.available() > 0)    // Process any and all characters in the buffer
     {
-        c = CAT_RS_Serial.read(); 
-        c = toupper(c);
-        //CAT_RS_Serial.print(c);
-    
-        if (c == '*')                   // No matter where we are in the state machine, a '*' say clear the buffer and start over.
+        c = CAT_RS_Serial.readBytesUntil(';',S_Input, 15); 
+        //c = toupper(c);
+        if (c>0)
         {
-            Ser_NDX = 0;                   // character index = 0
-            Ser_Flag = 1;                  // State 1 means the '*' has been received and we are collecting characters for processing
-            for (int z = 0; z < 16; z++)  // Fill the buffer with spaces
-            {
-                S_Input[z] = ' ';
-            }
-            //CAT_RS_Serial.println(F("Start Cmd string "));
-        } 
-        else if (Ser_Flag == 1 && c != 13 && c!= 10) 
-            S_Input[Ser_NDX++] = c;  // If we are in state 1 and the character isn't a <CR>, put it in the buffer
-        else if (Ser_Flag == 1 && (c == 13 || c==10))                         // If it is a <CR> ...
-        {
-            S_Input[Ser_NDX] = 0;                                // terminate the input string with a null (0)
-            Ser_Flag = 3;                                        // Set state to 3 to indicate a command is ready for processing
-            //CAT_RS_Serial.println(S_Input);
-        }
-        
-        if (Ser_NDX > 15) 
-            Ser_NDX = 15;   // If we've received more than 15 characters without a <CR> just keep overwriting the last character
-/*        
-        //if (S_Input[0] != '*' and  Ser_Flag == 0 && Ser_NDX < 2)  // process menu pick list
-        if (S_Input[0] == '*' and Ser_Flag == 3 && Ser_NDX < 2)  // process menu pick list
-        {
-            int32_t fr_adj = 0;     
+            //CAT_RS_Serial.print("Count=");
+            //CAT_RS_Serial.print(c,DEC);
+            //CAT_RS_Serial.printf("  %s\r\n",S_Input);
 
-            Ser_NDX = 0;
-
-            switch (S_Input[1])
+            #ifdef DBG 
+            DPRINT(F("RS-HFIQ: Cmd String : *")); DPRINTLN(S_Input);
+            #endif
+            if (!strncmp(S_Input, "ID", 2))
             {
-                case '1': DPRINTLN(F("TX OFF")); send_fixed_cmd_to_RSHFIQ(s_TX_OFF); break; 
-                case '2': DPRINTLN(F("TX ON")); send_fixed_cmd_to_RSHFIQ(s_TX_ON); break; 
-                case '3': DPRINT(F("Query Frequency: ")); send_fixed_cmd_to_RSHFIQ(q_freq); print_RSHFIQ(blocking); break;
-                case '4': DPRINT(F("Query Frequency Offset: ")); send_fixed_cmd_to_RSHFIQ(q_F_Offset); print_RSHFIQ(blocking); break;
-                case '5': DPRINT(F("Query Built-in Test Frequency: ")); send_fixed_cmd_to_RSHFIQ(q_BIT_freq); print_RSHFIQ(blocking); break;
-                case '6': DPRINT(F("Query Analog Read: ")); send_fixed_cmd_to_RSHFIQ(q_Analog_Read); print_RSHFIQ(blocking); break;
-                case '7': DPRINT(F("Query Ext Frequency or CW: ")); send_fixed_cmd_to_RSHFIQ(q_EXT_freq); print_RSHFIQ(blocking); break;
-                case '8': DPRINT(F("Query Temp: ")); send_fixed_cmd_to_RSHFIQ(q_Temp); print_RSHFIQ(blocking); break;
-                case '9': DPRINTLN(F("Initialize PLL Clock0 (LO)")); send_fixed_cmd_to_RSHFIQ(s_initPLL); break;
-                case '0': DPRINT(F("Query Clipping: ")); send_fixed_cmd_to_RSHFIQ(q_clip_on); print_RSHFIQ(blocking); break;
-                case '?': DPRINT(F("Query Device Name: ")); send_fixed_cmd_to_RSHFIQ(q_dev_name); print_RSHFIQ(blocking); break;
-                case 'K': DPRINTLN(F("Move Down 1000Hz ")); fr_adj = -1000; break;
-                case 'L': DPRINTLN(F("Move Up 1000Hz ")); fr_adj = 1000; break;
-                case '<': DPRINTLN(F("Move Down 100Hz ")); fr_adj = -100; break;
-                case '>': DPRINTLN(F("Move Up 100Hz ")); fr_adj = 100; break;  
-                case ',': DPRINTLN(F("Move Down 10Hz ")); fr_adj = -10; break;
-                case '.': DPRINTLN(F("Move Up 10Hz ")); fr_adj = 10; break; 
-                case 'R': disp_Menu(); break;
-                default: DBG_Serial.write(c); userial.write(c); break;
-                break;  
-            }
-            if (fr_adj != 0)  // Move up or down
-            {
-                rs_freq += fr_adj;
-                DPRINT(F("RS-HFIQ: Target Freq = ")); DPRINTLN(rs_freq);
-                send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(rs_freq));
-                fr_adj = 0;
-                return rs_freq;
+                CAT_RS_Serial.print("ID017;");
             } 
-        }
-*/
-    }
+            else if (!strncmp(S_Input, "OM", 2))   // && c == 13)
+            {
+                CAT_RS_Serial.print("OM ------------;");
+            }
+            else if (!strncmp(S_Input, "K2", 2) && strlen(S_Input) == 2)   // && c == 13)
+            {
+                CAT_RS_Serial.print("K20;");
+            }
+            else if (!strncmp(S_Input, "K3", 2) && strlen(S_Input) == 2)   // && c == 13)
+            {
+                CAT_RS_Serial.print("K30;");
+            }
+            else if (!strncmp(S_Input, "RVM", 3))
+            {
+                CAT_RS_Serial.print("RVM05.67;");
+            }
+            else if (!strncmp(S_Input, "BW", 3))
+            {
+                CAT_RS_Serial.print("BW4000;");
+            }
+            else if (!strncmp(S_Input, "LN", 2))
+            {
+                CAT_RS_Serial.print("LN0;");
+            }
+            else if (!strncmp(S_Input, "FR", 2) && strlen(S_Input) == 2)
+            {
+                CAT_RS_Serial.print("FR0;");
+            }
+            else if (!strncmp(S_Input, "FT", 2) && strlen(S_Input) == 2)
+            {
+                if (*split == 0) CAT_RS_Serial.print("FT0;");
+                else CAT_RS_Serial.print("FT1;");
+            }
+            else if (!strncmp(S_Input, "DT", 2) && strlen(S_Input) == 2)
+            {
+                CAT_RS_Serial.print("DT0;");
+            }
+            else if (!strncmp(S_Input, "FI", 2) && strlen(S_Input) == 2)
+            {
+                CAT_RS_Serial.print("FI5000;");
+            }
+            else if (!strncmp(S_Input, "AI", 2) && strlen(S_Input) == 2)
+            {
+                CAT_RS_Serial.print("AI2;");
+            }
+            else if (!strncmp(S_Input, "IF", 2)) // Transceiver Info
+            {
+                CAT_RS_Serial.printf("IF%011lu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
+            }
+            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)
+            {
+                uint8_t _mode;
 
-    // If a complete command is received, process it
-    if (Ser_Flag == 3) 
-    {
-        #ifdef DBG 
-        DPRINT(F("RS-HFIQ: Cmd String : *")); DPRINTLN(S_Input);
-        #endif
-        if (S_Input[0] == 'F' && (S_Input[1] != '?' && S_Input[2] != '?' && S_Input[1] != 'R'))
-        {
-            if (S_Input[1] == 'A')
+                _mode = bandmem[curr_band].mode_A;
+
+                switch (S_Input[2])
+                {
+                    case LSB:       _mode = 1; break;
+                    case USB:       _mode = 2;; break;
+                    case CW:        _mode = 3; break;
+                    case FM:        _mode = 4; break;
+                    case AM:        _mode = 5; break;
+                    case DATA:      _mode = 6; break;
+                    case CW_REV:    _mode = 7; break;
+                    case DATA_REV:  _mode = 9; break;
+                    default: break;
+                } 
+                CAT_RS_Serial.printf("MD%d;", _mode);
+            }
+            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) > 2)
+            {
+                switch (S_Input[2])
+                {
+                    case '1': selectMode(LSB); break;
+                    case '2': selectMode(USB); break;
+                    case '3': selectMode(CW); break;
+                    case '4': selectMode(FM); break;
+                    case '5': selectMode(AM); break;
+                    case '6': selectMode(DATA); break;
+                    case '7': selectMode(CW_REV); break;
+                    case '9': selectMode(DATA_REV); break;
+                    default: break;
+                } 
+            }
+            else if (!strncmp(S_Input, "FA", 2) && strlen(S_Input) == 2)// && c == 13)
+            {
+                CAT_RS_Serial.printf("FA%011lu;", *VFOA);  // Respond back for confirmation FA + 11 freq + ;
+            }
+            else if (!strncmp(S_Input, "FB", 2) && strlen(S_Input) == 2)// && c == 13)
+            {
+                CAT_RS_Serial.printf("FB%011lu;", *VFOB);  // Respond back for confirmation FA + 11 freq + ;
+            } 
+            else if (!strncmp(S_Input, "FA", 2) && strlen(S_Input) > 2)
             {
                 rs_freq = atoi(&S_Input[2]);   // skip the first letter 'F' and convert the number   
-                #ifdef DBG  
-                DPRINT("RS-HFIQ: VFOA# = "); DPRINTLN(rs_freq);
-                #endif
                 sprintf(freq_str, "%8s", &S_Input[2]);
                 rs_freq = find_new_band(rs_freq, rs_curr_band);  // set the correct index and changeBands() to match for possible band change
                 if (rs_freq)
                 {
                     *VFOA = rs_freq;
-                    //send_variable_cmd_to_RSHFIQ(s_freq, freq_str);   
+                    sprintf(freq_str, "FA%011lu;", *VFOA);
+                    CAT_RS_Serial.print(freq_str);  // Respond back for confirmation FA + 11 freq + ;
                     #ifdef DBG  
                     DPRINT("RS-HFIQ: VFOA = "); DPRINTLN(freq_str);
                     #endif
-                    Ser_Flag = 0;
-                    S_Input[0] = '\0';
-                    return rs_freq; 
                 }
             }
-            else if (S_Input[1] == 'B')
+            else if (!strncmp(S_Input, "FB", 2) && strlen(S_Input) > 2)
+            //else if (S_Input[1] == 'B' && S_Input[2] != '\0')
             {
                 rs_freq = atoi(&S_Input[2]);   // skip the first letter 'F' and convert the number   
                 sprintf(freq_str, "%8s", &S_Input[2]);
@@ -315,186 +350,158 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
                 if (rs_freq)
                 {
                     *VFOB = rs_freq;
-                    //send_variable_cmd_to_RSHFIQ(s_freq, freq_str);   
+                    sprintf(freq_str, "FA%011lu;", *VFOB);
+                    CAT_RS_Serial.print(freq_str);  // Respond back for confirmation FA + 11 freq + ;
                     #ifdef DBG  
                     DPRINT("RS-HFIQ: VFOB = "); DPRINTLN(freq_str);
                     #endif
-                    Ser_Flag = 0;
-                    S_Input[0] = '\0';
-                    return rs_freq; 
                 }
+            }  
+            else if (!strncmp(S_Input, "B?", 2))
+            {
+                // convert string to number  
+                rs_freq = atoi(&S_Input[1]);   // skip the first letter 'B' and convert the number
+                sprintf(freq_str, "%8lu", rs_freq);
+                send_variable_cmd_to_RSHFIQ(s_BIT_freq, convert_freq_to_Str(rs_freq));
+                #ifdef DBG
+                //DPRINTLN(freq_str);
+                DPRINT(F("RS-HFIQ: Set BIT Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
+                #endif
+                print_RSHFIQ(0);
             }
-            else 
-            { // convert string to number and update the rs_freq variable
-                rs_freq = atoi(&S_Input[1]);   // skip the first letter 'F' and convert the number   
-                sprintf(freq_str, "%8s", &S_Input[1]);
-                rs_freq = find_new_band(rs_freq, rs_curr_band);  // set the correct index and changeBands() to match for possible band change
-                if (rs_freq)
-                {
-                    *VFOA = rs_freq;
-                    //send_variable_cmd_to_RSHFIQ(s_freq, freq_str);   
-                    #ifdef DBG  
-                    DPRINT("RS-HFIQ: Active VFO = "); DPRINTLN(freq_str);
-                    #endif
-                    Ser_Flag = 0;
-                    S_Input[0] = '\0';
-                    return rs_freq; 
-                }
+            else if (!strncmp(S_Input, "D?", 2))
+            {
+                // This is an offset frequency, possibly used for dial calibration or perhaps RIT.
+                send_variable_cmd_to_RSHFIQ(s_F_Offset, &S_Input[1]);
+                #ifdef DBG
+                DPRINT(F("Set Offset Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
+                DPRINT(F("RS-HFIQ: Set Offset Frequency (Hz): ")); DPRINTLN(&S_Input[1]);
+                //DPRINTLN(freq_str);
+                #endif
+                delay(3);
+                print_RSHFIQ(0);
             }
-            //send_variable_cmd_to_RSHFIQ(s_freq, freq_str);   
-            //DPRINT(F("RS_HFIQ Frequency Change before Lookup: ")); DPRINTLN(freq_str);
-            //rs_freq = find_new_band(rs_freq, rs_curr_band);  // set the correct index and changeBands() to match for possible band change
-            #ifdef DBG  
-            DPRINT(F("RS_HFIQ Frequency Change Freq: ")); DPRINTLN(freq_str);
-            DPRINT(F("RS_HFIQ Frequency Change Band: ")); DPRINTLN(*rs_curr_band);
-            #endif
-            if (rs_freq == 0)
+            else if (!strncmp(S_Input, "E?", 2))
+            {
+                // convert string to number  
+                rs_freq = atoi(&S_Input[1]);   // skip the first letter 'E' and convert the number
+                sprintf(freq_str, "%8lu", rs_freq);
+                send_variable_cmd_to_RSHFIQ(s_EXT_freq, convert_freq_to_Str(rs_freq));
+                #ifdef DBG  
+                //DPRINTLN(freq_str);
+                DPRINT(F("RS-HFIQ: Set External Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
+                #endif
+                print_RSHFIQ(0);
+            }
+            else if (!strncmp(S_Input, "RX", 2))
             {
                 #ifdef DBG  
-                DPRINT(F("RS-HFIQ: Invalid Frequency = ")); DPRINTLN(S_Input);
+                DPRINTLN(F("RS-HFIQ: RX->XMIT OFF"));
                 #endif
-                Ser_Flag = 0;
-                return rs_freq;
+                *xmit = 0;
             }
-            Ser_Flag = 0;
-            S_Input[0] = '\0';
-            return rs_freq;        
-        }    
-        if (S_Input[0] == 'B' && S_Input[1] != '?')
-        {
-            // convert string to number  
-            rs_freq = atoi(&S_Input[1]);   // skip the first letter 'B' and convert the number
-            sprintf(freq_str, "%8lu", rs_freq);
-            send_variable_cmd_to_RSHFIQ(s_BIT_freq, convert_freq_to_Str(rs_freq));
-            #ifdef DBG
-            //DPRINTLN(freq_str);
-            DPRINT(F("RS-HFIQ: Set BIT Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
-            #endif
-            print_RSHFIQ(0);
+            else if (!strncmp(S_Input, "TX", 2))
+            {
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: TX->XMIT ON"));
+                #endif
+                *xmit = 1;
+            }
+            else if (!strncmp(S_Input, "SW0", 3))
+            {
+                if (swap_vfo_last)
+                    swap_vfo_last = 0;
+                else 
+                    swap_vfo_last = 1;
+                *swap_vfo = swap_vfo_last;
+                #ifdef DBG  
+                DPRINT(F("RS-HFIQ: Swap VFOs: ")); DPRINTLN(*swap_vfo);
+                #endif
+            }
+            else if (!strncmp(S_Input, "FR0", 3)) // Split OFF
+            {
+                *split = 0;
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: Split Mode OFF")); 
+                #endif
+            }
+            else if (!strncmp(S_Input, "FT1", 3)) // Split ON
+            {
+                *split = 1;
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: Split Mode ON"));
+                #endif
+            }
+            else if (!strncmp(S_Input, "FT1", 3)) // Split ON
+            {
+                *split = 0;
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: Split Mode OFF"));
+                #endif
+            }
+            // must be a query
+            /*
+            if (!strcmp(S_Input, "FA")) // 
+            {
+                #ifdef DBG  
+                DPRINT(F("RS-HFIQ: VFO A Query - Reply: ")); DPRINTLN(*VFOA);
+                #endif
+                sprintf(freq_str, "FA%011lu;", *VFOA);
+                #ifdef DBG  
+                DPRINTLN(freq_str);
+                #endif
+                CAT_RS_Serial.print(freq_str);
+                Ser_Flag = 0;
+                S_Input[0] = '\0';
+                c=0;
+
+            }            
+            if (!strcmp(S_Input, "FB")) // 
+            {
+                #ifdef DBG  
+                DPRINT(F("RS-HFIQ: VFO B Query - Reply: ")); DPRINTLN(*VFOB);
+                #endif
+                sprintf(freq_str, "FB%011lu;", *VFOB);
+                #ifdef DBG  
+                DPRINTLN(freq_str);
+                #endif
+                CAT_RS_Serial.print(freq_str);
+                Ser_Flag = 0;
+                S_Input[0] = '\0';
+                c=0;
+            }
+            */
+            else if (!strncmp(S_Input, "F?", 2)) 
+            {
+                #ifdef DBG  
+                DPRINT(F("RS_HFIQ Freq Query: ")); DPRINTLN(S_Input);
+                #endif
+                send_fixed_cmd_to_RSHFIQ(S_Input);  // Ask for current freq from radio hardware
+                delay(5);
+                print_RSHFIQ(1);
+            }
+            else if (S_Input[1] == '?' || S_Input[0] == '?' || S_Input[0] == 'W')
+            {
+                #ifdef DBG  
+                DPRINT(F("RS_HFIQ Command: ")); DPRINTLN(S_Input);
+                #endif
+                send_fixed_cmd_to_RSHFIQ(S_Input);
+                delay(5);
+                print_RSHFIQ(0);  // do not print this for freq changes, causes a hang since there is no response and this is a blocking call 
+                                // Use non blocking since user input could be in error and a response may not be returned
+            }
         }
-        if (S_Input[0] == 'D' && S_Input[1] != '?')
-        {
-            // This is an offset frequency, possibly used for dial calibration or perhaps RIT.
-            send_variable_cmd_to_RSHFIQ(s_F_Offset, &S_Input[1]);
-            #ifdef DBG
-            DPRINT(F("Set Offset Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
-            DPRINT(F("RS-HFIQ: Set Offset Frequency (Hz): ")); DPRINTLN(&S_Input[1]);
-            //DPRINTLN(freq_str);
-            #endif
-            delay(3);
-            print_RSHFIQ(0);
-        }
-        if (S_Input[0] == 'E' && S_Input[1] != '?')
-        {
-            // convert string to number  
-            rs_freq = atoi(&S_Input[1]);   // skip the first letter 'E' and convert the number
-            sprintf(freq_str, "%8lu", rs_freq);
-            send_variable_cmd_to_RSHFIQ(s_EXT_freq, convert_freq_to_Str(rs_freq));
-            #ifdef DBG  
-            //DPRINTLN(freq_str);
-            DPRINT(F("RS-HFIQ: Set External Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
-            #endif
-            print_RSHFIQ(0);
-        }
-        if (!strcmp(S_Input, "X0"))
-        {
-            #ifdef DBG  
-            DPRINTLN(F("RS-HFIQ: XMIT OFF"));
-            #endif
-            *xmit = 0;
-        }
-        if (!strcmp(S_Input, "X1"))
-        {
-            #ifdef DBG  
-            DPRINTLN(F("RS-HFIQ: XMIT ON"));
-            #endif
-            *xmit = 1;
-        }
-        if (!strcmp(S_Input, "SW0"))
-        {
-            if (swap_vfo_last)
-                swap_vfo_last = 0;
-            else 
-                swap_vfo_last = 1;
-            *swap_vfo = swap_vfo_last;
-            #ifdef DBG  
-            DPRINT(F("RS-HFIQ: Swap VFOs: ")); DPRINTLN(*swap_vfo);
-            #endif
-        }
-        if (!strcmp(S_Input, "FR0")) // Split OFF
-        {
-            *split = 0;
-            #ifdef DBG  
-            DPRINTLN(F("RS-HFIQ: Split Mode OFF")); 
-            #endif
-        }
-        if (!strcmp(S_Input, "FR1")) // Split ON
-        {
-            *split = 1;
-            #ifdef DBG  
-            DPRINTLN(F("RS-HFIQ: Split Mode ON"));
-            #endif
-        }
-        // must be a query
-        if (!strcmp(S_Input, "FA?")) // 
-        {
-            #ifdef DBG  
-            DPRINT(F("RS-HFIQ: VFO A Query - Reply: ")); DPRINTLN(*VFOA);
-            #endif
-            sprintf(freq_str, "*FA%09lu", *VFOA);
-            #ifdef DBG  
-            DPRINTLN(freq_str);
-            #endif
-            CAT_RS_Serial.print(freq_str);
-        }
-        if (!strcmp(S_Input, "FB?")) // 
-        {
-            #ifdef DBG  
-            DPRINT(F("RS-HFIQ: VFO B Query - Reply: ")); DPRINTLN(*VFOB);
-            #endif
-            sprintf(freq_str, "*FB%09lu", *VFOB);
-            #ifdef DBG  
-            DPRINTLN(freq_str);
-            #endif
-            CAT_RS_Serial.print(freq_str);
-        }
-        if (!strcmp(S_Input, "F?")) 
-        {
-            #ifdef DBG  
-            DPRINT(F("RS_HFIQ Freq Query: ")); DPRINTLN(S_Input);
-            #endif
-            send_fixed_cmd_to_RSHFIQ(S_Input);  // Ask for current freq from radio hardware
-            delay(5);
-            print_RSHFIQ(1);
-        }
-        else if (S_Input[1] == '?' || S_Input[0] == '?' || S_Input[0] == 'W')
-        {
-            #ifdef DBG  
-            DPRINT(F("RS_HFIQ Command: ")); DPRINTLN(S_Input);
-            #endif
-            send_fixed_cmd_to_RSHFIQ(S_Input);
-            delay(5);
-            print_RSHFIQ(0);  // do not print this for freq changes, causes a hang since there is no response and this is a blocking call 
-                            // Use non blocking since user input could be in error and a response may not be returned
-        }
-        else if (Ser_NDX == 0)
-        {
-            userial.printf("*\r");
-            delay(5);
-            read_RSHFIQ();
-            #ifdef DBG  
-            DPRINT(F("RS_HFIQ * Query Answer: ")); DPRINTLN(R_Input);
-            #endif
-            CAT_RS_Serial.print(R_Input);
-        }
-        S_Input[0] = '\0';
-        for (int z = 0; z < 16; z++)  // Fill the buffer with spaces
-        {
-            S_Input[z] = ' ';
-        }
-        Ser_Flag = 0;
     }
-    return rs_freq;
+    S_Input[0] = '\0';
+    for (int z = 0; z < 16; z++)  // Fill the buffer with spaces
+    {
+        S_Input[z] = '\0';
+    }
+    Ser_Flag = 0;
+    S_Input[0] = '\0';
+    c=0;
+    CAT_RS_Serial.flush();
+    return rs_freq;   
 }
 
 void SDR_RS_HFIQ::send_fixed_cmd_to_RSHFIQ(const char * str)
