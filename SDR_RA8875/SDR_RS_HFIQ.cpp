@@ -201,13 +201,10 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 b
 uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split)  // returns new or unchanged active VFO value
 {
     char c;
-    static unsigned char Ser_Flag = 0, Ser_NDX = 0;
+    //static unsigned char Ser_Flag = 0, Ser_NDX = 0;
     static uint8_t swap_vfo_last = 0;
 
-    //if (active_vfo)
-        rs_freq = *VFOA;
-    //else
-    //    rs_freq = *VFOB;
+    rs_freq = *VFOA;
 
 //   Test code.  Passes through all chars both directions.
 /*
@@ -439,38 +436,7 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
                 DPRINTLN(F("RS-HFIQ: Split Mode OFF"));
                 #endif
             }
-            // must be a query
-            /*
-            if (!strcmp(S_Input, "FA")) // 
-            {
-                #ifdef DBG  
-                DPRINT(F("RS-HFIQ: VFO A Query - Reply: ")); DPRINTLN(*VFOA);
-                #endif
-                sprintf(freq_str, "FA%011lu;", *VFOA);
-                #ifdef DBG  
-                DPRINTLN(freq_str);
-                #endif
-                CAT_RS_Serial.print(freq_str);
-                Ser_Flag = 0;
-                S_Input[0] = '\0';
-                c=0;
-
-            }            
-            if (!strcmp(S_Input, "FB")) // 
-            {
-                #ifdef DBG  
-                DPRINT(F("RS-HFIQ: VFO B Query - Reply: ")); DPRINTLN(*VFOB);
-                #endif
-                sprintf(freq_str, "FB%011lu;", *VFOB);
-                #ifdef DBG  
-                DPRINTLN(freq_str);
-                #endif
-                CAT_RS_Serial.print(freq_str);
-                Ser_Flag = 0;
-                S_Input[0] = '\0';
-                c=0;
-            }
-            */
+            
             else if (!strncmp(S_Input, "F?", 2)) 
             {
                 #ifdef DBG  
@@ -494,10 +460,8 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
     }
     S_Input[0] = '\0';
     for (int z = 0; z < 16; z++)  // Fill the buffer with spaces
-    {
         S_Input[z] = '\0';
-    }
-    Ser_Flag = 0;
+    //Ser_Flag = 0;
     S_Input[0] = '\0';
     c=0;
     CAT_RS_Serial.flush();
@@ -735,4 +699,3 @@ uint32_t SDR_RS_HFIQ::find_new_band(uint32_t new_frequency, uint8_t * rs_curr_ba
     #endif
     return 0;  // 0 means frequency was not found in the table
 }
-
