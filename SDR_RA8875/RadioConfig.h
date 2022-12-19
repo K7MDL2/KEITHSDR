@@ -255,35 +255,45 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 // VFO Encoder (not I2C).  ENCx is the same as on the PCBs
 #if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
-  #define ENC1_PIN_A      3   // used for VFO
-  #define ENC1_PIN_B      4
-  #define ENC2_PIN_A     30   // Encoder 2.
-  #define ENC2_PIN_B     31
-  #define ENC2_PIN_SW    32
-  #define ENC3_PIN_A     34   // Encoder 3
-  #define ENC3_PIN_B     35
-  #define ENC3_PIN_SW    33
+  #define VFO_MECH       1   // VFO encoder - comment out to disable
+  #define VFO_MECH_PIN_A      3   // used for VFO
+  #define VFO_MECH_PIN_B      4
+  #define ENC2_MECH       2   // VFO encoder - comment out to disable
+  #define ENC2_MECH_PIN_A     30   // Encoder 2.
+  #define ENC2_MECH_PIN_B     31
+  #define ENC2_MECH_PIN_SW    32
+  #define ENC3_MECH       3   // VFO encoder - comment out to disable
+  #define ENC3_MECH_PIN_A     34   // Encoder 3
+  #define ENC3_MECH_PIN_B     35
+  #define ENC3_MECH_PIN_SW    33
 #elif defined(V1_4_3_PCB)     // V1 4.3" Display PCB
-  #define ENC1_PIN_A      3   // used for VFO
-  #define ENC1_PIN_B      4
-  #define ENC2_PIN_A     30   // Encoder 2.
-  #define ENC2_PIN_B     31
-  #define ENC2_PIN_SW    32
-  #define ENC3_PIN_A     33   // Encoder 3
-  #define ENC3_PIN_B     34
-  #define ENC3_PIN_SW    35
+  #define VFO_MECH       1   // VFO encoder - comment out to disable
+  #define VFO_MECH_PIN_A      4   // used for VFO
+  #define VFO_MECH_PIN_B      3
+  #define ENC2_MECH       2   // First aux GPIO encoder
+  #define ENC2_MECH_PIN_A     30   // GPIO Encoder 2.
+  #define ENC2_MECH_PIN_B     31
+  #define ENC2_MECH_PIN_SW    32
+  #define ENC3_MECH       3
+  #define ENC3_MECH_PIN_A     33   // GPIO Encoder 3
+  #define ENC3_MECH_PIN_B     34
+  #define ENC3_MECH_PIN_SW    35
 #elif defined (V2_4_3_PCB)    // V2 4.3" Display PCB
-  #define ENC1_PIN_A     15   // used for VFO
-  #define ENC1_PIN_B     16
-  #define ENC2_PIN_A     36   // Encoder 2.   conflicts with I2C encoders if they are enabled
-  #define ENC2_PIN_B     37
-  #define ENC2_PIN_SW    38
-  #define ENC3_PIN_A     35   // Encoder 3
-  #define ENC3_PIN_B     34
-  #define ENC3_PIN_SW    33
+  #define VFO_MECH       1   // VFO encoder - comment out to disable
+  #define VFO_MECH_PIN_A     15   // used for VFO
+  #define VFO_MECH_PIN_B     16
+  #define ENC2_MECH       2   // VFO encoder - comment out to disable
+  #define ENC2_MECH_PIN_A     36   // Encoder 2.   conflicts with I2C encoders if they are enabled
+  #define ENC2_MECH_PIN_B     37
+  #define ENC2_MECH_PIN_SW    38
+  #define ENC3_MECH       3   // VFO encoder - comment out to disable
+  #define ENC3_MECH_PIN_A     35   // Encoder 3
+  #define ENC3_MECH_PIN_B     34
+  #define ENC3_MECH_PIN_SW    33
 #else // else old proto board assignments
-  #define ENC1_PIN_A      4   // used for VFO
-  #define ENC1_PIN_B      5
+  #define VFO_MECH       1   // VFO encoder - comment out to disable
+  #define VFO_MECH_PIN_A      4   // used for VFO
+  #define VFO_MECH_PIN_B      5
 #endif 
 
 #define VFO_PPR 10  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -299,12 +309,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #else // else old proto board assignment
     #define I2C_INT_PIN     29
   #endif 
-  #define MF_ENC_ADDR     (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
-  //#define ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
-  //#define ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  
-  //#define ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
-  //#define ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
-  //#define ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/   
+  #define I2C_ENC1_ADDR       (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+  #define I2C_ENC2_ADDR       (0x62)  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+  #define I2C_ENC3_ADDR       (0x63)  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/  
+  //#define I2C_ENC4_ADDR       (0x64)  	/* Address 0x64 only - Jumpers A2, A5 and A6 are soldered.*/  
+  //#define I2C_ENC5_ADDR       (0x65)  	/* Address 0x65 only - Jumpers A0, A2, A5 and A6 are soldered.*/  
+  //#define I2C_ENC6_ADDR       (0x66)  	/* Address 0x66 only - Jumpers A1, A2, A5 and A6 are soldered.*/   
 #endif // I2C_ENCODERS
 
 // -------------------------  PE4302 6 bit Digital Step Attenuator -----------------------------
