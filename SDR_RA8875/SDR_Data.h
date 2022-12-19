@@ -299,15 +299,32 @@ struct Label labels[LABEL_NUM] = {
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-//Profile name    sp_preset mn  sub_VFO  sv_md uc1 uc2 uc3  lastB   mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB DefMFknob enc1     enc1b     enc1_sw   enc1_swl  enc2        enc2b     enc2_sw   enc2_swl    enc3        enc3b       enc3_sw   enc3_swl    enc4      enc4b      enc4_sw   enc4_swl    enc5        enc5b       enc5_sw   enc5_swl enc6        enc6b       enc6_sw     enc6_swl    Zoom_lvl panEn panlvl
-    {"ENET ON Config",    0, 0, 28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE,  MFTUNE,   RATE_BTN, FINE_BTN, ZOOM_BTN,   PAN_BTN,  ENC2_BTN, MODE_BTN,   FINE_BTN,   PAN_BTN,    ZOOM_BTN, VFO_AB_BTN, NB_BTN,   NB_BTN,    NR_BTN,   NOTCH_BTN,  AFGAIN_BTN, RFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}, // if no encoder is present assign it to 0 and it will be skipped. 
-    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND30M,   OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 10,   15,  14,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE,  MODE_BTN, ENC1_BTN, FINE_BTN, ZOOM_BTN,   PAN_BTN,  ENC2_BTN, BANDUP_BTN, AFGAIN_BTN, RFGAIN_BTN, ENC3_BTN, BAND_BTN,   ZOOM_BTN, BAND_BTN,  ZOOM_BTN, BANDDN_BTN, AFGAIN_BTN, ZOOM_BTN,   MUTE_BTN, RIT_BTN, REFLVL_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50},
-    {"PanAdapter Config", 0, 0, 1420000,  USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    MFTUNE,   MFTUNE,  MFTUNE,   RATE_BTN, FINE_BTN, RFGAIN_BTN, MODE_BTN, FINE_BTN, FINE_BTN,   PAN_BTN,    ZOOM_BTN,   ZOOM_BTN, VFO_AB_BTN, NB_BTN,   NB_BTN,    NR_BTN,   NOTCH_BTN,  AFGAIN_BTN, RFGAIN_BTN, MUTE_BTN, RIT_BTN, REFLVL_BTN, REFLVL_BTN, BANDUP_BTN, BANDDN_BTN, ZOOMx1, OFF, 50}
+//Profile name    sp_preset mn  sub_VFO  sv_md uc1 uc2 uc3  lastB   mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB Zoom_lvl panEn panlvl
+    {"ENET ON Config",    0, 0, 28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1, OFF, 50},
+    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND30M,   OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 10,   15,  14,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1, OFF, 50},
+    {"PanAdapter Config", 0, 0, 1420000,  USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1, OFF, 50},
 };
 
 // Track state of encoders knobs and their switches
-uint8_t cntl_active[NUM_CNTL_ACTIVE] = {
-    0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+//uint8_t cntl_active[NUM_CNTL_ACTIVE] = {
+//    0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+//};
+
+//This contains the mapping assigning different types of encoders to 'control slots' for aux encoders
+
+// Type 0 = i2c connected, type 1 = GPIO connected.
+// enabled == 1, disabled == 0
+// 1 row for each encoder slot, 6 max
+// only 1 should have the default MF ENC type assignment MFTUNE.  (any non-zero value is YES, 0 is no)
+// remaining 4 fields are the encoder shaft primary, alternate controls, and the tap and press control assignments
+struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
+//type          address         enabled  default MF  enca         a_active   encb            enc1_tap        enc1_press
+    {GPIO_ENC,  ENC2_MECH,      OFF,     NONE,       MFTUNE,      ON,        MODE_BTN,       RATE_BTN,       FINE_BTN},      // enc slot 1 of 6
+    {I2C_ENC,   I2C_ENC1_ADDR,  ON,      MFTUNE,     MFTUNE,      ON,        RATE_BTN,       ENC2_BTN,       FINE_BTN},    // enc slot 2
+    {I2C_ENC,   I2C_ENC2_ADDR,  ON,      NONE,       ZOOM_BTN,    ON,        PAN_BTN,        ENC3_BTN,       RIT_BTN},      // enc slot 3
+    {I2C_ENC,   I2C_ENC3_ADDR,  ON,      NONE,       AFGAIN_BTN,  ON,        RFGAIN_BTN,     ENC4_BTN,       BAND_BTN},      // enc slot 4
+    {I2C_ENC,   0,              OFF,     NONE,       RIT_BTN,     ON,        XIT_BTN,        ENC5_BTN,       RIT_BTN},       // enc slot 5
+    {I2C_ENC,   0,              OFF,     NONE,       NB_BTN,      ON,        REFLVL_BTN,     BANDUP_BTN,     BANDDN_BTN}     // enc slot 6
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {

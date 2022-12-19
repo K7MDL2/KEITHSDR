@@ -61,6 +61,8 @@ void displayBand_Menu(uint8_t state);
 void pop_win_up(uint8_t win_num);
 void pop_win_down(uint8_t win_num);
 
+void update_icon_outline(void);
+
 //void displaySpot();  // spare
 
 #endif //_DISPLAY_H_

@@ -5,7 +5,7 @@
 #include "RadioConfig.h"
 //#include "SDR_I2C_Encoder.h"
 
-//  In RadioCOnfig.h use   #define USE_MIDI to enable MIDI 	-  
+//  In RadioConfig.h use   #define USE_MIDI to enable MIDI 	-  
 //  Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 #ifdef USE_MIDI
 	#include "MIDIUSB.h"
@@ -53,52 +53,53 @@
 #include <i2cEncoderLibV2.h>
 // These are the per-encoder function declarations
 void set_I2CEncoders(void); 
-void setEncoderMode(uint8_t id);
+extern void setEncoderMode(uint8_t id);
 extern uint8_t MF_client;     // Flag for current owner of MF knob services
 extern uint8_t curr_band;     // global tracks our current band setting. 
 extern uint8_t user_Profile;  // global tracks our current user profile
 extern struct User_Settings user_settings[];
 extern struct Band_Memory bandmem[];
 extern struct Label labels[];
-extern uint8_t	cntl_active[];
+extern struct EncoderList encoder_list[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
 
-Metro press_timer1 = Metro(600);
-Metro press_timer2 = Metro(600);
-Metro press_timer3 = Metro(600);
-Metro press_timer4 = Metro(600);
-Metro press_timer5 = Metro(600);
-Metro press_timer6 = Metro(600);
+Metro press_timer1 = Metro(500);
+Metro press_timer2 = Metro(500);
+Metro press_timer3 = Metro(500);
+Metro press_timer4 = Metro(500);
+Metro press_timer5 = Metro(500);
+Metro press_timer6 = Metro(500);
 
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
-#ifdef MF_ENC_ADDR
-	void blink_MF_RGB(void);
-	i2cEncoderLibV2 MF_ENC(MF_ENC_ADDR);  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+#ifdef I2C_ENC1_ADDR
+	void blink_I2C_ENC1_RGB(void);
+	i2cEncoderLibV2 I2C_ENC1(I2C_ENC1_ADDR);  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
 #endif
-#ifdef ENC2_ADDR
-	void blink_ENC2_RGB(void);
-	i2cEncoderLibV2 ENC2(ENC2_ADDR);  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+#ifdef I2C_ENC2_ADDR
+	void blink_I2C_ENC2_RGB(void);
+	i2cEncoderLibV2 I2C_ENC2(I2C_ENC2_ADDR);  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
 #endif
-#ifdef ENC3_ADDR
-	void blink_ENC3_RGB(void);
-	i2cEncoderLibV2 ENC3(ENC3_ADDR);  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#ifdef I2C_ENC3_ADDR
+	void blink_I2C_ENC3_RGB(void);
+	i2cEncoderLibV2 I2C_ENC3(I2C_ENC3_ADDR);  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/
 #endif
-#ifdef ENC4_ADDR
-	void blink_ENC4_RGB(void);
-	i2cEncoderLibV2 ENC4(ENC4_ADDR);  	/* Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#ifdef I2C_ENC4_ADDR
+	void blink_I2C_ENC4_RGB(void);
+	i2cEncoderLibV2 I2C_ENC4(I2C_ENC4_ADDR);  	/* Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.*/
 #endif
-#ifdef ENC5_ADDR
-	void blink_ENC5_RGB(void);
-	i2cEncoderLibV2 ENC5(ENC5_ADDR);  	/* Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#ifdef I2C_ENC5_ADDR
+	void blink_I2C_ENC5_RGB(void);
+	i2cEncoderLibV2 I2C_ENC5(I2C_ENC5_ADDR);  	/* Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.*/
 #endif
-#ifdef ENC6_ADDR
-	void blink_ENC6_RGB(void);
-	i2cEncoderLibV2 ENC6(ENC6_ADDR);  	/* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+#ifdef I2C_ENC6_ADDR
+	void blink_I2C_ENC6_RGB(void);
+	i2cEncoderLibV2 I2C_ENC6(I2C_ENC6_ADDR);  	/* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
 #endif
+
 // These are generic callback functions - meaning when a hardware event occurs these functions are 
-// called with the info associated with that encoder.  We can assing each encoder to things like AF and RF gain.
+// called with the info associated with that encoder.  We can assign each encoder to things like AF and RF gain.
 void encoder_rotated(i2cEncoderLibV2* obj);
 void encoder_click(i2cEncoderLibV2* obj);
 void encoder_thresholds(i2cEncoderLibV2* obj);
@@ -108,16 +109,24 @@ extern void MF_Service(int8_t counts, uint8_t knob);
 //Callback when the MF Gain encoder is rotated
 COLD void encoder_rotated(i2cEncoderLibV2* obj) 
 {
-	uint8_t knob_assigned, z_lvl;
+	uint8_t knob_assigned, z_lvl, slot;
 
-	//DPRINT(F("Encoder ID = "));
-    //DPRINTLN(obj->id);
-
-	if (obj->id == user_settings[user_Profile].encoder1_client_a)
-		knob_assigned = MF_client; 
-	else
+	//DPRINT(F("Encoder ID = ")); DPRINTLN(obj->id);
+	//DPRINT(F("Check MF Client ID = ")); DPRINTLN(MF_client);
+	    
+	for (slot=0; slot< NUM_AUX_ENCODERS; slot++)
+	{
+		if (obj->id == encoder_list[slot].role_A && encoder_list[slot].enabled)
+			break;
+	}
+	//DPRINT(F("slot is ")); DPRINTLN(slot);
+	//DPRINT(F("def is ")); DPRINTLN(encoder_list[slot].default_MF_client);
+	
+	if (obj->id == encoder_list[slot].default_MF_client && obj->id != MF_client)		
+			knob_assigned = MF_client; 
+	else 
 		knob_assigned = obj->id;
-
+	
 	if (obj->readStatus(i2cEncoderLibV2::RINC))
 		{}//DPRINT(F("Increment: "));
 	else
@@ -125,39 +134,20 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	int16_t count = obj->readCounterInt();
 	//DPRINTLN(count);
 
-	// reassign knob functionality to alternate mode if alternate active
-	// If a button tap (switch) happens and it is ENCx_BTN, setMode() is called in control.cpp.  The function assigned to that encoder shaft is set to the alternate function (a vs b) and the unset staus s set to 0.
-	#ifdef MF_ENC_ADDR
-	if (cntl_active[enc1_cli_b] && (knob_assigned == user_settings[user_Profile].encoder1_client_a))
-		knob_assigned = user_settings[user_Profile].encoder1_client_b;
-	#endif
-	#ifdef ENC2_ADDR
-	if (cntl_active[enc2_cli_b] && (knob_assigned == user_settings[user_Profile].encoder2_client_a))
-		knob_assigned = user_settings[user_Profile].encoder2_client_b;
-	#endif
-	#ifdef ENC3_ADDR
-	if (cntl_active[enc3_cli_b] && (knob_assigned == user_settings[user_Profile].encoder3_client_a))
-		knob_assigned = user_settings[user_Profile].encoder3_client_b;
-	#endif
-	#ifdef ENC4_ADDR
-	if (cntl_active[enc4_cli_b] && (knob_assigned == user_settings[user_Profile].encoder4_client_a))
-		knob_assigned = user_settings[user_Profile].encoder4_client_b;
-	#endif
-	#ifdef ENC5_ADDR
-	if (cntl_active[enc5_cli_b] && (knob_assigned == user_settings[user_Profile].encoder5_client_a))
-		knob_assigned = user_settings[user_Profile].encoder5_client_b;
-	#endif
-	#ifdef ENC6_ADDR
-	if (cntl_active[enc6_cli_b] && (knob_assigned == user_settings[user_Profile].encoder6_client_a))
-		knob_assigned = user_settings[user_Profile].encoder6_client_b;
-	#endif
-
+	// ID arrives as Role_A.  Need to check which role is active. If B active, update the knob, else skip.
+	// If a button tap (switch) happens and it is ENCx_BTN, setEncoderMode() is called in control.cpp.  
+	// The function assigned to that encoder shaft is set to the alternate function (a vs b) and the unset staus s set to 0. 
+	if (knob_assigned == encoder_list[slot].role_A && encoder_list[slot].enabled && !encoder_list[slot].a_active)
+	{
+		knob_assigned = encoder_list[slot].role_B;  // reassign to role B
+		//DPRINT(F("Role B Assigned ")); DPRINTLN(encoder_list[slot].role_B);
+	}
+	
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
-	//DPRINT(F("Knob Assigned to "));
-	//DPRINTLN(knob_assigned);
+	//DPRINT(F("Knob Assigned to ")); DPRINTLN(knob_assigned);
 
 	switch(knob_assigned)
 	{
@@ -246,172 +236,94 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							obj->writeRGBCode(tval); 
 							break;
 	}
-	
 	obj->writeRGBCode(tval);  // set color
 }
-								
+
+void knob_press(i2cEncoderLibV2* obj, uint8_t slot)
+{	
+	//DPRINT(F("Knob Press ")); DPRINTLN(encoder_list[slot].press);
+	obj->writeRGBCode(0x00FF00);
+	#ifdef USE_MIDI
+		noteOn(CHANNEL, 62, 127);
+		noteOff(CHANNEL, 62, 0);
+	#else
+		Button_Action(encoder_list[slot].press);
+	#endif
+}
+
+void knob_tap(i2cEncoderLibV2* obj, uint8_t slot)
+{
+	//DPRINT(F("Knob Tap ")); DPRINTLN(encoder_list[slot].tap);
+	obj->writeRGBCode(0x0000FF);
+	#ifdef USE_MIDI
+		noteOn(CHANNEL, 63, 127);
+		noteOff(CHANNEL, 63, 0);
+	#else	
+		Button_Action(encoder_list[slot].tap);
+	#endif
+}
+
 //Callback when the encoder is pushed
 COLD void encoder_click(i2cEncoderLibV2* obj) 
-{
-	if (obj->id == user_settings[user_Profile].encoder1_client_a && press_timer1.check() == 1)
-	{	
-		DPRINTLN(F("Long MF Knob Push"));
-		obj->writeRGBCode(0x00FF00);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 62, 127);
-			noteOff(CHANNEL, 62, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder1_client_swl);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder1_client_a)
+{   
+	uint8_t slot;
+	
+	//DPRINT(F("Click Event ")); DPRINTLN(obj->id);
+
+    for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
 	{
-		DPRINTLN(F("MF Knob Push"));
-		obj->writeRGBCode(0xFF0000);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 63, 127);
-			noteOff(CHANNEL, 63, 0);
-		#else	
-			Button_Action(user_settings[user_Profile].encoder1_client_sw);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder2_client_a && press_timer2.check() == 1)
-	{
-		DPRINTLN(F("Knob #2 Long Push"));
-		obj->writeRGBCode(0x00FF00);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 64, 127);
-			noteOff(CHANNEL, 64, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder2_client_swl);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder2_client_a)
-	{
-		DPRINTLN(F("Knob #2 Push"));
-		obj->writeRGBCode(0x0000FF);
-		#ifdef USE_MIDI
-			noteOn(CHANcNEL, 65, 127);
-			noteOff(CHANNEL, 65, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder2_client_sw);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder3_client_a && press_timer3.check() == 1)
-	{
-		DPRINTLN(F("Knob #3 Long Push"));
-		obj->writeRGBCode(0x00FF00);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 64, 127);
-			noteOff(CHANNEL, 64, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder3_client_swl);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder3_client_a)
-	{
-		DPRINTLN(F("Knob #3 Push"));
-		obj->writeRGBCode(0x0000FF);
-		#ifdef USE_MIDI
-			noteOn(CHANcNEL, 65, 127);
-			noteOff(CHANNEL, 65, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder3_client_sw);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder4_client_a && press_timer4.check() == 1)
-	{
-		DPRINTLN(F("Knob #4 Long Push"));
-		obj->writeRGBCode(0x00FF00);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 64, 127);
-			noteOff(CHANNEL, 64, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder4_client_swl);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder4_client_a)
-	{
-		DPRINTLN(F("Knob #4 Push"));
-		obj->writeRGBCode(0x0000FF);
-		#ifdef USE_MIDI
-			noteOn(CHANcNEL, 65, 127);
-			noteOff(CHANNEL, 65, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder4_client_sw);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder5_client_a && press_timer5.check() == 1)
-	{
-		DPRINTLN(F("Knob #5 Long Push"));
-		obj->writeRGBCode(0x00FF00);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 64, 127);
-			noteOff(CHANNEL, 64, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder5_client_swl);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder5_client_a)
-	{
-		DPRINTLN(F("Knob #5 Push"));
-		obj->writeRGBCode(0x0000FF);
-		#ifdef USE_MIDI
-			noteOn(CHANcNEL, 65, 127);
-			noteOff(CHANNEL, 65, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder5_client_sw);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder6_client_a && press_timer6.check() == 1)
-	{
-		DPRINTLN(F("Knob #6 Long Push"));
-		obj->writeRGBCode(0x00FF00);
-		#ifdef USE_MIDI
-			noteOn(CHANNEL, 64, 127);
-			noteOff(CHANNEL, 64, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder6_client_swl);
-		#endif
-	}
-	else if (obj->id == user_settings[user_Profile].encoder6_client_a)
-	{
-		DPRINTLN(F("Knob #6 Push"));
-		obj->writeRGBCode(0x0000FF);
-		#ifdef USE_MIDI
-			noteOn(CHANcNEL, 65, 127);
-			noteOff(CHANNEL, 65, 0);
-		#else
-			Button_Action(user_settings[user_Profile].encoder6_client_sw);
-		#endif
-	}
+		if ((obj->id == encoder_list[slot].role_A) && encoder_list[slot].enabled)
+		{
+			uint8_t _press = 0;
+
+			DPRINT(F("Slot ")); DPRINTLN(slot);
+			switch (slot)
+			{
+				case 0: if (press_timer1.check() == 1) _press = 1; break;
+				case 1: if (press_timer2.check() == 1) _press = 1; break;
+				case 2: if (press_timer3.check() == 1) _press = 1; break;
+				case 3: if (press_timer4.check() == 1) _press = 1; break;
+				case 4: if (press_timer5.check() == 1) _press = 1; break;
+				case 5: if (press_timer6.check() == 1) _press = 1; break;
+			}
+				
+			if (_press)	knob_press(obj, slot);  // this is a tap, call the button action 
+			else knob_tap(obj, slot);			// this is a tap, call the button action 
+		}
+	}	
 }
 
 //Callback when the encoder is first pushed, will start a timer to see if it was long or short
-COLD void encoder_timer_start(i2cEncoderLibV2* obj) {
-	//DPRINTLN(F("Push Timer Start: "));
+COLD void encoder_timer_start(i2cEncoderLibV2* obj) 
+{
+	uint8_t slot;
+	//DPRINT(F("Start Push Switch Timer ")); DPRINTLN(obj->id);
 	obj->writeRGBCode(0x0000FF);
-	if (obj->id == user_settings[user_Profile].encoder1_client_a)
-	  	press_timer1.reset();
-  	if (obj->id == user_settings[user_Profile].encoder2_client_a) 
-    	press_timer2.reset();
-	if (obj->id == user_settings[user_Profile].encoder3_client_a) 
-    	press_timer3.reset();
-	if (obj->id == user_settings[user_Profile].encoder4_client_a) 
-    	press_timer4.reset();
-	if (obj->id == user_settings[user_Profile].encoder5_client_a) 
-    	press_timer5.reset();
-	if (obj->id == user_settings[user_Profile].encoder6_client_a) 
-    	press_timer6.reset();
+	
+	for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+	{
+		if ((obj->id == encoder_list[slot].role_A) && encoder_list[slot].enabled)
+		{
+			switch (slot)
+			{
+				case 0: press_timer1.reset(); DPRINTLN(F("Start Timer 1")); break;
+				case 1: press_timer2.reset(); DPRINTLN(F("Start Timer 2")); break;
+				case 2: press_timer3.reset(); DPRINTLN(F("Start Timer 3")); break;
+				case 3: press_timer4.reset(); DPRINTLN(F("Start Timer 4")); break;
+				case 4: press_timer5.reset(); DPRINTLN(F("Start Timer 5")); break;
+				case 5: press_timer6.reset(); DPRINTLN(F("Start Timer 6")); break;
+			}
+		}
+	}
 }
 
 //Callback when the encoder reaches the max or min
 COLD void encoder_thresholds(i2cEncoderLibV2* obj) 
 {
 	if (obj->readStatus(i2cEncoderLibV2::RMAX))
-		DPRINTLN(F("Max!"));
+		;//DPRINTLN(F("Max!"));
 	else
-		DPRINTLN(F("Min!"));
+		;//DPRINTLN(F("Min!"));
 	obj->writeRGBCode(0xFF0000);
 }
 
@@ -419,7 +331,9 @@ COLD void encoder_thresholds(i2cEncoderLibV2* obj)
 COLD void encoder_fade(i2cEncoderLibV2* obj) 
 {
 	//uint8_t mfg; 
-	MF_ENC.updateStatus();
+	#ifdef I2C_ENC1_ADDR
+		I2C_ENC1.updateStatus();
+	#endif
 	//mfg = MF_ENC.readStatus();
 	//DPRINT(F("****Checked MF_Enc (in FADE) status = ")); DPRINTLN(mfg);
 	//#ifdef MF_ENC_ADDR
@@ -436,287 +350,324 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 
 COLD void set_I2CEncoders()
 {
-	pinMode(I2C_INT_PIN, INPUT_PULLUP);
-    DPRINTLN(F("Setup ENC"));
+	uint8_t slot = 0;
 
-	#ifdef MF_ENC_ADDR
-    // MF KNOB - Multi-Function knob setup.
-	if(user_settings[user_Profile].encoder1_client_a)  // 0 is no encoder assigned so skip this
-	{
-		DPRINTLN(F("MF Encoder Setup"));
-		MF_ENC.reset();
-		delay(20);
-		MF_ENC.begin(
-			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE // Pullup is on the Teensy IO pin
-			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		MF_ENC.id = user_settings[user_Profile].encoder1_client_a;
-		MF_ENC.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
-		MF_ENC.writeMax((int32_t) 100); /* Set the maximum threshold*/
-		MF_ENC.writeMin((int32_t) -100); /* Set the minimum threshold */
-		MF_ENC.writeStep((int32_t) 1); /* Set the step to 1*/
-		/* Configure the events */
-		MF_ENC.onChange = encoder_rotated;
-		MF_ENC.onButtonRelease = encoder_click;
-		MF_ENC.onMinMax = encoder_thresholds;
-		MF_ENC.onFadeProcess = encoder_fade;
-		MF_ENC.onButtonPush = encoder_timer_start;
-		MF_ENC.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-		//MF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
-		//MF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
-		/* Enable the I2C Encoder V2 interrupts according to the previous attached callback */
-		MF_ENC.autoconfigInterrupt();
-		blink_MF_RGB();
-	}
+	pinMode(I2C_INT_PIN, INPUT_PULLUP);
+    //DPRINTLN(F("Setup ENC"));
+
+	#ifdef I2C_ENC1_ADDR
+    	// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
+		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if ((encoder_list[slot].address == I2C_ENC1_ADDR) && encoder_list[slot].enabled)
+			{
+				DPRINT(F("I2C_ENC1 Encoder Setup Slot "));DPRINTLN(slot);
+				I2C_ENC1.reset();
+				delay(20);
+				I2C_ENC1.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				I2C_ENC1.id = encoder_list[slot].role_A;
+				I2C_ENC1.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+				I2C_ENC1.writeMax((int32_t) 100); /* Set the maximum threshold*/
+				I2C_ENC1.writeMin((int32_t) -100); /* Set the minimum threshold */
+				I2C_ENC1.writeStep((int32_t) 1); /* Set the step to 1*/
+				/* Configure the events */
+				I2C_ENC1.onChange = encoder_rotated;
+				I2C_ENC1.onButtonRelease = encoder_click;
+				I2C_ENC1.onMinMax = encoder_thresholds;
+				I2C_ENC1.onFadeProcess = encoder_fade;
+				I2C_ENC1.onButtonPush = encoder_timer_start;
+				I2C_ENC1.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+				//MF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
+				//MF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
+				/* Enable the I2C Encoder V2 interrupts according to the previous attached callback */
+				I2C_ENC1.autoconfigInterrupt();
+				blink_I2C_ENC1_RGB();
+				//DPRINTLN(F("End Encoder #1 Setup"));
+				break;  // now have the record for this encoder
+			}
+		}
 	#endif
 
 	// Setup for other encoders. Uses the button number from the user settings database
-	#ifdef ENC2_ADDR
-	// Encoder 2 setup
-	if(user_settings[user_Profile].encoder2_client_a)  // 0 if no encoder assigned so skip this
-    {
-		DPRINTLN(F("Encoder #2 Setup"));
-		ENC2.reset();
-		delay(20);
-		ENC2.begin(
-			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
-			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC2.id = user_settings[user_Profile].encoder2_client_a;   
-		ENC2.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
-		ENC2.writeMax((int32_t) 100); /* Set the maximum threshold*/
-		ENC2.writeMin((int32_t) -100); /* Set the minimum threshold */
-		ENC2.writeStep((int32_t) 1); /* Set the step to 1*/
-		/* Configure the events */
-		ENC2.onChange = encoder_rotated;
-		ENC2.onButtonRelease = encoder_click;
-		ENC2.onMinMax = encoder_thresholds;
-		ENC2.onFadeProcess = encoder_fade;
-    	ENC2.onButtonPush = encoder_timer_start;
-		ENC2.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-		ENC2.autoconfigInterrupt();
-		blink_ENC2_RGB();
-	}
+	#ifdef I2C_ENC2_ADDR
+		// Encoder 2 setup
+		// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
+		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if ((encoder_list[slot].address == I2C_ENC2_ADDR) && encoder_list[slot].enabled)
+			{
+				DPRINT(F("I2C_ENC2 Encoder Setup Slot "));DPRINTLN(slot);
+				I2C_ENC2.reset();
+				delay(20);
+				I2C_ENC2.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				I2C_ENC2.id = encoder_list[slot].role_A;   
+				I2C_ENC2.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+				I2C_ENC2.writeMax((int32_t) 100); /* Set the maximum threshold*/
+				I2C_ENC2.writeMin((int32_t) -100); /* Set the minimum threshold */
+				I2C_ENC2.writeStep((int32_t) 1); /* Set the step to 1*/
+				/* Configure the events */
+				I2C_ENC2.onChange = encoder_rotated;
+				I2C_ENC2.onButtonRelease = encoder_click;
+				I2C_ENC2.onMinMax = encoder_thresholds;
+				I2C_ENC2.onFadeProcess = encoder_fade;
+				I2C_ENC2.onButtonPush = encoder_timer_start;
+				I2C_ENC2.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+				I2C_ENC2.autoconfigInterrupt();
+				blink_I2C_ENC2_RGB();
+				//DPRINTLN(F("End Encoder #2 Setup"));
+				break;  // now have the record for this encoder
+			}
+		}
 	#endif
 
-	#ifdef ENC3_ADDR
-	// Encoder 3 setup
-	if(user_settings[user_Profile].encoder3_client_a)  // 0 if no encoder assigned so skip this
-    {
-		DPRINTLN(F("Encoder #3 Setup"));
-		ENC3.reset();
-		delay(20);
-		ENC3.begin(
-			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
-			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC3.id = user_settings[user_Profile].encoder3_client_a;   
-		ENC3.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
-		ENC3.writeMax((int32_t) 100); /* Set the maximum threshold*/
-		ENC3.writeMin((int32_t) -100); /* Set the minimum threshold */
-		ENC3.writeStep((int32_t) 1); /* Set the step to 1*/
-		/* Configure the events */
-		ENC3.onChange = encoder_rotated;
-		ENC3.onButtonRelease = encoder_click;
-		ENC3.onMinMax = encoder_thresholds;
-		ENC3.onFadeProcess = encoder_fade;
-		ENC3.onButtonPush = encoder_timer_start;
-		ENC3.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-		ENC3.autoconfigInterrupt();
-		blink_ENC3_RGB();
-	}
+	#ifdef I2C_ENC3_ADDR
+		// Encoder 3 setup
+		// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
+		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if ((encoder_list[slot].address == I2C_ENC3_ADDR) && encoder_list[slot].enabled)
+			{	
+				DPRINT(F("I2C_ENC3 Encoder Setup Slot "));DPRINTLN(slot);
+				I2C_ENC3.reset();
+				delay(20);
+				I2C_ENC3.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				I2C_ENC3.id = encoder_list[slot].role_A;   
+				I2C_ENC3.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+				I2C_ENC3.writeMax((int32_t) 100); /* Set the maximum threshold*/
+				I2C_ENC3.writeMin((int32_t) -100); /* Set the minimum threshold */
+				I2C_ENC3.writeStep((int32_t) 1); /* Set the step to 1*/
+				/* Configure the events */
+				I2C_ENC3.onChange = encoder_rotated;
+				I2C_ENC3.onButtonRelease = encoder_click;
+				I2C_ENC3.onMinMax = encoder_thresholds;
+				I2C_ENC3.onFadeProcess = encoder_fade;
+				I2C_ENC3.onButtonPush = encoder_timer_start;
+				I2C_ENC3.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+				I2C_ENC3.autoconfigInterrupt();
+				blink_I2C_ENC3_RGB();
+				//DPRINTLN(F("End Encoder #3 Setup"));
+				break;  // now have the record for this encoder
+			}
+		}
 	#endif
 
-	#ifdef ENC4_ADDR
-	// Encoder 4 setup
-	if(user_settings[user_Profile].encoder4_client)  // 0 if no encoder assigned so skip this
-    {
-		DPRINTLN(F("Encoder #4 Setup"));
-		ENC4.reset();
-		delay(20);
-		ENC4.begin(
-			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
-			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC4.id = user_settings[user_Profile].encoder4_client_a;   
-		ENC4.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
-		ENC4.writeMax((int32_t) 100); /* Set the maximum threshold*/
-		ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
-		ENC4.writeStep((int32_t) 1); /* Set the step to 1*/
-		/* Configure the events */
-		ENC4.onChange = encoder_rotated;
-		ENC4.onButtonRelease = encoder_click;
-		ENC4.onMinMax = encoder_thresholds;
-		ENC4.onFadeProcess = encoder_fade;
-		ENC4.onButtonPush = encoder_timer_start;
-		ENC4.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-		ENC4.autoconfigInterrupt();
-		blink_ENC4_RGB();
-	}
+	#ifdef I2C_ENC4_ADDR
+		// Encoder 4 setup
+    	// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
+		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if ((encoder_list[slot].address == I2C_ENC4_ADDR) && encoder_list[slot].enabled)
+			{
+				DPRINT(F("I2C_ENC4 Encoder Setup Slot "));DPRINTLN(slot);
+				I2C_ENC4.reset();
+				delay(20);
+				I2C_ENC4.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				I2C_ENC4.id = encoder_list[slot].role_A;   
+				I2C_ENC4.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+				I2C_ENC4.writeMax((int32_t) 100); /* Set the maximum threshold*/
+				I2C_ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
+				I2C_ENC4.writeStep((int32_t) 1); /* Set the step to 1*/
+				/* Configure the events */
+				I2C_ENC4.onChange = encoder_rotated;
+				I2C_ENC4.onButtonRelease = encoder_click;
+				I2C_ENC4.onMinMax = encoder_thresholds;
+				I2C_ENC4.onFadeProcess = encoder_fade;
+				I2C_ENC4.onButtonPush = encoder_timer_start;
+				I2C_ENC4.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+				I2C_ENC4.autoconfigInterrupt();
+				blink_I2C_ENC4_RGB();
+				//DPRINTLN(F("End Encoder #4 Setup"));
+				break;
+			}
+		}
 	#endif
 
-	#ifdef ENC5_ADDR
-	// Encoder 5 setup
-	if(user_settings[user_Profile].encoder5_client_a)  // 0 if no encoder assigned so skip this
-    {
-		DPRINTLN(F("Encoder #5 Setup"));
-		ENC5.reset();
-		delay(20);
-		ENC5.begin(
-			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
-			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC5.id = user_settings[user_Profile].encoder5_client_a;   
-		ENC5.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
-		ENC5.writeMax((int32_t) 100); /* Set the maximum threshold*/
-		ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
-		ENC5.writeStep((int32_t) 1); /* Set the step to 1*/
-		/* Configure the events */
-		ENC5.onChange = encoder_rotated;
-		ENC5.onButtonRelease = encoder_click;
-		ENC5.onMinMax = encoder_thresholds;
-		ENC5.onFadeProcess = encoder_fade;
-		ENC5.onButtonPush = encoder_timer_start;
-		ENC5.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-		ENC5.autoconfigInterrupt();
-		blink_ENC5_RGB();
-	}
+	#ifdef I2C_ENC5_ADDR
+		// Encoder 5 setup
+		// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
+		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if ((encoder_list[slot].address == I2C_ENC5_ADDR) && encoder_list[slot].enabled)
+			{
+				DPRINT(F("I2C_ENC5 Encoder Setup Slot "));DPRINTLN(slot);
+				I2C_ENC5.reset();
+				delay(20);
+				I2C_ENC5.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				I2C_ENC5.id = encoder_list[slot].role_A;   
+				I2C_ENC5.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+				I2C_ENC5.writeMax((int32_t) 100); /* Set the maximum threshold*/
+				I2C_ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
+				I2C_ENC5.writeStep((int32_t) 1); /* Set the step to 1*/
+				/* Configure the events */
+				I2C_ENC5.onChange = encoder_rotated;
+				I2C_ENC5.onButtonRelease = encoder_click;
+				I2C_ENC5.onMinMax = encoder_thresholds;
+				I2C_ENC5.onFadeProcess = encoder_fade;
+				I2C_ENC5.onButtonPush = encoder_timer_start;
+				I2C_ENC5.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+				I2C_ENC5.autoconfigInterrupt();
+				blink_I2C_ENC5_RGB();
+				//DPRINTLN(F("End Encoder #5 Setup"));
+				break;
+			}
+		}
 	#endif
 
-	#ifdef ENC6_ADDR
-	// Encoder 6 setup
-	if(user_settings[user_Profile].encoder6_client_a)  // 0 if no encoder assigned so skip this
-    {
-		DPRINTLN(F("Encoder #6 Setup"));
-		ENC6.reset();
-		delay(20);
-		ENC6.begin(
-			i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-			| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
-			| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
-		//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-		ENC6.id = user_settings[user_Profile].encoder6_client_a;   
-		ENC6.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
-		ENC6.writeMax((int32_t) 100); /* Set the maximum threshold*/
-		ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */
-		ENC6.writeStep((int32_t) 1); /* Set the step to 1*/
-		/* Configure the events */
-		ENC6.onChange = encoder_rotated;
-		ENC6.onButtonRelease = encoder_click;
-		ENC6.onMinMax = encoder_thresholds;
-		ENC6.onFadeProcess = encoder_fade;
-		ENC6.onButtonPush = encoder_timer_start;
-		ENC6.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
-		ENC6.autoconfigInterrupt();
-		blink_ENC6_RGB();
-	}
+	#ifdef I2C_ENC6_ADDR
+		// Encoder 6 setup
+    	// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
+		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if ((encoder_list[slot].address == I2C_ENC6_ADDR) && encoder_list[slot].enabled)
+			{
+				DPRINT(F("I2C_ENC6 Encoder Setup Slot "));DPRINTLN(slot);
+				I2C_ENC6.reset();
+				delay(20);
+				I2C_ENC6.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				I2C_ENC6.id = encoder_list[slot].role_A;   
+				I2C_ENC6.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
+				I2C_ENC6.writeMax((int32_t) 100); /* Set the maximum threshold*/
+				I2C_ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */
+				I2C_ENC6.writeStep((int32_t) 1); /* Set the step to 1*/
+				/* Configure the events */
+				I2C_ENC6.onChange = encoder_rotated;
+				I2C_ENC6.onButtonRelease = encoder_click;
+				I2C_ENC6.onMinMax = encoder_thresholds;
+				I2C_ENC6.onFadeProcess = encoder_fade;
+				I2C_ENC6.onButtonPush = encoder_timer_start;
+				I2C_ENC6.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
+				I2C_ENC6.autoconfigInterrupt();
+				blink_I2C_ENC6_RGB();
+				//DPRINTLN(F("End Encoder #6 Setup"));
+				break;
+			}
+		}
 	#endif
 }
 
-#ifdef MF_ENC_ADDR
-COLD void blink_MF_RGB(void)
+#ifdef I2C_ENC1_ADDR
+COLD void blink_I2C_ENC1_RGB(void)
 {
     /* blink the RGB LED */
-    MF_ENC.writeRGBCode(0xFF0000);
+    I2C_ENC1.writeRGBCode(0xFF0000);
     delay(250);
-    MF_ENC.writeRGBCode(0x00FF00);
+    I2C_ENC1.writeRGBCode(0x00FF00);
     delay(250);
-    MF_ENC.writeRGBCode(0x0000FF);
+    I2C_ENC1.writeRGBCode(0x0000FF);
     delay(250);
-    MF_ENC.writeRGBCode(0x000000);
-	DPRINTLN(F("Blink MF RGB"));
-    MF_ENC.writeFadeRGB(2); //Fade enabled with 2ms step
+    I2C_ENC1.writeRGBCode(0x000000);
+	DPRINTLN(F("Blink I2C_ENC1 RGB"));
+    I2C_ENC1.writeFadeRGB(2); //Fade enabled with 2ms step
 }
 #endif
 
-#ifdef ENC2_ADDR
-COLD void blink_ENC2_RGB(void)
+#ifdef I2C_ENC2_ADDR
+COLD void blink_I2C_ENC2_RGB(void)
 {
     /* blink the RGB LED */
-    ENC2.writeRGBCode(0xFF0000);
+    I2C_ENC2.writeRGBCode(0xFF0000);
     delay(250);
-    ENC2.writeRGBCode(0x00FF00);
+    I2C_ENC2.writeRGBCode(0x00FF00);
     delay(250);
-    ENC2.writeRGBCode(0x0000FF);
+    I2C_ENC2.writeRGBCode(0x0000FF);
     delay(250);
-    ENC2.writeRGBCode(0x000000);
-	DPRINTLN(F("Blink ENC2 RGB"));
-    ENC2.writeFadeRGB(3); //Fade enabled with 3ms step
+    I2C_ENC2.writeRGBCode(0x000000);
+	DPRINTLN(F("Blink I2C_ENC2 RGB"));
+    I2C_ENC2.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
 
-#ifdef ENC3_ADDR
-COLD void blink_ENC3_RGB(void)
+#ifdef I2C_ENC3_ADDR
+COLD void blink_I2C_ENC3_RGB(void)
 {	
     /* blink the RGB LED */
-    ENC3.writeRGBCode(0xFF0000);
+    I2C_ENC3.writeRGBCode(0xFF0000);
     delay(250);
-    ENC3.writeRGBCode(0x00FF00);
+    I2C_ENC3.writeRGBCode(0x00FF00);
     delay(250);
-    ENC3.writeRGBCode(0x0000FF);
+    I2C_ENC3.writeRGBCode(0x0000FF);
     delay(250);
-    ENC3.writeRGBCode(0x000000);
-	DPRINTLN(F("Blink ENC3 RGB"));
-    ENC3.writeFadeRGB(3); //Fade enabled with 3ms step
+    I2C_ENC3.writeRGBCode(0x000000);
+	DPRINTLN(F("Blink I2C_ENC3 RGB"));
+    I2C_ENC3.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
 
-#ifdef ENC4_ADDR
-COLD void blink_ENC4_RGB(void)
+#ifdef I2C_ENC4_ADDR
+COLD void blink_I2C_ENC4_RGB(void)
 {	
     /* blink the RGB LED */
-    ENC4.writeRGBCode(0xFF0000);
+    I2C_ENC4.writeRGBCode(0xFF0000);
     delay(250);
-    ENC4.writeRGBCode(0x00FF00);
+    I2C_ENC4.writeRGBCode(0x00FF00);
     delay(250);
-    ENC4.writeRGBCode(0x0000FF);
+    I2C_ENC4.writeRGBCode(0x0000FF);
     delay(250);
-    ENC4.writeRGBCode(0x000000);
-	DPRINTLN(F("Blink ENC4 RGB"));
-    ENC4.writeFadeRGB(3); //Fade enabled with 3ms step
+    I2C_ENC4.writeRGBCode(0x000000);
+	DPRINTLN(F("Blink I2C_ENC4 RGB"));
+    I2C_ENC4.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
 
-#ifdef ENC5_ADDR
-COLD void blink_ENC5_RGB(void)
+#ifdef I2C_ENC5_ADDR
+COLD void blink_I2C_ENC5_RGB(void)
 {	
     /* blink the RGB LED */
-    ENC5.writeRGBCode(0xFF0000);
+    I2C_ENC5.writeRGBCode(0xFF0000);
     delay(250);
-    ENC5.writeRGBCode(0x00FF00);
+    I2C_ENC5.writeRGBCode(0x00FF00);
     delay(250);
-    ENC5.writeRGBCode(0x0000FF);
+    I2C_ENC5.writeRGBCode(0x0000FF);
     delay(250);
-    ENC5.writeRGBCode(0x000000);
-	DPRINTLN(F("Blink ENC5 RGB"));
-    ENC5.writeFadeRGB(3); //Fade enabled with 3ms step
+    I2C_ENC5.writeRGBCode(0x000000);
+	DPRINTLN(F("Blink I2C_ENC5 RGB"));
+    I2C_ENC5.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
 
-#ifdef ENC6_ADDR
-COLD void blink_ENC6_RGB(void)
+#ifdef I2C_ENC6_ADDR
+COLD void blink_I2C_ENC6_RGB(void)
 {	
     /* blink the RGB LED */
-    ENC6.writeRGBCode(0xFF0000);
+    I2C_ENC6.writeRGBCode(0xFF0000);
     delay(250);
-    ENC6.writeRGBCode(0x00FF00);
+    I2C_ENC6.writeRGBCode(0x00FF00);
     delay(250);
-    ENC6.writeRGBCode(0x0000FF);
+    I2C_ENC6.writeRGBCode(0x0000FF);
     delay(250);
-    ENC6.writeRGBCode(0x000000);
-	DPRINTLN(F("Blink ENC6 RGB"));
-    ENC6.writeFadeRGB(3); //Fade enabled with 3ms step
+    I2C_ENC6.writeRGBCode(0x000000);
+	DPRINTLN(F("Blink I2C_ENC6 RGB"));
+    I2C_ENC6.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
 

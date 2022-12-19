@@ -58,5 +58,6 @@ void setPAN(int8_t toggle);
 void PAN(int8_t delta);
 void digital_step_attenuator_PE4305(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
 uint32_t find_new_band(uint32_t new_frequency, uint8_t * rs_curr_band);
+void clearMeter(void);
 
 #endif  // _CONTROLS_H_

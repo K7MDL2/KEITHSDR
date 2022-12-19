@@ -26,7 +26,7 @@
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
-//#define DEBUG  //set to true for debug output, false for no debug output
+#define DEBUG  //set to true for debug output, false for no debug output
 
 #ifdef  DEBUG
 #define DEBUG_ERROR true
@@ -282,6 +282,10 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   22      // number of labels in the table
 #define NUM_CNTL_ACTIVE 25
+#define NUM_AUX_ENCODERS 6
+#define GPIO_ENC    1
+#define I2C_ENC     0
+#define NONE        0
 #ifdef USE_RA8875
 #define STD_BTN_NUM 46      // number of rows in the buttons table
 #else
@@ -342,6 +346,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define ENC4_BTN    38
 #define ENC5_BTN    39
 #define ENC6_BTN    40
+#define TOGGLE      41
 
 //#define SPOT_BTN          // will display the NR value in the button - Not used today but a function exists.
 
@@ -482,63 +487,9 @@ struct User_Settings {
     uint8_t     xmit;               // xmit state.  0 is off.  1+ is mode
     uint8_t     fine;               // Fine tune state.  0 is off.  1+ is mode
     uint8_t     VFO_last;           // Track the last known state of the VFO A/B feature - either on A or B
-    uint8_t     default_MF_client;  // The default "client" assignment for the the MF Knob.
-    uint8_t     encoder1_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder1_client_b;  // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder1_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
-    uint8_t     encoder1_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder2_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
-    uint8_t     encoder2_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder2_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
-    uint8_t     encoder2_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder3_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up    
-    uint8_t     encoder3_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder3_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
-    uint8_t     encoder3_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder i
-    uint8_t     encoder4_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
-    uint8_t     encoder4_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder4_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
-    uint8_t     encoder4_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder5_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up
-    uint8_t     encoder5_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder5_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
-    uint8_t     encoder5_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder is wired up
-    uint8_t     encoder6_client_a;    // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder6_client_b;   // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
-    uint8_t     encoder6_client_sw; // The "client" action for one of the encoder switches - Set to 0 if no encoder is wired up
-    uint8_t     encoder6_client_swl;// The "client" action for one of the encoder switches (long push) - Set to 0 if no encoder i
     uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
     uint8_t     pan_state;          // 0 = OFF, 1 = ON
     uint8_t     pan_level;          // 0-100 converts to pan range of -0.50 to 0.50 for the pan memory.  0  is centered.
-};
-
-// Record active control status.  Most settings have their own status, but controls like what the encoder is assigned to need to 
-enum cntl_active_list {
-    def_MF_cli,
-    enc1_cli_a,
-    enc1_cli_b,
-    enc1_cli_sw, 
-    enc1_cli_swl,
-    enc2_cli_a,
-    enc2_cli_b,
-    enc2_cli_sw, 
-    enc2_cli_swl,
-    enc3_cli_a,    
-    enc3_cli_b,   
-    enc3_cli_sw, 
-    enc3_cli_swl,
-    enc4_cli_a,    
-    enc4_cli_b,   
-    enc4_cli_sw, 
-    enc4_cli_swl,
-    enc5_cli_a,    
-    enc5_cli_b,   
-    enc5_cli_sw, 
-    enc5_cli_swl,
-    enc6_cli_a,    
-    enc6_cli_b,   
-    enc6_cli_sw, 
-    enc6_cli_swl
 };
 
 struct Frequency_Display {
@@ -629,5 +580,21 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 #define ZOOM_LBL    21      // not implemented yet
 #define PAN_LBL     22      // not implemented yet
 */
+
+// This stores type and status info for auxillary encoders (VFO is separate).  
+// This contains the mapping read in from config to assign differnt types of encoders to 'control slots' for aux encoders
+// Each record is for 1 encoder.  Today there is support for 6 aux encoders (plus 1 VFO) so 6 records.
+// Can be any mix of type.  
+struct EncoderList {
+    uint8_t     type;       // encoder type, 0 = i2c connected , 1= GPIO connected
+    uint8_t     address;    // address of encoder.  0x61-0x66 for i2c (or your actual values), or 2 or 3 for GPIO for RadioConfig info.
+    uint8_t     enabled;    // encoder is enabled
+    uint8_t     default_MF_client;   // The default "client" assignment for the the MF Knob.  0 = none, 1 = MFClient assign function    
+    uint8_t     role_A;     // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     a_active;   // track if role A is active
+    uint8_t     role_B;     // The "client" alternate action for one of the encoder knobs - Set to 0 if no encoder is wired up   
+    uint8_t     tap;        // The "client" action for one of the encoder switches when tapped- Set to 0 if no encoder is wired up
+    uint8_t     press;      // The "client" action for one of the encoder switches when pressed (longer push) - Set to 0 if no encoder is wired up
+};   
 
 #endif //_SDR_RA8875_H_

@@ -36,7 +36,7 @@ extern struct 	AGC agc_set[];
 extern struct 	NB nb[];
 extern struct 	Modes_List modeList[];
 extern struct 	TuneSteps tstep[];
-extern uint8_t	cntl_active[];
+extern struct   EncoderList encoder_list[];
 extern bool    	MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern uint8_t 	MF_client;  // Flag for current owner of MF knob services
 extern int32_t 	ModeOffset;
@@ -662,6 +662,34 @@ COLD const char* formatVFO(uint32_t vfo)
 	//sprintf(vfo_str, "%13s", "45.123.123");
 	//DPRINT("New VFO: ");DPRINTLN(vfo_str);
 	return vfo_str;
+}
+
+// Checks to see if any icons are related to an active assigned encoder to indicate what functon an encoder shaft currently is.
+// Updates the outline color if an active  
+// On button events the colors are then toggled and tracked and this can be called to update the icons
+void update_icon_outline(void)
+{
+	for (uint8_t slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+	{
+		if (encoder_list[slot].enabled)
+		{
+			if (encoder_list[slot].a_active)
+			{
+				if (std_btn[encoder_list[slot].role_A].label_idx != 255)
+					labels[std_btn[encoder_list[slot].role_A].label_idx].outline_color = CYAN;  // update status icon outline
+				if (std_btn[encoder_list[slot].role_B].label_idx != 255)
+					labels[std_btn[encoder_list[slot].role_B].label_idx].outline_color = BLACK;  // update status icon outline
+			}
+			else
+			{
+				if (std_btn[encoder_list[slot].role_A].label_idx != 255)
+					labels[std_btn[encoder_list[slot].role_A].label_idx].outline_color = BLACK;  // update status icon outline
+				if (std_btn[encoder_list[slot].role_B].label_idx != 255)
+					labels[std_btn[encoder_list[slot].role_B].label_idx].outline_color = CYAN;  // update status icon outline
+			}
+		}
+	}
+	displayRefresh();
 }
 
 //
@@ -1512,20 +1540,6 @@ COLD void pop_win_down(uint8_t win_num)
         popup_timer.interval(500);      
         //displayRefresh();
     }
-}
-
-// Checks to see if any icons are related to an active assigned encoder to indicate what functon an encoder shaft currently is.
-// Updates the outline color if an active
-// Should only be called on initial startup since this does not unset.  It assumes they are all off.  
-// On button events the colors are then toggled and tracked.
-void update_icon_outline(void)
-{
-	extern void setEncoderMode(uint8_t id);
-	for (uint8_t i=MF_ENC_ADDR; i<= ENC6_BTN; i++)  // search to see if our button is the active encoder assignment
-	{
-		//DPRINT("i=");DPRINT(i);DPRINT("  function=");DPRINTLN(cntl_active[i]);
-		setEncoderMode(i);   // same as pressing all encoder switches to initialize things.
-	}
 }
 
 //	#endif // ifndef USE_RA8875

@@ -14,7 +14,7 @@
 
 #ifdef I2C_ENCODERS
 // These are the per-encoder function declarations
-#ifdef MF_ENC_ADDR
+#ifdef ENC1_ADDR
 void blink_MF_RGB(void);
 #endif
 #ifdef ENC2_ADDR

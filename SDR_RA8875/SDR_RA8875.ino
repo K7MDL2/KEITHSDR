@@ -57,35 +57,36 @@
     #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          
     // Hardware verson 2.1, Arduino library version 1.40.                                 
     //Class initialization with the I2C addresses
-    #ifdef MF_ENC_ADDR
-      extern i2cEncoderLibV2 MF_ENC; // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
+    #ifdef I2C_ENC1_ADDR
+      extern i2cEncoderLibV2 I2C_ENC1;  // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
     #endif
-    #ifdef ENC2_ADDR
-      extern i2cEncoderLibV2 ENC2; // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+    #ifdef I2C_ENC2_ADDR
+      extern i2cEncoderLibV2 I2C_ENC2;  // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
     #endif
-    #ifdef ENC3_ADDR
-      extern i2cEncoderLibV2 ENC3; // Address 0x63 only - Jumpers A1, A5 and A6 are soldered.// 
+    #ifdef I2C_ENC3_ADDR
+      extern i2cEncoderLibV2 I2C_ENC3;  // Address 0x63 only - Jumpers A1, A5 and A6 are soldered.// 
     #endif
-    #ifdef ENC4_ADDR
-      extern i2cEncoderLibV2 ENC4;    /* Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+    #ifdef I2C_ENC4_ADDR
+      extern i2cEncoderLibV2 I2C_ENC4;  // Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.
     #endif
-    #ifdef ENC5_ADDR
-      extern i2cEncoderLibV2 ENC5;    /* Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+    #ifdef I2C_ENC5_ADDR
+      extern i2cEncoderLibV2 I2C_ENC5;  // Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.
     #endif
-    #ifdef ENC6_ADDR
-      extern i2cEncoderLibV2 ENC6;    /* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+    #ifdef I2C_ENC6_ADDR
+      extern i2cEncoderLibV2 I2C_ENC6;  // Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.
     #endif    
-#else 
+#endif // I2C_ENCODER
+//#else 
     #ifdef MECH_ENCODERS   // if you have both i2c and mechanical encoders, assignment get tricky.  Default is only i2c OR mechanical
-        // On the Teensy motherboards, ENC1 is the VFO.  This is ENC2 jack. In the database this is handled as "encoder1_client" and "default_MF_client"
-        Encoder Multi(ENC2_PIN_A, ENC2_PIN_B);  // Multi Function Encoder GPIO pins assignments
+        // On the Teensy motherboards, ENC1 is the VFO.  This is I2C_ENC2 jack. In the database this is handled as "encoder1_client" and "default_MF_client"
+        Encoder Multi(ENC2_MECH_PIN_A, ENC2_MECH_PIN_B);  // Multi Function Encoder GPIO pins assignments
         // These are single fucntion encoders "encoderX_client" where X is 2 through 6
         //Encoder Encoder2(ENC3_PIN_A, ENC3_PIN_B);   // "encoder2_client" mapped to ENC3 on the board
     #endif
-#endif // I2C_ENCODER
+//#endif // I2C_ENCODER
 
 // Choose your actual pin assignments for any you may have.
-Encoder VFO(ENC1_PIN_A, ENC1_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
+Encoder VFO(VFO_MECH_PIN_A, VFO_MECH_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
 
 #ifndef USE_RS_HFIQ
     #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
@@ -493,7 +494,13 @@ COLD void setup()
     Wire.begin();
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
-    MF_client = user_settings[user_Profile].default_MF_client;
+    uint8_t slot;
+    for (slot=0; slot< NUM_AUX_ENCODERS; slot++)
+    {
+        if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
+            break;
+    }
+    MF_client = encoder_list[slot].default_MF_client;  
     MF_default_is_active = true;
     MeterInUse = false;   
 
@@ -502,8 +509,8 @@ COLD void setup()
     #endif // I2C_ENCODERS
 
     #ifdef MECH_ENCODERS
-        pinMode(ENC2_PIN_SW, INPUT_PULLUP);   // Pullups for Enc2 and 3 switches
-        pinMode(ENC3_PIN_SW, INPUT_PULLUP);
+        pinMode(ENC2_MECH_PIN_SW, INPUT_PULLUP);   // Pullups for Enc2_mech and 3 switches
+        pinMode(ENC3_MECH_PIN_SW, INPUT_PULLUP);
     #endif
 
     #ifdef SV1AFN_BPF
@@ -742,8 +749,8 @@ COLD void setup()
         CAT_setup();   // Setup the MSG_Serial port for cnfigured Radio comm port
     #endif
 
-    update_icon_outline();  // update any icons related to active encoders functions
-    displayRefresh();
+    update_icon_outline();  // update any icons related to active encoders functions  This also calls displayRefresh.
+    //displayRefresh();
 }
 
 static uint32_t delta = 0;
@@ -842,14 +849,23 @@ HOT void loop()
 
     if (MF_Timeout.check() == 1)
     {
+        uint8_t slot;
+
         MeterInUse = false;  
-        //if (MF_client != user_settings[user_Profile].default_MF_client)
         if (!MF_default_is_active)
         {
-            //DPRINT(F("Switching to Default MF knob assignment, current owner is = "));
-            //DPRINTLN(MF_client);
-            set_MF_Service(user_settings[user_Profile].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            MeterInUse = false;
+            //DPRINT(F("Switching to Default MF knob assignment, current owner is = ")); DPRINTLN(MF_client);
+		    for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		    {
+                if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
+                {
+                    break;
+                }
+            } // got the slot number of our control
+            set_MF_Service(encoder_list[slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
             MF_default_is_active = true;
+            //DPRINT(F("Switching to Default MF knob assignment = ")); DPRINTLN(MF_client);            
         }
     }
 
@@ -1219,8 +1235,7 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
     MF_client = new_client_name;        // Now assign new owner
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
                          // When it expires it will be switched to default
-    //DPRINT("New MF Knob Client ID is ");
-    //DPRINTLN(MF_client);
+    //DPRINT("New MF Knob Client ID is "); DPRINTLN(MF_client);
 }
 
 // ------------------------------------ MF_Service --------------------------------------
@@ -1252,7 +1267,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         case ZOOM_BTN:      if (counts > 0) counts =  1;
                             if (counts < 0) counts = -1;
                             Zoom(counts);           break;
-        case FILTER_BTN:    if (counts > 0) counts =  1;
+        case FILTER_BTN:    if (counts > 0) counts =  1;         // The controls here and below are not yet MF aware
                             if (counts < 0) counts = -1;
                             Filter(counts);         break;
 		case RATE_BTN:      if (counts > 0) counts =  1;
@@ -1531,10 +1546,10 @@ COLD void TX_RX_Switch(
     float   ch_off = 0.0f;
 
     // Covert bool to floats
-    if (b_Mic_On)   Mic_On   = 2.0f; else Mic_On   = ch_off;
-    if (b_USBIn_On) USBIn_On = 1.0f; else USBIn_On = ch_off;
-    if (b_ToneA)    ToneA    = ch_on; else  ToneA   = ch_off;
-    if (b_ToneB)    ToneB    = ch_on; else  ToneB   = ch_off;
+    if (b_Mic_On)   Mic_On   = 2.0f;  else Mic_On   = ch_off;
+    if (b_USBIn_On) USBIn_On = 1.0f;  else USBIn_On = ch_off;
+    if (b_ToneA)    ToneA    = ch_on; else ToneA    = ch_off;
+    if (b_ToneB)    ToneB    = ch_on; else ToneB    = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
     TxTestTone_A.frequency(700.0f); // for some reason this is doubled but Tone B is not.   Also getting mirror image.
@@ -2101,58 +2116,58 @@ void Check_Encoders(void)
         // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
         if (digitalRead(I2C_INT_PIN) == LOW) 
         {
-            #ifdef MF_ENC_ADDR
-            // Check the status of the encoder (if enabled) and call the callback
-            
-            if(MF_ENC.updateStatus() && user_settings[user_Profile].encoder1_client_a)
+            #ifdef I2C_ENC1_ADDR
+            // Check the status of the encoder (if enabled) and call the callback  
+            if(I2C_ENC1.updateStatus() && encoder_list[1].role_A && encoder_list[1].enabled)
             {            
-                mfg = MF_ENC.readStatus();
+                mfg = I2C_ENC1.readStatus();
                 if (mfg) {}
                 //if (mfg) { DPRINT(F("****Checked MF_Enc status = ")); DPRINTLN(mfg); }
             }
             #endif
-            #ifdef ENC2_ADDR
-            if(ENC2.updateStatus() && user_settings[user_Profile].encoder2_client_a)
+            #ifdef I2C_ENC2_ADDR
+            if(I2C_ENC2.updateStatus() && encoder_list[2].role_A && encoder_list[2].enabled)
             {
-                mfg = ENC2.readStatus();
+                mfg = I2C_ENC2.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #2 status = ")); DPRINTLN(mfg); }
             }
             #endif
-            #ifdef ENC3_ADDR
-            if(ENC3.updateStatus() && user_settings[user_Profile].encoder3_client_a)
+            #ifdef I2C_ENC3_ADDR
+            if(I2C_ENC3.updateStatus() && encoder_list[3].role_A && encoder_list[3].enabled)
             {
-                mfg = ENC3.readStatus();
+                mfg = I2C_ENC3.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #3 status = ")); DPRINTLN(mfg); }
             }
             #endif
-            #ifdef ENC4_ADDR
-            if(ENC4.updateStatus() && user_settings[user_Profile].encoder4_client_a)
+            #ifdef I2C_ENC4_ADDR
+            if(I2C_ENC4.updateStatus() && encoder_list[3].role_A && encoder_list[3].enabled)
             {
-                mfg = ENC4.readStatus();
+                mfg = I2C_ENC4.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #4 status = ")); DPRINTLN(mfg); }
             }
             #endif
-            #ifdef ENC5_ADDR
-            if(ENC5.updateStatus() && user_settings[user_Profile].encoder5_client_a)
+            #ifdef I2C_ENC5_ADDR
+            if(I2C_ENC5.updateStatus() && encoder_list[4]. && encoder_list[4].enabled)
             {
-                mfg = ENC5.readStatus();
+                mfg = I2C_ENC5.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #5 status = ")); DPRINTLN(mfg); }
             }
             #endif
-            #ifdef ENC6_ADDR
-            if(ENC6.updateStatus() && user_settings[user_Profile].encoder6_client_a)
+            #ifdef I2C_ENC6_ADDR
+            if(I2C_ENC6.updateStatus() && encoder_list[5].role_A && encoder_list[5].enabled)
             {
-                mfg = ENC6.readStatus();
+                mfg = I2C_ENC6.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #6 status = ")); DPRINTLN(mfg); }
             }
             #endif
         }
-    #else
+    #endif
+    //#else
         #ifdef MECH_ENCODERS
             // Use a mechanical encoder on the GPIO pins, if any.
             if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
@@ -2177,26 +2192,28 @@ void Check_Encoders(void)
                     counts = 0;
                     counts_last = 0;
                 } 
+
             }
         #endif
-    #endif // I2C_ENCODERS
+    //#endif // I2C_ENCODERS
 
     #ifdef MECH_ENCODERS
         
         static uint8_t ENC2_sw_pushed = 0;
-        static uint8_t ENC3_sw_pushed = 0;
+        //static uint8_t ENC3_sw_pushed = 0;
 
         // ToDo: Check timer for long and short press, add debounce
         //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
         
-        if (!digitalRead(ENC2_PIN_SW) && !ENC2_sw_pushed)
+        if (!digitalRead(ENC2_MECH_PIN_SW) && !ENC2_sw_pushed)
         {
-            Button_Action(user_settings[user_Profile].encoder1_client_sw);
+            Button_Action(encoder_list[3].tap);
             ENC2_sw_pushed = 1;
-        }
-        else if (digitalRead(ENC2_PIN_SW) && ENC2_sw_pushed)
+        }       
+        else if (digitalRead(ENC2_MECH_PIN_SW) && ENC2_sw_pushed)
             ENC2_sw_pushed = 0;
 
+/*
         if (!digitalRead(ENC3_PIN_SW) && !ENC3_sw_pushed)
         {
             Button_Action(user_settings[user_Profile].encoder2_client_sw);
@@ -2204,6 +2221,7 @@ void Check_Encoders(void)
         }
         else  if (digitalRead(ENC3_PIN_SW) && ENC3_sw_pushed)
             ENC3_sw_pushed = 0;
+*/
     #endif
 }
 #endif 
