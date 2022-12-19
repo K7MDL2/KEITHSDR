@@ -26,7 +26,7 @@
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
-#define DEBUG  //set to true for debug output, false for no debug output
+//#define DEBUG  //set to true for debug output, false for no debug output
 
 #ifdef  DEBUG
 #define DEBUG_ERROR true
