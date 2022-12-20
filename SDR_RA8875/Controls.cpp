@@ -126,7 +126,7 @@ void setZoom(int8_t toggle);
 void PAN(int8_t delta);
 void setPAN(int8_t toggle);
 void digital_step_attenuator_PE4302(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
-void setEncoderMode(uint8_t id);
+void setEncoderMode(uint8_t role);
 
 #ifndef BYPASS_SPECTRUM_MODULE
 // Use gestures (pinch) to adjust the the vertical scaling.  This affects both watefall and spectrum.  YMMV :-)
@@ -1649,7 +1649,7 @@ void clearMeter(void)
     uint8_t slot;
     DPRINTLN("Turn OFF meter");
     MeterInUse = false;
-    for (slot=0; slot< NUM_AUX_ENCODERS; slot++)
+    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
     {
         if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
             break;
@@ -1670,19 +1670,19 @@ void setMeter(uint8_t id)
 }
  
 // Toggle the assigned function on an encoder shaft.
-void setEncoderMode(uint8_t id)
+void setEncoderMode(uint8_t role)
 {
-    uint8_t _type, _enabled, _address, _mfenc, _roleA, _a_active, _roleB, _tap, _press;
+    uint8_t _type, _enabled, _id, _mfenc, _roleA, _a_active, _roleB, _tap, _press;
 
-    if (MF_client != id)  // Probably don't do this if assigned to a multifunction knob sicne it is temporary
+    if (MF_client != role)  // Probably don't do this if assigned to a multifunction knob sicne it is temporary
     {
-        DPRINT("Encoder Switch ID = "); DPRINTLN(id);
-        int slot = 0;
+        DPRINT("Encoder Switch ID = "); DPRINTLN(role);
+        int slot;
         // find enabled encoders in order of slot assignment and copy to local var for processing in a loop
-        for (slot=0; slot< NUM_AUX_ENCODERS; slot++)
+        for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
         {
             _type = encoder_list[slot].type;
-            _address = encoder_list[slot].address;
+            _id = encoder_list[slot].id;
             _enabled = encoder_list[slot].enabled;
             _mfenc =  encoder_list[slot].default_MF_client;
             _roleA = encoder_list[slot].role_A;
@@ -1691,12 +1691,12 @@ void setEncoderMode(uint8_t id)
             _tap =  encoder_list[slot].tap;
             _press =  encoder_list[slot].press;
         
-            Serial.printf("Slot#=%1d type=%1d address=0x%02x enabled=%1d MFENC?=%2d RoleA=%2d, A_active=%1d RoleB=%2d TAP=%2d PRESS=%2d\n",
-                           slot,     _type,  _address,       _enabled,   _mfenc,    _roleA,    _a_active,   _roleB,   _tap,   _press);
+            Serial.printf("Slot#=%1d type=%1d id=0x%1d enabled=%1d MFENC?=%2d RoleA=%2d, A_active=%1d RoleB=%2d TAP=%2d PRESS=%2d\n",
+                           slot,     _type,   _id,     _enabled,   _mfenc,    _roleA,    _a_active,   _roleB,   _tap,   _press);
 
             // when switch is tapped or pressed, toggle which function is assigned to the encoder rotation
             // Uses the KEYWORD TOGGLE in thr encoder_list table            
-            if (_tap == id)
+            if (_tap == role)
             {
                 switch (_tap)                    
                 {
@@ -1705,7 +1705,7 @@ void setEncoderMode(uint8_t id)
                     case ENC3_BTN:
                     case ENC4_BTN:
                     case ENC5_BTN:
-                    case ENC6_BTN:  DPRINT("Toggle Active Control "); DPRINTLN(id);
+                    case ENC6_BTN:  DPRINT("Toggle Active Control "); DPRINTLN(role);
                                     encoder_list[slot].a_active ^= 1;
                                     update_icon_outline();
                                     break;

@@ -282,9 +282,9 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   22      // number of labels in the table
 #define NUM_CNTL_ACTIVE 25
-#define NUM_AUX_ENCODERS 6
+#define NUM_AUX_ENCODERS 7
 #define GPIO_ENC    1
-#define I2C_ENC     0
+#define I2C_ENC     2
 #define NONE        0
 #ifdef USE_RA8875
 #define STD_BTN_NUM 46      // number of rows in the buttons table
@@ -587,7 +587,7 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 // Can be any mix of type.  
 struct EncoderList {
     uint8_t     type;       // encoder type, 0 = i2c connected , 1= GPIO connected
-    uint8_t     address;    // address of encoder.  0x61-0x66 for i2c (or your actual values), or 2 or 3 for GPIO for RadioConfig info.
+    uint8_t     id;         // unique of encoder. Set value equal to the encoder_list row number (0-7 typical)
     uint8_t     enabled;    // encoder is enabled
     uint8_t     default_MF_client;   // The default "client" assignment for the the MF Knob.  0 = none, 1 = MFClient assign function    
     uint8_t     role_A;     // The "client" action for one of the encoder knobs - Set to 0 if no encoder is wired up   

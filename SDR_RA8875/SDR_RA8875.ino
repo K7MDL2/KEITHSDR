@@ -79,14 +79,14 @@
 //#else 
     #ifdef MECH_ENCODERS   // if you have both i2c and mechanical encoders, assignment get tricky.  Default is only i2c OR mechanical
         // On the Teensy motherboards, ENC1 is the VFO.  This is I2C_ENC2 jack. In the database this is handled as "encoder1_client" and "default_MF_client"
-        Encoder Multi(ENC2_MECH_PIN_A, ENC2_MECH_PIN_B);  // Multi Function Encoder GPIO pins assignments
+        Encoder Multi(GPIO_ENC2_PIN_A, GPIO_ENC2_PIN_B);  // Multi Function Encoder GPIO pins assignments
         // These are single fucntion encoders "encoderX_client" where X is 2 through 6
         //Encoder Encoder2(ENC3_PIN_A, ENC3_PIN_B);   // "encoder2_client" mapped to ENC3 on the board
     #endif
 //#endif // I2C_ENCODER
 
 // Choose your actual pin assignments for any you may have.
-Encoder VFO(VFO_MECH_PIN_A, VFO_MECH_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
+Encoder VFO(GPIO_VFO_PIN_A, GPIO_VFO_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
 
 #ifndef USE_RS_HFIQ
     #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
@@ -509,8 +509,8 @@ COLD void setup()
     #endif // I2C_ENCODERS
 
     #ifdef MECH_ENCODERS
-        pinMode(ENC2_MECH_PIN_SW, INPUT_PULLUP);   // Pullups for Enc2_mech and 3 switches
-        pinMode(ENC3_MECH_PIN_SW, INPUT_PULLUP);
+        if (GPIO_ENC2_ENABLE) pinMode(GPIO_ENC2_PIN_SW, INPUT_PULLUP);   // Pullups for GPIO Enc2 and 3 switches
+        if (GPIO_ENC3_ENABLE) pinMode(GPIO_ENC3_PIN_SW, INPUT_PULLUP);
     #endif
 
     #ifdef SV1AFN_BPF
@@ -2150,7 +2150,7 @@ void Check_Encoders(void)
             }
             #endif
             #ifdef I2C_ENC5_ADDR
-            if(I2C_ENC5.updateStatus() && encoder_list[4]. && encoder_list[4].enabled)
+            if(I2C_ENC5.updateStatus() && encoder_list[4].role_A && encoder_list[4].enabled)
             {
                 mfg = I2C_ENC5.readStatus();
                 if (mfg) {}
@@ -2200,28 +2200,54 @@ void Check_Encoders(void)
     #ifdef MECH_ENCODERS
         
         static uint8_t ENC2_sw_pushed = 0;
-        //static uint8_t ENC3_sw_pushed = 0;
+        static uint8_t ENC3_sw_pushed = 0;
+        uint8_t slot = 0;
 
         // ToDo: Check timer for long and short press, add debounce
         //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
         
-        if (!digitalRead(ENC2_MECH_PIN_SW) && !ENC2_sw_pushed)
-        {
-            Button_Action(encoder_list[3].tap);
-            ENC2_sw_pushed = 1;
-        }       
-        else if (digitalRead(ENC2_MECH_PIN_SW) && ENC2_sw_pushed)
-            ENC2_sw_pushed = 0;
 
-/*
-        if (!digitalRead(ENC3_PIN_SW) && !ENC3_sw_pushed)
+        if (GPIO_ENC2_ENABLE)
         {
-            Button_Action(user_settings[user_Profile].encoder2_client_sw);
-            ENC3_sw_pushed = 1;
+           	for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
+            {
+                if ((GPIO_ENC2_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
+                {
+                    //DPRINT(F("GPIO Slot # = ")); DPRINTLN(slot);
+                    //DPRINT(F("id from slot # = ")); DPRINTLN(encoder_list[slot].id);
+                    break;
+                }
+            }
+                
+            if (!digitalRead(GPIO_ENC2_PIN_SW) && !ENC2_sw_pushed )
+            {
+                Button_Action(encoder_list[slot].tap);
+                ENC2_sw_pushed = 1;
+            }       
+            else if (digitalRead(GPIO_ENC2_PIN_SW) && ENC2_sw_pushed)
+                ENC2_sw_pushed = 0;
+        }        
+            
+        if (GPIO_ENC3_ENABLE)
+        {
+           	for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
+            {
+                if ((GPIO_ENC3_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
+                {
+                    //DPRINT(F("GPIO ENC3 Slot # = ")); DPRINTLN(slot);
+                    //DPRINT(F("id from slot # = ")); DPRINTLN(encoder_list[slot].id);
+                    break;
+                }
+            }
+
+            if (!digitalRead(GPIO_ENC3_PIN_SW) && !ENC3_sw_pushed)
+            {
+                Button_Action(encoder_list[slot].tap);
+                ENC3_sw_pushed = 1;
+            }
+            else  if (digitalRead(GPIO_ENC3_PIN_SW) && ENC3_sw_pushed)
+                ENC3_sw_pushed = 0;               
         }
-        else  if (digitalRead(ENC3_PIN_SW) && ENC3_sw_pushed)
-            ENC3_sw_pushed = 0;
-*/
     #endif
 }
 #endif 

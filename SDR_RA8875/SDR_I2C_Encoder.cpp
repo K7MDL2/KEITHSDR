@@ -111,21 +111,28 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 {
 	uint8_t knob_assigned, z_lvl, slot;
 
-	//DPRINT(F("Encoder ID = ")); DPRINTLN(obj->id);
+	//DPRINT(F("Encoder ID passed in = ")); DPRINTLN(obj->id);
+	//DPRINT(F("ID from Record lookup = ")); DPRINTLN(encoder_list[obj->id].id);
 	//DPRINT(F("Check MF Client ID = ")); DPRINTLN(MF_client);
+	//DPRINT(F("Role = ")); DPRINTLN(encoder_list[obj->id].role_A);
 	    
-	for (slot=0; slot< NUM_AUX_ENCODERS; slot++)
+	for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
 	{
-		if (obj->id == encoder_list[slot].role_A && encoder_list[slot].enabled)
+		//DPRINT(F("Slot # = ")); DPRINTLN(slot);
+		//DPRINT(F("id from slot # = ")); DPRINTLN(encoder_list[slot].id);
+		if ((obj->id == encoder_list[slot].id) && encoder_list[slot].enabled)
+		{	
+			//DPRINTLN(F("Valid Encoder Match"));
 			break;
-	}
+		} 
+	}  // got our slot number
 	//DPRINT(F("slot is ")); DPRINTLN(slot);
 	//DPRINT(F("def is ")); DPRINTLN(encoder_list[slot].default_MF_client);
 	
-	if (obj->id == encoder_list[slot].default_MF_client && obj->id != MF_client)		
+	if ((encoder_list[slot].role_A  == encoder_list[slot].default_MF_client) && encoder_list[slot].role_A != MF_client)		
 			knob_assigned = MF_client; 
 	else 
-		knob_assigned = obj->id;
+		knob_assigned = encoder_list[slot].role_A;
 	
 	if (obj->readStatus(i2cEncoderLibV2::RINC))
 		{}//DPRINT(F("Increment: "));
@@ -140,14 +147,14 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	if (knob_assigned == encoder_list[slot].role_A && encoder_list[slot].enabled && !encoder_list[slot].a_active)
 	{
 		knob_assigned = encoder_list[slot].role_B;  // reassign to role B
-		//DPRINT(F("Role B Assigned ")); DPRINTLN(encoder_list[slot].role_B);
+		DPRINT(F("Role B Assigned ")); DPRINTLN(encoder_list[slot].role_B);
 	}
 	
 	MF_Service(count, knob_assigned);
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
-	//DPRINT(F("Knob Assigned to ")); DPRINTLN(knob_assigned);
+	DPRINT(F("Knob Assigned to ")); DPRINTLN(knob_assigned);
 
 	switch(knob_assigned)
 	{
@@ -241,7 +248,7 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 
 void knob_press(i2cEncoderLibV2* obj, uint8_t slot)
 {	
-	//DPRINT(F("Knob Press ")); DPRINTLN(encoder_list[slot].press);
+	DPRINT(F("Knob Press ")); DPRINTLN(encoder_list[slot].press);
 	obj->writeRGBCode(0x00FF00);
 	#ifdef USE_MIDI
 		noteOn(CHANNEL, 62, 127);
@@ -253,7 +260,7 @@ void knob_press(i2cEncoderLibV2* obj, uint8_t slot)
 
 void knob_tap(i2cEncoderLibV2* obj, uint8_t slot)
 {
-	//DPRINT(F("Knob Tap ")); DPRINTLN(encoder_list[slot].tap);
+	DPRINT(F("Knob Tap ")); DPRINTLN(encoder_list[slot].tap);
 	obj->writeRGBCode(0x0000FF);
 	#ifdef USE_MIDI
 		noteOn(CHANNEL, 63, 127);
@@ -268,23 +275,23 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 {   
 	uint8_t slot;
 	
-	//DPRINT(F("Click Event ")); DPRINTLN(obj->id);
+	DPRINT(F("Click Event ")); DPRINTLN(obj->id);
 
-    for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 	{
-		if ((obj->id == encoder_list[slot].role_A) && encoder_list[slot].enabled)
+		if ((obj->id == encoder_list[slot].id) && encoder_list[slot].enabled)
 		{
 			uint8_t _press = 0;
 
 			DPRINT(F("Slot ")); DPRINTLN(slot);
 			switch (slot)
 			{
-				case 0: if (press_timer1.check() == 1) _press = 1; break;
-				case 1: if (press_timer2.check() == 1) _press = 1; break;
-				case 2: if (press_timer3.check() == 1) _press = 1; break;
-				case 3: if (press_timer4.check() == 1) _press = 1; break;
-				case 4: if (press_timer5.check() == 1) _press = 1; break;
-				case 5: if (press_timer6.check() == 1) _press = 1; break;
+				case 1: if (press_timer1.check() == 1) _press = 1; break;
+				case 2: if (press_timer2.check() == 1) _press = 1; break;
+				case 3: if (press_timer3.check() == 1) _press = 1; break;
+				case 4: if (press_timer4.check() == 1) _press = 1; break;
+				case 5: if (press_timer5.check() == 1) _press = 1; break;
+				case 6: if (press_timer6.check() == 1) _press = 1; break;
 			}
 				
 			if (_press)	knob_press(obj, slot);  // this is a tap, call the button action 
@@ -297,21 +304,21 @@ COLD void encoder_click(i2cEncoderLibV2* obj)
 COLD void encoder_timer_start(i2cEncoderLibV2* obj) 
 {
 	uint8_t slot;
-	//DPRINT(F("Start Push Switch Timer ")); DPRINTLN(obj->id);
+	DPRINT(F("Start Push Switch Timer ")); DPRINTLN(obj->id);
 	obj->writeRGBCode(0x0000FF);
 	
-	for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+	for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 	{
-		if ((obj->id == encoder_list[slot].role_A) && encoder_list[slot].enabled)
+		if ((obj->id == encoder_list[slot].id) && encoder_list[slot].enabled)
 		{
 			switch (slot)
 			{
-				case 0: press_timer1.reset(); DPRINTLN(F("Start Timer 1")); break;
-				case 1: press_timer2.reset(); DPRINTLN(F("Start Timer 2")); break;
-				case 2: press_timer3.reset(); DPRINTLN(F("Start Timer 3")); break;
-				case 3: press_timer4.reset(); DPRINTLN(F("Start Timer 4")); break;
-				case 4: press_timer5.reset(); DPRINTLN(F("Start Timer 5")); break;
-				case 5: press_timer6.reset(); DPRINTLN(F("Start Timer 6")); break;
+				case 1: press_timer1.reset(); DPRINTLN(F("Start Timer 1")); break;
+				case 2: press_timer2.reset(); DPRINTLN(F("Start Timer 2")); break;
+				case 3: press_timer3.reset(); DPRINTLN(F("Start Timer 3")); break;
+				case 4: press_timer4.reset(); DPRINTLN(F("Start Timer 4")); break;
+				case 5: press_timer5.reset(); DPRINTLN(F("Start Timer 5")); break;
+				case 6: press_timer6.reset(); DPRINTLN(F("Start Timer 6")); break;
 			}
 		}
 	}
@@ -357,9 +364,9 @@ COLD void set_I2CEncoders()
 
 	#ifdef I2C_ENC1_ADDR
     	// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
-		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
-			if ((encoder_list[slot].address == I2C_ENC1_ADDR) && encoder_list[slot].enabled)
+			if (encoder_list[slot].enabled == I2C_ENC1_ENABLE  && encoder_list[slot].type == I2C_ENC)
 			{
 				DPRINT(F("I2C_ENC1 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC1.reset();
@@ -370,7 +377,7 @@ COLD void set_I2CEncoders()
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-				I2C_ENC1.id = encoder_list[slot].role_A;
+				I2C_ENC1.id = encoder_list[slot].id;
 				I2C_ENC1.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 				I2C_ENC1.writeMax((int32_t) 100); /* Set the maximum threshold*/
 				I2C_ENC1.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -397,9 +404,9 @@ COLD void set_I2CEncoders()
 	#ifdef I2C_ENC2_ADDR
 		// Encoder 2 setup
 		// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
-		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
-			if ((encoder_list[slot].address == I2C_ENC2_ADDR) && encoder_list[slot].enabled)
+			if (encoder_list[slot].enabled == I2C_ENC2_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
 				DPRINT(F("I2C_ENC2 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC2.reset();
@@ -410,7 +417,7 @@ COLD void set_I2CEncoders()
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-				I2C_ENC2.id = encoder_list[slot].role_A;   
+				I2C_ENC2.id = encoder_list[slot].id;   
 				I2C_ENC2.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 				I2C_ENC2.writeMax((int32_t) 100); /* Set the maximum threshold*/
 				I2C_ENC2.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -433,9 +440,9 @@ COLD void set_I2CEncoders()
 	#ifdef I2C_ENC3_ADDR
 		// Encoder 3 setup
 		// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
-		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
-			if ((encoder_list[slot].address == I2C_ENC3_ADDR) && encoder_list[slot].enabled)
+			if (encoder_list[slot].enabled == I2C_ENC3_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{	
 				DPRINT(F("I2C_ENC3 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC3.reset();
@@ -446,7 +453,7 @@ COLD void set_I2CEncoders()
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-				I2C_ENC3.id = encoder_list[slot].role_A;   
+				I2C_ENC3.id = encoder_list[slot].id;   
 				I2C_ENC3.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 				I2C_ENC3.writeMax((int32_t) 100); /* Set the maximum threshold*/
 				I2C_ENC3.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -469,9 +476,9 @@ COLD void set_I2CEncoders()
 	#ifdef I2C_ENC4_ADDR
 		// Encoder 4 setup
     	// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
-		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
-			if ((encoder_list[slot].address == I2C_ENC4_ADDR) && encoder_list[slot].enabled)
+			if (encoder_list[slot].enabled == I2C_ENC4_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
 				DPRINT(F("I2C_ENC4 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC4.reset();
@@ -482,7 +489,7 @@ COLD void set_I2CEncoders()
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-				I2C_ENC4.id = encoder_list[slot].role_A;   
+				I2C_ENC4.id = encoder_list[slot].id;   
 				I2C_ENC4.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 				I2C_ENC4.writeMax((int32_t) 100); /* Set the maximum threshold*/
 				I2C_ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -505,9 +512,9 @@ COLD void set_I2CEncoders()
 	#ifdef I2C_ENC5_ADDR
 		// Encoder 5 setup
 		// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
-		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
-			if ((encoder_list[slot].address == I2C_ENC5_ADDR) && encoder_list[slot].enabled)
+			if (encoder_list[slot].enabled == I2C_ENC5_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
 				DPRINT(F("I2C_ENC5 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC5.reset();
@@ -518,7 +525,7 @@ COLD void set_I2CEncoders()
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-				I2C_ENC5.id = encoder_list[slot].role_A;   
+				I2C_ENC5.id = encoder_list[slot].id;   
 				I2C_ENC5.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 				I2C_ENC5.writeMax((int32_t) 100); /* Set the maximum threshold*/
 				I2C_ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
@@ -541,9 +548,9 @@ COLD void set_I2CEncoders()
 	#ifdef I2C_ENC6_ADDR
 		// Encoder 6 setup
     	// find the slot assigned to I2C_ENC1_ADDR and if enabled, set it up
-		for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
-			if ((encoder_list[slot].address == I2C_ENC6_ADDR) && encoder_list[slot].enabled)
+			if (encoder_list[slot].enabled == I2C_ENC6_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
 				DPRINT(F("I2C_ENC6 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC6.reset();
@@ -554,7 +561,7 @@ COLD void set_I2CEncoders()
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
-				I2C_ENC6.id = encoder_list[slot].role_A;   
+				I2C_ENC6.id = encoder_list[slot].id;   
 				I2C_ENC6.writeCounter((int32_t) 0); /* Reset the counter value to 0, can be a database value also*/
 				I2C_ENC6.writeMax((int32_t) 100); /* Set the maximum threshold*/
 				I2C_ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */

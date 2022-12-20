@@ -669,7 +669,7 @@ COLD const char* formatVFO(uint32_t vfo)
 // On button events the colors are then toggled and tracked and this can be called to update the icons
 void update_icon_outline(void)
 {
-	for (uint8_t slot = 0; slot < NUM_AUX_ENCODERS; slot++)
+	for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 	{
 		if (encoder_list[slot].enabled)
 		{

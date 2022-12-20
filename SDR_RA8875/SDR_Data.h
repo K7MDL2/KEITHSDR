@@ -314,17 +314,19 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 
 // Type 0 = i2c connected, type 1 = GPIO connected.
 // enabled == 1, disabled == 0
-// 1 row for each encoder slot, 6 max
+// 1 row for each encoder slot
 // only 1 should have the default MF ENC type assignment MFTUNE.  (any non-zero value is YES, 0 is no)
-// remaining 4 fields are the encoder shaft primary, alternate controls, and the tap and press control assignments
+// The 1st row is dedicated to the main VFO and is mostly a dummy row.  The rest of the rows are for the aux encoders and their associated switches
+// The last 4 fields are the encoder shaft primary, alternate controls, and the tap and press control assignments
 struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
-//type          address         enabled  default MF  enca         a_active   encb            enc1_tap        enc1_press
-    {GPIO_ENC,  ENC2_MECH,      OFF,     NONE,       MFTUNE,      ON,        MODE_BTN,       RATE_BTN,       FINE_BTN},      // enc slot 1 of 6
-    {I2C_ENC,   I2C_ENC1_ADDR,  ON,      MFTUNE,     MFTUNE,      ON,        RATE_BTN,       ENC2_BTN,       FINE_BTN},    // enc slot 2
-    {I2C_ENC,   I2C_ENC2_ADDR,  ON,      NONE,       ZOOM_BTN,    ON,        PAN_BTN,        ENC3_BTN,       RIT_BTN},      // enc slot 3
-    {I2C_ENC,   I2C_ENC3_ADDR,  ON,      NONE,       AFGAIN_BTN,  ON,        RFGAIN_BTN,     ENC4_BTN,       BAND_BTN},      // enc slot 4
-    {I2C_ENC,   0,              OFF,     NONE,       RIT_BTN,     ON,        XIT_BTN,        ENC5_BTN,       RIT_BTN},       // enc slot 5
-    {I2C_ENC,   0,              OFF,     NONE,       NB_BTN,      ON,        REFLVL_BTN,     BANDUP_BTN,     BANDDN_BTN}     // enc slot 6
+//type          id    enabled            def_MF   enca         a_active    encb            enc1_tap        enc1_press
+    {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,           NONE},      // enc slot 1 of 6
+    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MODE_BTN,       RATE_BTN,       FINE_BTN},      // enc slot 1 of 6
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  MFTUNE,      ON,         RATE_BTN,       ENC2_BTN,       FINE_BTN},    // enc slot 2
+    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    ZOOM_BTN,    ON,         PAN_BTN,        ENC3_BTN,       RIT_BTN},      // enc slot 3
+    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     ENC4_BTN,       BAND_BTN},      // enc slot 4
+    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        ENC5_BTN,       RIT_BTN},       // enc slot 5
+    {I2C_ENC,   6,    I2C_ENC5_ENABLE,   NONE,    NB_BTN,      ON,         REFLVL_BTN,     BANDUP_BTN,     BANDDN_BTN}     // enc slot 6
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
