@@ -92,9 +92,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
                             // Hardware verson 2.1, Arduino library version 1.40.
 
-//#define MECH_ENCODERS     // Use regular mechanical (non-I2C) connected encoders.  If this is defined and there are no encoders connected,
+//#define GPIO_ENCODERS     // Use regular (non-I2C) GPIO connected encoders.  If this is defined and there are no encoders connected,
                             // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
-
+#ifdef GPIO_ENCODERS     // DEPENDS on I2C_ENCODERS for servicing functions, can disable all i2c encoder in config section below
+    #define I2C_ENCODERS    
+#endif // GPIO_ENCODERS
+                            
 //#define USE_ENET_PROFILE  // This is inserted here to conveniently turn on ethernet profile for me using 1 setting.
 #ifdef USE_ENET_PROFILE     // Depends on ENET
     #define ENET
@@ -196,7 +199,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #else // My RA8876 7" specific build items
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
-      #define MECH_ENCODERS
+      #define GPIO_ENCODERS
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
     #endif
@@ -253,45 +256,40 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // 
 // Choose your actual pin assignments for any you may have.
 
+#define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
+#define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
+#define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
+
 // VFO Encoder (not I2C).  ENCx is the same as on the PCBs
 #if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
-  #define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
   #define GPIO_VFO_PIN_A          3     // used for VFO
   #define GPIO_VFO_PIN_B          4
   #define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
   #define GPIO_ENC2_PIN_A        30     // Encoder 2.
   #define GPIO_ENC2_PIN_B        31
   #define GPIO_ENC2_PIN_SW       32
-  #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
   #define GPIO_ENC3_PIN_A        34     // Encoder 3
   #define GPIO_ENC3_PIN_B        35
   #define GPIO_ENC3_PIN_SW       33
 #elif defined(V1_4_3_PCB)     // V1 4.3" Display PCB
-  #define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
   #define GPIO_VFO_PIN_A          4     // used for VFO
   #define GPIO_VFO_PIN_B          3     // Can swap and B to get direction correct without rewiring
-  #define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
   #define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.
   #define GPIO_ENC2_PIN_B        31
   #define GPIO_ENC2_PIN_SW       32
-  #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
   #define GPIO_ENC3_PIN_A        33     // GPIO Encoder 3
   #define GPIO_ENC3_PIN_B        34
   #define GPIO_ENC3_PIN_SW       35
 #elif defined (V2_4_3_PCB)    // V2 4.3" Display PCB
-  #define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
   #define GPIO_VFO_PIN_A         15     // used for VFO
   #define GPIO_VFO_PIN_B         16
-  #define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
   #define GPIO_ENC2_PIN_A        36     // Encoder 2.   conflicts with I2C encoders if they are enabled
   #define GPIO_ENC2_PIN_B        37
   #define GPIO_ENC2_PIN_SW       38
-  #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
   #define GPIO_ENC3_PIN_A        35     // Encoder 3
   #define GPIO_ENC3_PIN_B        34
   #define GPIO_ENC3_PIN_SW       33
 #else // else old proto board assignments
-  #define GPIO_VFO__ENABLE        1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
   #define GPIO_VFO_PIN_A          4     // used for VFO
   #define GPIO VFO_PIN_B          5
 #endif 
@@ -300,7 +298,17 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
 // I2C connected encoders use this this pin to signal interrupts
-// Knob assignments are the user_settings database                                                                                                                ither I2C or GPIO connected.  I no encoder is used, comment out I2C_ENCODER to prevent hangs on I2C comms
+// Knob assignments are the user_settings database 
+// While there are up to 6 i2c encoders possible, the encoder table and support functions
+//   only know about 7 encoders, the 1st is always the gpio VFO.
+//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
+#define I2C_ENC1_ENABLE       2    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+#define I2C_ENC2_ENABLE       3
+#define I2C_ENC3_ENABLE       4    
+#define I2C_ENC4_ENABLE       0    // 0 is disabled
+#define I2C_ENC5_ENABLE       0
+#define I2C_ENC6_ENABLE       0
+                                                                                                                
 #ifdef I2C_ENCODERS
   #if defined(V1_4_3_PCB) || defined(SMALL_PCB_V1)
     #define I2C_INT_PIN     36
@@ -309,13 +317,6 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #else // else old proto board assignment
     #define I2C_INT_PIN     29
   #endif 
-
-  #define I2C_ENC1_ENABLE       2    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
-  #define I2C_ENC2_ENABLE       3
-  #define I2C_ENC3_ENABLE       4    
-  #define I2C_ENC4_ENABLE       0    // 0 is disabled
-  #define I2C_ENC5_ENABLE       0
-  #define I2C_ENC6_ENABLE       0
 
   #if I2C_ENC1_ENABLE > 0
     #define I2C_ENC1_ADDR       (0x61)  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/

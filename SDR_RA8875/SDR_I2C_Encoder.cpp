@@ -3,7 +3,7 @@
 //
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
-//#include "SDR_I2C_Encoder.h"
+#include "SDR_I2C_Encoder.h"
 
 //  In RadioConfig.h use   #define USE_MIDI to enable MIDI 	-  
 //  Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
@@ -71,6 +71,8 @@ Metro press_timer4 = Metro(500);
 Metro press_timer5 = Metro(500);
 Metro press_timer6 = Metro(500);
 
+static int32_t gpio_enc_count = 0;
+
 //Class initialization with the I2C addresses - add more here if needed
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
 #ifdef I2C_ENC1_ADDR
@@ -98,17 +100,34 @@ Metro press_timer6 = Metro(500);
 	i2cEncoderLibV2 I2C_ENC6(I2C_ENC6_ADDR);  	/* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
 #endif
 
+// create dummy objects for gpio to interface to the i2c lib
+#ifdef GPIO_ENC2_ENABLE
+	i2cEncoderLibV2 GPIO_ENC2(0);
+#endif
+#ifdef GPIO_ENC2_ENABLE
+	i2cEncoderLibV2 GPIO_ENC3(0);
+#endif
+
 // These are generic callback functions - meaning when a hardware event occurs these functions are 
 // called with the info associated with that encoder.  We can assign each encoder to things like AF and RF gain.
-void encoder_rotated(i2cEncoderLibV2* obj);
-void encoder_click(i2cEncoderLibV2* obj);
-void encoder_thresholds(i2cEncoderLibV2* obj);
+//void encoder_rotated(i2cEncoderLibV2* obj, uint8_t slot);
+//void encoder_click(i2cEncoderLibV2* obj, uint8_t slot);
+//void encoder_thresholds(i2cEncoderLibV2* obj, uint8_t slot);
+void generic_encoder_timer_start(uint8_t _id);
+void generic_encoder_click(i2cEncoderLibV2* obj, uint8_t _id);
 
 extern void MF_Service(int8_t counts, uint8_t knob);
 
-//Callback when the MF Gain encoder is rotated
-COLD void encoder_rotated(i2cEncoderLibV2* obj) 
+COLD void gpio_encoder_rotated(i2cEncoderLibV2* obj, int32_t _count) 
 {
+	gpio_enc_count = _count;
+	i2c_encoder_rotated(obj);
+}
+
+//Callback when the MF Gain encoder is rotated
+COLD void i2c_encoder_rotated(i2cEncoderLibV2* obj) 
+{
+	int16_t count = 0;
 	uint8_t knob_assigned, z_lvl, slot;
 
 	//DPRINT(F("Encoder ID passed in = ")); DPRINTLN(obj->id);
@@ -134,12 +153,20 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 	else 
 		knob_assigned = encoder_list[slot].role_A;
 	
-	if (obj->readStatus(i2cEncoderLibV2::RINC))
-		{}//DPRINT(F("Increment: "));
-	else
-		{}//DPRINT(F("Decrement: "));
-	int16_t count = obj->readCounterInt();
-	//DPRINTLN(count);
+
+	if (encoder_list[slot].type == I2C_ENC)
+	{	
+		if (obj->readStatus(i2cEncoderLibV2::RINC))
+			{}//DPRINT(F("Increment: "));
+		else
+			{}//DPRINT(F("Decrement: "));
+		count = obj->readCounterInt();
+		//DPRINTLN(count);
+	}
+	else if (encoder_list[slot].type == GPIO_ENC)
+	{	
+		count = (int16_t) gpio_enc_count;
+	}
 
 	// ID arrives as Role_A.  Need to check which role is active. If B active, update the knob, else skip.
 	// If a button tap (switch) happens and it is ENCx_BTN, setEncoderMode() is called in control.cpp.  
@@ -240,16 +267,18 @@ COLD void encoder_rotated(i2cEncoderLibV2* obj)
 							#ifdef USE_MIDI
 								note(CHANNEL, 50, 64+count);   // MIDI jog wheel uses 64 as center
 							#endif
-							obj->writeRGBCode(tval); 
+							if (encoder_list[slot].type == I2C_ENC)  obj->writeRGBCode(tval); 
 							break;
 	}
-	obj->writeRGBCode(tval);  // set color
+	if (encoder_list[slot].type == I2C_ENC)  obj->writeRGBCode(tval);  // set color
 }
 
 void knob_press(i2cEncoderLibV2* obj, uint8_t slot)
 {	
 	DPRINT(F("Knob Press ")); DPRINTLN(encoder_list[slot].press);
-	obj->writeRGBCode(0x00FF00);
+	
+	if (encoder_list[slot].type == I2C_ENC) obj->writeRGBCode(0x00FF00);
+
 	#ifdef USE_MIDI
 		noteOn(CHANNEL, 62, 127);
 		noteOff(CHANNEL, 62, 0);
@@ -259,9 +288,11 @@ void knob_press(i2cEncoderLibV2* obj, uint8_t slot)
 }
 
 void knob_tap(i2cEncoderLibV2* obj, uint8_t slot)
-{
+{	
 	DPRINT(F("Knob Tap ")); DPRINTLN(encoder_list[slot].tap);
-	obj->writeRGBCode(0x0000FF);
+	
+	if (encoder_list[slot].type == I2C_ENC) obj->writeRGBCode(0x0000FF);
+
 	#ifdef USE_MIDI
 		noteOn(CHANNEL, 63, 127);
 		noteOff(CHANNEL, 63, 0);
@@ -270,55 +301,82 @@ void knob_tap(i2cEncoderLibV2* obj, uint8_t slot)
 	#endif
 }
 
-//Callback when the encoder is pushed
-COLD void encoder_click(i2cEncoderLibV2* obj) 
-{   
-	uint8_t slot;
-	
-	DPRINT(F("Click Event ")); DPRINTLN(obj->id);
+//Callback when the i2c encoder is pushed
+COLD void i2c_encoder_click(i2cEncoderLibV2* obj) 
+{  
+	generic_encoder_click(obj, obj->id);
+}
 
-    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
-	{
-		if ((obj->id == encoder_list[slot].id) && encoder_list[slot].enabled)
+COLD void gpio_encoder_click(uint8_t _id) 
+{  
+	GPIO_ENC2.id=_id;
+	DPRINT(F("GPIO Click Event ")); DPRINTLN(GPIO_ENC2.id);
+	generic_encoder_click(&GPIO_ENC2, _id);
+}
+
+// works with both GPIO and I2C
+COLD void generic_encoder_click(i2cEncoderLibV2* obj, uint8_t _id) 
+{   
+	DPRINT(F("Click Event ")); DPRINTLN(_id);
+
+    for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)
+	{	
+		
+		if ((_id == encoder_list[slot].id) && encoder_list[slot].enabled)
 		{
-			uint8_t _press = 0;
+			uint8_t _press = 0; 
 
 			DPRINT(F("Slot ")); DPRINTLN(slot);
 			switch (slot)
 			{
+				case 0: break;  // VFO, ignore it
 				case 1: if (press_timer1.check() == 1) _press = 1; break;
 				case 2: if (press_timer2.check() == 1) _press = 1; break;
 				case 3: if (press_timer3.check() == 1) _press = 1; break;
 				case 4: if (press_timer4.check() == 1) _press = 1; break;
 				case 5: if (press_timer5.check() == 1) _press = 1; break;
 				case 6: if (press_timer6.check() == 1) _press = 1; break;
+				default: break;
 			}
 				
-			if (_press)	knob_press(obj, slot);  // this is a tap, call the button action 
+			if (_press)	knob_press(obj, slot );  // this is a tap, call the button action 
 			else knob_tap(obj, slot);			// this is a tap, call the button action 
 		}
 	}	
 }
 
-//Callback when the encoder is first pushed, will start a timer to see if it was long or short
-COLD void encoder_timer_start(i2cEncoderLibV2* obj) 
-{
-	uint8_t slot;
-	DPRINT(F("Start Push Switch Timer ")); DPRINTLN(obj->id);
+//Callback when the i2c encoder is first pushed, will start a timer to see if it was long or short
+COLD void i2c_encoder_timer_start(i2cEncoderLibV2* obj) 
+{ 
 	obj->writeRGBCode(0x0000FF);
+	generic_encoder_timer_start(obj->id);
+}
+
+// interface for gpio encoders
+COLD void gpio_encoder_timer_start(uint8_t _id) 
+{
+	generic_encoder_timer_start(_id);
+}
+
+// works with both GPIO and I2C
+COLD void generic_encoder_timer_start(uint8_t _id) 
+{
+	DPRINT(F("Start Push Switch Timer ")); DPRINTLN(_id);
 	
-	for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
+	for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 	{
-		if ((obj->id == encoder_list[slot].id) && encoder_list[slot].enabled)
+		if ((_id == encoder_list[slot].id) && encoder_list[slot].enabled)
 		{
 			switch (slot)
 			{
+				case 0: break;  // VFO, ignore it
 				case 1: press_timer1.reset(); DPRINTLN(F("Start Timer 1")); break;
 				case 2: press_timer2.reset(); DPRINTLN(F("Start Timer 2")); break;
 				case 3: press_timer3.reset(); DPRINTLN(F("Start Timer 3")); break;
 				case 4: press_timer4.reset(); DPRINTLN(F("Start Timer 4")); break;
 				case 5: press_timer5.reset(); DPRINTLN(F("Start Timer 5")); break;
 				case 6: press_timer6.reset(); DPRINTLN(F("Start Timer 6")); break;
+				default: break;
 			}
 		}
 	}
@@ -383,11 +441,11 @@ COLD void set_I2CEncoders()
 				I2C_ENC1.writeMin((int32_t) -100); /* Set the minimum threshold */
 				I2C_ENC1.writeStep((int32_t) 1); /* Set the step to 1*/
 				/* Configure the events */
-				I2C_ENC1.onChange = encoder_rotated;
-				I2C_ENC1.onButtonRelease = encoder_click;
+				I2C_ENC1.onChange = i2c_encoder_rotated;
+				I2C_ENC1.onButtonRelease = i2c_encoder_click;
 				I2C_ENC1.onMinMax = encoder_thresholds;
 				I2C_ENC1.onFadeProcess = encoder_fade;
-				I2C_ENC1.onButtonPush = encoder_timer_start;
+				I2C_ENC1.onButtonPush = i2c_encoder_timer_start;
 				I2C_ENC1.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 				//MF_ENC.writeInterruptConfig(0xff); /* Enable all the interrupt */
 				//MF_ENC.writeDoublePushPeriod(50); /*Set a period for the double push of 500ms */
@@ -423,11 +481,11 @@ COLD void set_I2CEncoders()
 				I2C_ENC2.writeMin((int32_t) -100); /* Set the minimum threshold */
 				I2C_ENC2.writeStep((int32_t) 1); /* Set the step to 1*/
 				/* Configure the events */
-				I2C_ENC2.onChange = encoder_rotated;
-				I2C_ENC2.onButtonRelease = encoder_click;
+				I2C_ENC2.onChange = i2c_encoder_rotated;
+				I2C_ENC2.onButtonRelease = i2c_encoder_click;
 				I2C_ENC2.onMinMax = encoder_thresholds;
 				I2C_ENC2.onFadeProcess = encoder_fade;
-				I2C_ENC2.onButtonPush = encoder_timer_start;
+				I2C_ENC2.onButtonPush = i2c_encoder_timer_start;
 				I2C_ENC2.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 				I2C_ENC2.autoconfigInterrupt();
 				blink_I2C_ENC2_RGB();
@@ -459,11 +517,11 @@ COLD void set_I2CEncoders()
 				I2C_ENC3.writeMin((int32_t) -100); /* Set the minimum threshold */
 				I2C_ENC3.writeStep((int32_t) 1); /* Set the step to 1*/
 				/* Configure the events */
-				I2C_ENC3.onChange = encoder_rotated;
-				I2C_ENC3.onButtonRelease = encoder_click;
+				I2C_ENC3.onChange = i2c_encoder_rotated;
+				I2C_ENC3.onButtonRelease = i2c_encoder_click;
 				I2C_ENC3.onMinMax = encoder_thresholds;
 				I2C_ENC3.onFadeProcess = encoder_fade;
-				I2C_ENC3.onButtonPush = encoder_timer_start;
+				I2C_ENC3.onButtonPush = i2c_encoder_timer_start;
 				I2C_ENC3.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 				I2C_ENC3.autoconfigInterrupt();
 				blink_I2C_ENC3_RGB();
@@ -495,11 +553,11 @@ COLD void set_I2CEncoders()
 				I2C_ENC4.writeMin((int32_t) -100); /* Set the minimum threshold */
 				I2C_ENC4.writeStep((int32_t) 1); /* Set the step to 1*/
 				/* Configure the events */
-				I2C_ENC4.onChange = encoder_rotated;
-				I2C_ENC4.onButtonRelease = encoder_click;
+				I2C_ENC4.onChange = i2c_encoder_rotated;
+				I2C_ENC4.onButtonRelease = i2c_encoder_click;
 				I2C_ENC4.onMinMax = encoder_thresholds;
 				I2C_ENC4.onFadeProcess = encoder_fade;
-				I2C_ENC4.onButtonPush = encoder_timer_start;
+				I2C_ENC4.onButtonPush = i2c_encoder_timer_start;
 				I2C_ENC4.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 				I2C_ENC4.autoconfigInterrupt();
 				blink_I2C_ENC4_RGB();
@@ -531,11 +589,11 @@ COLD void set_I2CEncoders()
 				I2C_ENC5.writeMin((int32_t) -100); /* Set the minimum threshold */
 				I2C_ENC5.writeStep((int32_t) 1); /* Set the step to 1*/
 				/* Configure the events */
-				I2C_ENC5.onChange = encoder_rotated;
-				I2C_ENC5.onButtonRelease = encoder_click;
+				I2C_ENC5.onChange = i2c_encoder_rotated;
+				I2C_ENC5.onButtonRelease = i2c_encoder_click;
 				I2C_ENC5.onMinMax = encoder_thresholds;
 				I2C_ENC5.onFadeProcess = encoder_fade;
-				I2C_ENC5.onButtonPush = encoder_timer_start;
+				I2C_ENC5.onButtonPush = i2c_encoder_timer_start;
 				I2C_ENC5.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 				I2C_ENC5.autoconfigInterrupt();
 				blink_I2C_ENC5_RGB();
@@ -567,16 +625,57 @@ COLD void set_I2CEncoders()
 				I2C_ENC6.writeMin((int32_t) -100); /* Set the minimum threshold */
 				I2C_ENC6.writeStep((int32_t) 1); /* Set the step to 1*/
 				/* Configure the events */
-				I2C_ENC6.onChange = encoder_rotated;
-				I2C_ENC6.onButtonRelease = encoder_click;
+				I2C_ENC6.onChange = i2c_encoder_rotated;
+				I2C_ENC6.onButtonRelease = i2c_encoder_click;
 				I2C_ENC6.onMinMax = encoder_thresholds;
 				I2C_ENC6.onFadeProcess = encoder_fade;
-				I2C_ENC6.onButtonPush = encoder_timer_start;
+				I2C_ENC6.onButtonPush = i2c_encoder_timer_start;
 				I2C_ENC6.writeAntibouncingPeriod(20); /* Set an anti-bouncing of 200ms */
 				I2C_ENC6.autoconfigInterrupt();
 				blink_I2C_ENC6_RGB();
 				//DPRINTLN(F("End Encoder #6 Setup"));
 				break;
+			}
+		}
+	#endif
+
+	// Create fake i2c objects to help gpio to work with teh i2c lib functions.  All we need is the .ID value.
+	#ifdef GPIO_ENC2_ENABLE
+
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if (encoder_list[slot].enabled == GPIO_ENC2_ENABLE && encoder_list[slot].type == GPIO_ENC)
+			{
+				DPRINT(F("GPIO_ENC2 Encoder Setup Slot "));DPRINTLN(slot);
+				GPIO_ENC2.reset();
+				delay(20);
+				GPIO_ENC2.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				GPIO_ENC2.id = encoder_list[slot].id; 
+			}
+		}
+	#endif
+
+	#ifdef GPIO_ENC3_ENABLE
+
+		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
+		{
+			if (encoder_list[slot].enabled == GPIO_ENC3_ENABLE && encoder_list[slot].type == GPIO_ENC)
+			{
+				DPRINT(F("GPIO_ENC3 Encoder Setup Slot "));DPRINTLN(slot);
+				GPIO_ENC3.reset();
+				delay(20);
+				GPIO_ENC3.begin(
+					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
+				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
+				GPIO_ENC3.id = encoder_list[slot].id; 
 			}
 		}
 	#endif

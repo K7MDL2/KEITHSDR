@@ -321,8 +321,8 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap        enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,           NONE},      // enc slot 1 of 6
-    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MODE_BTN,       RATE_BTN,       FINE_BTN},      // enc slot 1 of 6
-    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  MFTUNE,      ON,         RATE_BTN,       ENC2_BTN,       FINE_BTN},    // enc slot 2
+    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  MFTUNE,  MFTUNE,      ON,         MODE_BTN,       ENC1_BTN,       FINE_BTN},      // enc slot 1 of 6
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    MFTUNE,      ON,         RATE_BTN,       ENC2_BTN,       FINE_BTN},    // enc slot 2
     {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    ZOOM_BTN,    ON,         PAN_BTN,        ENC3_BTN,       RIT_BTN},      // enc slot 3
     {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     ENC4_BTN,       BAND_BTN},      // enc slot 4
     {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        ENC5_BTN,       RIT_BTN},       // enc slot 5

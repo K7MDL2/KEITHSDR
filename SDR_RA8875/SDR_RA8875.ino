@@ -40,7 +40,7 @@
                                 // For 60M coverage requires and updated libary file set.
 #endif // SV1AFN_BPF
 
-#ifdef I2C_ENCODERS              // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
+#ifdef I2C_ENCODERS // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
     //  This is a basic example for using the I2C Encoder V2
     //  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
     //  It's also printed when the push button is released.
@@ -74,16 +74,27 @@
     #endif
     #ifdef I2C_ENC6_ADDR
       extern i2cEncoderLibV2 I2C_ENC6;  // Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.
-    #endif    
+    #endif  
+    //void generic_encoder_timer_start(uint8_t _id);
+    //void generic_encoder_click(i2cEncoderLibV2* obj, uint8_t _id);  
+    //void i2c_encoder_rotated(i2cEncoderLibV2* obj, int32_t count);
 #endif // I2C_ENCODER
 //#else 
-    #ifdef MECH_ENCODERS   // if you have both i2c and mechanical encoders, assignment get tricky.  Default is only i2c OR mechanical
-        // On the Teensy motherboards, ENC1 is the VFO.  This is I2C_ENC2 jack. In the database this is handled as "encoder1_client" and "default_MF_client"
-        Encoder Multi(GPIO_ENC2_PIN_A, GPIO_ENC2_PIN_B);  // Multi Function Encoder GPIO pins assignments
-        // These are single fucntion encoders "encoderX_client" where X is 2 through 6
-        //Encoder Encoder2(ENC3_PIN_A, ENC3_PIN_B);   // "encoder2_client" mapped to ENC3 on the board
+#ifdef GPIO_ENCODERS   // if you have both i2c and mechanical encoders, assignment get tricky.  Default is only i2c OR mechanical
+    #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          
+    // Hardware verson 2.1, Arduino library version 1.40.
+    // On the Teensy motherboards, ENC1 is the VFO.  This is GPIO_ENC2 and GPIO_ENC3 jacks.
+    // Using dummy i2c objects to inteface the gpio enmcoders through to support the same timer (tap/press), and role/switch features
+    #ifdef GPIO_ENC2_ENABLE
+	    extern i2cEncoderLibV2 GPIO_ENC2;
+        Encoder GPIO_Encoder2(GPIO_ENC2_PIN_A, GPIO_ENC2_PIN_B);
     #endif
-//#endif // I2C_ENCODER
+    #ifdef GPIO_ENC2_ENABLE
+	    extern i2cEncoderLibV2 GPIO_ENC3;
+        Encoder GPIO_Encoder3(GPIO_ENC3_PIN_A, GPIO_ENC3_PIN_B);
+    #endif    
+#endif
+//#endif // I2C_ENCODER + GPIO_ENCODERS
 
 // Choose your actual pin assignments for any you may have.
 Encoder VFO(GPIO_VFO_PIN_A, GPIO_VFO_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
@@ -158,7 +169,6 @@ int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
 void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t     popup                   = 0;   // experimental flag for pop up windows
-int32_t     multiKnob(uint8_t clear);      // consumer features use this for control input
 int32_t     Freq_Peak               = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
 bool        touchBeep_flag          = false;
@@ -187,14 +197,15 @@ float       pan                     = 0.0f;
 //#include <Metro.h>
 // Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
 Metro touch             = Metro(50);    // used to check for touch events
-Metro tuner             = Metro(1000);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro tuner             = Metro(700);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
 Metro meter             = Metro(400);   // used to update the meters
 Metro popup_timer       = Metro(500);   // used to check for popup screen request
 Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
 Metro MF_Timeout        = Metro(3000);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
-Metro ENC_Read_timer    = Metro(250);   // time allowed to accumulate counts for slow moving detented encoders
+Metro gpio_ENC2_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
+Metro gpio_ENC3_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -508,7 +519,7 @@ COLD void setup()
         set_I2CEncoders();
     #endif // I2C_ENCODERS
 
-    #ifdef MECH_ENCODERS
+    #ifdef GPIO_ENCODERS
         if (GPIO_ENC2_ENABLE) pinMode(GPIO_ENC2_PIN_SW, INPUT_PULLUP);   // Pullups for GPIO Enc2 and 3 switches
         if (GPIO_ENC3_ENABLE) pinMode(GPIO_ENC3_PIN_SW, INPUT_PULLUP);
     #endif
@@ -1158,40 +1169,6 @@ COLD void printHelp(void)
 }
 #endif
 
-#ifdef MECH_ENCODERS
-//
-// ---------------------------------  multiKnob() -----------------------------------------------
-//
-//  Handles a detented incremental encoder for any calling function returning the count, if any,
-//          positive or negative until a reset is requested to 0.
-//
-//  Input:  uint8_t clear.  If clear == 1 then reset the encoder to ready it for a next read.
-//
-//  Usage:  A consumer function will call this with clear flag set at the start of use.
-//          It will poll this function for counts acting on any in any way it needs to.
-//          It will clear the count to look for next action.
-//          If a clear is not performed then the consumer function must deal with figuring out how
-//          the value has changed and what to do with it.
-//          The value returned will be a positive or negative value with some count (usally each step si 4 but not always)
-//
-int32_t multiKnob(uint8_t clear)
-{
-    static int32_t mf_count = 0;
-
-    if (clear)
-    {
-        Multi.readAndReset(); // toss results, zero the encoder
-        mf_count = 0;
-    }
-    else
-    {
-        mf_count = Multi.readAndReset(); // read and reset the Multifunction knob.  Apply results to any in-focus function, if any
-    }
-    return mf_count;
-}
-#endif  //MECH_ENCODERS
-
-
 // Deregister the MF_client
 COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner button status
 { 
@@ -1228,9 +1205,6 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
 COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner after we clear the old one
 {
-    #ifdef MECH_ENCODERS   // The I2c encoders are using interrupt driven callback functions so no need to call them, they will call us.
-        multiKnob(1);       // for non-I2C encoder, clear the counts.
-    #endif
     unset_MF_Service(MF_client);    //  turn off current button if on
     MF_client = new_client_name;        // Now assign new owner
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
@@ -2111,101 +2085,145 @@ void RS_HFIQ_Service(void)
 void Check_Encoders(void)
 {   
     #if defined I2C_ENCODERS
-        uint8_t mfg;
 
         // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
         if (digitalRead(I2C_INT_PIN) == LOW) 
         {
+            static uint8_t _e1, _e2, _e3, _e4, _e5, _e6;
+            
+            _e1=_e2=_e3=_e4=_e5=_e6=0;  // iit to zero.
+
+          	for (int8_t slot = 1; slot< NUM_AUX_ENCODERS; slot++)
+            {
+                #ifdef I2C_ENC1_ADDR
+                    if ((I2C_ENC1.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
+                        _e1 = slot;
+                #endif
+                #ifdef I2C_ENC2_ADDR
+                    if ((I2C_ENC2.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
+                        _e2 = slot;
+                #endif
+                #ifdef I2C_ENC3_ADDR
+                    if ((I2C_ENC3.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
+                        _e3 = slot;
+                #endif
+                #ifdef I2C_ENC4_ADDR                    
+                    if ((I2C_ENC4.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
+                        _e4 = slot;
+                #endif
+                #ifdef I2C_ENC5_ADDR                    
+                    if ((I2C_ENC5.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
+                        _e5 = slot;
+                #endif
+                #ifdef I2C_ENC6_ADDR
+                    if ((I2C_ENC6.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
+                        _e6 = slot;
+                #endif
+            }
+
             #ifdef I2C_ENC1_ADDR
             // Check the status of the encoder (if enabled) and call the callback  
-            if(I2C_ENC1.updateStatus() && encoder_list[1].role_A && encoder_list[1].enabled)
-            {            
-                mfg = I2C_ENC1.readStatus();
+            if(I2C_ENC1.updateStatus() && encoder_list[_e1].role_A && encoder_list[_e1].enabled)
+            {                           
+                uint8_t mfg = I2C_ENC1.readStatus();
                 if (mfg) {}
                 //if (mfg) { DPRINT(F("****Checked MF_Enc status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC2_ADDR
-            if(I2C_ENC2.updateStatus() && encoder_list[2].role_A && encoder_list[2].enabled)
+            if(I2C_ENC2.updateStatus() && encoder_list[_e2].role_A && encoder_list[_e2].enabled)
             {
-                mfg = I2C_ENC2.readStatus();
+                uint8_t mfg = I2C_ENC2.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #2 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC3_ADDR
-            if(I2C_ENC3.updateStatus() && encoder_list[3].role_A && encoder_list[3].enabled)
+            if(I2C_ENC3.updateStatus() && encoder_list[_e3].role_A && encoder_list[_e3].enabled)
             {
-                mfg = I2C_ENC3.readStatus();
+                uint8_t mfg = I2C_ENC3.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #3 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC4_ADDR
-            if(I2C_ENC4.updateStatus() && encoder_list[3].role_A && encoder_list[3].enabled)
+            if(I2C_ENC4.updateStatus() && encoder_list[_e4].role_A && encoder_list[_e4].enabled)
             {
-                mfg = I2C_ENC4.readStatus();
+                uint8_t mfg = I2C_ENC4.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #4 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC5_ADDR
-            if(I2C_ENC5.updateStatus() && encoder_list[4].role_A && encoder_list[4].enabled)
+            if(I2C_ENC5.updateStatus() && encoder_list[_e5].role_A && encoder_list[_e5].enabled)
             {
-                mfg = I2C_ENC5.readStatus();
+                uint8_t mfg = I2C_ENC5.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #5 status = ")); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC6_ADDR
-            if(I2C_ENC6.updateStatus() && encoder_list[5].role_A && encoder_list[5].enabled)
+            if(I2C_ENC6.updateStatus() && encoder_list[_e6].role_A && encoder_list[_e6].enabled)
             {
-                mfg = I2C_ENC6.readStatus();
+                uint8_t mfg = I2C_ENC6.readStatus();
                 if (mfg) {}
                 //if (mfg) {DPRINT(F("****Checked Encoder #6 status = ")); DPRINTLN(mfg); }
             }
             #endif
         }
     #endif
-    //#else
-        #ifdef MECH_ENCODERS
-            // Use a mechanical encoder on the GPIO pins, if any.
-            if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
-            {
-                static int8_t counts = 0;
-                static int8_t counts_last = 0;
-                
-                counts += (int8_t) multiKnob(0);
-                
-                if (!counts_last && counts)  // detect and capture new counts, start timer
-                {
-                    ENC_Read_timer.reset();
-                    counts_last = counts; 
-                    return;
-                }
 
-                if (counts_last && abs(counts) && ENC_Read_timer.check() == 1)
-                { 
-                    //DPRINTLN(counts/4);
-                    MF_Service(counts/4, MF_client);
-                    multiKnob(1); // clear buffer
-                    counts = 0;
-                    counts_last = 0;
-                } 
+    #ifdef GPIO_ENCODERS
+        // Use an encoder on the GPIO pins, if any.
+        //if (MF_client)  // skip if no one is listening.MF_Service();  // check the Multi-Function encoder and pass results to the current owner, of any.
+        //{
+        static int32_t gpio_enc2_counts = 0;
+        static int32_t gpio_enc3_counts = 0;
+        int32_t enc2_ppr_response = 8;
+        int32_t enc3_ppr_response = 8;
 
-            }
-        #endif
-    //#endif // I2C_ENCODERS
+        gpio_enc2_counts += GPIO_Encoder2.read();
 
-    #ifdef MECH_ENCODERS
+        if (gpio_ENC2_Read_timer.check() == 1 && gpio_enc2_counts < enc2_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
+        {
+            GPIO_Encoder2.readAndReset();
+            gpio_enc2_counts = 0;
+            gpio_ENC2_Read_timer.reset();
+        }
+
+        if (gpio_enc2_counts != 0 && abs(gpio_enc2_counts) > enc2_ppr_response)
+        {
+            gpio_enc2_counts /= enc2_ppr_response;
+            DPRINT(F("GPIO 2 Encoder Calling I2C lib - Count = ")); DPRINTLN(gpio_enc2_counts);
+            gpio_encoder_rotated(&GPIO_ENC2, gpio_enc2_counts);
+            GPIO_Encoder2.readAndReset();
+            gpio_enc2_counts = 0;
+        }
+      
+        gpio_enc3_counts += GPIO_Encoder3.read();
         
+        if (gpio_ENC3_Read_timer.check() == 1 && gpio_enc3_counts < enc3_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
+        {
+            GPIO_Encoder3.readAndReset();
+            gpio_enc3_counts = 0;
+            gpio_ENC3_Read_timer.reset();
+        }
+
+        if (gpio_enc3_counts != 0 && abs(gpio_enc3_counts) > enc3_ppr_response)
+        {
+            gpio_enc3_counts /= enc3_ppr_response;
+            DPRINT(F("GPIO 3 Encoder Calling I2C lib - Count = ")); DPRINTLN(gpio_enc3_counts);
+            gpio_encoder_rotated(&GPIO_ENC2, gpio_enc3_counts);
+            GPIO_Encoder3.readAndReset();
+            gpio_enc3_counts = 0;
+        }
+    #endif
+
+    #ifdef GPIO_ENCODERS
+        // Switches associated with encoders.
         static uint8_t ENC2_sw_pushed = 0;
         static uint8_t ENC3_sw_pushed = 0;
         uint8_t slot = 0;
-
-        // ToDo: Check timer for long and short press, add debounce
-        //if (!ENC2_PIN_SW) Button_Action(user_settings[user_Profile].encoder1_client_swl);
-        
 
         if (GPIO_ENC2_ENABLE)
         {
@@ -2217,15 +2235,18 @@ void Check_Encoders(void)
                     //DPRINT(F("id from slot # = ")); DPRINTLN(encoder_list[slot].id);
                     break;
                 }
-            }
-                
+            }   // got slot number
+
             if (!digitalRead(GPIO_ENC2_PIN_SW) && !ENC2_sw_pushed )
             {
-                Button_Action(encoder_list[slot].tap);
-                ENC2_sw_pushed = 1;
+                ENC2_sw_pushed = 1;    //   Start button timer to test if this is going to be a tap or press
+                gpio_encoder_timer_start(encoder_list[slot].id);
             }       
             else if (digitalRead(GPIO_ENC2_PIN_SW) && ENC2_sw_pushed)
+            {
                 ENC2_sw_pushed = 0;
+                gpio_encoder_click(encoder_list[slot].id);   // switch released, prcess action, tap and press
+            }
         }        
             
         if (GPIO_ENC3_ENABLE)
@@ -2238,15 +2259,18 @@ void Check_Encoders(void)
                     //DPRINT(F("id from slot # = ")); DPRINTLN(encoder_list[slot].id);
                     break;
                 }
-            }
+            }   // got slot number
 
             if (!digitalRead(GPIO_ENC3_PIN_SW) && !ENC3_sw_pushed)
             {
-                Button_Action(encoder_list[slot].tap);
-                ENC3_sw_pushed = 1;
+                ENC3_sw_pushed = 1;   //   Start button timer to test if this is going to be a tap or press
+                gpio_encoder_timer_start(encoder_list[slot].id);
             }
             else  if (digitalRead(GPIO_ENC3_PIN_SW) && ENC3_sw_pushed)
-                ENC3_sw_pushed = 0;               
+            {
+                ENC3_sw_pushed = 0;  
+                gpio_encoder_click(encoder_list[slot].id);   // switch released, prcess action, tap and press
+            }             
         }
     #endif
 }
