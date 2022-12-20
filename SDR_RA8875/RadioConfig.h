@@ -35,7 +35,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
 #define CALLSIGN  "K7MDL"   // Personalized Startup Screen Text
 
-#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+//#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
                             // UN-comment this line to use RA8876  ******** AND in the Spectrum_RA887x.h **********
@@ -291,8 +291,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define GPIO_ENC3_PIN_SW       33
 #else // else old proto board assignments
   #define GPIO_VFO_PIN_A          4     // used for VFO
-  #define GPIO VFO_PIN_B          5
-#endif 
+  #define GPIO_VFO_PIN_B          5
+#endif
 
 #define VFO_PPR 10  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
