@@ -959,12 +959,6 @@ void AudioInputUSB::update(void)
 #endif // feedback type
 
 
-
-
-
-
-
-
 /*DMAMEM*/ uint16_t usb_audio_transmit_buffer[AUDIO_TX_SIZE/2] __attribute__ ((used, aligned(32)));
 
 
@@ -1165,10 +1159,6 @@ unsigned int usb_audio_transmit_callback(void)
 
 	return target * 4;
 }
-
-
-
-
 
 #else
 
@@ -1388,7 +1378,6 @@ int usb_audio_set_feature(void *stp, uint8_t *buf)
 	}
 	return 0;
 }
-
 
 
 #endif // AUDIO_INTERFACE

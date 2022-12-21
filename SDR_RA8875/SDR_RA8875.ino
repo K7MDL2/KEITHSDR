@@ -21,7 +21,10 @@
 // So far I16 method has been working better.  
 
 #ifdef USB32
-#include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version
+#include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version.  
+// It sets AUDIO_SAMPLE_RATE_EXACT to 48KHz.   
+// The standard 16 bit library is set to 44.1KHz
+// Further TeensyDuino usb lib changes are required.  See the readme.txt in the libraries folder for mods required.
 #include "USB_Audio_F32.h"
 #endif
 
