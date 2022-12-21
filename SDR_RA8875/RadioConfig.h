@@ -35,7 +35,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
 #define CALLSIGN  "K7MDL"   // Personalized Startup Screen Text
 
-//#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
                             // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
                             // UN-comment this line to use RA8876  ******** AND in the Spectrum_RA887x.h **********
@@ -199,7 +199,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #else // My RA8876 7" specific build items
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
-      #define GPIO_ENCODERS
+      #define GPIO_ENCODERS           // Requires I2C_Encoders
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
     #endif
@@ -257,7 +257,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // Choose your actual pin assignments for any you may have.
 
 #define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
-#define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
+#define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
 #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
 
 // VFO Encoder (not I2C).  ENCx is the same as on the PCBs
@@ -302,9 +302,9 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // While there are up to 6 i2c encoders possible, the encoder table and support functions
 //   only know about 7 encoders, the 1st is always the gpio VFO.
 //   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
-#define I2C_ENC1_ENABLE       2    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
-#define I2C_ENC2_ENABLE       3
-#define I2C_ENC3_ENABLE       4    
+#define I2C_ENC1_ENABLE       0    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+#define I2C_ENC2_ENABLE       0
+#define I2C_ENC3_ENABLE       0    
 #define I2C_ENC4_ENABLE       0    // 0 is disabled
 #define I2C_ENC5_ENABLE       0
 #define I2C_ENC6_ENABLE       0
