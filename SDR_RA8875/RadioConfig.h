@@ -192,8 +192,11 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 //******************************************************************************************
 
-#ifdef K7MDL_BUILD   
-    #ifdef USE_RA8875   // My RA8875 4.3" specific build items
+#ifdef K7MDL_BUILD  
+
+    #undef USE_RA8875   // Controls RA8875 or RA8876 build
+    
+	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
     #else // My RA8876 7" specific build items
@@ -210,8 +213,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #ifdef USE_ENET_PROFILE
       #define ENET
     #endif
-    #undef AUDIOBOOST
-    #define AUDIOBOOST   (1.0f)       // Final stage TX audio boost or attenuation in dB.  1.0f is pass through.
+
     #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #define W7PUA_I2S_CORRECTION      // Attempt to resolve twin peak problem on SGTL5000 codec chip
 
@@ -256,18 +258,44 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // 
 // Choose your actual pin assignments for any you may have.
 
-// Assign 0 to diable, assign a unique number to identify and match the table ID field.  Coordinate this assignment with any i2c encoders
-#define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
-#define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-#define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-#define GPIO_SW1_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to pla
-#define GPIO_SW2_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-#define GPIO_SW3_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-#define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-#define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+// VFO Encoder (not I2C).  uses PCB jack labeled ENC1.
+#define VFO_PPR 10  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+// I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
-// ToDo:  Move this groub under a board revision and assign real pin numbers - This is fake for dev work for now.
+#if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
+	#define GPIO_VFO_PIN_A          3     // used for VFO
+	#define GPIO_VFO_PIN_B          4
+	#define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
+	#define GPIO_ENC2_PIN_A        30     // Encoder 2.
+	#define GPIO_ENC2_PIN_B        31
+	#define GPIO_ENC2_PIN_SW       32
+	#define GPIO_ENC3_PIN_A        34     // Encoder 3
+	#define GPIO_ENC3_PIN_B        35
+	#define GPIO_ENC3_PIN_SW       33
+#elif defined(V1_4_3_PCB)     // V1 4.3" Display PCB
+	#define GPIO_VFO_PIN_A          4     // used for VFO
+	#define GPIO_VFO_PIN_B          3     // Can swap and B to get direction correct without rewiring
+	#define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.
+	#define GPIO_ENC2_PIN_B        31
+	#define GPIO_ENC2_PIN_SW       32
+	#define GPIO_ENC3_PIN_A        33     // GPIO Encoder 3
+	#define GPIO_ENC3_PIN_B        34
+	#define GPIO_ENC3_PIN_SW       35
+#elif defined (V2_4_3_PCB)    // V2 4.3" Display PCB
+	#define GPIO_VFO_PIN_A         15     // used for VFO
+	#define GPIO_VFO_PIN_B         16
+	#define GPIO_ENC2_PIN_A        36     // Encoder 2.   conflicts with I2C encoders if they are enabled
+	#define GPIO_ENC2_PIN_B        37
+	#define GPIO_ENC2_PIN_SW       38
+	#define GPIO_ENC3_PIN_A        35     // Encoder 3
+	#define GPIO_ENC3_PIN_B        34
+	#define GPIO_ENC3_PIN_SW       33
+#else // else old proto board assignments
+	#define GPIO_VFO_PIN_A          4     // used for VFO
+	#define GPIO_VFO_PIN_B          5
+#endif
+
+// ToDo:  Move this group under the board revisions sections above and assign real pin numbers - This is fake for dev work for now.
 #define GPIO_SW1_PIN            40    // pin assignment for external switches. When enabled, these will be scanned and software debounced
 #define GPIO_SW2_PIN            41
 #define GPIO_SW3_PIN            42
@@ -275,55 +303,58 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 #define GPIO_SW5_PIN            44
 #define GPIO_SW6_PIN            45
 
-// VFO Encoder (not I2C).  ENCx is the same as on the PCBs
-#if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
-  #define GPIO_VFO_PIN_A          3     // used for VFO
-  #define GPIO_VFO_PIN_B          4
-  #define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, 1 enables
-  #define GPIO_ENC2_PIN_A        30     // Encoder 2.
-  #define GPIO_ENC2_PIN_B        31
-  #define GPIO_ENC2_PIN_SW       32
-  #define GPIO_ENC3_PIN_A        34     // Encoder 3
-  #define GPIO_ENC3_PIN_B        35
-  #define GPIO_ENC3_PIN_SW       33
-#elif defined(V1_4_3_PCB)     // V1 4.3" Display PCB
-  #define GPIO_VFO_PIN_A          4     // used for VFO
-  #define GPIO_VFO_PIN_B          3     // Can swap and B to get direction correct without rewiring
-  #define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.
-  #define GPIO_ENC2_PIN_B        31
-  #define GPIO_ENC2_PIN_SW       32
-  #define GPIO_ENC3_PIN_A        33     // GPIO Encoder 3
-  #define GPIO_ENC3_PIN_B        34
-  #define GPIO_ENC3_PIN_SW       35
-#elif defined (V2_4_3_PCB)    // V2 4.3" Display PCB
-  #define GPIO_VFO_PIN_A         15     // used for VFO
-  #define GPIO_VFO_PIN_B         16
-  #define GPIO_ENC2_PIN_A        36     // Encoder 2.   conflicts with I2C encoders if they are enabled
-  #define GPIO_ENC2_PIN_B        37
-  #define GPIO_ENC2_PIN_SW       38
-  #define GPIO_ENC3_PIN_A        35     // Encoder 3
-  #define GPIO_ENC3_PIN_B        34
-  #define GPIO_ENC3_PIN_SW       33
-#else // else old proto board assignments
-  #define GPIO_VFO_PIN_A          4     // used for VFO
-  #define GPIO_VFO_PIN_B          5
-#endif
+#ifndef K7MDL_BUILD
 
-#define VFO_PPR 10  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
-// I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
+	// Assign 0 to diable, assign a unique number to identify and match the table ID field.  Coordinate this assignment with any i2c encoders
+	#define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
+	#define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW1_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to pla
+	#define GPIO_SW2_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW3_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 
-// I2C connected encoders use this this pin to signal interrupts
-// Knob assignments are the user_settings database 
-// While there are up to 6 i2c encoders possible, the encoder table and support functions
-//   only know about 7 encoders, the 1st is always the gpio VFO.
-//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
-#define I2C_ENC1_ENABLE       0    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
-#define I2C_ENC2_ENABLE       0
-#define I2C_ENC3_ENABLE       0    
-#define I2C_ENC4_ENABLE       0    // 0 is disabled
-#define I2C_ENC5_ENABLE       0
-#define I2C_ENC6_ENABLE       0
-                                                                                                                
+	// I2C connected encoders use this this pin to signal interrupts
+	// Knob assignments are the user_settings database 
+	// While there are up to 6 i2c encoders possible, the encoder table and support functions
+	//   only know about 7 encoders, the 1st is always the gpio VFO.
+	//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
+	#define I2C_ENC1_ENABLE       0    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+	#define I2C_ENC2_ENABLE       0
+	#define I2C_ENC3_ENABLE       0    
+	#define I2C_ENC4_ENABLE       0    // 0 is disabled
+	#define I2C_ENC5_ENABLE       0
+	#define I2C_ENC6_ENABLE       0
+
+#else // Do K7MDL Dev Build
+
+	// Assign 0 to diable, assign a unique number to identify and match the table ID field.  Coordinate this assignment with any i2c encoders
+	#define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
+	#define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW1_ENABLE         6     // GPIO switch, 0 disables, >0 enables, make unique to pla
+	#define GPIO_SW2_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW3_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+
+	// I2C connected encoders use this this pin to signal interrupts
+	// Knob assignments are the user_settings database 
+	// While there are up to 6 i2c encoders possible, the encoder table and support functions
+	//   only know about 7 encoders, the 1st is always the gpio VFO.
+	//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
+	#define I2C_ENC1_ENABLE       2    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+	#define I2C_ENC2_ENABLE       3
+	#define I2C_ENC3_ENABLE       4    
+	#define I2C_ENC4_ENABLE       0    // 0 is disabled
+	#define I2C_ENC5_ENABLE       0
+	#define I2C_ENC6_ENABLE       0
+
+#endif // K7MDL_BUILD
+                                                                                                               
 #ifdef I2C_ENCODERS
   #if defined(V1_4_3_PCB) || defined(SMALL_PCB_V1)
     #define I2C_INT_PIN     36
