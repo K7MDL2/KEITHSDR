@@ -246,8 +246,8 @@ const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-uint16_t    TX_filterCenter     = 1500;
-uint16_t    TX_filterBandwidth  = 2800;
+float       TX_filterCenter     = 1500;
+float       TX_filterBandwidth  = 2800;
 #ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -304,10 +304,10 @@ AudioMixer4_F32             OutputSwitch_I(audio_settings); // Processed audio f
 AudioMixer4_F32             OutputSwitch_Q(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
-DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
-DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
+//DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
+//DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
 AudioFilterConvolution_F32  RX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
-//AudioFilterConvolution_F32  TX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
+AudioFilterConvolution_F32  TX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioOutputI2S_F32          Output(audio_settings);
@@ -322,9 +322,8 @@ AudioEffectGain_F32         Amp1_R(audio_settings);         // Some well placed 
 AudioMixer4_F32             FFT_Atten_I(audio_settings);
 AudioMixer4_F32             FFT_Atten_Q(audio_settings);         // Some well placed gain stages
 RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
-
-DMAMEM AudioFilter90Deg_F32        FFT_90deg_Hilbert(audio_settings);
-DMAMEM AudioFilterFIR_F32          bpf1(audio_settings);
+DMAMEM AudioFilter90Deg_F32 TX_FFT_90deg_Hilbert(audio_settings);
+//DMAMEM AudioFilter90Deg_F32 RX_FFT_90deg_Hilbert(audio_settings);
 
 #ifdef USE_FFT_LO_MIXER
     AudioFilter90Deg_F32    FFT_90deg_Hilbert(audio_settings);
@@ -366,23 +365,11 @@ AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,2);   // Combine mic, tone B and B into L channel
 AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,3);
 
-//AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
-//AudioConnection_F32     patchCord_Audio_Filter_L(bpf1,0,                        FFT_90deg_Hilbert,0);  // variable filter for TX    
-//AudioConnection_F32     patchCord_Audio_Filter_R(bpf1,0,                        FFT_90deg_Hilbert,1);  // variable filter for TX
-//AudioConnection_F32     patchCord_Feed_L(FFT_90deg_Hilbert,1,                   I_Switch,1); // Feed into normal chain 
-//AudioConnection_F32     patchCord_Feed_R(FFT_90deg_Hilbert,0,                   Q_Switch,1); 
-
-//AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     TX_FilterConv,0);  // variable filter for TX    
-//AudioConnection_F32     patchCord_Audio_Filter_L(TX_FilterConv,0,               FFT_90deg_Hilbert,0);  // variable filter for TX    
-//AudioConnection_F32     patchCord_Audio_Filter_R(TX_FilterConv,0,               FFT_90deg_Hilbert,1);  // variable filter for TX
-//AudioConnection_F32     patchCord_Feed_L(FFT_90deg_Hilbert,1,                   I_Switch,1); // Feed into normal chain 
-//AudioConnection_F32     patchCord_Feed_R(FFT_90deg_Hilbert,0,                   Q_Switch,1); 
-
-AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     bpf1,0);  // variable filter for TX    
-AudioConnection_F32     patchCord_IQ_Mix_L(bpf1,0,                              TX_Hilbert_Plus_45,0); 
-AudioConnection_F32     patchCord_IQ_Mix_R(bpf1,0,                              TX_Hilbert_Minus_45,0); 
-AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,                 I_Switch,1); // Feed into normal chain 
-AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  Q_Switch,1); 
+AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     TX_FilterConv,0);  // variable filter for TX    
+AudioConnection_F32     patchCord_Audio_Filter_L(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,0);  // variable filter for TX    
+AudioConnection_F32     patchCord_Audio_Filter_R(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,1);  // variable filter for TX
+AudioConnection_F32     patchCord_Feed_L(TX_FFT_90deg_Hilbert,0,                I_Switch,1); // Feed into normal chain 
+AudioConnection_F32     patchCord_Feed_R(TX_FFT_90deg_Hilbert,1,                Q_Switch,1); 
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 #if defined (USE_FFT_LO_MIXER)
@@ -392,10 +379,10 @@ AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  
     //AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_I,1,              FFT_90deg_Hilbert,1); 
     //AudioConnection_F32     patchCord_LO_Fil_L(FFT_90deg_Hilbert,0,           FFT_Atten_I,0); // Filter I and Q
     //AudioConnection_F32     patchCord_LO_Fil_R(FFT_90deg_Hilbert,1,           FFT_Atten_Q,0);
-    AudioConnection_F32     patchCord_LO_90Fil_L(TX_FilterConv,0,               FFT_90deg_Hilbert,0); // Filter I and Q
-    AudioConnection_F32     patchCord_LO_90Fil_R(TX_FilterConv,0,               FFT_90deg_Hilbert,1); 
-    AudioConnection_F32     patchCord_FFT_OUT_L(FFT_90deg_Hilbert,1,            I_Switch,1);     // Attenuate signals to FFT while in TX mode
-    AudioConnection_F32     patchCord_FFT_OUT_R(FFT_90deg_Hilbert,0,            Q_Switch,1);     // Swap I and Q for correct FFT  
+    AudioConnection_F32     patchCord_LO_90Fil_L(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,0); // Filter I and Q
+    AudioConnection_F32     patchCord_LO_90Fil_R(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,1); 
+    AudioConnection_F32     patchCord_FFT_OUT_L(TX_FFT_90deg_Hilbert,1,            I_Switch,1);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(TX_FFT_90deg_Hilbert,0,            Q_Switch,1);     // Swap I and Q for correct FFT  
     //AudioConnection_F32     patchCord_LO_Fil_L(FFT_LO_Mixer_I,0,                FFT_Atten_I,0); // Filter I and Q
     //AudioConnection_F32     patchCord_LO_Fil_R(FFT_LO_Mixer_I,1,                FFT_Atten_Q,0);
 #elif defined(USE_FREQ_SHIFTER)
@@ -408,8 +395,6 @@ AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,                  
     AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_Atten_Q,0);     // Swap I and Q for correct FFT 
 #endif
 
-//AudioConnection_F32     patchCord_LO_Fil_L(I_Switch,0,                      FFT_Atten_I,0); // Filter I and Q
-//AudioConnection_F32     patchCord_LO_Fil_R(Q_Switch,0,                      FFT_Atten_Q,0);
 AudioConnection_F32     patchCord_FFT_ATT_L(FFT_Atten_I,0,                  FFT_OutSwitch_I,0); // Route selected audio source to the selected FFT - should save CPU time
 AudioConnection_F32     patchCord_FFT_ATT_R(FFT_Atten_Q,0,                  FFT_OutSwitch_Q,0);
 
@@ -436,11 +421,6 @@ AudioConnection_F32     patchCord10a(RxTx_InputSwitch_L,0,                  Nois
 AudioConnection_F32     patchCord10b(RxTx_InputSwitch_R,0,                  NoiseBlanker,1);
 AudioConnection_F32     patchCord11a(NoiseBlanker,0,                        RX_Hilbert_Plus_45,0);
 AudioConnection_F32     patchCord11b(NoiseBlanker,1,                        RX_Hilbert_Minus_45,0);
-// Test dual channel hilbert block 
-//AudioConnection_F32     patchCord_IQ_MIX_L(NoiseBlanker,0,                  RX_Hilbert,0);
-//AudioConnection_F32     patchCord_IQ_MIX_R(NoiseBlanker,1,                  RX_Hilbert,1);                                            
-//AudioConnection_F32     patchCord2c(RX_Hilbert,0,                           RX_Summer,0);  // phase shift +45 deg
-//AudioConnection_F32     patchCord2d(RX_Hilbert,1,                           RX_Summer,1);  // phase shift -45 deg
 AudioConnection_F32     patchCord2c(RX_Hilbert_Plus_45,0,                   RX_Summer,0);  // phase shift +45 deg
 AudioConnection_F32     patchCord2d(RX_Hilbert_Minus_45,0,                  RX_Summer,1);  // phase shift -45 deg
 AudioConnection_F32     patchCord2e(Beep_Tone,0,                            RX_Summer,2);  // For button beep if enabled
@@ -1539,7 +1519,7 @@ COLD void TX_RX_Switch(
     TX_Source.gain(2, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
     TX_Source.gain(3, ToneB); //  Test Tone B
 
-    // use mode to control sideband switching
+    // use mode to control TX sideband switching.  RX is done elsewhere.
     float invert;
     switch (mode_sel)
     {
@@ -1548,10 +1528,10 @@ COLD void TX_RX_Switch(
         case AM:
         case FM: FM_Detector.setSquelchThreshold(0.7f);
         case USB:
-            invert = 1.0f; 
+            invert = -1.0f; 
             break;
         default: // all other modes flip sideband
-            invert = -1.0f;
+            invert = 1.0f;
             break;
     }
     
@@ -1593,10 +1573,10 @@ COLD void TX_RX_Switch(
         OutputSwitch_I.gain(2, ch_off);     // Turn ON for FM   ToDO: automate this based on mode
         OutputSwitch_Q.gain(2, ch_off);     // Turn ON for FM       
 
-        Amp1_L.setGain(0.0f);    // Mute output to USB during TX
-        Amp1_R.setGain(0.0f);   
+        Amp1_L.setGain(AUDIOBOOST);    // Mute output to USB during TX
+        Amp1_R.setGain(AUDIOBOOST);   
         codec1.lineInLevel(0);      // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
-        //TX_FilterConv.initFilter((float32_t)TX_filterCenter, 90, 2, TX_filterBandwidth);
+        TX_FilterConv.initFilter(TX_filterCenter, 70.0f, 2, TX_filterBandwidth);
 
         AudioInterrupts();
 
@@ -1863,7 +1843,7 @@ COLD void resetCodec(void)
         FFT_LO_Mixer_I.useTwoChannel(true);  //true when using both channels.
         FFT_LO_Mixer_I.useSimple(false); // false to use correction factors
 
-        FFT_90deg_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
+        TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
 
         //FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
         //FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
@@ -1878,15 +1858,14 @@ COLD void resetCodec(void)
     RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
     RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
     
-    TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
-    TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
-    bpf1.begin(fir1, 197, 128);
-    
+    //TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
+    //TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
+
     // Pick one of the three.
-    ///FFT_90deg_Hilbert.begin(hilbert19A, 19);
-    ///FFT_90deg_Hilbert.begin(hilbert121A, 121);
-    //FFT_90deg_Hilbert.begin(hilbert251A, 251);
-    //FFT_90deg_Hilbert.showError(1);
+    ///TX_FFT_90deg_Hilbert.begin(hilbert19A, 19);
+    ///TX_FFT_90deg_Hilbert.begin(hilbert121A, 121);
+    TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);
+    //TX_FFT_90deg_Hilbert.showError(1);
 
     // experiment with numbers  ToDo: enable/disable this via the Notch button
     DPRINT(F("Initializing Notch/NR Feature = "));
@@ -2216,7 +2195,7 @@ void Check_Encoders(void)
         {
             gpio_enc3_counts /= enc3_ppr_response;
             DPRINT(F("GPIO 3 Encoder Calling I2C lib - Count = ")); DPRINTLN(gpio_enc3_counts);
-            gpio_encoder_rotated(&GPIO_ENC2, gpio_enc3_counts);
+            gpio_encoder_rotated(&GPIO_ENC3, gpio_enc3_counts);
             GPIO_Encoder3.readAndReset();
             gpio_enc3_counts = 0;
         }
@@ -2243,12 +2222,12 @@ void Check_Encoders(void)
             if (!digitalRead(GPIO_ENC2_PIN_SW) && !ENC2_sw_pushed )
             {
                 ENC2_sw_pushed = 1;    //   Start button timer to test if this is going to be a tap or press
-                gpio_encoder_timer_start(encoder_list[slot].id);
+                gpio_switch_timer_start(encoder_list[slot].id);
             }       
             else if (digitalRead(GPIO_ENC2_PIN_SW) && ENC2_sw_pushed)
             {
                 ENC2_sw_pushed = 0;
-                gpio_encoder_click(encoder_list[slot].id);   // switch released, prcess action, tap and press
+                gpio_switch_click(encoder_list[slot].id);   // switch released, prcess action, tap and press
             }
         }        
             
@@ -2267,12 +2246,12 @@ void Check_Encoders(void)
             if (!digitalRead(GPIO_ENC3_PIN_SW) && !ENC3_sw_pushed)
             {
                 ENC3_sw_pushed = 1;   //   Start button timer to test if this is going to be a tap or press
-                gpio_encoder_timer_start(encoder_list[slot].id);
+                gpio_switch_timer_start(encoder_list[slot].id);
             }
             else  if (digitalRead(GPIO_ENC3_PIN_SW) && ENC3_sw_pushed)
             {
                 ENC3_sw_pushed = 0;  
-                gpio_encoder_click(encoder_list[slot].id);   // switch released, prcess action, tap and press
+                gpio_switch_click(encoder_list[slot].id);   // switch released, prcess action, tap and press
             }             
         }
     #endif
