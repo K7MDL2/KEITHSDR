@@ -28,7 +28,9 @@
 			"sdr_ra8875.h": "c",
 			"spi.h": "c",
 			"string_view": "cpp",
-			"regex": "cpp"
+			"regex": "cpp",
+			"sdr_i2c_encoder.h": "c",
+			"encoder.h": "c"
 		}
 	}
 }
