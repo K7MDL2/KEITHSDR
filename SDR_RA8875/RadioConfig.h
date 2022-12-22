@@ -211,7 +211,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define ENET
     #endif
     #undef AUDIOBOOST
-    #define AUDIOBOOST   (1.0f)       // Final stage audio boost or attenuation in dB.  1.0f is pass through.
+    #define AUDIOBOOST   (1.0f)       // Final stage TX audio boost or attenuation in dB.  1.0f is pass through.
     #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #define W7PUA_I2S_CORRECTION      // Attempt to resolve twin peak problem on SGTL5000 codec chip
 
@@ -256,9 +256,24 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // 
 // Choose your actual pin assignments for any you may have.
 
+// Assign 0 to diable, assign a unique number to identify and match the table ID field.  Coordinate this assignment with any i2c encoders
 #define GPIO_VFO_ENABLE         1     // VFO encoder - value ignored - always enabled, not included in Encoder list table
-#define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
-#define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, 1 enables
+#define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+#define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+#define GPIO_SW1_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to pla
+#define GPIO_SW2_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+#define GPIO_SW3_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+#define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+#define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+
+// ToDo:  Move this groub under a board revision and assign real pin numbers - This is fake for dev work for now.
+#define GPIO_SW1_PIN            40    // pin assignment for external switches. When enabled, these will be scanned and software debounced
+#define GPIO_SW2_PIN            41
+#define GPIO_SW3_PIN            42
+#define GPIO_SW4_PIN            43
+#define GPIO_SW5_PIN            44
+#define GPIO_SW6_PIN            45
 
 // VFO Encoder (not I2C).  ENCx is the same as on the PCBs
 #if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
