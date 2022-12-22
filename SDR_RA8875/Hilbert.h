@@ -1,6 +1,7 @@
 #ifndef _HILBERT_H_
 #define _HILBERT_H_
 
+#ifdef USE_FIR_FILTERS
 /*
 
 FIR filter designed with
@@ -1482,6 +1483,9 @@ const float fir1[197] = {
 -0.000147344,
 -0.000055559
 };
+
+#endif // USE_FIR_FILTERS
+
 
 //Hilbert for 4.0kHz bandwidth
  const float32_t Hilbert_Plus45_40K[151] = {
