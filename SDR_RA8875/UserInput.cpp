@@ -816,12 +816,12 @@ void Button_Action(uint16_t button_name)
             case ZOOM_BTN:      setZoom(2);     break;
             case UTCTIME_BTN:   break;        //nothing to do
             case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
-            case ENC1_BTN:      setEncoderMode(ENC1_BTN); break;
-            case ENC2_BTN:      setEncoderMode(ENC2_BTN); break;
-            case ENC3_BTN:      setEncoderMode(ENC3_BTN); break;
-            case ENC4_BTN:      setEncoderMode(ENC4_BTN); break;
-            case ENC5_BTN:      setEncoderMode(ENC5_BTN); break;
-            case ENC6_BTN:      setEncoderMode(ENC6_BTN); break;
+            case SW1_BTN:      setEncoderMode(SW1_BTN); break;
+            case SW2_BTN:      setEncoderMode(SW2_BTN); break;
+            case SW3_BTN:      setEncoderMode(SW3_BTN); break;
+            case SW4_BTN:      setEncoderMode(SW4_BTN); break;
+            case SW5_BTN:      setEncoderMode(SW5_BTN); break;
+            case SW6_BTN:      setEncoderMode(SW6_BTN); break;
             
             default: 
                     if (button_name != SPECTUNE_BTN) 

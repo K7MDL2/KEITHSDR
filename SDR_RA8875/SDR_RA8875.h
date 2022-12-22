@@ -285,6 +285,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define NUM_AUX_ENCODERS 7
 #define GPIO_ENC    1
 #define I2C_ENC     2
+#define GPIO_SW     3
 #define NONE        0
 #ifdef USE_RA8875
 #define STD_BTN_NUM 46      // number of rows in the buttons table
@@ -340,12 +341,12 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define SMETER_BTN  32      // Box for the Smeter.  Can be a meter for any use.  Can touch the meter to configure maybe
 #define SPECTUNE_BTN 33     // Converts a touch in the spectrum window to a frequency to tune too.
 #define BAND_MENU   34      // Band selection window 
-#define ENC1_BTN    35      // Encoder push switch entry function (Can change modes of encoder like filer mode vs rate mode on rotation, or call a function direct like change filter)
-#define ENC2_BTN    36
-#define ENC3_BTN    37
-#define ENC4_BTN    38
-#define ENC5_BTN    39
-#define ENC6_BTN    40
+#define SW1_BTN    35      // Encoder push switch entry function (Can change modes of encoder like filer mode vs rate mode on rotation, or call a function direct like change filter)
+#define SW2_BTN    36
+#define SW3_BTN    37
+#define SW4_BTN    38
+#define SW5_BTN    39
+#define SW6_BTN    40
 #define TOGGLE      41
 
 //#define SPOT_BTN          // will display the NR value in the button - Not used today but a function exists.
