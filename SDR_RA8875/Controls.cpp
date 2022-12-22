@@ -1672,8 +1672,6 @@ void setMeter(uint8_t id)
 // Toggle the assigned function on an encoder shaft.
 void setEncoderMode(uint8_t role)
 {
-    uint8_t _type, _enabled, _id, _mfenc, _roleA, _a_active, _roleB, _tap, _press;
-
     if (MF_client != role)  // Probably don't do this if assigned to a multifunction knob sicne it is temporary
     {
         DPRINT("Encoder Switch ID = "); DPRINTLN(role);
@@ -1681,18 +1679,25 @@ void setEncoderMode(uint8_t role)
         // find enabled encoders in order of slot assignment and copy to local var for processing in a loop
         for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
         {
-            _type = encoder_list[slot].type;
-            _id = encoder_list[slot].id;
-            _enabled = encoder_list[slot].enabled;
-            _mfenc =  encoder_list[slot].default_MF_client;
-            _roleA = encoder_list[slot].role_A;
-            _a_active = encoder_list[slot].a_active;
-            _roleB = encoder_list[slot].role_B;
-            _tap =  encoder_list[slot].tap;
-            _press =  encoder_list[slot].press;
-        
-            Serial.printf("Slot#=%1d type=%1d id=0x%1d enabled=%1d MFENC?=%2d RoleA=%2d, A_active=%1d RoleB=%2d TAP=%2d PRESS=%2d\n",
-                           slot,     _type,   _id,     _enabled,   _mfenc,    _roleA,    _a_active,   _roleB,   _tap,   _press);
+            #ifdef DEBUG
+                uint8_t _type, _enabled, _id, _mfenc, _roleA, _a_active, _roleB, _tap, _press;
+
+                _type = encoder_list[slot].type;
+                _id = encoder_list[slot].id;
+                _enabled = encoder_list[slot].enabled;
+                _mfenc =  encoder_list[slot].default_MF_client;
+                _roleA = encoder_list[slot].role_A;
+                _a_active = encoder_list[slot].a_active;
+                _roleB = encoder_list[slot].role_B;
+                _tap =  encoder_list[slot].tap;
+                _press =  encoder_list[slot].press;
+            
+                DPRINTF("Slot#=%1d type=%1d id=0x%1d enabled=%1d MFENC?=%2d RoleA=%2d, A_active=%1d RoleB=%2d TAP=%2d PRESS=%2d\n",
+                            slot,     _type,   _id,     _enabled,   _mfenc,    _roleA,    _a_active,   _roleB,   _tap,   _press);
+            #else
+                uint8_t _tap;
+                _tap =  encoder_list[slot].tap;
+            #endif
 
             // when switch is tapped or pressed, toggle which function is assigned to the encoder rotation
             // Uses the KEYWORD TOGGLE in thr encoder_list table            
@@ -1700,12 +1705,12 @@ void setEncoderMode(uint8_t role)
             {
                 switch (_tap)                    
                 {
-                    case ENC1_BTN:
-                    case ENC2_BTN:
-                    case ENC3_BTN:
-                    case ENC4_BTN:
-                    case ENC5_BTN:
-                    case ENC6_BTN:  DPRINT("Toggle Active Control "); DPRINTLN(role);
+                    case SW1_BTN:
+                    case SW2_BTN:
+                    case SW3_BTN:
+                    case SW4_BTN:
+                    case SW5_BTN:
+                    case SW6_BTN:  DPRINT("Toggle Active Control "); DPRINTLN(role);
                                     encoder_list[slot].a_active ^= 1;
                                     update_icon_outline();
                                     break;
