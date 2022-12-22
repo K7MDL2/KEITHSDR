@@ -21,3 +21,12 @@ SDR_RA8875/.vscode/tasks.json
 SDR_RA8875/.vscode/c_cpp_properties.json
 SDR_RA8875/.vscode/arduino.json
 SDR_RA8875/.vscode/arduino.json
+SDR_RA8875/build/build.options.json
+SDR_RA8875/build/build
+SDR_RA8875/.vscode/tasks.json
+SDR_RA8875/.vscode/settings.json
+SDR_RA8875/.vscode/c_cpp_properties.json
+SDR_RA8875/.vscode/arduino.json
+SDR_RA8875/.theia/launch.json
+SDR_RA8875/sbitxdefs.txt
+SDR_RA8875/makefile
