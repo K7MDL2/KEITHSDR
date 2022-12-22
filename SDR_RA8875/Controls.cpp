@@ -1025,11 +1025,16 @@ COLD void AFgain(int8_t delta)
     }
     else // Control Mic Gain and Power out
     {
+        //   Temp mic/lineout level control until a real control is created for these
+        _afLevel = 100;  //force to 100% 
         user_settings[user_Profile].mic_Gain_level = _afLevel;  // 0 to 100 mic gain range
         codec1.micGain(user_settings[user_Profile].mic_Gain_level * 0.63);  // adjust for 0 to 63dB
-        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX * _afLevel/100); // skip when in TX to act as Mic Level Adjust control    }
+        //codec1.micGain(63);  // adjust for 0 to 63dB
+        codec1.lineOutLevel(user_settings[user_Profile].lineOut_TX * _afLevel/100); // skip when in TX to act as Mic Level Adjust control
+        //codec1.lineOutLevel(14); // skip when in TX to act as Mic Level Adjust control
         DPRINT("Mic Gain (0-63dB)= "); DPRINTLN(_afLevel * 0.63);
         DPRINT("Power Out(0-100%)= "); DPRINTLN(_afLevel);
+        
     }
     // Convert linear pot to audio taper pot behavior
     // Use new afLevel 
