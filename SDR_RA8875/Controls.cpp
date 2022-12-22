@@ -1034,6 +1034,7 @@ COLD void AFgain(int8_t delta)
         //codec1.lineOutLevel(14); // skip when in TX to act as Mic Level Adjust control
         DPRINT("Mic Gain (0-63dB)= "); DPRINTLN(_afLevel * 0.63);
         DPRINT("Power Out(0-100%)= "); DPRINTLN(_afLevel);
+        codec1.muteHeadphone();
         
     }
     // Convert linear pot to audio taper pot behavior
