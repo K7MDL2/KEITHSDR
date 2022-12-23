@@ -40,6 +40,7 @@ extern struct   Zoom_Lvl            zoom[];
 extern struct   EncoderList         encoder_list[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
+extern          Metro               TX_Timeout;  // RunawayTX timeout
 extern AudioControlSGTL5000         codec1;
 extern radioNoiseBlanker_F32        NoiseBlanker;
 extern AudioEffectCompressor2_F32   compressor1; // Audio Compressor
@@ -1222,7 +1223,8 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)  // Transmit OFF
     {
         user_settings[user_Profile].xmit = OFF;
-        digitalWrite(PTT_OUT1, HIGH);
+        if (PTT_OUT1 != 255)
+            digitalWrite(PTT_OUT1, HIGH);
 
         #ifdef USE_RS_HFIQ  
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X0");  //RS-HFIQ TX OFF
@@ -1242,12 +1244,17 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     else if ((user_settings[user_Profile].xmit == OFF && state == 2) || state == 1)  // Transmit ON
     {
         user_settings[user_Profile].xmit = ON;
-        digitalWrite(PTT_OUT1, LOW);
+        if (PTT_OUT1 != 255)
+            digitalWrite(PTT_OUT1, LOW);
+            
         #ifdef USE_RS_HFIQ  
             selectFrequency(0);
             delay(5);  // slight delay needed for reliable changeover 
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
         #endif
+
+        TX_Timeout.reset();  // Reset our Runaaway TX timer.  Main loop will watch for this to trip calling back here to flip back to RX.
+
         // enable mic input to pass to line out on audio card, set audio levels
         if (TwoToneTest)  // do test tones
             TX_RX_Switch(ON, mode_idx, OFF, OFF, ON, ON, 0.45f);  // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones            

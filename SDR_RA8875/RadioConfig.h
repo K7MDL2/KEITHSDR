@@ -142,10 +142,6 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
 
-#define PTT_INPUT     2     // GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
-
-#define PTT_OUT1      1    // GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
-
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  
                             // 1.0f is pass through (no gain or loss)
@@ -272,16 +268,32 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_ENC3_PIN_A        34     // Encoder 3
 	#define GPIO_ENC3_PIN_B        35
 	#define GPIO_ENC3_PIN_SW       33
-#elif defined(V1_4_3_PCB)     // V1 4.3" Display PCB
+	#define PTT_INPUT     		    255   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_OUT1      		    255   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define GPIO_SW1_PIN          255   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
+	#define GPIO_SW2_PIN          255   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
+	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
+	#define GPIO_SW4_PIN          255
+	#define GPIO_SW5_PIN          255
+	#define GPIO_SW6_PIN          255		  // 255 for unused pins
+#elif defined(V1_4_3_PCB)     // V1.0 4.3" Display PCB
 	#define GPIO_VFO_PIN_A          4     // used for VFO
-	#define GPIO_VFO_PIN_B          3     // Can swap and B to get direction correct without rewiring
+	#define GPIO_VFO_PIN_B          3     // Can swap A and B to get direction correct without rewiring
 	#define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.
 	#define GPIO_ENC2_PIN_B        31
 	#define GPIO_ENC2_PIN_SW       32
 	#define GPIO_ENC3_PIN_A        33     // GPIO Encoder 3
 	#define GPIO_ENC3_PIN_B        34
 	#define GPIO_ENC3_PIN_SW       35
-#elif defined (V2_4_3_PCB)    // V2 4.3" Display PCB
+	#define PTT_INPUT     	      255   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_OUT1      		    255   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define GPIO_SW1_PIN          255   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
+	#define GPIO_SW2_PIN          255   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
+	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
+	#define GPIO_SW4_PIN          255
+	#define GPIO_SW5_PIN          255
+	#define GPIO_SW6_PIN          255		  // 255 for unused pins
+#elif defined (V2_4_3_PCB)    // V2.0 4.3" Display PCB
 	#define GPIO_VFO_PIN_A         15     // used for VFO
 	#define GPIO_VFO_PIN_B         16
 	#define GPIO_ENC2_PIN_A        36     // Encoder 2.   conflicts with I2C encoders if they are enabled
@@ -290,18 +302,32 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_ENC3_PIN_A        35     // Encoder 3
 	#define GPIO_ENC3_PIN_B        34
 	#define GPIO_ENC3_PIN_SW       33
+	#define PTT_INPUT     			    2   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_OUT1      			    1   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define GPIO_SW1_PIN            3   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
+	#define GPIO_SW2_PIN            4   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
+	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
+	#define GPIO_SW4_PIN            6
+	#define GPIO_SW5_PIN            7
+	#define GPIO_SW6_PIN            255		// 255 for unused pins
 #else // else old proto board assignments
 	#define GPIO_VFO_PIN_A          4     // used for VFO
 	#define GPIO_VFO_PIN_B          5
+	#define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.
+	#define GPIO_ENC2_PIN_B        31
+	#define GPIO_ENC2_PIN_SW       32
+	#define GPIO_ENC3_PIN_A        33     // GPIO Encoder 3
+	#define GPIO_ENC3_PIN_B        34
+	#define GPIO_ENC3_PIN_SW       35
+	#define PTT_INPUT     	      255   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_OUT1      		    255   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define GPIO_SW1_PIN          255   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
+	#define GPIO_SW2_PIN          255   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
+	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
+	#define GPIO_SW4_PIN          255
+	#define GPIO_SW5_PIN          255
+	#define GPIO_SW6_PIN          255	
 #endif
-
-// ToDo:  Move this group under the board revisions sections above and assign real pin numbers - This is fake for dev work for now.
-#define GPIO_SW1_PIN            40    // pin assignment for external switches. When enabled, these will be scanned and software debounced
-#define GPIO_SW2_PIN            41
-#define GPIO_SW3_PIN            42
-#define GPIO_SW4_PIN            43
-#define GPIO_SW5_PIN            44
-#define GPIO_SW6_PIN            45
 
 #ifndef K7MDL_BUILD
 
@@ -321,12 +347,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	// While there are up to 6 i2c encoders possible, the encoder table and support functions
 	//   only know about 7 encoders, the 1st is always the gpio VFO.
 	//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
-	#define I2C_ENC1_ENABLE       0    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
-	#define I2C_ENC2_ENABLE       0
-	#define I2C_ENC3_ENABLE       0    
-	#define I2C_ENC4_ENABLE       0    // 0 is disabled
-	#define I2C_ENC5_ENABLE       0
-	#define I2C_ENC6_ENABLE       0
+	#define I2C_ENC1_ENABLE         0    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+	#define I2C_ENC2_ENABLE         0
+	#define I2C_ENC3_ENABLE         0    
+	#define I2C_ENC4_ENABLE         0    // 0 is disabled
+	#define I2C_ENC5_ENABLE         0
+	#define I2C_ENC6_ENABLE         0
 
 #else // Do K7MDL Dev Build
 
@@ -346,12 +372,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	// While there are up to 6 i2c encoders possible, the encoder table and support functions
 	//   only know about 7 encoders, the 1st is always the gpio VFO.
 	//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
-	#define I2C_ENC1_ENABLE       2    // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
-	#define I2C_ENC2_ENABLE       3
-	#define I2C_ENC3_ENABLE       4    
-	#define I2C_ENC4_ENABLE       0    // 0 is disabled
-	#define I2C_ENC5_ENABLE       0
-	#define I2C_ENC6_ENABLE       0
+	#define I2C_ENC1_ENABLE         2     // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+	#define I2C_ENC2_ENABLE         3
+	#define I2C_ENC3_ENABLE         4    
+	#define I2C_ENC4_ENABLE         0     // 0 is disabled
+	#define I2C_ENC5_ENABLE         0
+	#define I2C_ENC6_ENABLE         0
 
 #endif // K7MDL_BUILD
                                                                                                                

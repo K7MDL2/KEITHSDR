@@ -209,6 +209,7 @@ Metro MF_Timeout        = Metro(3000);  // MultiFunction Knob and Switch
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
 Metro gpio_ENC2_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
 Metro gpio_ENC3_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
+Metro TX_Timeout         = Metro(180000);  // 180000 is 3 minutes for RunawayTX timeout
 
 uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
                             // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -475,9 +476,13 @@ time_t prevDisplay = 0; // When the digital clock was displayed
 
 COLD void setup()
 {
-    pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
-    pinMode(PTT_OUT1, OUTPUT);
-    digitalWrite(PTT_OUT1, HIGH);
+    if (PTT_INPUT != 255)
+        pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
+    if (PTT_OUT1 != 255)
+    {
+        pinMode(PTT_OUT1, OUTPUT);
+        digitalWrite(PTT_OUT1, HIGH);
+    }
     DSERIALBEGIN(115200);
     delay(500);
     DPRINTLN(F("Initializing SDR_RA887x Program"));
@@ -842,6 +847,9 @@ HOT void loop()
         Check_Encoders();
     #endif
 
+    if (TX_Timeout.check() == 1)    // Check for runaway TX
+        Xmit(OFF);  // Turn off in case of runaway TX.
+
     if (MF_Timeout.check() == 1)
     {
         uint8_t slot;
@@ -986,7 +994,11 @@ HOT void loop()
 //
 HOT void Check_PTT(void)
 {
-    PTT_pin_state = digitalRead(PTT_INPUT);
+    if (PTT_INPUT == 255)  // if not configured skip out
+        return;
+    else
+        PTT_pin_state = digitalRead(PTT_INPUT);
+        
     //DPRINT("PTT State "); DPRINTLN(PTT_pin_state);
     // Start debounce timer if a new pin change of state detected
     if (PTT_pin_state != last_PTT_Input)   // user_settings[user_Profile].xmit == OFF)
@@ -1264,7 +1276,7 @@ COLD void I2C_Scanner(void)
   int nDevices;
 
   // uncomment these to use alternate pins
-  //WIRE.setSCL(37);
+  //WIRE.setSCL(37);  // On montherboard V2 PCBs these pins are for the VFO encoder
   //WIRE.setSDA(36);
   //WIRE.begin();
   
