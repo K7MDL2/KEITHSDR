@@ -32,6 +32,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     26. Dec 21: Fixed USB Audio.  RX and TX now runnign at 48KHz and are undistorted on both.  Documented the step by step TeensyDuino file changes required inthe libraries subflder cores_IDE_2.0/readme.txt.  Was forced to sort this out after updating to TeensyDuno 1.57.2 which overwrites everything.  Before I just copied 1.56 modified files from the CW keyer project over the top, the same TX audio issues were there. 
     27. Dec 22: Fixed Transmit filter and sideand suppression issues. Proper filter and 50dB sideband suppression. There are some optional ways to be able balance the phase and amplitude which might improve the sideband suppression. Investigating.
     28. Began renaming some functions in preparation for adding GPIO switch support to the encoder_list table. Switches no longer have to be encoder associated though I am using (minimally) i2c encoder objects for gpio.  I have will be mounting and wiring front panel GPIO connected switches and will start finish the code support for them.
+    29.  In the XMIT() I used the AFGain control to me a mic gain/Line level control during transmit since I do not have a dedicated control for this yet.  Good for testing, not good for operation so I now force the TX audio level to 100%.  A reminder to create a new control for mic and TX line level.
 
 ## Nov 2022
 
