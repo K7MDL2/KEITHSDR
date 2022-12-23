@@ -198,7 +198,7 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 b
 // The RS-HFIQ has only 1 "VFO" so does not itself care about VFO A or B or split, or which is active
 // However this is also the CAT interface and commands will come down for such things.  
 // We need to act on the active VFO and pass back the info needed to the calling program.
-uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split)  // returns new or unchanged active VFO value
+uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split, uint8_t * _mode)  // returns new or unchanged active VFO value
 {
     char c;
     //static unsigned char Ser_Flag = 0, Ser_NDX = 0;
@@ -280,39 +280,37 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             {
                 CAT_RS_Serial.printf("IF%011lu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
             }
-            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)
+            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)   // report Radio current Mode per K3 numbering
             {
-                uint8_t _mode;
+                uint8_t _mode_ = 0;
 
-                _mode = bandmem[curr_band].mode_A;
-
-                switch (S_Input[2])
+                switch (*_mode)
                 {
-                    case LSB:       _mode = 1; break;
-                    case USB:       _mode = 2;; break;
-                    case CW:        _mode = 3; break;
-                    case FM:        _mode = 4; break;
-                    case AM:        _mode = 5; break;
-                    case DATA:      _mode = 6; break;
-                    case CW_REV:    _mode = 7; break;
-                    case DATA_REV:  _mode = 9; break;
+                    case LSB:       _mode_ = 1; break;
+                    case USB:       _mode_ = 2;; break;
+                    case CW:        _mode_ = 3; break;
+                    case FM:        _mode_ = 4; break;
+                    case AM:        _mode_ = 5; break;
+                    case DATA:      _mode_ = 6; break;
+                    case CW_REV:    _mode_ = 7; break;
+                    case DATA_REV:  _mode_ = 9; break;
                     default: break;
                 } 
-                CAT_RS_Serial.printf("MD%d;", _mode);
+                CAT_RS_Serial.printf("MD%d;", _mode_);
             }
-            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) > 2)
+            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) > 2)  // map incoming mode change request from K3 values to our mode numbering and return the value
             {
                 switch (S_Input[2])
                 {
-                    case '1': selectMode(LSB); break;
-                    case '2': selectMode(USB); break;
-                    case '3': selectMode(CW); break;
-                    case '4': selectMode(FM); break;
-                    case '5': selectMode(AM); break;
-                    case '6': selectMode(DATA); break;
-                    case '7': selectMode(CW_REV); break;
-                    case '9': selectMode(DATA_REV); break;
-                    default: break;
+                    case '1': *_mode = LSB; break;
+                    case '2': *_mode = USB; break;
+                    case '3': *_mode = CW; break;
+                    case '4': *_mode = FM; break;
+                    case '5': *_mode = AM; break;
+                    case '6': *_mode = DATA; break;
+                    case '7': *_mode = CW_REV; break;
+                    case '9': *_mode = DATA_REV; break;
+                    default: break;                    
                 } 
             }
             else if (!strncmp(S_Input, "FA", 2) && strlen(S_Input) == 2)// && c == 13)

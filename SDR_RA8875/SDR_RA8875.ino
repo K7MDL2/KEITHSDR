@@ -764,7 +764,8 @@ HOT void loop()
     static uint16_t loopcount=0;
     static uint32_t jhTime=millis();
     loopcount++;
-    if(loopcount>10) {
+    if(loopcount>10) 
+    {
         tft.fillRect(210,20, 60,25, BLACK);
         tft.setFont(Arial_16);
         tft.setCursor(235,30, true);
@@ -1995,19 +1996,28 @@ void RS_HFIQ_Service(void)
     static uint8_t CAT_xmit_last = 0;
     static uint8_t CAT_xmit = 0;
     static uint8_t split_last = bandmem[curr_band].split;
+    static uint8_t mode_last = bandmem[curr_band].mode_A;
     static uint8_t swap_VFO = 0;
     static uint8_t swap_VFO_last = 0;
 
     //if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
-    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &CAT_xmit, &(bandmem[curr_band].split))) != 0)
+    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &CAT_xmit, &(bandmem[curr_band].split), &(bandmem[curr_band].mode_A))) != 0)
     {
         if (popup) return;  // ignore external changes while a window is active.  Changes wil be applied when the window is close (popup OFF)
 
         if (bandmem[curr_band].split != split_last)
         {
-            DPRINTLN("Split VFOs");
+            DPRINTLN("Change Split Mode");
             split_last = bandmem[curr_band].split;
             Split(bandmem[curr_band].split);
+            return;
+        }
+
+        if (bandmem[curr_band].mode_A != mode_last)
+        {
+            mode_last = bandmem[curr_band].mode_A;
+            DPRINTF("Change Mode: %d\n", mode_last);
+            setMode(2);
             return;
         }
 

@@ -19,8 +19,8 @@ class SDR_RS_HFIQ
         //  Place functions here if needed    ---
         {}  // Copy arguments to local variables
         // publish externally available functions
-        uint32_t    cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split); // active VFO value to possible change
-                                                                    // returns new or unchanged VFO value and modified band index
+        uint32_t    cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split, uint8_t * _mode); // active VFO value to possible change
+                                                                    // returns new or unchanged VFO value and modified band index and other parameters
         void        setup_RSHFIQ(int _blocking, uint32_t VFO);
         void        send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
         char *      convert_freq_to_Str(uint32_t freq);
