@@ -33,6 +33,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     27. Dec 22: Fixed Transmit filter and sideand suppression issues. Proper filter and 50dB sideband suppression. There are some optional ways to be able balance the phase and amplitude which might improve the sideband suppression. Investigating.
     28. Began renaming some functions in preparation for adding GPIO switch support to the encoder_list table. Switches no longer have to be encoder associated though I am using (minimally) i2c encoder objects for gpio.  I have will be mounting and wiring front panel GPIO connected switches and will start finish the code support for them.
     29.  In the XMIT() I used the AFGain control to me a mic gain/Line level control during transmit since I do not have a dedicated control for this yet.  Good for testing, not good for operation so I now force the TX audio level to 100%.  A reminder to create a new control for mic and TX line level.
+    30. Fixed K3 CAT command for Mode report and Mode set.
 
 ## Nov 2022
 
