@@ -1253,7 +1253,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
             RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X1");  //RS-HFIQ TX ON
         #endif
 
-        TX_Timeout.reset();  // Reset our Runaaway TX timer.  Main loop will watch for this to trip calling back here to flip back to RX.
+        TX_Timeout.reset();  // Reset our Runaway TX timer.  Main loop will watch for this to trip calling back here to flip back to RX.
 
         // enable mic input to pass to line out on audio card, set audio levels
         if (TwoToneTest)  // do test tones
@@ -1705,7 +1705,7 @@ void setEncoderMode(uint8_t role)
                 _tap =  encoder_list[slot].tap;
                 _press =  encoder_list[slot].press;
             
-                DPRINTF("Slot#=%1d type=%1d id=0x%1d enabled=%1d MFENC?=%2d RoleA=%2d, A_active=%1d RoleB=%2d TAP=%2d PRESS=%2d\n",
+                DEBUG_PRINTF("Slot#=%1d type=%1d id=0x%1d enabled=%1d MFENC?=%2d RoleA=%2d, A_active=%1d RoleB=%2d TAP=%2d PRESS=%2d\n",
                             slot,     _type,   _id,     _enabled,   _mfenc,    _roleA,    _a_active,   _roleB,   _tap,   _press);
             #else
                 uint8_t _tap;

@@ -36,6 +36,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     30. Fixed K3 CAT command for Mode report and Mode set.
     31. Moved PTT_INPUT and PTT_OUT1 defines into the PCB board version groupings alomng with teh future GPIO Switch pin defines since they are unique to a board design or custom build.
     32. I caught the rig in TX for the first time. Who knows how long it sat in TX, the RS-HFIQ was very hot but survived. Did it again after reboot. It was because teh changes in item 31 in RadioConfig set #define PTT_INPUT from a valid pin (2) to 255 to mark it disabled. I added a TX_timeout timer to turn off TX to prevent runaway TX. It is set to 180 seconds. Added checks for reading PTT_IN and writing to PTT_OUT1 pins to skip them if they are set to 255.
+    33. Figured out (mostly) how to create a custom combo USB Type - Serial+Serial+Audio then how to add it to the Arduino IDE.  It is not perfect, there is a IDE/CLI bug or 2 that we have to work around but can still make it work. I have added the steps the readme.txt file in the libraries/cores_IDE_2.0_1.57.2 folder and created a new WIKI page just for this.  I also reformmated the USB 48KHz Audio Wiki page better.
 
 ## Nov 2022
 
@@ -60,7 +61,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     13. After several power cycle events to reset the CPU (internal prog switch is inside my case, unreachable), The package will not boot up.  This is like the 3rd SGTL5000 module has failed on a power up event connected to the RS-HFIQ. A leading theory is that a spike is occuring on the Line Input from the RS-HFIQ output amps that exceeds the 3.3V input limit by enough to kill off the SGTL5000 chip, thus tanking the 3.3V and the Teensy.  I plan to place some back to back diodes across The L & R Line Inputs and if reasonable inteh time I have, power the SGTL5000 module off a separate 3.3V regulator.  That might allow the Teensy to boot up and then see the SGTL5000 not register on i2c at startup.
     14. For Visual Studio Code users, the makefile, settings.json and tasks.json now use env variables to allow them to work easier on multiple computers. The only configuration step needed is to create a new env variable for your login profile called VIRTUAL_TEENSY_PATH and set it to the location of your Virual Teensy installation. For example on one machine I set it to E:/VisualTeensy_v1.5.0, on another machine it is set to C:/DATA/VisualTeensy_v1.5.0.  Thre is a new task added called Echo Path that will print to the screen the pathname to test if you have it configured correctly or not.
     15. Found the 16bit Audio USB in and out is working more reliably then the F32 for some reason.  Also my desktop success is very poor depending on what USB port I plug into.  On a separate laptop everything works.  My desktop has seen its share of USB device and USB device failure during the years.  It is also running Win11, not sure that has anything to do with it.
-    
+
 ## May 2022
 
     1. Added Popup Window create and destroy functions. A window is a very big button (with touch disabled) for color and size, the pop_win_up() and pop_win_down() function use the same bit move engine technique I use for the spectrum waterfall display.  Saves the screen under the window, sets the active_window and colors it like all button do.  There are 2 windows, Menu, which is only seen as a text line today (future use), and Band Select Menu. Window placement and size is configured by table values.
@@ -81,7 +82,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     16. (May 15) - Corrected FFT sideband display in TX mode.  Set default mic gain to 76% which is below the clipping indicator with my old Radio Shack dynamic hand mic connected.  USB and LSB now work as does the Two-Tone Test when the ATU button is ON. I had the mic PTT wired to the RS-HFIQ paddle jack ring terminal which puts the hardware into TX, but the Teensy does not know it. Now using the GPIO header Teensy pin 0 for PTT. It is debounced and lets the Teensy control the RS-HFIQ TX mode and can act as a keyer down the road, or at least uses the mic PTT line as a code key input line while in CW mode.  This GPIO already exists in RadioConfig.h as #define PTT_INPUT 0.  
     17. New TX-only filters added, with center and width set in the 2 variables 'TX_filterCenter' and 'TX_filterBandwidth' which are initialized in the upper section of the .ino file for now.
     18. BUG(s): Several issues in TX mode to sort out. Among them: Occasionally on transition from TX to RX causes the audio chain to stop somewhere after the FFT - a CPU reset is required. There are other issues to work thogh in TX mode still like full sideband suppression (0 to -600Hz is not suppressed), if key down on the RS-HFIQ paddle jack PTT line for CW, the Teensy is stil lin RX and the display calibration is off.  Also sometimes the XMIT turns on putting out audio until teh key is lifted.  The RS-HFIQ maybe sending a TX state == ON message that I am not expecting and accidentially reading and acting on.
-    
+
 ## April 2022
 
     1. Added front panel drawing file for Front Panel Express milling on a Hammond 1455N 160mm x 103mm x 53mm extruded box. Attempting to package the RS-HFIQ PCB into the same small (hand-held) box with RA8875 4.3" display and 2 encoders. 
@@ -125,7 +126,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     13. 3/12/2022: Converted RS_HFIQ files to a separate Arduino Library posted at https://github.com/K7MDL2/Teensy4_USB_Host_RS-HFIQ_Library.  Be sure to down load and put this in your libraries folder. See new end note on this program's Wiki site https://github.com/K7MDL2/KEITHSDR/wiki/Libraries.
     14. 3/12/2022: For RS-HFIQ, changed to use the RS-HFIQ library's new internal band limit table that matches the RS-HFIQ filter hardware.  This is used for validating frequency changes coming from external serial port.  Rearranged the bandmem table rows and band number #define BANDXXX names to make this cleaner.
     15. 3/13/2022: Updated W7PUA I2S correction code moving it all into setup and enabled it by default. Wired 2 100K resistors on the LineIn pins to Pin 22 on Teensy (acts as a square wave generator during setup(). Running tests. There are new #defines in the RadioConfig.h file for this.  PhaseChange() is default.
-    
+
 ## February 2022
 
     1. Added TX Audio path with PTT, working on RX/TX board.  Need to work on modulation blocks more.  RF output is flowing though.

@@ -26,7 +26,7 @@
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
-//#define DEBUG  //set to true for debug output, false for no debug output
+#define DEBUG  //set to true for debug output, false for no debug output
 
 #ifdef  DEBUG
 #define DEBUG_ERROR true
@@ -40,7 +40,7 @@
 #define DSERIALBEGIN(...)   Serial.begin(__VA_ARGS__)
 #define DPRINTLN(...)       Serial.println(__VA_ARGS__)
 #define DPRINT(...)         Serial.print(__VA_ARGS__)
-#define DRINTF(...)         Serial.print(F(__VA_ARGS__))
+#define DPRINTF(...)        Serial.print(F(__VA_ARGS__))
 #define DPRINTLNF(...)      Serial.println(F(__VA_ARGS__)) //printing text using the F macro
 #define DELAY(...)          delay(__VA_ARGS__)
 #define PINMODE(...)        pinMode(__VA_ARGS__)

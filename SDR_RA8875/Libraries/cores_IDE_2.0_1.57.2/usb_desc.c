@@ -1425,8 +1425,8 @@ PROGMEM const uint8_t usb_config_descriptor_480[CONFIG_DESC_SIZE] = {
 	0x02,					// bDescriptorSubType, 2 = INPUT_TERMINAL
 	1,					// bTerminalID
 	//0x01, 0x02,				// wTerminalType, 0x0201 = MICROPHONE
-	//0x03, 0x06,				// wTerminalType, 0x0603 = Line Connector
-	0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
+	0x03, 0x06,				// wTerminalType, 0x0603 = Line Connector
+	//0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
 	0,					// bAssocTerminal, 0 = unidirectional
 	2,					// bNrChannels
 	0x03, 0x00,				// wChannelConfig, 0x0003 = Left & Right Front
@@ -1471,8 +1471,8 @@ PROGMEM const uint8_t usb_config_descriptor_480[CONFIG_DESC_SIZE] = {
 	0x24,					// bDescriptorType, 0x24 = CS_INTERFACE
 	3,					// bDescriptorSubtype, 3 = OUTPUT_TERMINAL
 	4,					// bTerminalID
-	//0x02, 0x03,				// wTerminalType, 0x0302 = Headphones
-	0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
+	0x02, 0x03,				// wTerminalType, 0x0302 = Headphones
+	//0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
 	0,					// bAssocTerminal, 0 = unidirectional
 	0x31,				// bCSourceID, connected to feature, ID=31
 	0,					// iTerminal
@@ -2447,8 +2447,8 @@ PROGMEM const uint8_t usb_config_descriptor_12[CONFIG_DESC_SIZE] = {
 	0x02,					// bDescriptorSubType, 2 = INPUT_TERMINAL
 	1,					// bTerminalID
 	//0x01, 0x02,				// wTerminalType, 0x0201 = MICROPHONE
-	//0x03, 0x06,				// wTerminalType, 0x0603 = Line Connector
-	0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
+	0x03, 0x06,				// wTerminalType, 0x0603 = Line Connector
+	//0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
 	0,					// bAssocTerminal, 0 = unidirectional
 	2,					// bNrChannels
 	0x03, 0x00,				// wChannelConfig, 0x0003 = Left & Right Front
@@ -2493,8 +2493,8 @@ PROGMEM const uint8_t usb_config_descriptor_12[CONFIG_DESC_SIZE] = {
 	0x24,					// bDescriptorType, 0x24 = CS_INTERFACE
 	3,					// bDescriptorSubtype, 3 = OUTPUT_TERMINAL
 	4,					// bTerminalID
-	//0x02, 0x03,				// wTerminalType, 0x0302 = Headphones
-	0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
+	0x02, 0x03,				// wTerminalType, 0x0302 = Headphones
+	//0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
 	0,					// bAssocTerminal, 0 = unidirectional
 	0x31,				// bCSourceID, connected to feature, ID=31
 	0,					// iTerminal

@@ -83,13 +83,13 @@ In my reading files placed in a library folder under the sketch folder should be
 			#endif
 			...
 
-3. Edit usb_desc.c file
+3. Edit usb_desc.c file.  #define PRODUCT_ID		0x048A
     a. Search for "MICROPHONE".  You will find it in 2 places inside #ifdef AUDIO_INTERFACE sections
     b. The 3 lines for wTerminalType will look like below with the Digital Audio likely set. 
        	//0x01, 0x02,				// wTerminalType, 0x0201 = MICROPHONE
 	   	//0x03, 0x06,				// wTerminalType, 0x0603 = Line Connector
 	   	0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio 
-    c. Change the wTerminalType to somnething else like Line Connector to get Windows to recognize the change in the cached driver
+    c. Change the wTerminalType to something else like Line Connector to get Windows to recognize the change in the cached driver
        	//0x01, 0x02,				// wTerminalType, 0x0201 = MICROPHONE
 	   	0x03, 0x06,				// wTerminalType, 0x0603 = Line Connector
 	   	//0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
@@ -99,6 +99,7 @@ In my reading files placed in a library folder under the sketch folder should be
     e. Change the wTerminalType from Digital Audio to Headphones to get Windows to recognize the change in the cached driver
        	0x02, 0x03,				// wTerminalType, 0x0302 = Headphones
 	   	//0x02, 0x06,				// wTerminalType, 0x0602 = Digital Audio
+	f. change #define PRODUCT_ID		0x048A  to 0x48B.  
 
 4. Edit usb_desc.c file. 
 	a. Search for LSB(44100).  You will find it in 4 places
@@ -156,8 +157,88 @@ In my reading files placed in a library folder under the sketch folder should be
 
 12. Enable listen on the SDR Line In record device and play it back to your speakers and see if it sounds proper.
 
-18. In usb_desc.c you can change the Headphone and Line devices wTerminal type back to Digital Audio if desired. 
- 	Sometimes this is needed to get your low level edits to register correctly due to the device caching.  may also need to reboot.
+13. In usb_desc.c you can change the Headphone and Line devices wTerminal type back to Digital Audio if desired. 
+ 	Sometimes this is needed to get your low level edits to register correctly due to the device caching.  Or try changing the USB PRoduct ID (see later steps). May also need to reboot.
+
+14. Adding a Custom USB type for the Teensy to enable 2 Serial ports plus Audio to the Arduino 2.0 IDE.  This enables debug on Serial and the optional CAT interface on USBSerial1.
+	a. add this section into usb_desc.h after the USB_AUDIO section.
+		#elif defined(USB_SERIAL_SERIAL_AUDIO)
+			#define VENDOR_ID		0x16C0
+			#define PRODUCT_ID		0x048C
+			#define MANUFACTURER_NAME	{'T','e','e','n','s','y','d','u','i','n','o'}
+			#define MANUFACTURER_NAME_LEN	11
+			#define PRODUCT_NAME		{'K','7','M','D','L',' ','S','D','R'}
+			#define PRODUCT_NAME_LEN	    9
+			#define EP0_SIZE		          64
+			#define NUM_ENDPOINTS         7   // 5 for 2 serial, + 2 for audio
+			#define NUM_INTERFACE		      7   // 4 for 2 serial, + 3 for audio
+			#define CDC_IAD_DESCRIPTOR	  1
+			#define CDC_STATUS_INTERFACE	0
+			#define CDC_DATA_INTERFACE	  1	// Serial
+			#define CDC_ACM_ENDPOINT	    2
+			#define CDC_RX_ENDPOINT       3
+			#define CDC_TX_ENDPOINT       3
+			#define CDC_ACM_SIZE          16
+			#define CDC_RX_SIZE_480       512
+			#define CDC_TX_SIZE_480       512
+			#define CDC_RX_SIZE_12        64
+			#define CDC_TX_SIZE_12        64
+			#define CDC2_STATUS_INTERFACE 2       // SerialUSB1
+			#define CDC2_DATA_INTERFACE   3
+			#define CDC2_ACM_ENDPOINT     4
+			#define CDC2_RX_ENDPOINT      5
+			#define CDC2_TX_ENDPOINT      5
+			#define AUDIO_INTERFACE	4	// Audio (uses 3 consecutive interfaces)
+			#define AUDIO_TX_ENDPOINT     6
+			#define AUDIO_RX_ENDPOINT     6
+			#ifdef USB_AUDIO_48KHZ
+				#define AUDIO_TX_SIZE         196   // longer buffer
+				#define AUDIO_RX_SIZE         196
+			#else
+				#define AUDIO_TX_SIZE         180
+				#define AUDIO_RX_SIZE         180
+			#endif
+			#define AUDIO_SYNC_ENDPOINT	7
+			#define ENDPOINT2_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
+			#define ENDPOINT3_CONFIG	ENDPOINT_RECEIVE_BULK + ENDPOINT_TRANSMIT_BULK
+			#define ENDPOINT4_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
+			#define ENDPOINT5_CONFIG	ENDPOINT_RECEIVE_BULK + ENDPOINT_TRANSMIT_BULK
+			#define ENDPOINT6_CONFIG	ENDPOINT_RECEIVE_ISOCHRONOUS + ENDPOINT_TRANSMIT_ISOCHRONOUS
+			#define ENDPOINT7_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_ISOCHRONOUS
+	   Note: as a workaround the file usb_desc.h I supply in libraries folder has the same contents for USB_SERIAL_MIDI_AUDIO. More below.
+
+	b. To add custom Serial + Serial + Audio USB type into the IDE modify C:\Users\[username]\AppData\Local\Arduino15\packages\teensy\hardware\avr\1.57.2\cores\teensy4\boards.txt by adding these 3 lines into the teensy41.menu section.  Can add to the teensy40.menu section if you like.
+		teensy41.menu.usb.serialserialaudio=Serial + Serial + Audio
+		teensy41.menu.usb.serialserialaudio.build.usbtype=USB_SERIAL_SERIAL_AUDIO
+		teensy41.menu.usb.serialserialaudio.upload_port.usbtype=USB_SERIAL_SERIAL_AUDIO
+		Make sure the file matches the verson in C:\Users\Mike\AppData\Local\Arduino15\packages\teensy\hardware\avr\1.57.2. Not sure how this gets updated.
+
+		There is a problem getting the IDE to properly process a new entry so this can also work.  Repurpose/rename the menu item for the exieting SERIAL_MIDI_AUDI
+		teensy41.menu.usb.serialmidiaudio=Serial + Serial + Audio
+		teensy41.menu.usb.serialmidiaudio.build.usbtype=USB_SERIAL_SERIAL_AUDIO
+		teensy41.menu.usb.serialmidaudio.upload_port.usbtype=USB_SERIAL_SERIAL_AUDIO
+		This causes the menu which had Serial + MIDI + AUDIO to now show as SERIAL + SERIAL + AUDIO, same as above, but the compiler recognizes it better.
+		The boards.txt I supply in the libraries/cores_IDE_2.0_1.57.2 has this modification made for you.  
+		This file sets the #define that is consumed in usb_dec.h to set the right interfaces and endpoints. For now, USB_SERIAL_MIDI_AUDIO is identical to USB_SERIAL_SERIAL_AUDIO.
+
+	c. Shutdown the Arduino IDE
+	
+	d. There is a bug in IDE/CLI that does not update the IDE when the board.txt is changed. Delete the cached IDE file so that the modified boards.txt changes will show on the IDE tool USB type menu and become a vaid compile option. 
+	    See https://github.com/arduino/arduino-ide/issues/1030
+	 	For Windows users, this is typically C:\Users\<user name>\AppData\Roaming\arduino-ide\.  I found this to fix the menu part of the problem, but the ports refuse the show properly the serial+Serial+Audio, instead I get Triple Serial.
+	
+	e. Start the Arduino IDE 2.0
+	
+	f. Under Tools
+		Board choose Teensy 4.1
+		Port choose the port displayed under the teensy ports section.  The correct name may not show up until you do your first compile, maybe not even then but you will see 2 serial ports.
+		CPU Speed choose 816MHz (recommended, but anything you like that works)
+		USB Type choose Serial + Serial + Audio.  This is our custom device type.
+		Due to issue in step c. above, you may see Triple Eerial or the previous Serial+Audio+MIDI.  You should stil have 2 serial ports and audio working.
+	
+	g. If DEBUG is enabled in top of SDR_RA8875.h, debug output will be on the first serial port. 
+	
+	h. If you have the RS_HFIQ, the second serial port will be CAT control at 38400 which emulates an Elecraft K3.
 
 _________________________________________________________________________________________
 
@@ -166,12 +247,15 @@ Previous version notes from the IDE 1.8.x days:
 This file is a modified version of the original TeensyDuino file called AudioStream.h
 
 For Arduino IDE < 2.0
-C:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy4
+	C:\Program Files (x86)\Arduino\hardware\teensy\avr\cores\teensy4
 
 or for Arduino > 2.0
 
-C:\Users\[username]\AppData\Local\Arduino15\packages\teensy\hardware\avr\1.57.2\cores
+	C:\Users\[username]\AppData\Local\Arduino15\packages\teensy\hardware\avr\1.57.2\cores
 
 The changes are in the #defines at the top to set the default to either 44.1KHz or 48KHz.  
 
 We are using 48KHz.  Kept the sample block count the same at 128.  The CWKeyer project used 32 to keep latency low and has lots of feedback loop code for on the fly corrections.
+
+
+

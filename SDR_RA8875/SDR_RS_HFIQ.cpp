@@ -3,20 +3,20 @@
 //      SDR_RS_HFIQ.cpp 
 //
 //      June 1, 2022 by K7MDL
-//      Dec 17, 2022 Changed CAT side interface to Elecrtaft K3 protocol to enable programs like WSJT-X 
+//      Dec 17, 2022 Changed CAT side interface to Elecraft K3 protocol to enable programs like WSJT-X 
 //                   to set split and follow BAND/VFO changes from the radio side.  The RSHFIQ was only 
-//                   controlled by a computer, this SDR has it own control.
+//                   controlled by a computer, this is bidirectional now and no external proxy required.
 //
 //      USB host control for RS-HFIQ 5W transciever board
 //      USB Host comms portion from the Teensy4 USBHost_t36 example program
 //      Requires Teensy 4.0 or 4.1 with USB Host port connector.
 //
-//      Accepts expanded set of CAT port commands such as *FA, *FB, *SW0, etc. fo OmniRig control
+//      Accepts expanded set of CAT port commands such as *FA, *FB, *SW0, etc. for Elecraft K3 protocol
 //          and passes back these controls to the main program.  
 //      A Custom rig file is part of the GitHub project files for the Teensy SDR project under user K7MDL2
 //          at https://github.com/K7MDL2/KEITHSDR/tree/main/SDR_RA8875/RS-HFIQ%20Omni-RIg
 //
-//      Placed in the Public Domain
+//      Placed in the Public Domain.
 //
 //***************************************************************************************************
 
@@ -60,8 +60,8 @@
 #endif
 
 // Serial port for external CAT control
-//#define CAT_RS_Serial SerialUSB1
-#define CAT_RS_Serial Serial
+#define CAT_RS_Serial SerialUSB1
+//#define CAT_RS_Serial Serial
 
 // Teensy USB Host port
 #define USBBAUD 57600   // RS-HFIQ uses 57600 baud
@@ -130,6 +130,7 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 b
     CAT_RS_Serial.begin(38400);
     delay(100);
     DPRINTLN("\nStart of RS-HFIQ Setup"); 
+    SerialUSB1.println("\nStart of RS-HFIQ Setup"); 
     rs_freq = VFO;
     blocking = _blocking;
 
@@ -217,7 +218,7 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
     while (CAT_RS_Serial.available() > 0)    // Process any and all characters in the buffer
     {
         c = CAT_RS_Serial.readBytesUntil(';',S_Input, 15); 
-        //c = toupper(c);
+        
         if (c>0)
         {
             //CAT_RS_Serial.print("Count=");

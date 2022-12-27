@@ -849,6 +849,9 @@ HOT void loop()
 
     if (TX_Timeout.check() == 1)    // Check for runaway TX
         Xmit(OFF);  // Turn off in case of runaway TX.
+        
+    if (user_settings[user_Profile].xmit == 0)
+        TX_Timeout.reset();  // Reset our Runaway TX timer while in RX.  Main loop will watch for this to trip calling back here to flip back to RX.
 
     if (MF_Timeout.check() == 1)
     {
@@ -2028,7 +2031,7 @@ void RS_HFIQ_Service(void)
         if (bandmem[curr_band].mode_A != mode_last)
         {
             mode_last = bandmem[curr_band].mode_A;
-            DPRINTF("Change Mode: %d\n", mode_last);
+            DEBUG_PRINTF("Change Mode: %d\n", mode_last);
             setMode(2);
             return;
         }
@@ -2131,7 +2134,7 @@ void Check_Encoders(void)
             {                           
                 uint8_t mfg = I2C_ENC1.readStatus();
                 if (mfg) {}
-                //if (mfg) { DPRINT(F("****Checked MF_Enc status = ")); DPRINTLN(mfg); }
+                //if (mfg) {DPRINTF("****Checked MF_Enc status = "); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC2_ADDR
@@ -2139,7 +2142,7 @@ void Check_Encoders(void)
             {
                 uint8_t mfg = I2C_ENC2.readStatus();
                 if (mfg) {}
-                //if (mfg) {DPRINT(F("****Checked Encoder #2 status = ")); DPRINTLN(mfg); }
+                //if (mfg) {DPRINTF("****Checked Encoder #2 status = "); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC3_ADDR
@@ -2147,7 +2150,7 @@ void Check_Encoders(void)
             {
                 uint8_t mfg = I2C_ENC3.readStatus();
                 if (mfg) {}
-                //if (mfg) {DPRINT(F("****Checked Encoder #3 status = ")); DPRINTLN(mfg); }
+                //if (mfg) {DPRINTF("****Checked Encoder #3 status = "); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC4_ADDR
@@ -2155,7 +2158,7 @@ void Check_Encoders(void)
             {
                 uint8_t mfg = I2C_ENC4.readStatus();
                 if (mfg) {}
-                //if (mfg) {DPRINT(F("****Checked Encoder #4 status = ")); DPRINTLN(mfg); }
+                //if (mfg) {DPRINTF("****Checked Encoder #4 status = "); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC5_ADDR
@@ -2163,7 +2166,7 @@ void Check_Encoders(void)
             {
                 uint8_t mfg = I2C_ENC5.readStatus();
                 if (mfg) {}
-                //if (mfg) {DPRINT(F("****Checked Encoder #5 status = ")); DPRINTLN(mfg); }
+                //if (mfg) {DPRINTF("****Checked Encoder #5 status = "); DPRINTLN(mfg); }
             }
             #endif
             #ifdef I2C_ENC6_ADDR
@@ -2171,7 +2174,7 @@ void Check_Encoders(void)
             {
                 uint8_t mfg = I2C_ENC6.readStatus();
                 if (mfg) {}
-                //if (mfg) {DPRINT(F("****Checked Encoder #6 status = ")); DPRINTLN(mfg); }
+                //if (mfg) {DPRINTF("****Checked Encoder #6 status = "); DPRINTLN(mfg); }
             }
             #endif
         }
@@ -2228,6 +2231,7 @@ void Check_Encoders(void)
         static uint8_t ENC2_sw_pushed = 0;
         static uint8_t ENC3_sw_pushed = 0;
         uint8_t slot = 0;
+        
 
         if (GPIO_ENC2_ENABLE)
         {
