@@ -215,7 +215,9 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t Vfo
     if (cycleCounter==0) 
     {
         // While more than 1 FFT may be enabled, only 1 (fft_size) is chosen for display
-        uint8_t         process_FFT = 0;
+        uint8_t process_FFT;
+
+        process_FFT = 0;   // assume no data
         
         #ifdef FFT_4096
             if (fft_sz == 4096 && myFFT_4096.available())
@@ -225,25 +227,25 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t Vfo
                 #else
                     pout = fftOutput;
                 #endif
-                process_FFT = 1;
+                process_FFT = 1;  // have valid fft data to show
             }
         #endif
         #ifdef FFT_2048
             if (fft_sz == 2048 && myFFT_2048.available())
             {
                 pout = myFFT_2048.getData();
-                process_FFT = 1;
+                process_FFT = 1;  // have valid fft data to show
             }
         #endif
         #ifdef FFT_1024
             if (fft_sz == 1024 && myFFT_1024.available())
             {
                 pout = myFFT_1024.getData();
-                process_FFT = 1;
+                process_FFT = 1;  // have valid fft data to show
             }
         #endif
 
-        if (process_FFT == 1)
+        if (process_FFT == 1)  // have valid fft data to show
         {
             cycleCounter=1;     
             //float *pout = myFFT.getData();          // Get pointer to data array of powers, float output[512]; 
