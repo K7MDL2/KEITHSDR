@@ -18,7 +18,7 @@
 #include "hilbert251A.h"
 
 //#define USB32   // Switch between F32 and I16 versions of USB Audio interface
-// So far I16 method has been working better.  
+// So far I16 method has been working better.  Using USB32 flow results in distorted RX and TX audio.
 
 #ifdef USB32
 #include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version.  
@@ -183,6 +183,7 @@ uint8_t     PTT_Input_debounce      = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;              // For RF AGC Limiter
 bool        TwoToneTest             = OFF; // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 float       pan                     = 0.0f;
+uint8_t     clipping                = 0;    // track state of clipping (primarily RS-HFIQ but could be applied to any RF hardware that has such indications)
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
@@ -2014,9 +2015,10 @@ void RS_HFIQ_Service(void)
     static uint8_t mode_last = bandmem[curr_band].mode_A;
     static uint8_t swap_VFO = 0;
     static uint8_t swap_VFO_last = 0;
+    static uint8_t clipping_last = 0;
 
     //if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
-    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &CAT_xmit, &(bandmem[curr_band].split), &(bandmem[curr_band].mode_A))) != 0)
+    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &CAT_xmit, &(bandmem[curr_band].split), &(bandmem[curr_band].mode_A), &clipping)) != 0)
     {
         if (popup) return;  // ignore external changes while a window is active.  Changes wil be applied when the window is close (popup OFF)
 
@@ -2059,7 +2061,6 @@ void RS_HFIQ_Service(void)
             user_settings[user_Profile].sub_VFO = VFOB;
             //DPRINT(F("Main1B VFOB: ")); DPRINTLN(VFOB);
         }
-
         if (last_curr_band != curr_band)
         {
             changeBands(0);
@@ -2067,14 +2068,25 @@ void RS_HFIQ_Service(void)
             //DPRINT(F("New Band Number: ")); DPRINTLN(curr_band);  
         }
     }
-
+    if (clipping_last != clipping)
+    {
+        // ToDo:  Make new icon in label table and call the standard update function in Display.cpp
+        //update_clipping_icon();
+        clipping_last = clipping;
+        DPRINT(F("Clipping: ")); DPRINTLN(clipping);
+        tft.fillRect(210,45,60,25, BLACK);
+        tft.setFont(Arial_14);
+        tft.setCursor(235,55, true);
+        tft.setTextColor(RED);
+        if (clipping) 
+            tft.print("CLIP");
+    }
     if (CAT_xmit_last != CAT_xmit) // Pass on any change in Xmit state from CAT port
     {
         //DPRINT(F("CAT Port: TX = ")); DPRINTLN(CAT_xmit);
         CAT_xmit_last = CAT_xmit;
         Xmit(CAT_xmit);
     }
-
     if (temp_freq != 0)
     {
         if (last_VFOA != VFOA || last_VFOB != VFOB)  // only act on frequency changes, skip other things like queries

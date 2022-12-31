@@ -199,7 +199,7 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 b
 // The RS-HFIQ has only 1 "VFO" so does not itself care about VFO A or B or split, or which is active
 // However this is also the CAT interface and commands will come down for such things.  
 // We need to act on the active VFO and pass back the info needed to the calling program.
-uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split, uint8_t * _mode)  // returns new or unchanged active VFO value
+uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t * VFOB, uint8_t * rs_curr_band, uint8_t * xmit, uint8_t * split, uint8_t * _mode, uint8_t * _clip)  // returns new or unchanged active VFO value
 {
     char c;
     //static unsigned char Ser_Flag = 0, Ser_NDX = 0;
@@ -207,6 +207,17 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
     static uint8_t _ai = 0;  // track AI mode
 
     rs_freq = *VFOA;
+
+    if (*xmit != 0)  // if in TX mode, check for clipping and set indicator
+    {
+        send_fixed_cmd_to_RSHFIQ(q_clip_on);
+        //DPRINTF("Clipping (0 No Clipping, 1 Clipping): ");
+        print_RSHFIQ_User(blocking);   // Read and if Debug is on print our query results
+        *_clip = (uint8_t) atoi(&R_Input[0]);
+        //DPRINTF("_clip"); DPRINTLN(*_clip);
+    }
+    else 
+        *_clip = 0;
 
 //   Test code.  Passes through all chars both directions.
 /*
@@ -227,7 +238,7 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             //CAT_RS_Serial.printf("  %s\r\n",S_Input);
 
             #ifdef DBG 
-            DPRINT(F("RS-HFIQ: Cmd String: ")); DPRINTLN(S_Input);
+            //DPRINT(F("RS-HFIQ: Cmd String: ")); DPRINTLN(S_Input);
             #endif
             if (!strncmp(S_Input, "ID", 2))
             {
@@ -293,11 +304,11 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             }
             else if (!strncmp(S_Input, "DT", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("DT0;");
+                CAT_RS_Serial.print("DT0;");  // return 0 = DATA A mode
             }
             else if (!strncmp(S_Input, "FI", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("FI5000;");
+                CAT_RS_Serial.print("FI5000;");  // last 4 digits of the IF cener frequency used for shifting panadapater.
             }
             else if (!strncmp(S_Input, "AI", 2) && strlen(S_Input) == 2)
             {
@@ -523,10 +534,13 @@ void SDR_RS_HFIQ::write_RSHFIQ(int ch)
     userial.write(ch);
 } 
 
-int SDR_RS_HFIQ::read_RSHFIQ(void)
+int SDR_RS_HFIQ::read_RSHFIQ(int flag)
 {
     char c = 0;
     unsigned char Ser_Flag = 0, Ser_NDX = 0;
+
+    if (flag)  // we are waiting for a reply (BLOCKING)
+        while (userial.available() == 0) {} // Wait for delayed reply   ToDo: put a timeout in here
 
     // Clear buffer for expected receive string
     if (Ser_Flag == 0)                  
@@ -571,9 +585,7 @@ int SDR_RS_HFIQ::read_RSHFIQ(void)
 // flag = 1, block while waiting for a serial char
 void SDR_RS_HFIQ::print_RSHFIQ(int flag)
 {
-    if (flag)  // we are waiting for a reply (BLOCKING)
-        while (userial.available() == 0) {} // Wait for delayed reply   ToDo: put a timeout in here
-    read_RSHFIQ();
+    read_RSHFIQ(flag);
     CAT_RS_Serial.println(R_Input);
     return;
 }
@@ -582,10 +594,10 @@ void SDR_RS_HFIQ::print_RSHFIQ(int flag)
 // flag = 1, block while waiting for a serial char
 void SDR_RS_HFIQ::print_RSHFIQ_User(int flag)
 {
-    if (flag)  // we are waiting for a reply (BLOCKING)
-        while (userial.available() == 0) {} // Wait for delayed reply   ToDo: put a timeout in here
-    read_RSHFIQ();
-    DPRINTLN(R_Input);
+    read_RSHFIQ(flag);
+    #ifdef DBG
+        DPRINTLN(R_Input);
+    #endif
     return;
 }
 
