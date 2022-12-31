@@ -772,9 +772,9 @@ HOT void loop()
     loopcount++;
     if(loopcount>10) 
     {
-        tft.fillRect(210,20, 60,25, BLACK);
-        tft.setFont(Arial_16);
-        tft.setCursor(235,30, true);
+        tft.fillRect(200,15,46,22, BLACK);
+        tft.setFont(Arial_14);
+        tft.setCursor(202,19, false);
         tft.setTextColor(WHITE);
         uint32_t jhElapsed=millis()-jhTime;
         tft.print(jhElapsed/10); 
@@ -2074,9 +2074,9 @@ void RS_HFIQ_Service(void)
         //update_clipping_icon();
         clipping_last = clipping;
         DPRINT(F("Clipping: ")); DPRINTLN(clipping);
-        tft.fillRect(210,45,60,25, BLACK);
         tft.setFont(Arial_14);
-        tft.setCursor(235,55, true);
+        tft.fillRect(200,40,46,22, BLACK);
+        tft.setCursor(202,44, false);
         tft.setTextColor(RED);
         if (clipping) 
             tft.print("CLIP");
