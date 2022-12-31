@@ -772,14 +772,16 @@ HOT void loop()
     loopcount++;
     if(loopcount>10) 
     {
-        tft.fillRect(200,15,46,22, BLACK);
-        tft.setFont(Arial_14);
-        tft.setCursor(202,19, false);
-        tft.setTextColor(WHITE);
         uint32_t jhElapsed=millis()-jhTime;
-        tft.print(jhElapsed/10); 
         jhTime=millis();
         loopcount=0; 
+        #ifdef DEBUG
+            tft.fillRect(200,15,46,22, BLACK);
+            tft.setFont(Arial_14);
+            tft.setCursor(202,19, false);
+            tft.setTextColor(WHITE);
+            tft.print(jhElapsed/10); 
+        #endif
     }
 
     #ifndef BYPASS_SPECTRUM_MODULE
