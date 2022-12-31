@@ -204,6 +204,7 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
     char c;
     //static unsigned char Ser_Flag = 0, Ser_NDX = 0;
     static uint8_t swap_vfo_last = 0;
+    static uint8_t _ai = 0;  // track AI mode
 
     rs_freq = *VFOA;
 
@@ -226,7 +227,7 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             //CAT_RS_Serial.printf("  %s\r\n",S_Input);
 
             #ifdef DBG 
-            DPRINT(F("RS-HFIQ: Cmd String : *")); DPRINTLN(S_Input);
+            DPRINT(F("RS-HFIQ: Cmd String: ")); DPRINTLN(S_Input);
             #endif
             if (!strncmp(S_Input, "ID", 2))
             {
@@ -244,17 +245,21 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             {
                 CAT_RS_Serial.print("K30;");
             }
-            else if (!strncmp(S_Input, "RVM", 3))
+            else if (!strncmp(S_Input, "RVM", 3)&& strlen(S_Input) == 3)
             {
                 CAT_RS_Serial.print("RVM05.67;");
             }
-            else if (!strncmp(S_Input, "BW", 3))
+            else if (!strncmp(S_Input, "BW", 2) && strlen(S_Input) == 2)
             {
                 CAT_RS_Serial.print("BW4000;");
             }
-            else if (!strncmp(S_Input, "LN", 2))
+            else if (!strncmp(S_Input, "LN", 2) && strlen(S_Input) == 2)
             {
                 CAT_RS_Serial.print("LN0;");
+            }
+            else if (!strncmp(S_Input, "PS", 2) && strlen(S_Input) == 2)
+            {
+                CAT_RS_Serial.print("PS1;");   // radio is turned on
             }
             else if (!strncmp(S_Input, "FR", 2) && strlen(S_Input) == 2)
             {
@@ -264,6 +269,27 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             {
                 if (*split == 0) CAT_RS_Serial.print("FT0;");
                 else CAT_RS_Serial.print("FT1;");
+            }
+            else if (!strncmp(S_Input, "FR0", 3)  && strlen(S_Input) == 3) // Split OFF
+            {
+                *split = 0;
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: Split Mode OFF")); 
+                #endif
+            }
+            else if (!strncmp(S_Input, "FT1", 3)  && strlen(S_Input) == 3) // Split ON
+            {
+                *split = 1;
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: Split Mode ON VFOB=TX"));
+                #endif
+            }
+            else if (!strncmp(S_Input, "FT0", 3)  && strlen(S_Input) == 3) // Split ON
+            {
+                *split = 0;
+                #ifdef DBG  
+                DPRINTLN(F("RS-HFIQ: Split Mode ON VFOA=TX"));
+                #endif
             }
             else if (!strncmp(S_Input, "DT", 2) && strlen(S_Input) == 2)
             {
@@ -275,7 +301,23 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
             }
             else if (!strncmp(S_Input, "AI", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("AI2;");
+                CAT_RS_Serial.printf("AI%1d;", _ai);  // return current AI mode
+            }
+            else if (!strncmp(S_Input, "AI0", 3) && strlen(S_Input) == 3)
+            {
+                _ai = 0;
+                //CAT_RS_Serial.print("AI0;");
+            }
+            else if (!strncmp(S_Input, "AI1", 3) && strlen(S_Input) == 3)
+            {
+                _ai = 1;
+                CAT_RS_Serial.printf("IF%011lu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
+            }
+            else if (!strncmp(S_Input, "AI2", 3) && strlen(S_Input) == 3)
+            {
+                _ai = 2;
+                //CAT_RS_Serial.print("AI2;");
+                //CAT_RS_Serial.printf("IF%011lu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
             }
             else if (!strncmp(S_Input, "IF", 2)) // Transceiver Info
             {
@@ -413,29 +455,7 @@ uint32_t SDR_RS_HFIQ::cmd_console(uint8_t * swap_vfo, uint32_t * VFOA, uint32_t 
                 #ifdef DBG  
                 DPRINT(F("RS-HFIQ: Swap VFOs: ")); DPRINTLN(*swap_vfo);
                 #endif
-            }
-            else if (!strncmp(S_Input, "FR0", 3)) // Split OFF
-            {
-                *split = 0;
-                #ifdef DBG  
-                DPRINTLN(F("RS-HFIQ: Split Mode OFF")); 
-                #endif
-            }
-            else if (!strncmp(S_Input, "FT1", 3)) // Split ON
-            {
-                *split = 1;
-                #ifdef DBG  
-                DPRINTLN(F("RS-HFIQ: Split Mode ON"));
-                #endif
-            }
-            else if (!strncmp(S_Input, "FT1", 3)) // Split ON
-            {
-                *split = 0;
-                #ifdef DBG  
-                DPRINTLN(F("RS-HFIQ: Split Mode OFF"));
-                #endif
-            }
-            
+            }           
             else if (!strncmp(S_Input, "F?", 2)) 
             {
                 #ifdef DBG  
