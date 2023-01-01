@@ -566,6 +566,7 @@ COLD void displayXMIT()		{if (popup) return; draw_2_state_Button(XMIT_BTN, &user
 COLD void displayMute()		{if (popup) return; draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		 }
 COLD void displayXVTR()		{if (popup) return; draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			     }
 COLD void displayEnet()		{if (popup) return; draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
+COLD void displayClip()		{if (popup) return;	drawLabel(CLIP_LBL, &labels[CLIP_LBL].enabled); 						 }
 
 //
 //------------------------------------  drawButton ------------------------------------------------------------------------
@@ -707,6 +708,7 @@ COLD void displayRefresh(void)
 	displayFn();   // make fn=1 to call displayFn() to prevent calling itself
     displayFreq();    // display frequency
 	displayTime();
+	displayClip();
 	//displayMeter();
 	// Panel 1 buttons
 	displayMode();

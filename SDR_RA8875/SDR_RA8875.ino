@@ -21,11 +21,11 @@
 // So far I16 method has been working better.  Using USB32 flow results in distorted RX and TX audio.
 
 #ifdef USB32
-#include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version.  
-// It sets AUDIO_SAMPLE_RATE_EXACT to 48KHz.   
-// The standard 16 bit library is set to 44.1KHz
-// Further TeensyDuino usb lib changes are required.  See the readme.txt in the libraries folder for mods required.
-#include "USB_Audio_F32.h"
+    #include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version.  
+    // It sets AUDIO_SAMPLE_RATE_EXACT to 48KHz.   
+    // The standard 16 bit library is set to 44.1KHz
+    // Further TeensyDuino usb lib changes are required.  See the readme.txt in the libraries folder for mods required.
+    #include "USB_Audio_F32.h"
 #endif
 
 #ifdef USE_RS_HFIQ
@@ -464,7 +464,6 @@ AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1
     AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
     //AudioConnection         patchcord_Out_USB_L16U(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
     //AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
-
 #endif
 
 AudioControlSGTL5000    codec1;
@@ -2072,16 +2071,10 @@ void RS_HFIQ_Service(void)
     }
     if (clipping_last != clipping)
     {
-        // ToDo:  Make new icon in label table and call the standard update function in Display.cpp
-        //update_clipping_icon();
         clipping_last = clipping;
         DPRINT(F("Clipping: ")); DPRINTLN(clipping);
-        tft.setFont(Arial_14);
-        tft.fillRect(200,40,46,22, BLACK);
-        tft.setCursor(202,44, false);
-        tft.setTextColor(RED);
-        if (clipping) 
-            tft.print("CLIP");
+        labels[CLIP_LBL].enabled=clipping;
+        displayClip();
     }
     if (CAT_xmit_last != CAT_xmit) // Pass on any change in Xmit state from CAT port
     {

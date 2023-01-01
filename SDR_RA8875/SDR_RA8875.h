@@ -280,7 +280,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define AGC_SET_NUM 4
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
-#define LABEL_NUM   22      // number of labels in the table
+#define LABEL_NUM   24      // number of labels in the table
 #define NUM_CNTL_ACTIVE 25
 #define NUM_AUX_ENCODERS 7
 #define GPIO_ENC    1
@@ -347,7 +347,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define SW4_BTN    38
 #define SW5_BTN    39
 #define SW6_BTN    40
-#define TOGGLE      41
+#define TOGGLE     41
 
 //#define SPOT_BTN          // will display the NR value in the button - Not used today but a function exists.
 
@@ -555,7 +555,7 @@ struct Modes_List {
     uint16_t    Width;             // bandwidth in HZ - look up matching width in Filter table when changing modes
 };
 
-enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL, ZOOM_LBL, PAN_LBL};
+enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATTEN_LBL, PREAMP_LBL, ATU_LBL, RIT_LBL, XIT_LBL, FINE_LBL, NB_LBL, NR_LBL, NOTCH_LBL, SPLIT_LBL, MUTE_LBL, XMIT_LBL, XVTR_LBL, REFLVL_LBL, SPOT_LBL, ZOOM_LBL, PAN_LBL, CLIP_LBL};
 /*
 #define BAND_LBL    0       // Band label (if used)
 #define MODE_LBL    1       // index to button
@@ -580,6 +580,7 @@ enum Label_List {BAND_LBL, MODE_LBL, FILTER_LBL, RATE_LBL, AGC_LBL, ANT_LBL, ATT
 #define SPOT_LBL    20      // not implemented yet
 #define ZOOM_LBL    21      // not implemented yet
 #define PAN_LBL     22      // not implemented yet
+#define CLIP_LBL    23      // Cliping warning fopr the screen, initially from RS-HFIQ.
 */
 
 // This stores type and status info for auxillary encoders (VFO is separate).  

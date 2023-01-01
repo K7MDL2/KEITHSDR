@@ -77,6 +77,7 @@ extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
 #endif
 extern          float               pan;
 extern          void                send_fixed_cmd_to_RSHFIQ(const char * str);
+extern          void               update_icon_outline(void);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);

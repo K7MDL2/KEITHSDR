@@ -294,8 +294,10 @@ struct Label labels[LABEL_NUM] = {
     {OFF, OFF, 467, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
     {OFF, OFF, 583, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "RefLvl\0"},  // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Spot\0"},  // No label on screen for this today
     {OFF, OFF, 583, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 2, 4, "Zoom\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Pan\0"} // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Pan\0"}, // No label on screen for this today
+    {OFF, ON,  200,  40,  46, 22, 3, BLACK,   RED, BLACK,      BLACK, BLACK, 3, 4, "CLIP\0"}
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
