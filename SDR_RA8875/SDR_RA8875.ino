@@ -230,6 +230,7 @@ bool    MF_default_is_active = true;
 //float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
 float sample_rate_Hz = 48000.0f;  //46.875Hz /bin  24K spectrum for 1024.  
 //float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+//float sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 //float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 
 float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft size for zoom level
@@ -537,7 +538,8 @@ COLD void setup()
         #endif // USE_FT5206_TOUCH
     #else 
         DPRINTLN(F("Initializing RA8876 Display"));   
-        tft.begin(30000000UL);
+        //tft.begin(30000000UL);
+        tft.begin(50000000UL);
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
         tft.touchEnable(false);   // Ensure the resitive controller, if any is off
@@ -622,20 +624,7 @@ COLD void setup()
     DPRINTLN(F("Clock Update"));
     #endif
     
-    // Initialize Band Map.  255 means band is inactive.  
-    // Overwrites Panel_Pos default values in std_btn table band rows.
-    struct Standard_Button *ptr = std_btn;
-    (ptr+BS_160M)->Panelpos = ENABLE_160M_BAND;
-    (ptr+BS_80M)-> Panelpos = ENABLE_80M_BAND;
-    (ptr+BS_60M)-> Panelpos = ENABLE_60M_BAND;
-    (ptr+BS_40M)-> Panelpos = ENABLE_40M_BAND;
-    (ptr+BS_30M)-> Panelpos = ENABLE_30M_BAND;
-    (ptr+BS_20M)-> Panelpos = ENABLE_20M_BAND;
-    (ptr+BS_17M)-> Panelpos = ENABLE_17M_BAND;
-    (ptr+BS_15M)-> Panelpos = ENABLE_15M_BAND;
-    (ptr+BS_12M)-> Panelpos = ENABLE_12M_BAND;
-    (ptr+BS_10M)-> Panelpos = ENABLE_10M_BAND;
-    (ptr+BS_6M)->  Panelpos = ENABLE_6M_BAND;
+    init_band_map();
 
     #ifndef BYPASS_SPECTRUM_MODULE
         initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
@@ -765,23 +754,24 @@ HOT void loop()
     static uint32_t time_sp;
     #endif
 
- //JH
-    static uint16_t loopcount=0;
-    static uint32_t jhTime=millis();
-    loopcount++;
-    if(loopcount>10) 
-    {
-        uint32_t jhElapsed=millis()-jhTime;
-        jhTime=millis();
-        loopcount=0; 
-        #ifdef DEBUG
-            tft.fillRect(200,15,46,22, BLACK);
-            tft.setFont(Arial_14);
-            tft.setCursor(202,19, false);
-            tft.setTextColor(WHITE);
-            tft.print(jhElapsed/10); 
-        #endif
-    }
+ 
+    #ifdef DEBUG
+      //JH
+      static uint16_t loopcount=0;
+      static uint32_t jhTime=millis();
+      loopcount++;
+      if(loopcount>10) 
+      {
+          uint32_t jhElapsed=millis()-jhTime;
+          jhTime=millis();
+          loopcount=0;      
+          tft.fillRect(200,15,46,22, BLACK);
+          tft.setFont(Arial_14);
+          tft.setCursor(202,19, false);
+          tft.setTextColor(WHITE);
+          tft.print(jhElapsed/10); 
+      }
+    #endif
 
     #ifndef BYPASS_SPECTRUM_MODULE
         // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
@@ -2290,3 +2280,21 @@ void Check_Encoders(void)
     #endif
 }
 #endif 
+
+void init_band_map(void)
+{
+    // Initialize Band Map.  255 means band is inactive.  
+    // Overwrites Panel_Pos default values in std_btn table band rows.
+    struct Standard_Button *ptr = std_btn;
+    (ptr+BS_160M)->Panelpos = ENABLE_160M_BAND;
+    (ptr+BS_80M)-> Panelpos = ENABLE_80M_BAND;
+    (ptr+BS_60M)-> Panelpos = ENABLE_60M_BAND;
+    (ptr+BS_40M)-> Panelpos = ENABLE_40M_BAND;
+    (ptr+BS_30M)-> Panelpos = ENABLE_30M_BAND;
+    (ptr+BS_20M)-> Panelpos = ENABLE_20M_BAND;
+    (ptr+BS_17M)-> Panelpos = ENABLE_17M_BAND;
+    (ptr+BS_15M)-> Panelpos = ENABLE_15M_BAND;
+    (ptr+BS_12M)-> Panelpos = ENABLE_12M_BAND;
+    (ptr+BS_10M)-> Panelpos = ENABLE_10M_BAND;
+    (ptr+BS_6M)->  Panelpos = ENABLE_6M_BAND;
+}

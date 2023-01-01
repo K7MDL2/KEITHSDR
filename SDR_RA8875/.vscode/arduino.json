@@ -1,3 +1,7 @@
 {
-    "port1": "COM15"
+    "sketch": "SDR_RA8875.ino",
+    "configuration": "usb=serialserialaudio,speed=816,opt=o2std,keys=en-us",
+    "board": "teensy:avr:teensy41",
+    "output": "..\\build",
+    "port": "COM27"
 }

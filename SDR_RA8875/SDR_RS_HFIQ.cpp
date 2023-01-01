@@ -60,8 +60,8 @@
 #endif
 
 // Serial port for external CAT control
-#define CAT_RS_Serial SerialUSB1
-//#define CAT_RS_Serial Serial
+#define CAT_RS_Serial SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
+//#define CAT_RS_Serial Serial   // if you only have 1 serialport and want CAT, turn off DEBUG and use this.
 
 // Teensy USB Host port
 #define USBBAUD 57600   // RS-HFIQ uses 57600 baud
@@ -130,7 +130,7 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint32_t VFO)  // 0 non block, 1 b
     CAT_RS_Serial.begin(38400);
     delay(100);
     DPRINTLN("\nStart of RS-HFIQ Setup"); 
-    SerialUSB1.println("\nStart of RS-HFIQ Setup"); 
+    //SerialUSB1.println("\nStart of RS-HFIQ Setup"); 
     rs_freq = VFO;
     blocking = _blocking;
 
