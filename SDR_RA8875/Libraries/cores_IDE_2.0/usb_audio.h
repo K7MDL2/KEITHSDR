@@ -35,10 +35,7 @@
 
 #define FEATURE_MAX_VOLUME 0xFF  // volume accepted from 0 to 0xFF
 
-// Choose feedback method, original if neither is defined
-#define USB_AUDIO_FEEDBACK_SOF
-//#define USB_AUDIO_FEEDBACK_DL1YCF
-
+//#define USB_AUDIO_48KHZ
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,7 +74,6 @@ public:
 	virtual void update(void);
 	void begin(void);
 	friend void usb_audio_receive_callback(unsigned int len);
-	friend void usb_audio_configure(void);
 	friend int usb_audio_set_feature(void *stp, uint8_t *buf);
 	friend int usb_audio_get_feature(void *stp, uint8_t *data, uint32_t *datalen);
 	static struct usb_audio_features_struct features;
@@ -85,19 +81,14 @@ public:
 		if (features.mute) return 0.0;
 		return (float)(features.volume) * (1.0 / (float)FEATURE_MAX_VOLUME);
 	}
-
 private:
-
 	static bool update_responsibility;
-
-#if !defined(USB_AUDIO_FEEDBACK_SOF)
 	static audio_block_t *incoming_left;
 	static audio_block_t *incoming_right;
 	static audio_block_t *ready_left;
 	static audio_block_t *ready_right;
 	static uint16_t incoming_count;
 	static uint8_t receive_flag;
-#endif 
 };
 
 class AudioOutputUSB : public AudioStream
@@ -109,14 +100,11 @@ public:
 	friend unsigned int usb_audio_transmit_callback(void);
 private:
 	static bool update_responsibility;
-
-#if !defined(USB_AUDIO_FEEDBACK_SOF)	
 	static audio_block_t *left_1st;
 	static audio_block_t *left_2nd;
 	static audio_block_t *right_1st;
 	static audio_block_t *right_2nd;
 	static uint16_t offset_1st;
-#endif
 	audio_block_t *inputQueueArray[2];
 };
 #endif // __cplusplus

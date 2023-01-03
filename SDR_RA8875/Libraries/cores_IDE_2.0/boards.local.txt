@@ -1,0 +1,7 @@
+# Solution for Arduino IDE 2.0 recognizing changes to this file:
+# https://github.com/arduino/arduino-ide/issues/1030#issuecomment-1152005617
+# Add to Tools Menu in Ardiuno IDE for 2Serial+1 Audio.  Requires matching usb file changes
+
+teensy41.menu.usb.serialserialaudio=Serial + Serial + Audio
+teensy41.menu.usb.serialserialaudio.build.usbtype=USB_SERIAL_SERIAL_AUDIO
+teensy41.menu.usb.serialserialaudio.upload_port.usbtype=USB_SERIAL_SERIAL_AUDIO

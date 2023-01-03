@@ -1,0 +1,12 @@
+// add these lines to the top of your AudioStream.h file.
+
+
+//#define USB_AUDIO_48KHZ 1   // This line is likely set elsewhere but included here just in case needed.
+
+#ifdef USB_AUDIO_48KHZ
+		#define AUDIO_SAMPLE_RATE_EXACT 48000.0f
+#else
+		#define AUDIO_SAMPLE_RATE_EXACT 44100.0f
+#endif
+
+#define AUDIO_SAMPLE_RATE AUDIO_SAMPLE_RATE_EXACT
