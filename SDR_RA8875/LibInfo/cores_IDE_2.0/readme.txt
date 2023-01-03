@@ -161,10 +161,11 @@ In my reading files placed in a library folder under the sketch folder should be
  	Sometimes this is needed to get your low level edits to register correctly due to the device caching.  Or try changing the USB PRoduct ID (see later steps). May also need to reboot.
 
 14. Adding a Custom USB type for the Teensy to enable 2 Serial ports plus Audio to the Arduino 2.0 IDE.  This enables debug on Serial and the optional CAT interface on USBSerial1.
-	a. add this section into usb_desc.h after the USB_AUDIO section.
+	a. add this section into usb_desc.h after the USB_AUDIO section.  
+	The Product ID must be unique from the other entries in this file or the IDE menu will use the name of the matching ID and likely be wrong.
 		#elif defined(USB_SERIAL_SERIAL_AUDIO)
 			#define VENDOR_ID		0x16C0
-			#define PRODUCT_ID		0x048C
+			#define PRODUCT_ID		0x0484   // usually make this unique.  See project wiki notes though
 			#define MANUFACTURER_NAME	{'T','e','e','n','s','y','d','u','i','n','o'}
 			#define MANUFACTURER_NAME_LEN	11
 			#define PRODUCT_NAME		{'K','7','M','D','L',' ','S','D','R'}

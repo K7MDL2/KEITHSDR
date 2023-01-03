@@ -8,6 +8,12 @@
 //
 // _______________________________________ Setup_____________________________________________
 //
+// Placement of these 2 files here is critical to a successful complile beginning with TeensyDuinot 0.58.3, else get undefined AudioConnection reference errors.
+#include "Arduino.h"
+#include "Audio.h" // Teensy I16 Audio Library
+//#include "AudioStream_F32.h"
+#include "OpenAudio_ArduinoLibrary.h" // F32 library
+
 // Pickup build time options from RadioConfig.h
 #include "RadioConfig.h"        // Majority of declarations here to drive the #ifdefs that follow
 #include "SDR_RA8875.h"
@@ -21,20 +27,20 @@
 // So far I16 method has been working better.  Using USB32 flow results in distorted RX and TX audio.
 
 #ifdef USB32
-    #include "AudioStream_F32.h"   // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version.  
-    // It sets AUDIO_SAMPLE_RATE_EXACT to 48KHz.   
-    // The standard 16 bit library is set to 44.1KHz
-    // Further TeensyDuino usb lib changes are required.  See the readme.txt in the libraries folder for mods required.
-    #include "USB_Audio_F32.h"
+  #include "AudioStream_F32.h" // This is included by USB_Audio_F32.h but is placed here as a reminder to use the 48Khz modified version.
+  // It sets AUDIO_SAMPLE_RATE_EXACT to 48KHz.
+  // The standard 16 bit library is set to 44.1KHz
+  // Further TeensyDuino usb lib changes are required.  See the readme.txt in the libraries folder for mods required.
+  #include "USB_Audio_F32.h"
 #endif
 
 #ifdef USE_RS_HFIQ
-    // init the RS-HFIQ library
-    SDR_RS_HFIQ RS_HFIQ;
+// init the RS-HFIQ library
+SDR_RS_HFIQ RS_HFIQ;
 #endif
 
 #ifdef USE_FFT_LO_MIXER
-    #include "hilbert251A.h"        // filter coefficients
+#    include "hilbert251A.h" // filter coefficients
 #endif
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
@@ -137,7 +143,8 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
 HOT  void Check_Encoders(void);
-extern void update_icon_outline(void);
+COLD void init_band_map(void);
+//extern void update_icon_outline(void);
 
 #ifdef USE_RS_HFIQ
   HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
@@ -359,10 +366,10 @@ DMAMEM AudioFilter90Deg_F32 TX_FFT_90deg_Hilbert(audio_settings);
 AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
 
 #ifdef USB32
-AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                            TX_Source,1);
+  AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                            TX_Source,1);
 #else
-AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
-AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,1);
+  AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
+  AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,1);
 #endif
 
 AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,2);   // Combine mic, tone B and B into L channel
@@ -477,6 +484,7 @@ time_t prevDisplay = 0; // When the digital clock was displayed
 
 COLD void setup()
 {
+    if (CrashReport)Serial.print(CrashReport);
     if (PTT_INPUT != 255)
         pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
     if (PTT_OUT1 != 255)

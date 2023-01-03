@@ -19,10 +19,10 @@
 
 // External libraries - These are not all of them as some appear with #ifdef blocks based on feature selection - See Github Wiki "Libraries" page for a full listing.
 #define  ENCODER_OPTIMIZE_INTERRUPTS    // leave this one here.  Not normally user changed
-#include <Encoder.h>                    // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
-#include <Metro.h>                      // GitHub https://github.com/nusolar/Metro
-#include <OpenAudio_ArduinoLibrary.h>   // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-#include <InternalTemperature.h>        // V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
+#include "Encoder.h"                    // Internal Teensy library and at C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries
+#include "Metro.h"                      // GitHub https://github.com/nusolar/Metro
+#include "OpenAudio_ArduinoLibrary.h"   // F32 library located on GitHub. https://github.com/chipaudette/OpenAudio_ArduinoLibrary
+#include "InternalTemperature.h"        // V2.1.0 @ Github https://github.com/LAtimes2/InternalTemperature
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 

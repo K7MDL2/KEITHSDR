@@ -777,11 +777,11 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
   #define ENDPOINT4_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_ISOCHRONOUS
 
 #elif defined(USB_SERIAL_SERIAL_AUDIO)
-  #define VENDOR_ID		0x16C0
-  #define PRODUCT_ID		0x048C
-  #define MANUFACTURER_NAME	{'T','e','e','n','s','y','d','u','i','n','o'}
+  #define VENDOR_ID		          0x16C0
+  #define PRODUCT_ID		        0x0484
+  #define MANUFACTURER_NAME	    {'T','e','e','n','s','y','d','u','i','n','o'}
   #define MANUFACTURER_NAME_LEN	11
-  #define PRODUCT_NAME		{'K','7','M','D','L',' ','S','D','R'}
+  #define PRODUCT_NAME          {'K','7','M','D','L',' ','S','D','R'}
   #define PRODUCT_NAME_LEN	    9
   #define EP0_SIZE		          64
   #define NUM_ENDPOINTS         7   // 5 for 2 serial, + 2 for audio
@@ -802,7 +802,7 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
   #define CDC2_ACM_ENDPOINT     4
   #define CDC2_RX_ENDPOINT      5
   #define CDC2_TX_ENDPOINT      5
-  #define AUDIO_INTERFACE	4	// Audio (uses 3 consecutive interfaces)
+  #define AUDIO_INTERFACE	      4	// Audio (uses 3 consecutive interfaces)
   #define AUDIO_TX_ENDPOINT     6
   #define AUDIO_RX_ENDPOINT     6
   #ifdef USB_AUDIO_48KHZ
@@ -812,7 +812,7 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
     #define AUDIO_TX_SIZE         180
     #define AUDIO_RX_SIZE         180
   #endif
-  #define AUDIO_SYNC_ENDPOINT	7
+  #define AUDIO_SYNC_ENDPOINT	  7
   #define ENDPOINT2_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
   #define ENDPOINT3_CONFIG	ENDPOINT_RECEIVE_BULK + ENDPOINT_TRANSMIT_BULK
   #define ENDPOINT4_CONFIG	ENDPOINT_RECEIVE_UNUSED + ENDPOINT_TRANSMIT_INTERRUPT
@@ -822,7 +822,7 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
 
 #elif defined(USB_MIDI_AUDIO_SERIAL)   // modified temporarily to replace MIDI with Serial due to IDE/CLI caching bug not recognizing new option
   #define VENDOR_ID		0x16C0
-  #define PRODUCT_ID		0x048C    // changing this forces new USB setup ensuring latest changes picked up.
+  #define PRODUCT_ID		0x048A    // changing this forces new USB setup ensuring latest changes picked up.
   #define MANUFACTURER_NAME	{'T','e','e','n','s','y','d','u','i','n','o'}
   #define MANUFACTURER_NAME_LEN	11
   #define PRODUCT_NAME		{'K','7','M','D','L',' ','S','D','R'}
