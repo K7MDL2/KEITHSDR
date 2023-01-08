@@ -2,6 +2,11 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Jan 2023
+
+    1. Added support for 6 GPIO switches. Expanded the encoder_list table to 12 entries. Table supports I2C and GPIO encoders and switches in any mix.
+    2. Published updated BOM and PCB files for V2.1 7" Teensy Motherboard after building the first one.  See hardware folder.
+
 ## Dec 2022
 
     1. Dec 2:  Removed the T from the serial help menu.  Code accidentally deleted likely during RS-HFIQ integration.
