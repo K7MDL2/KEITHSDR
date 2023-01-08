@@ -94,9 +94,9 @@
     #ifdef USE_RA8875
         #define  SCREEN_WIDTH       800 
         #define  SCREEN_HEIGHT      480
-        #if defined(SMALL_PCB_V1)
+        #if defined SMALL_PCB_V1
             #define  RA8875_INT        28   //for John's small V1 motherboard
-        #elif defined(V1_4_3_PCB) || defined (V2_4_3_PCB)
+        #elif defined V1_4_3_PCB || defined V2_4_3_PCB || defined V21_7_PCB
             #define  RA8875_INT        27   //27 for John's larger 4.3" motherboard
         #else
             #define  RA8875_INT        14   //14 for K7MDL old prototype board
@@ -116,9 +116,9 @@
         #include <ili9488_t3_font_Arial.h>      // https://github.com/PaulStoffregen/ILI9341_t3
         #include <ili9488_t3_font_ArialBold.h>  // https://github.com/PaulStoffregen/ILI9341_t3
         #include <FT5206.h>
-        #if defined(SMALL_PCB_V1)
+        #if defined SMALL_PCB_V1
             #define  CTP_INT        28  //for John's small V1 motherboard
-        #elif defined(V1_4_3_PCB) || defined (V2_4_3_PCB)
+        #elif definedV1_4_3_PCB || defined V2_4_3_PCB || defined V21_7_PCB
             #define  CTP_INT        27  // for John's larger 4.3" motherboard
         #else
             #define  CTP_INT        14  //14 for K7MDL old prototype board
@@ -282,7 +282,7 @@ const uint16_t myVERY_DARK_BLUE     = 0x01B0;
 #define USER_SETTINGS_NUM 3
 #define LABEL_NUM   24      // number of labels in the table
 #define NUM_CNTL_ACTIVE 25
-#define NUM_AUX_ENCODERS 7
+#define NUM_AUX_ENCODERS 12
 #define GPIO_ENC    1
 #define I2C_ENC     2
 #define GPIO_SW     3

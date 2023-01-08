@@ -321,14 +321,19 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 // The 1st row is dedicated to the main VFO and is mostly a dummy row.  The rest of the rows are for the aux encoders and their associated switches
 // The last 4 fields are the encoder shaft primary, alternate controls, and the tap and press control assignments
 struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
-//type          id    enabled            def_MF   enca         a_active    encb            enc1_tap        enc1_press
-    {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,           NONE},      // enc slot 1 of 6
-    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  MFTUNE,  MFTUNE,      ON,         RATE_BTN,       SW1_BTN,        FINE_BTN},      // enc slot 1 of 6
-    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,        FINE_BTN},    // enc slot 2
-    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    ZOOM_BTN,    ON,         PAN_BTN,        SW3_BTN,        RIT_BTN},      // enc slot 3
-    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW4_BTN,        BAND_BTN},      // enc slot 4
-    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW5_BTN,        RIT_BTN},       // enc slot 5
-    {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,     BANDDN_BTN}     // enc slot 6
+//type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
+    {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,            NONE},      // enc slot 1 of 6
+    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  MFTUNE,  MFTUNE,      ON,         RATE_BTN,       SW1_BTN,         FINE_BTN},      // enc slot 1 of 6
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         ANT_BTN},    // enc slot 2
+    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    ZOOM_BTN,    ON,         PAN_BTN,        SW3_BTN,         ATTEN_BTN},      // enc slot 3
+    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW4_BTN,         BAND_BTN},      // enc slot 4
+    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW5_BTN,         RIT_BTN},       // enc slot 5
+    {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      RIT_BTN},     // enc slot 6
+    {GPIO_SW,   7,    GPIO_SW2_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDDN_BTN,      XIT_BTN},     // enc slot 7
+    {GPIO_SW,   8,    GPIO_SW3_ENABLE,   NONE,    NONE,        ON,         NONE,           RATE_BTN,        FINE_BTN},     // enc slot 8
+    {GPIO_SW,   9,    GPIO_SW4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},     // enc slot 9
+    {GPIO_SW,   10,   GPIO_SW5_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},     // enc slot 10
+    {GPIO_SW,   11,   GPIO_SW6_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE}     // enc slot 11
 };
 
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {

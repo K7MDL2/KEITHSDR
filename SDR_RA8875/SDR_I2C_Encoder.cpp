@@ -45,7 +45,6 @@
 		MidiUSB.sendMIDI(note);
 		MidiUSB.flush();
 	}
-
 #endif
 
 #ifdef I2C_ENCODERS
@@ -64,12 +63,18 @@ extern struct EncoderList encoder_list[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
 
-Metro press_timer1 = Metro(500);
-Metro press_timer2 = Metro(500);
-Metro press_timer3 = Metro(500);
-Metro press_timer4 = Metro(500);
-Metro press_timer5 = Metro(500);
-Metro press_timer6 = Metro(500);
+// One timer for each encoder list row (NUM_AUX_ENCODERS).  can be used for GPIO or I2C encoders switches.
+Metro press_timer1  = Metro(500);
+Metro press_timer2  = Metro(500);
+Metro press_timer3  = Metro(500);
+Metro press_timer4  = Metro(500);
+Metro press_timer5  = Metro(500);
+Metro press_timer6  = Metro(500);
+Metro press_timer7  = Metro(500);
+Metro press_timer8  = Metro(500);
+Metro press_timer9  = Metro(500);
+Metro press_timer10 = Metro(500);
+Metro press_timer11 = Metro(500);
 
 static int32_t gpio_enc_count = 0;
 
@@ -300,40 +305,44 @@ void knob_tap(uint8_t slot)
 //Callback when the i2c encoder is pushed
 COLD void i2c_switch_click(i2cEncoderLibV2* obj) 
 {  
+	DPRINTF("I2C Click Event "); DPRINTLN(obj->id);
 	switch_click(obj, obj->id);
 }
 
 COLD void gpio_switch_click(uint8_t _id) 
 {  
-	//GPIO_ENC2.id=_id;
-	DPRINT(F("GPIO Click Event ")); DPRINTLN(_id);
-	//generic_encoder_click(&GPIO_ENC2, _id);
+	DPRINTF("GPIO Click Event "); DPRINTLN(_id);
 	switch_click(NULL, _id);
 }
 
 // works with both GPIO and I2C
 COLD void switch_click(i2cEncoderLibV2* obj, uint8_t _id) 
 {   
-	DPRINT(F("Click Event ")); DPRINTLN(_id);
+	DPRINTF("Click Event "); DPRINTLN(_id);
 
-    for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)
+    for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)   // one timer for each row in encoder_list structure.
 	{	
 		
 		if ((_id == encoder_list[slot].id) && encoder_list[slot].enabled)
 		{
 			uint8_t _press = 0; 
 
-			DPRINT(F("Slot ")); DPRINTLN(slot);
+			DPRINTF("Slot "); DPRINTLN(slot);
 			switch (slot)
 			{
-				case 0: break;  // VFO, ignore it
-				case 1: if (press_timer1.check() == 1) _press = 1; break;
-				case 2: if (press_timer2.check() == 1) _press = 1; break;
-				case 3: if (press_timer3.check() == 1) _press = 1; break;
-				case 4: if (press_timer4.check() == 1) _press = 1; break;
-				case 5: if (press_timer5.check() == 1) _press = 1; break;
-				case 6: if (press_timer6.check() == 1) _press = 1; break;
-				default: break;
+				case 0: 	break;  // VFO, ignore it
+				case 1: 	if (press_timer1.check() == 1) 	_press = 1; break;
+				case 2: 	if (press_timer2.check() == 1) 	_press = 1; break;
+				case 3: 	if (press_timer3.check() == 1) 	_press = 1; break;
+				case 4: 	if (press_timer4.check() == 1) 	_press = 1; break;
+				case 5: 	if (press_timer5.check() == 1) 	_press = 1; break;
+				case 6: 	if (press_timer6.check() == 1) 	_press = 1; break;
+				case 7: 	if (press_timer7.check() == 1) 	_press = 1; break;
+				case 8: 	if (press_timer8.check() == 1) 	_press = 1; break;
+				case 9: 	if (press_timer9.check() == 1) 	_press = 1; break;
+				case 10: 	if (press_timer10.check() == 1) _press = 1; break;
+				case 11: 	if (press_timer11.check() == 1) _press = 1; break;
+				default: 	DPRINTLNF("No timer found"); break;
 			}
 				
 			if (_press)	
@@ -367,22 +376,27 @@ COLD void gpio_switch_timer_start(uint8_t _id)
 // works with both GPIO and I2C
 COLD void switch_timer_start(uint8_t _id) 
 {
-	DPRINT(F("Start Push Switch Timer ")); DPRINTLN(_id);
+	//DPRINT(F("Start Push Switch Timer ")); DPRINTLN(_id);
 	
-	for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)
+	for (uint8_t slot = 1; slot < NUM_AUX_ENCODERS; slot++)  // one timer for each row in encoder_list structure.
 	{
 		if ((_id == encoder_list[slot].id) && encoder_list[slot].enabled)
 		{
 			switch (slot)
 			{
-				case 0: break;  // VFO, ignore it
-				case 1: press_timer1.reset(); DPRINTLN(F("Start Timer 1")); break;
-				case 2: press_timer2.reset(); DPRINTLN(F("Start Timer 2")); break;
-				case 3: press_timer3.reset(); DPRINTLN(F("Start Timer 3")); break;
-				case 4: press_timer4.reset(); DPRINTLN(F("Start Timer 4")); break;
-				case 5: press_timer5.reset(); DPRINTLN(F("Start Timer 5")); break;
-				case 6: press_timer6.reset(); DPRINTLN(F("Start Timer 6")); break;
-				default: break;
+				case 0:  break;  // VFO, ignore it
+				case 1:  press_timer1.reset();  DPRINTLN(F("Start Push Switch Timer 1")); break;
+				case 2:  press_timer2.reset();  DPRINTLN(F("Start Push Switch Timer 2")); break;
+				case 3:  press_timer3.reset();  DPRINTLN(F("Start Push Switch Timer 3")); break;
+				case 4:  press_timer4.reset();  DPRINTLN(F("Start Push Switch Timer 4")); break;
+				case 5:  press_timer5.reset();  DPRINTLN(F("Start Push Switch Timer 5")); break;
+				case 6:  press_timer6.reset();  DPRINTLN(F("Start Push Switch Timer 6")); break;
+				case 7:  press_timer7.reset();  DPRINTLN(F("Start Push Switch Timer 7")); break;
+				case 8:  press_timer8.reset();  DPRINTLN(F("Start Push Switch Timer 8")); break;
+				case 9:  press_timer9.reset();  DPRINTLN(F("Start Push Switch Timer 9")); break;
+				case 10: press_timer10.reset(); DPRINTLN(F("Start Push Switch Timer 10")); break;
+				case 11: press_timer11.reset(); DPRINTLN(F("Start Push Switch Timer 11")); break;
+				default: DPRINTLNF("No timer found");
 			}
 		}
 	}
@@ -646,7 +660,7 @@ COLD void set_I2CEncoders()
 	#endif
 
 	// Create fake i2c objects to help gpio to work with teh i2c lib functions.  All we need is the .ID value.
-	#ifdef GPIO_ENC2_ENABLE
+	#if (GPIO_ENC2_ENABLE > 0)
 
 		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
@@ -666,7 +680,7 @@ COLD void set_I2CEncoders()
 		}
 	#endif
 
-	#ifdef GPIO_ENC3_ENABLE
+	#if (GPIO_ENC3_ENABLE > 0)
 
 		for (slot = 1; slot < NUM_AUX_ENCODERS; slot++)
 		{
