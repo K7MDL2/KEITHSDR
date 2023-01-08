@@ -490,14 +490,14 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             //DPRINTLN(F("Drag RIGHT")); 
             switch (MF_client) {
                 case NB_BTN:        x /= SCREEN_WIDTH/NB_SET_NUM/2;  break; // scale for 7 steps
-                case ATTEN_BTN: 
-                case AFGAIN_BTN:
-                case REFLVL_BTN:
-                case RFGAIN_BTN:    x /=  delta;            break;  // normal direction                       
+                //case ATTEN_BTN: 
+                //case AFGAIN_BTN:
+                //case REFLVL_BTN:
+                //case RIT_BTN:
+                //case RFGAIN_BTN:    x /=  delta;            break;  // normal direction                       
                 case PAN_BTN:       x /= -delta;            break;  // Invert the direction
                 case MFTUNE:        x /= -delta*zoom;       break;  // scale for zoom
-                
-                default: break; 
+                default:            x /=  delta;            break;  // normal direction                       
             }
             MF_Service(x, MF_client);
         }
@@ -704,12 +704,14 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 switch (i)
                 {
                     case NB_BTN:        setNB(1);       break; //Increment the mode from current value           
-                    case AGC_BTN:       AGC(0);          break;   
+                    case AGC_BTN:       AGC(0);         break;   
                     case ATTEN_BTN:     setAtten(1);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
+                    case RIT_BTN:       setRIT(3);      break;
+                    case XIT_BTN:       setXIT(3);      break;
                     //case AFGAIN_BTN:    setAFgain(1);   break;
-                    case RFGAIN_BTN:    setRFgain(3);   break;  // same as 2 but toggle PAN ON state
+                    case RFGAIN_BTN:    setRFgain(3);   break;  // 
                     default:DPRINT(F("Found a LONG PRESS button with SHOW ON but has no function to call.  Index = "));
                       DPRINTLN(i); break;
                 }
@@ -734,7 +736,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         //DPRINTLN((ptr+i)->label);
         if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
         {
-            if ((pLabel+i)->show)  // if the show property ius active, call the button function to act on it.
+            if ((pLabel+i)->show)  // if the show property is active, call the button function to act on it.
             {   
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 // used the index to the table to match up a function to call
@@ -792,8 +794,8 @@ void Button_Action(uint16_t button_name)
             case VFO_AB_BTN:    VFO_AB();       break; // VFO A and B Switching button - Can touch the A/B button or the Frequency Label itself to toggle VFOs
             case ATTEN_BTN:     setAtten(2);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
             case PREAMP_BTN:    Preamp(2);      break; // 2 = toggle state, 1 is set, 1 is off, -1 use current
-            case RIT_BTN:       RIT();          break;
-            case XIT_BTN:       XIT();          break;
+            case RIT_BTN:       setRIT(2);      break;
+            case XIT_BTN:       setXIT(2);      break;
             case SPLIT_BTN:     Split(2);       break;
             case XVTR_BTN:      Xvtr();         break;
             case ATU_BTN:       ATU(2);         break;
@@ -816,12 +818,12 @@ void Button_Action(uint16_t button_name)
             case ZOOM_BTN:      setZoom(2);     break;
             case UTCTIME_BTN:   break;        //nothing to do
             case SMETER_BTN:    setAFgain(2);    break; // TODO toggle through RF and AF
-            case SW1_BTN:      setEncoderMode(SW1_BTN); break;
-            case SW2_BTN:      setEncoderMode(SW2_BTN); break;
-            case SW3_BTN:      setEncoderMode(SW3_BTN); break;
-            case SW4_BTN:      setEncoderMode(SW4_BTN); break;
-            case SW5_BTN:      setEncoderMode(SW5_BTN); break;
-            case SW6_BTN:      setEncoderMode(SW6_BTN); break;
+            case SW1_BTN:       setEncoderMode(SW1_BTN); break;
+            case SW2_BTN:       setEncoderMode(SW2_BTN); break;
+            case SW3_BTN:       setEncoderMode(SW3_BTN); break;
+            case SW4_BTN:       setEncoderMode(SW4_BTN); break;
+            case SW5_BTN:       setEncoderMode(SW5_BTN); break;
+            case SW6_BTN:       setEncoderMode(SW6_BTN); break;
             
             default: 
                     if (button_name != SPECTUNE_BTN) 

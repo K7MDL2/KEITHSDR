@@ -140,7 +140,11 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
-#define VFO_MULT      4     // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+#define VFO_MULT          4 // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+
+#define RIT_STEP_DEFAULT  1 // step size index from the tstep table.  normally index = 1 -> 10Hz.  
+
+#define XIT_STEP_DEFAULT  1 // step size index from the tstep table.  normally index = 1 -> 10Hz.  
 
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  

@@ -42,6 +42,8 @@ extern uint8_t 	MF_client;  // Flag for current owner of MF knob services
 extern int32_t 	ModeOffset;
 extern uint8_t  popup;
 extern Metro    popup_timer; // used to check for popup screen request
+extern int16_t	rit;  // global rit value in Hz
+extern int16_t 	xit;  // global rit value in Hz
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -339,6 +341,17 @@ COLD void displayRIT()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
+	char string[15];   // print format stuff
+	//sprintf(std_btn[RIT_BTN].label, "%s%3d", "RIT:", bandmem[curr_band].RIT);
+	//DPRINTF("RIT Offset is "); DPRINTLN(bandmem[curr_band].RIT);
+	if (MF_client == RIT_BTN) 
+	{ 
+		MeterInUse = true;
+		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out texst artifacts
+		sprintf(string, "RIT:%+05d", rit);
+		ringMeter(rit, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
+		DPRINTLN(string);
+	}
 	//DPRINT(F("RIT is ")); DPRINTLN(bandmem[curr_band].RIT_en);
 	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
@@ -348,6 +361,16 @@ COLD void displayXIT()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
+	char string[80];   // print format stuff
+	//sprintf(std_btn[XIT_BTN].label, "%s%3d", "XIT:", bandmem[curr_band].XIT);
+	//DPRINTF("XIT Offset is "); DPRINTLN(bandmem[curr_band].XIT);
+	if (MF_client == XIT_BTN) 
+	{ 
+        MeterInUse = true;
+		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out texst artifacts
+		sprintf(string, "XIT:%+05d", xit);
+		ringMeter(xit, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
+	}
 	//DPRINT(F("XIT is ")); DPRINTLN(bandmem[curr_band].XIT_en);
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
@@ -468,17 +491,18 @@ COLD void displayMeter(int val, const char *string, uint16_t colorscheme)
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
+	draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);  // clear out text remnants if any
 	#ifdef USE_RA8875
 	   	ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	#else
 		ringMeter(val, 0, 10, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, colorscheme, 1, 90, 8);
 	#endif
-	static uint8_t startup_flag = 0;
-	if (startup_flag == 0)
-	{
-		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);
-		startup_flag = 1;  // only draw this box on startup then write smeter direct. The button fills the inside each update so cannot use it.
-	}
+	//static uint8_t startup_flag = 0;
+	//if (startup_flag == 0)
+	//{
+	//	draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);
+	//	startup_flag = 1;  // only draw this box on startup then write smeter direct. The button fills the inside each update so cannot use it.
+	//}
 }
 
 // state == 1 to draw in the window, draw and enable the buttons.

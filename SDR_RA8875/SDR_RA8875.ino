@@ -165,9 +165,10 @@ COLD void init_band_map(void);
 //----------------------------------------------------------------------------------------------------------------------------
 //
 // These should be saved in EEPROM periodically along with several other parameters
-uint8_t     curr_band   = BAND80M;    // global tracks our current band setting.  
+uint8_t     curr_band   = BAND80M;  // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
+uint32_t    shadow_VFO  = 0;        // tracks the base freq uncorrected by RIT/XIT
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 
@@ -186,6 +187,8 @@ uint8_t     PTT_Input_debounce      = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;              // For RF AGC Limiter
 bool        TwoToneTest             = OFF; // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 float       pan                     = 0.0f;
+int16_t     rit                     = 0;    // global RIT offset value in Hz.
+int16_t     xit                     = 0;    // global XIT offset value in Hz.
 uint8_t     clipping                = 0;    // track state of clipping (primarily RS-HFIQ but could be applied to any RF hardware that has such indications)
 
 #ifdef USE_RA8875
@@ -662,7 +665,7 @@ COLD void setup()
 
 /*  // Read SD Card data
     // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
-    // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD:
+    // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD   ***IF*** they are not used for somethng else:
     //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
     //SPI.setSCK(14);  // Audio shield has SCK on pin 14
     // see if the card is present and can be initialized:
@@ -688,6 +691,7 @@ COLD void setup()
     #else
         VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
         VFOB = user_settings[user_Profile].sub_VFO;
+        shadow_VFO = VFOA;  // begin tracking the uncorrected VFO freq
     #endif
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
@@ -1198,6 +1202,8 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
         case ZOOM_BTN:      setZoom(-1);        break;
         case ATTEN_BTN:     setAtten(-1);       break;
         case NB_BTN:        setNB(-1);          break;
+        case RIT_BTN:       setRIT(-1);         break;
+        case XIT_BTN:       setXIT(-1);         break;    
         case MFTUNE:
         default     :                           break;  // No button for VFO tune, atten button stays on
                                                         //MF_client = user_settings[user_Profile].default_MF_client;
@@ -1267,15 +1273,21 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         case BANDDN_BTN:    BandUp();               break;
         case BANDUP_BTN:    BandDn();               break;
         case BAND_BTN:      if (counts > 0) BandUp();
-                            if (counts < 0) BandDn(); 
-                                                    break;
-        case MFTUNE :
-        default     : {   
-            old_ts = bandmem[curr_band].tune_step;   // Use MFTune as coarse Tune
-            bandmem[curr_band].tune_step = old_ts+1;
-            selectFrequency(counts);
-            bandmem[curr_band].tune_step = old_ts;
-        } break;        
+                            if (counts < 0) BandDn(); break;
+        case RIT_BTN:       if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            RIT(counts);   break;
+        case XIT_BTN:       if (counts > 0) counts =  1;
+                            if (counts < 0) counts = -1;
+                            XIT(counts);   break;
+        case MFTUNE :       old_ts = bandmem[curr_band].tune_step;   // Use MFTune as coarse Tune
+                            #if !defined GPIO_ENCODERS && !defined I2C_ENCODERS   // skip when the touchscreen is the only tuning device
+                                bandmem[curr_band].tune_step = old_ts+1;
+                            #endif
+                            selectFrequency(counts);
+                            bandmem[curr_band].tune_step = old_ts;
+                            break;     
+        default:            break;   
     };
 }
 //

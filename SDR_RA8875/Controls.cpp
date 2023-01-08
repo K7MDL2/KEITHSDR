@@ -27,6 +27,7 @@ extern          uint8_t             display_state;   // something to hold the bu
 extern          uint8_t             curr_band;   // global tracks our current band setting.  
 extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern          uint32_t            VFOB;
+extern          uint32_t            shadow_VFO;
 extern struct   Modes_List          modeList[];
 extern struct   Band_Memory         bandmem[];
 extern struct   User_Settings       user_settings[];
@@ -38,6 +39,7 @@ extern struct   NB                  nb[];
 extern struct   Spectrum_Parms      Sp_Parms_Def[];
 extern struct   Zoom_Lvl            zoom[];
 extern struct   EncoderList         encoder_list[];
+extern struct   TuneSteps           tstep[];
 extern          uint8_t             user_Profile;
 extern          Metro               popup_timer; // used to check for popup screen request
 extern          Metro               TX_Timeout;  // RunawayTX timeout
@@ -76,8 +78,11 @@ extern RadioIQMixer_F32             FFT_LO_Mixer_I;
 extern RadioIQMixer_F32             FFT_LO_Mixer_Q;
 #endif
 extern          float               pan;
+extern          int16_t             rit;    // global RIT offset value in Hz.
+extern          int16_t             xit;    // global XIT offset value in Hz.
 extern          void                send_fixed_cmd_to_RSHFIQ(const char * str);
-extern          void               update_icon_outline(void);
+extern          void                update_icon_outline(void);
+extern          void                ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 
 void Set_Spectrum_Scale(int8_t zoom_dir);
 void Set_Spectrum_RefLvl(int8_t zoom_dir);
@@ -105,8 +110,10 @@ void Filter(int8_t dir);
 void ATU();
 void Xvtr();
 void Split();
-void XIT();
-void RIT();
+void setXIT(int8_t toggle);
+void XIT(int8_t delta);
+void setRIT(int8_t toggle);
+void RIT(int8_t delta);
 void Preamp(int8_t toggle);
 void setAtten(int8_t toggle);
 void VFO_AB();
@@ -198,10 +205,10 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     // Find new band index based on frequency range
     #ifdef USE_RS_HFIQ 
         if (uint32_t temp_VFO = RS_HFIQ.find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
-            VFOA = temp_VFO;
+            shadow_VFO = VFOA = temp_VFO;
     #else  // non RS-HFIQ
         if (uint32_t temp_VFO = find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
-            VFOA = temp_VFO;
+            shadow_VFO = VFOA = temp_VFO;
     #endif
     //DPRINT("Band after Lookup is "); DPRINTLN(bandmem[curr_band].band_name);
     //DPRINT("Freq is "); DPRINTLN(VFOA);
@@ -210,8 +217,6 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
     target_band = bandmem[curr_band].band_num + direction;
     
-    //DPRINT("Target Band is "); DPRINTLN(target_band);
-
     // quick fix to allow for Bands 160M and 6M to be skipped.  Will break if 80M or 10M skipped.
     struct Standard_Button *ptr = std_btn;
     uint16_t top_band = BAND6M;
@@ -234,10 +239,11 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
 
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     codec1.muteHeadphone();  // remove audio thumps during hardware transients
+    setRIT(0);  // turn off on band changes
     #ifndef PANADAPTER    
         curr_band = target_band;    // Set out new band
     #endif
-    VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
+    shadow_VFO = VFOA = bandmem[curr_band].vfo_A_last;  // up the last used frequencies
     //DPRINT("New Band is "); DPRINT(bandmem[curr_band].band_name); DPRINTLN("");
     //DPRINT("Target Freq is "); DPRINTLN(VFOA);
     selectFrequency(0);  // change band and preselector
@@ -730,27 +736,101 @@ COLD void Preamp(int8_t toggle)
 }
 
 // RIT button
-COLD void RIT()
+// Input:
+// -1 = Clear MF knob and meter, use current value
+//  0 = OFF - turn off button highlight color
+//  1 = ON  - turn off button highlight and center pan window
+//  2 = Toggle RIT ON/OFF state.  
+//  3 = Zero RIT offset value
+COLD void setRIT(int8_t toggle)
 {
-    if (bandmem[curr_band].RIT_en == ON)
-        bandmem[curr_band].RIT_en = OFF;
-    else if (bandmem[curr_band].RIT_en == OFF)
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (bandmem[curr_band].RIT_en == ON)  // toggle the tracking state
+            toggle = 0;
+        else
+            toggle = 1;
+    }
+    
+    if (toggle == 1)      // Turn on RIT and set to last stored offset 
+    {
         bandmem[curr_band].RIT_en = ON;
+        MeterInUse = true;
+        setMeter(RIT_BTN);
+        RIT(0);
+    }
+    
+    if (toggle == 0)
+    {
+        bandmem[curr_band].RIT_en = OFF;
+        RIT(0);
+    }
+
+    if (toggle == 0 || toggle == -1 || toggle == 3)
+    {    
+        MeterInUse = false; 
+        if (toggle != -1) clearMeter();
+        if (toggle == 3)  // Zero the RIT value
+        {
+            bandmem[curr_band].RIT = 0;
+            RIT(0);   // update frequency
+            displayRIT();
+        }
+    }  
+    //DPRINTF("Set RIT ON/OFF to "); DPRINTLN(bandmem[curr_band].RIT_en);
+    DPRINTF("Set RIT OFFSET to "); DPRINTLN(bandmem[curr_band].RIT);
     displayRIT();
-    //DPRINT("Set RIT to ");
-    //DPRINTLN(bandmem[curr_band].RIT_en);
+}
+
+// RIT offset control
+COLD void RIT(int8_t delta)
+{
+    //static uint32_t Base_freq = 0;   // store actual VFOA while RIT offset is applied.
+    
+    int16_t _offset;
+
+    _offset = bandmem[curr_band].RIT;   // Get last absolute setting as a value 0-100
+    //_offset += delta * tstep[bandmem[curr_band].tune_step].step;      // convert percentage request to a single digit float
+    _offset += delta * tstep[user_settings[user_Profile].RIT_ts].step;
+
+    if (_offset > 9999)         // Limit the value between 0.0 and 1.0 (100%)
+        _offset = 9999;
+    if (_offset < -9999)
+        _offset = -9999;
+    
+    rit = _offset;  // store in the global RIT offset value
+
+    bandmem[curr_band].RIT = rit;
+    //DPRINTF("Set RIT OFFSET to "); DPRINTLN(bandmem[curr_band].RIT);
+
+    selectFrequency(0);  // no base freq change, just correct for RIT offset
+    displayRIT();
 }
     
 // XIT button
-COLD void XIT()
+// Input:
+//  2 = Toggle
+//  1 = ON
+//  0 = OFF
+// -1 = Clear MF knob and meter
+//  3 = ??
+COLD void setXIT(int8_t toggle)
 {
     if (bandmem[curr_band].XIT_en == ON)
         bandmem[curr_band].XIT_en = OFF;
     else if (bandmem[curr_band].XIT_en == OFF)
         bandmem[curr_band].XIT_en = ON;
     displayXIT();
-    //DPRINT("Set XIT to ");
+    //DPRINTF("Set XIT to ");
     //DPRINTLN(bandmem[curr_band].XIT_en);
+}
+
+// XIT Offset Adjust
+COLD void XIT(int8_t delta)
+{
+    bandmem[curr_band].XIT += delta;
+    displayXIT();
+    DPRINT("Set XIT OFFSET to "); DPRINTLN(bandmem[curr_band].XIT);
 }
 
 // SPLIT button
@@ -772,7 +852,7 @@ COLD void Split(uint8_t state)
     }
     displaySplit();
     displayFreq();
-    //DPRINT("Set Split to ");
+    //DPRINTF("Set Split to ");
     //DPRINTLN(bandmem[curr_band].split);
 
 }
@@ -1131,7 +1211,7 @@ COLD void RFgain(int8_t delta)
 //  0 is OFF - turn off button highlight and center pan window
 //  1 is ON
 //  2 is toggle ON/OFF state
-// 3  is center the pan window
+//  3 is center the pan window
 COLD void setPAN(int8_t toggle)
 {
     //DPRINT("PAN toggle = "); DPRINTLN(toggle);
@@ -1152,21 +1232,17 @@ COLD void setPAN(int8_t toggle)
         PAN(0);
     }
     
-    if (toggle == 0 || toggle == -1 || toggle ==3)
+    if (toggle == 0 || toggle == -1 || toggle == 3)
     {
         user_settings[user_Profile].pan_state = OFF;
         MeterInUse = false;
-        if (toggle != -1)
-            clearMeter();
+        if (toggle != -1) clearMeter();
         if (toggle == 3)  // Zero the pan window and turn off on long button press
         {
             pan = 0.0f;
             user_settings[user_Profile].pan_level = 50;
         }
     }
-
-    if (toggle == 3)
-
     //DPRINT(" PAN state is  "); 
     //DPRINTLN(user_settings[user_Profile].pan_state);
     displayPan();
@@ -1195,13 +1271,6 @@ COLD void PAN(int8_t delta)
         pan = 0.0f;   
         _panLevel = 50;  // 50 is halfway or 0.0f
         user_settings[user_Profile].pan_level = _panLevel;
-        //use for testing frequency shift methods  
-        #ifdef USE_FFT_LO_MIXERxxxx
-            AudioNoInterrupts();
-            FFT_LO_Mixer_I.iqmPhaseS_C(0); //(_panLevel*5.0f);
-            //FFT_LO_Mixer_Q.iqmPhaseS((float) user_settings[user_Profile].rfGain*5);
-            AudioInterrupts();
-        #endif
     }
     else
     {   // bins that will not fit on the display can be viewed by shifting our left edge index.  Assuming 1 px per bin
@@ -1504,11 +1573,14 @@ COLD void Band(uint8_t new_band)
     {
         if (popup && new_band != 255)
         {
+            setRIT(0);
+
             if (curr_band == new_band) // already on this band so new request must be for bandstack, cycle through, saving changes each time
-            {   
+            {      
                 DPRINT("Previous VFO A on Band "); DPRINTLN(curr_band);
                 uint32_t temp_vfo_last;
                 uint8_t  temp_mode_last;
+                bandmem[curr_band].vfo_A_last = shadow_VFO;
                 temp_vfo_last = bandmem[curr_band].vfo_A_last;  // Save  current freq and mode
                 temp_mode_last = bandmem[curr_band].mode_A;
                 bandmem[curr_band].vfo_A_last   = bandmem[curr_band].vfo_A_last_1; // shuffle previous up to curent
@@ -1517,12 +1589,12 @@ COLD void Band(uint8_t new_band)
                 bandmem[curr_band].mode_A_1 = bandmem[curr_band].mode_A_2;
                 bandmem[curr_band].vfo_A_last_2 = temp_vfo_last;  // let changeBands compute new band based on VFO frequency
                 bandmem[curr_band].mode_A_2 = temp_mode_last;
-                VFOA = bandmem[curr_band].vfo_A_last;  // store in the Active VFO register
+                shadow_VFO = VFOA = bandmem[curr_band].vfo_A_last;  // store in the Active VFO register
             }
             else
             {
                 DPRINT("Last VFO A on Band "); DPRINTLN(new_band);
-                VFOA = bandmem[new_band].vfo_A_last;  // let changeBands compute new band based on VFO frequency
+                shadow_VFO = VFOA = bandmem[new_band].vfo_A_last;  // let changeBands compute new band based on VFO frequency
             }
             changeBands(0);
         }
@@ -1587,6 +1659,7 @@ COLD void TouchTune(int16_t touch_Freq)
     
     DPRINT(F("Touch-Tune frequency is "));
     VFOA += _newfreq;
+    shadow_VFO += _newfreq;
 
     // If the Peak happens to be close to the touch target frequency then we can use that to fine tune the new VFO
     if (abs(VFOA - (uint32_t) Freq_Peak < 1000))
@@ -1663,6 +1736,8 @@ void clearMeter(void)
     uint8_t slot;
     DPRINTLN("Turn OFF meter");
     MeterInUse = false;
+    // blank out text line from overruns
+    draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);
     for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
     {
         if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role

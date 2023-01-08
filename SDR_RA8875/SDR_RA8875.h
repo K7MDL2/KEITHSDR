@@ -388,9 +388,9 @@ struct Band_Memory {
     uint8_t     agc_mode;       // index to group of AGC settings in another table
     uint8_t     split;          // split active or not. 0 is off
     uint8_t     RIT_en;         // RIT active. 
-    int32_t     RIT;            // RIT value in Hz pos or neg from current VFO
+    int16_t     RIT;            // RIT -9999Hz to +9999Hz
     uint8_t     XIT_en;         // XIT active
-    int32_t     XIT;            // XIT value in Hz pos or neg from current VFO
+    int16_t     XIT;            // XIT -9999Hz to +9999Hz
     uint8_t     ATU;            // enable ATU or not.
     uint8_t     ant_sw;         // antenna selector switch.
     uint8_t     preselector;    // preselector band set value.
@@ -491,6 +491,8 @@ struct User_Settings {
     uint8_t     zoom_level;         // 0 - 2.  Zoom level memory.  x1, x2, x4 
     uint8_t     pan_state;          // 0 = OFF, 1 = ON
     uint8_t     pan_level;          // 0-100 converts to pan range of -0.50 to 0.50 for the pan memory.  0  is centered.
+    uint8_t     RIT_ts;             // Last used Tune step size for RIT. Uses tstep table like regular VFO does.
+    uint8_t     XIT_ts;             // Last used Tune step size for XIT. Uses tstep table like regular VFO does.
 };
 
 struct Frequency_Display {
@@ -545,7 +547,7 @@ struct Filter_Settings {
 struct TuneSteps {
     char        ts_name[12];    // display name for UI
     char        ts_units[4];    // units for display HZ or KHz
-    uint16_t    step;           // bandwidth in HZ
+    uint16_t    step;           // step size in HZ
     uint8_t     pref_mode;      // preferred mode when enabled (future use)
 };
 
