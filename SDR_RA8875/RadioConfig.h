@@ -189,7 +189,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
+#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -282,7 +282,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN          255
 	#define GPIO_SW5_PIN          255
-	#define GPIO_SW6_PIN          255		  // 255 for unused pins
+	#define GPIO_ANT_PIN          255		  // 255 for unused pins
 #elif defined(V1_4_3_PCB)     // V1.0 4.3" Display PCB
   #define I2C_INT_PIN            36
 	#define GPIO_VFO_PIN_A          4     // used for VFO
@@ -298,9 +298,9 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW1_PIN          255   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
 	#define GPIO_SW2_PIN          255   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
 	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
-	#define GPIO_SW4_PIN          255
-	#define GPIO_SW5_PIN          255
-	#define GPIO_SW6_PIN          255		  // 255 for unused pins
+	#define GPIO_SW4_PIN          255     // 255 for unused pins
+	#define GPIO_SW5_PIN          255     // 255 for unused pins
+	#define GPIO_ANT_PIN          255		  // 255 for unused pins
 #elif defined (V2_4_3_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         15     // used for VFO
@@ -313,12 +313,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_ENC3_PIN_SW       33
 	#define PTT_INPUT     			    2   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 	#define PTT_OUT1      			    1   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
-	#define GPIO_SW1_PIN            0     // pin assignment for external switches. When enabled, these will be scanned and software debounced
-	#define GPIO_SW2_PIN            3     // Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
-	#define GPIO_SW3_PIN            4     // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
-	#define GPIO_SW4_PIN            5     
-	#define GPIO_SW5_PIN            6     
-	#define GPIO_SW6_PIN            7		  // 255 for unused pins
+	#define GPIO_SW1_PIN            3     // pin assignment for external switches. When enabled, these will be scanned and software debounced
+	#define GPIO_SW2_PIN            4     // Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
+	#define GPIO_SW3_PIN            5     // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
+	#define GPIO_SW4_PIN            6     // 255 for unused pins
+	#define GPIO_SW5_PIN            7     // 255 for unused pins
+	#define GPIO_ANT_PIN            0		  // Used as an output for Ant relay 1/2
   #elif defined (V21_7_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         16     // used for VFO
@@ -336,7 +336,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN            6
 	#define GPIO_SW5_PIN            7
-	#define GPIO_SW6_PIN            0	    // 255 for unused pins
+	#define GPIO_ANT_PIN            0	    // Used as an output for Ant relay 1/2
 #else // else old proto board assignments
   #define I2C_INT_PIN     ```````29
 	#define GPIO_VFO_PIN_A          4     // used for VFO
@@ -352,9 +352,9 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW1_PIN          255   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
 	#define GPIO_SW2_PIN          255   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
 	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
-	#define GPIO_SW4_PIN          255
-	#define GPIO_SW5_PIN          255
-	#define GPIO_SW6_PIN          255	
+	#define GPIO_SW4_PIN          255     // 255 for unused pins
+	#define GPIO_SW5_PIN          255     // 255 for unused pins
+	#define GPIO_ANT_PIN          255	    // 255 for unused pins
 #endif
 
 #ifndef K7MDL_BUILD
@@ -375,7 +375,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
   #define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-	#define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_ANT_ENABLE         1     // GPIO Output, 0 disables, any value > 0 enables
 
 	// I2C connected encoders use this this pin to signal interrupts
 	// Knob assignments are the user_settings database 
@@ -407,7 +407,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_ENABLE         8     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-	#define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+	#define GPIO_ANT_ENABLE         1     // GPIO Output, 0 disables, any value > 0 enables
 
 	// I2C connected encoders use this this pin to signal interrupts
 	// Knob assignments are the user_settings database 
