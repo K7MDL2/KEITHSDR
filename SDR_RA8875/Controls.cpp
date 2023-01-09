@@ -1358,7 +1358,7 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
 
     mode_idx = bandmem[curr_band].mode_A;			
 
-    if ((user_settings[user_Profile].xmit == ON && state ==2) || state == 0)  // Transmit OFF
+    if ((user_settings[user_Profile].xmit == ON && state == 2) || state == 0)  // Transmit OFF
     {
         user_settings[user_Profile].xmit = OFF;
         if (PTT_OUT1 != 255)

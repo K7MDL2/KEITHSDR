@@ -24,8 +24,6 @@ extern void RampVolume(float vol, int16_t rampType);
 //extern void Spectrum_Parm_Generator(int);
 //extern struct Spectrum_Parms Sp_Parms_Def[];
 extern uint8_t curr_band;   // global tracks our current band setting.  
-extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct User_Settings user_settings[];
 extern struct Filter_Settings filter[];

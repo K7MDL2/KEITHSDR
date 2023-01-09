@@ -4,7 +4,7 @@
 //
 //   Input: Counts from encoder to change the current VFO by the current step rate.  
 //			If newFreq is 0, then just use VFOx which may have been set elsewhere to a desired frequency
-//			use this fucntion rather than setFreq() since this tracks VFOs and updates their memories.
+//			use this function rather than setFreq() since this tracks VFOs and updates their memories.
 //
 
 #include "SDR_RA8875.h"
@@ -12,19 +12,15 @@
 #include "Tuner.h"
 
 #ifdef USE_RS_HFIQ
-    // init the RS-HFIQ library
-    extern SDR_RS_HFIQ RS_HFIQ;
+    extern SDR_RS_HFIQ RS_HFIQ;		// init the RS-HFIQ library
 #endif
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern uint32_t VFOB;
 extern struct Band_Memory bandmem[];
 extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
 extern const struct TuneSteps tstep[];
-extern void RampVolume(float vol, int16_t rampType);
 extern char * convert_freq_to_Str(uint32_t freq);
-extern void send_fixed_cmd_to_RSHFIQ(const char * str);
 extern void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
 extern int16_t rit_offset;  // global rit value in Hz
 extern int16_t xit_offset;  // global xit value in Hz
@@ -63,14 +59,21 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 		if (bandmem[curr_band].mode_A == DATA)      
 			Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode
 	#else
-		VFOA = Freq;   // Do not store rit_offset into VFOA!
-		bandmem[curr_band].vfo_A_last = VFOA;   // save for band stacking
-		DPRINTF("TUNER: rit = "); DPRINT(rit_offset);	DPRINTF("  xit = "); DPRINT(xit_offset);
+		if (bandmem[curr_band].split && user_settings[user_Profile].xmit)
+			user_settings[user_Profile].sub_VFO = Freq;
+		else
+		{
+			VFOA = Freq;   // Do not store rit_offset into VFOA!
+			bandmem[curr_band].vfo_A_last = VFOA;   // save for band stacking
+		}
+		
+		//Now have the correct Freq form VFO A or B used xit or rit
 		if (user_settings[user_Profile].xmit)
 			Freq += xit_offset;  // Add in any XIT offset.  
 		else
 			Freq += rit_offset;  // Add in any RIT offset.  
-		DPRINTF("  Freq = "); DPRINTLN(Freq);
+
+		DPRINTF("TUNER: Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINTLN(xit_offset);
 	#endif
 
 	#ifdef PANADAPTER

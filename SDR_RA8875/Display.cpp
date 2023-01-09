@@ -186,6 +186,7 @@ COLD void displayFreq(void)
 			tft.print(formatVFO(VFOB+xit_offset));
 	}
 	vfo_b_last = VFOB;
+	xit_last = xit_offset;
 }
 
 COLD void displayMode(void)

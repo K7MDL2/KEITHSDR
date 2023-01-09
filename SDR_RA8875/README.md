@@ -6,7 +6,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
     1. Added support for 6 GPIO switches. Expanded the encoder_list table to 12 entries. Table supports I2C and GPIO encoders and switches in any mix.
     2. Published updated BOM and PCB files for V2.1 7" Teensy Motherboard after building the first one.  See hardware folder.
-    3. Jan 8 - Added RIT and XIT functionality. XMIT will work in split but ther eis a problem when VFOB is on a different band than VFOA.  RIT and XIT are knob assignable now also.
+    3. Jan 8 - Added RIT and XIT functionality. XMIT will also work in split. RIT and XIT are knob assignable.
 
 ## Dec 2022
 
