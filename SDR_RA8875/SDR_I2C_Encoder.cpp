@@ -433,7 +433,7 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 
 COLD void set_I2CEncoders()
 {
-	#if I2C_ENCODERS || GPIO_ENCODERS
+	#if defined I2C_ENCODERS || defined GPIO_ENCODERS
 	   uint8_t slot = 0;
 	#endif
 	
