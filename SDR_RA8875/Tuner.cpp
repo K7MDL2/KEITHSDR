@@ -63,15 +63,14 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 		if (bandmem[curr_band].mode_A == DATA)      
 			Freq += PANADAPTER_MODE_OFFSET_DATA;  // offset if in DATA mode
 	#else
-		if (bandmem[curr_band].split && user_settings[user_Profile].xmit)
-		{}
+		VFOA = Freq;   // Do not store rit_offset into VFOA!
+		bandmem[curr_band].vfo_A_last = VFOA;   // save for band stacking
+		DPRINTF("TUNER: rit = "); DPRINT(rit_offset);	DPRINTF("  xit = "); DPRINT(xit_offset);
+		if (user_settings[user_Profile].xmit)
+			Freq += xit_offset;  // Add in any XIT offset.  
 		else
-		{
-			VFOA = Freq;   // Do not store rit_offset into VFOA!
-			bandmem[curr_band].vfo_A_last = VFOA;   // save for band stacking
-			//DPRINTF(" TUNER: rit = "); DPRINTLN(rit_offset);
 			Freq += rit_offset;  // Add in any RIT offset.  
-		}
+		DPRINTF("  Freq = "); DPRINTLN(Freq);
 	#endif
 
 	#ifdef PANADAPTER

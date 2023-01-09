@@ -749,7 +749,7 @@ COLD void Preamp(int8_t toggle)
 COLD void setRIT(int8_t toggle)
 {
     // global rit_offset is used add to VFOA when displaying or reporting or setting frequency. 
-    // It never changes VFOA value to keep memory and band change cpomplications.  
+    // It never changes VFOA value to keep memory and band change complications.  
     // Will be toggled between 0 and the offset value when active.
     // This eliminates the need to test for RIT at every VFOA handling point 
 
@@ -789,7 +789,7 @@ COLD void setRIT(int8_t toggle)
         RIT(0);   // update frequency
     }
  
-    //DPRINTF("Set RIT ON/OFF to "); DPRINTLN(bandmem[curr_band].RIT_en);
+    //DPRINTF("setRIT: Set RIT ON/OFF to "); DPRINTLN(bandmem[curr_band].RIT_en);
     //DPRINTF("setRIT: Set RIT OFFSET to "); DPRINT(rit_offset); DPRINTF("  rit_offset_last = "); DPRINTLN(rit_offset_last);
 }
 
@@ -804,7 +804,7 @@ COLD void RIT(int8_t delta)
         _offset = rit_offset;   // Get cuurent value
         _offset += delta * tstep[user_settings[user_Profile].RIT_ts].step;
 
-        if (_offset > 9999)         // Limit the value between 0.0 and 1.0 (100%)
+        if (_offset > 9999)         // Limit the value between -10K and +10K
             _offset = 9999;
         if (_offset < -9999)
             _offset = -9999;
@@ -813,7 +813,7 @@ COLD void RIT(int8_t delta)
         if (bandmem[curr_band].RIT_en == ON)
             rit_offset_last = rit_offset;   // only store when RIT is active, prevent false zero for things like delayed calls from S-meter box updates
 
-        //DPRINTF("2-Set RIT OFFSET to "); DPRINT(rit_offset); DPRINTF("  rit_offset_last = "); DPRINTLN(rit_offset_last);
+        //DPRINTF(RIT: Set RIT OFFSET to "); DPRINT(rit_offset); DPRINTF("  rit_offset_last = "); DPRINTLN(rit_offset_last);
     }
     selectFrequency(0);  // no base freq change, just correct for RIT offset
     displayFreq();
@@ -822,27 +822,83 @@ COLD void RIT(int8_t delta)
     
 // XIT button
 // Input:
-//  2 = Toggle
-//  1 = ON
-//  0 = OFF
-// -1 = Clear MF knob and meter
-//  3 = ??
+// -1 = Clear MF knob and meter, use current value
+//  0 = OFF - turn off button highlight color
+//  1 = ON  - turn off button highlight and center pan window
+//  2 = Toggle XIT ON/OFF state.  
+//  3 = Zero XIT offset value
 COLD void setXIT(int8_t toggle)
 {
-    if (bandmem[curr_band].XIT_en == ON)
-        bandmem[curr_band].XIT_en = OFF;
-    else if (bandmem[curr_band].XIT_en == OFF)
+    // global xit_offset is used add to VFOA when displaying or reporting or setting frequency. 
+    // It never changes VFOA value to keep memory and band change complications.  
+    // Will be toggled between 0 and the offset value when active.
+    // This eliminates the need to test for XIT at every VFO handling point 
+
+    if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
+    {
+        if (bandmem[curr_band].XIT_en == ON)  // toggle the tracking state
+            toggle = 0;
+        else
+            toggle = 1;
+    }
+    
+    if (toggle == 1)      // Turn on XIT and set to last stored offset 
+    {
         bandmem[curr_band].XIT_en = ON;
-    displayXIT();
-    DPRINTF("Set XIT to "); DPRINTLN(xit_offset);
+        xit_offset = xit_offset_last;  // restore last used value
+        MeterInUse = true;
+        setMeter(XIT_BTN);
+        XIT(0);
+    }
+    
+    if (toggle == 0)  // prevent acting on multiple calls 
+    {
+        bandmem[curr_band].XIT_en = OFF;
+        xit_offset = 0;   // now clear it
+        XIT(0);
+    }
+
+    if (toggle == 0 || toggle == -1)
+    {    
+        MeterInUse = false; 
+        if (toggle != -1) clearMeter();
+    }
+
+    if (toggle == 3)  // Zero the RIT value
+    {
+        xit_offset_last = xit_offset = 0;
+        XIT(0);   // update frequency
+    }
+ 
+    DPRINTF("setXIT: Set XIT ON/OFF to "); DPRINTLN(bandmem[curr_band].XIT_en);
+    DPRINTF("setXIT: Set XIT OFFSET to "); DPRINT(xit_offset); DPRINTF("  xit_offset_last = "); DPRINTLN(xit_offset_last);
 }
 
-// XIT Offset Adjust
+// XIT offset control
 COLD void XIT(int8_t delta)
 {
-    xit_offset += delta;
+    
+    int16_t _offset;
+
+    if (bandmem[curr_band].XIT_en == ON)
+    {    
+        _offset = xit_offset;   // Get cuurent value
+        _offset += delta * tstep[user_settings[user_Profile].XIT_ts].step;
+
+        if (_offset > 9999)         // Limit the value between +/- 10KHz
+            _offset = 9999;
+        if (_offset < -9999)
+            _offset = -9999;
+        
+        xit_offset = _offset;  // store in the global XIT offset value
+        if (bandmem[curr_band].XIT_en == ON)
+            xit_offset_last = xit_offset;   // only store when XIT is active, prevent false zero for things like delayed calls from S-meter box updates
+
+        DPRINTF("XIT: Set XIT OFFSET to "); DPRINT(xit_offset); DPRINTF("  xit_offset_last = "); DPRINTLN(xit_offset_last);
+    }
+    selectFrequency(0);  // no base freq change, just correct for RIT offset
+    displayFreq();
     displayXIT();
-    DPRINT("Set XIT OFFSET to "); DPRINTLN(xit_offset);
 }
 
 // SPLIT button

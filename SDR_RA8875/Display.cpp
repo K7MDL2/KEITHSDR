@@ -64,7 +64,6 @@ struct Frequency_Display *pMAct  = &disp_Freq[1];     // pointer to Active VFO L
 struct Frequency_Display *pVStby = &disp_Freq[2];     // pointer to Standby VFO Digits record
 struct Frequency_Display *pMStby = &disp_Freq[3];     // pointer to Standby VFO Label record
 
-
 uint8_t	_textMode = false;
 uint8_t _portrait = false;
 uint16_t _arcAngle_max = ARC_ANGLE_MAX;
@@ -84,6 +83,7 @@ COLD void displayFreq(void)
 {
 	static uint32_t vfo_b_last  = 0;
 	static uint8_t 	xmit_last   = 0;
+	static uint8_t 	xit_last    = 0;
 	
 	// bx					// X - upper left corner anchor point
 	// by					// Y - upper left corner anchor point
@@ -149,21 +149,41 @@ COLD void displayFreq(void)
 	tft.setFont(pVAct->txt_Font);
 	tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
 	tft.setTextColor(pVAct->txt_clr);
-	tft.print(formatVFO(VFOA+rit_offset));
+	if (!bandmem[curr_band].split) 
+	{
+		if (user_settings[user_Profile].xmit) 
+			tft.print(formatVFO(VFOA+xit_offset)); 
+		else
+			tft.print(formatVFO(VFOA+rit_offset)); 
+	}
+	else 
+		tft.print(formatVFO(VFOA+rit_offset));
+	
 	#ifdef I2C_LCD
 		lcd.setCursor(0,0);
+		if (!bandmem[curr_band].split) 
+	{
+		if (user_settings[user_Profile].xmit) 
+			lcd.print(formatVFO(VFOA+xit_offset)); 
+		else
+			lcd.print(formatVFO(VFOA+rit_offset)); 
+	}
+	else 
 		lcd.print(formatVFO(VFOA+rit_offset));
 	#endif
 	
 	// Update VFO B only on change	
-	if (vfo_b_last != VFOB)
+	if (vfo_b_last != VFOB || xit_last != xit_offset)
 	{
 		tft.fillRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->bg_clr);
 		tft.drawRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->ol_clr);
 		tft.setFont(pVStby->txt_Font);
 		tft.setCursor(pVStby->bx+pVStby->padx, pVStby->by+pVStby->pady);
 		tft.setTextColor(pVStby->txt_clr);
-		tft.print(formatVFO(VFOB));			
+		if (!bandmem[curr_band].split)
+			tft.print(formatVFO(VFOB));
+		else
+			tft.print(formatVFO(VFOB+xit_offset));
 	}
 	vfo_b_last = VFOB;
 }

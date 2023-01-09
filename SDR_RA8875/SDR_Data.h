@@ -324,12 +324,12 @@ struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,            NONE},       // enc slot 1 of 6
     {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         RATE_BTN,       SW1_BTN,         FINE_BTN},   // enc slot 1 of 6
-    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  MFTUNE,      ON,         RFGAIN_BTN,     SW2_BTN,         ANT_BTN},    // enc slot 2
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         ANT_BTN},    // enc slot 2
     {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    ZOOM_BTN,    ON,         PAN_BTN,        SW3_BTN,         ATTEN_BTN},  // enc slot 3
-    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    RIT_BTN,     ON,         MODE_BTN,       SW4_BTN,         BAND_BTN},   // enc slot 4
-    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW5_BTN,         RIT_BTN},    // enc slot 5
-    {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      RIT_BTN},    // enc slot 6
-    {GPIO_SW,   7,    GPIO_SW2_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDDN_BTN,      XIT_BTN},    // enc slot 7
+    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW4_BTN,         BAND_BTN},   // enc slot 4
+    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},         // enc slot 5
+    {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      FILTER_BTN},  // enc slot 6
+    {GPIO_SW,   7,    GPIO_SW2_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDDN_BTN,      MODE_BTN},    // enc slot 7
     {GPIO_SW,   8,    GPIO_SW3_ENABLE,   NONE,    NONE,        ON,         NONE,           RATE_BTN,        FINE_BTN},   // enc slot 8
     {GPIO_SW,   9,    GPIO_SW4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},       // enc slot 9
     {GPIO_SW,   10,   GPIO_SW5_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},       // enc slot 10
