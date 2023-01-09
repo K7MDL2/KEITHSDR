@@ -735,8 +735,7 @@ COLD void Preamp(int8_t toggle)
     #endif
     
     displayPreamp();
-    //DPRINT("Set Preamp to ");
-    //DPRINTLN(bandmem[curr_band].preamp);
+    //DPRINTF("Set Preamp to "); DPRINTLN(bandmem[curr_band].preamp);
 }
 
 // RIT button
@@ -920,8 +919,7 @@ COLD void Split(uint8_t state)
     }
     displaySplit();
     displayFreq();
-    //DPRINTF("Set Split to ");
-    //DPRINTLN(bandmem[curr_band].split);
+    //DPRINTF("Set Split to "); DPRINTLN(bandmem[curr_band].split);
 
 }
 
@@ -936,8 +934,7 @@ COLD void Xvtr()
     //   Insert any future hardware setup calls
     //
     displayXVTR();
-    //DPRINT("Set Xvtr Enable to ");
-    //DPRINTLN(bandmem[curr_band].xvtr_en);
+    //DPRINTF("Set Xvtr Enable to "); DPRINTLN(bandmem[curr_band].xvtr_en);
 }
 
 // ATU button
@@ -958,8 +955,7 @@ COLD void ATU(uint8_t state)
     //
      
     displayATU();
-    //DPRINT("Set ATU to ");
-    //DPRINTLN(bandmem[curr_band].ATU);
+    //DPRINTF("Set ATU to "); DPRINTLN(bandmem[curr_band].ATU);
 }
 
 // setZoom()
@@ -995,8 +991,7 @@ COLD void setZoom(int8_t toggle)
     }
 
     //displayZoom();
-    //DPRINT("Set Zoom to ");
-    //DPRINTLN(user_settings[user_Profile].zoom_level);
+    //DPRINTF("Set Zoom to "); DPRINTLN(user_settings[user_Profile].zoom_level);
 }
 
 // ---------------------------Zoom() ---------------------------
@@ -1054,8 +1049,7 @@ COLD void Zoom(int8_t dir)
         default:     Change_FFT_Size(FFT_SIZE, sample_rate_Hz);  break;  // Zoom farthest in
     }
 
-    //DPRINT("Zoom level set to  "); 
-    //DPRINTLN(zoom[_zoom_Level].zoom_name);
+    //DPRINTF("Zoom level set to  "); DPRINTLN(zoom[_zoom_Level].zoom_name);
     displayZoom();  
 }
 
@@ -1078,26 +1072,28 @@ COLD void Fine()
     displayFine();
     displayRate();
     
-    //DPRINT("Set Fine to ");
-    //DPRINTLN(user_settings[user_Profile].fine);
+    //DPRINTF("Set Fine to "); DPRINTLN(user_settings[user_Profile].fine);
 }
 
 // ANT button
+// Toggle between antenna 1 and 2.  Turns GPIO_ANT_PIN ON and OFF to control a relay.
 COLD void Ant()
 {
     if (bandmem[curr_band].ant_sw== 1)
     {
         bandmem[curr_band].ant_sw = 2;
+        if (GPIO_ANT_ENABLE)
+            digitalWrite(GPIO_ANT_PIN, 1);
     }
     else if (bandmem[curr_band].ant_sw == 2)
     {
         bandmem[curr_band].ant_sw = 1;
+        if (GPIO_ANT_ENABLE)
+            digitalWrite(GPIO_ANT_PIN, 0);
     }
     
     displayANT();
-    //DPRINT("Set Ant Sw to ");
-    //DPRINTLN(bandmem[curr_band].ant_sw);
-
+    DPRINTF("Set Ant Sw to "); DPRINTLN(bandmem[curr_band].ant_sw);
 }
 
 // AF GAIN button activate control

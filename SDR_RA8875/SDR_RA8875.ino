@@ -523,14 +523,15 @@ COLD void setup()
         if (GPIO_ENC2_ENABLE) pinMode(GPIO_ENC2_PIN_SW, INPUT_PULLUP);   // Pullups for GPIO Enc2 and 3 switches
         if (GPIO_ENC3_ENABLE) pinMode(GPIO_ENC3_PIN_SW, INPUT_PULLUP);
     #endif
-    if (GPIO_SW1_ENABLE)  pinMode(GPIO_SW1_PIN,  INPUT_PULLUP);
-    if (GPIO_SW2_ENABLE)  pinMode(GPIO_SW2_PIN,  INPUT_PULLUP);
-    if (GPIO_SW3_ENABLE)  pinMode(GPIO_SW3_PIN,  INPUT_PULLUP);
-    if (GPIO_SW4_ENABLE)  pinMode(GPIO_SW4_PIN,  INPUT_PULLUP);
-    if (GPIO_SW5_ENABLE)  pinMode(GPIO_SW6_PIN,  INPUT_PULLUP);
-    if (GPIO_SW6_ENABLE)  pinMode(GPIO_SW6_PIN,  INPUT_PULLUP);   
-
-
+    if (GPIO_SW1_ENABLE != 255)  pinMode(GPIO_SW1_PIN,  INPUT_PULLUP);
+    if (GPIO_SW2_ENABLE != 255)  pinMode(GPIO_SW2_PIN,  INPUT_PULLUP);
+    if (GPIO_SW3_ENABLE != 255)  pinMode(GPIO_SW3_PIN,  INPUT_PULLUP);
+    if (GPIO_SW4_ENABLE != 255)  pinMode(GPIO_SW4_PIN,  INPUT_PULLUP);
+    if (GPIO_SW5_ENABLE != 255)  pinMode(GPIO_SW5_PIN,  INPUT_PULLUP);
+    
+    // Use for ANT switch
+    if (GPIO_ANT_ENABLE != 255)  pinMode(GPIO_ANT_PIN, OUTPUT);
+    
     #ifdef SV1AFN_BPF
         // set address to 0x20 (32 decimal) for V2.X adafruit MCP23017 library. 
         // A value of 0 now kills the I2C bus.
