@@ -388,9 +388,7 @@ struct Band_Memory {
     uint8_t     agc_mode;       // index to group of AGC settings in another table
     uint8_t     split;          // split active or not. 0 is off
     uint8_t     RIT_en;         // RIT active. 
-    int16_t     RIT;            // RIT -9999Hz to +9999Hz
     uint8_t     XIT_en;         // XIT active
-    int16_t     XIT;            // XIT -9999Hz to +9999Hz
     uint8_t     ATU;            // enable ATU or not.
     uint8_t     ant_sw;         // antenna selector switch.
     uint8_t     preselector;    // preselector band set value.

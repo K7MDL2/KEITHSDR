@@ -42,8 +42,8 @@ extern uint8_t 	MF_client;  // Flag for current owner of MF knob services
 extern int32_t 	ModeOffset;
 extern uint8_t  popup;
 extern Metro    popup_timer; // used to check for popup screen request
-extern int16_t	rit;  // global rit value in Hz
-extern int16_t 	xit;  // global rit value in Hz
+extern int16_t	rit_offset;  // global rit value in Hz
+extern int16_t 	xit_offset;  // global rit value in Hz
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -149,10 +149,10 @@ COLD void displayFreq(void)
 	tft.setFont(pVAct->txt_Font);
 	tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
 	tft.setTextColor(pVAct->txt_clr);
-	tft.print(formatVFO(VFOA));
+	tft.print(formatVFO(VFOA+rit_offset));
 	#ifdef I2C_LCD
 		lcd.setCursor(0,0);
-		lcd.print(formatVFO(VFOA));
+		lcd.print(formatVFO(VFOA+rit_offset));
 	#endif
 	
 	// Update VFO B only on change	
@@ -348,8 +348,8 @@ COLD void displayRIT()
 	{ 
 		MeterInUse = true;
 		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out texst artifacts
-		sprintf(string, "RIT:%+05d", rit);
-		ringMeter(rit, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
+		sprintf(string, "RIT:%+05d", rit_offset);
+		ringMeter(rit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
 		DPRINTLN(string);
 	}
 	//DPRINT(F("RIT is ")); DPRINTLN(bandmem[curr_band].RIT_en);
@@ -368,8 +368,8 @@ COLD void displayXIT()
 	{ 
         MeterInUse = true;
 		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out texst artifacts
-		sprintf(string, "XIT:%+05d", xit);
-		ringMeter(xit, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
+		sprintf(string, "XIT:%+05d", xit_offset);
+		ringMeter(xit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
 	}
 	//DPRINT(F("XIT is ")); DPRINTLN(bandmem[curr_band].XIT_en);
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);

@@ -18,7 +18,6 @@
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 extern uint32_t VFOB;
-extern uint32_t shadow_VFO;
 extern struct Band_Memory bandmem[];
 extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
@@ -27,8 +26,8 @@ extern void RampVolume(float vol, int16_t rampType);
 extern char * convert_freq_to_Str(uint32_t freq);
 extern void send_fixed_cmd_to_RSHFIQ(const char * str);
 extern void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
-extern int16_t rit;  // global rit value in Hz
-extern int16_t xit;  // global rit value in Hz
+extern int16_t rit_offset;  // global rit value in Hz
+extern int16_t xit_offset;  // global xit value in Hz
 
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
@@ -49,8 +48,7 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
   	if (bandmem[curr_band].split && user_settings[user_Profile].xmit)
     	Freq = user_settings[user_Profile].sub_VFO;
 	else
-		//Freq = VFOA - (VFOA % fstep);   // Round down to step size if step > 1Hz
-		Freq = shadow_VFO - (shadow_VFO % fstep);   // Round down to step size if step > 1Hz
+		Freq = VFOA - (VFOA % fstep);   // Round down to step size if step > 1Hz
 	Freq += newFreq * fstep;
     
     // Keep frequency within limits
@@ -69,13 +67,10 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 		{}
 		else
 		{
-			shadow_VFO = Freq;
-			if (bandmem[curr_band].RIT_en == ON) VFOA = Freq += rit;
-			else VFOA = Freq;
-			//bandmem[curr_band].vfo_A_last = VFOA;
-			bandmem[curr_band].vfo_A_last = shadow_VFO;
-			DPRINTF(" TUNER: rit = "); DPRINTLN(rit);
-			DPRINTF(" TUNER: Shadow VFO = "); DPRINTLN(shadow_VFO);
+			VFOA = Freq;   // Do not store rit_offset into VFOA!
+			bandmem[curr_band].vfo_A_last = VFOA;   // save for band stacking
+			//DPRINTF(" TUNER: rit = "); DPRINTLN(rit_offset);
+			Freq += rit_offset;  // Add in any RIT offset.  
 		}
 	#endif
 

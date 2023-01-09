@@ -168,7 +168,6 @@ COLD void init_band_map(void);
 uint8_t     curr_band   = BAND80M;  // global tracks our current band setting.  
 uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
 uint32_t    VFOB        = 0;
-uint32_t    shadow_VFO  = 0;        // tracks the base freq uncorrected by RIT/XIT
 int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 
@@ -187,8 +186,10 @@ uint8_t     PTT_Input_debounce      = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;              // For RF AGC Limiter
 bool        TwoToneTest             = OFF; // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 float       pan                     = 0.0f;
-int16_t     rit                     = 0;    // global RIT offset value in Hz.
-int16_t     xit                     = 0;    // global XIT offset value in Hz.
+int16_t     rit_offset              = 0;    // global RIT offset value in Hz. -9999Hz to +9999H
+int16_t     xit_offset              = 0;    // global XIT offset value in Hz. -9999Hz to +9999H
+int16_t     rit_offset_last         = 0;    // track last used value when turning the RIT on and off. 
+int16_t     xit_offset_last         = 0;    // track last used value when turning the RIT on and off. 
 uint8_t     clipping                = 0;    // track state of clipping (primarily RS-HFIQ but could be applied to any RF hardware that has such indications)
 
 #ifdef USE_RA8875
@@ -691,7 +692,6 @@ COLD void setup()
     #else
         VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
         VFOB = user_settings[user_Profile].sub_VFO;
-        shadow_VFO = VFOA;  // begin tracking the uncorrected VFO freq
     #endif
                                
     #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
@@ -803,7 +803,7 @@ HOT void loop()
             Freq_Peak = spectrum_update(
                 user_settings[user_Profile].sp_preset,
                 1,  // No longer used, set to 1
-                VFOA,               // for onscreen freq info
+                VFOA+rit_offset,    // for onscreen freq info
                 VFOB,               // Not really needed today
                 ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
                 filterCenter,       // Center the on screen filter shaded area
