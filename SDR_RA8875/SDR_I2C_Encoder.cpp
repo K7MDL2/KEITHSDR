@@ -63,7 +63,7 @@ extern struct EncoderList encoder_list[];
 extern bool MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern Metro MF_Timeout;
 
-// One timer for each encoder list row (NUM_AUX_ENCODERS).  can be used for GPIO or I2C encoders switches.
+// One timer for each encoder list row (NUM_AUX_ENCODERS) except for 0.  Can be used for GPIO or I2C encoder switches.
 Metro press_timer1  = Metro(500);
 Metro press_timer2  = Metro(500);
 Metro press_timer3  = Metro(500);

@@ -528,9 +528,10 @@ COLD void setup()
     if (GPIO_SW3_ENABLE)  pinMode(GPIO_SW3_PIN,  INPUT_PULLUP);
     if (GPIO_SW4_ENABLE)  pinMode(GPIO_SW4_PIN,  INPUT_PULLUP);
     if (GPIO_SW5_ENABLE)  pinMode(GPIO_SW5_PIN,  INPUT_PULLUP);
-    
+    if (GPIO_SW6_ENABLE)  pinMode(GPIO_SW6_PIN,  INPUT_PULLUP);   // By default conifg this is assigned 'disabled' to the GPIO header pin 8 can be an output for GPIO_ANT_PIN
+
     // Use for ANT switch
-    if (GPIO_ANT_ENABLE)  pinMode(GPIO_ANT_PIN, OUTPUT);
+    if (GPIO_ANT_ENABLE)  pinMode(GPIO_ANT_PIN, OUTPUT);    // Took over SW6 default input pin to make this an output (by config)
     
     #ifdef SV1AFN_BPF
         // set address to 0x20 (32 decimal) for V2.X adafruit MCP23017 library. 
@@ -2324,9 +2325,9 @@ void Check_GPIO_Switches(void)
     static bool GPIO_sw1_pushed = 0;
     static bool GPIO_sw2_pushed = 0;
     static bool GPIO_sw3_pushed = 0;
-    //static uint8_t GPIO_sw4_pushed = 0;
-    //static uint8_t GPIO_sw5_pushed = 0;
-    //static uint8_t GPIO_sw6_pushed = 0;
+    static bool GPIO_sw4_pushed = 0;
+    static bool GPIO_sw5_pushed = 0;
+    static bool GPIO_sw6_pushed = 0;
     
     for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
@@ -2342,6 +2343,21 @@ void Check_GPIO_Switches(void)
     {
         if ((GPIO_SW3_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
             { GPIO_sw3_pushed = GPIO_Sw_read(GPIO_sw3_pushed, GPIO_SW3_PIN, slot); break; }
+    }
+    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    {
+        if ((GPIO_SW4_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
+            { GPIO_sw4_pushed = GPIO_Sw_read(GPIO_sw4_pushed, GPIO_SW4_PIN, slot); break; }
+    }
+    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    {
+        if ((GPIO_SW5_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
+            { GPIO_sw5_pushed = GPIO_Sw_read(GPIO_sw5_pushed, GPIO_SW5_PIN, slot); break; }
+    }
+    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    {
+        if ((GPIO_SW6_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
+            { GPIO_sw6_pushed = GPIO_Sw_read(GPIO_sw6_pushed, GPIO_SW6_PIN, slot); break; }
     }
 }
 

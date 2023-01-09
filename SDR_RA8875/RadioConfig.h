@@ -189,7 +189,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
+//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR config, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -282,7 +282,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN          255
 	#define GPIO_SW5_PIN          255
-	#define GPIO_ANT_PIN          255		  // 255 for unused pins
+  #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
+	#define GPIO_ANT_PIN          255		  // 255 for unused pins.  When used this is configured as an output instead of input for the GPIO_SWx_PINs
 #elif defined(V1_4_3_PCB)     // V1.0 4.3" Display PCB
   #define I2C_INT_PIN            36
 	#define GPIO_VFO_PIN_A          4     // used for VFO
@@ -300,7 +301,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN          255     // 255 for unused pins
 	#define GPIO_SW5_PIN          255     // 255 for unused pins
-	#define GPIO_ANT_PIN          255		  // 255 for unused pins
+  #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
+	#define GPIO_ANT_PIN          255		  // 255 for unused pins.  When used this is configured as an output instead of input for the GPIO_SWx_PINs
 #elif defined (V2_4_3_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         15     // used for VFO
@@ -318,6 +320,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN            5     // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN            6     // 255 for unused pins
 	#define GPIO_SW5_PIN            7     // 255 for unused pins
+  #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN            0		  // Used as an output for Ant relay 1/2
   #elif defined (V21_7_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
   #define I2C_INT_PIN            17
@@ -336,6 +339,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN            6
 	#define GPIO_SW5_PIN            7
+  #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN            0	    // Used as an output for Ant relay 1/2
 #else // else old proto board assignments
   #define I2C_INT_PIN     ```````29
@@ -354,6 +358,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_PIN          255		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN          255     // 255 for unused pins
 	#define GPIO_SW5_PIN          255     // 255 for unused pins
+  #define GPIO_SW6_PIN          255     // 255 for unused pins
 	#define GPIO_ANT_PIN          255	    // 255 for unused pins
 #endif
 
@@ -375,6 +380,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
   #define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+  #define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_ANT_ENABLE         1     // GPIO Output, 0 disables, any value > 0 enables
 
 	// I2C connected encoders use this this pin to signal interrupts
@@ -407,6 +413,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW3_ENABLE         8     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
+  #define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_ANT_ENABLE         1     // GPIO Output, 0 disables, any value > 0 enables
 
 	// I2C connected encoders use this this pin to signal interrupts
