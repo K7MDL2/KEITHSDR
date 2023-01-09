@@ -12,7 +12,6 @@
 #include <i2cEncoderLibV2.h>
 //#include "RadioConfig.h"
 
-#ifdef I2C_ENCODERS
 // These are the per-encoder function declarations
 #ifdef I2C_ENC1_ADDR
 void blink_I2C_ENC1_RGB(void);
@@ -42,7 +41,5 @@ void i2c_encoder_thresholds(i2cEncoderLibV2* obj, uint8_t slot);
 void gpio_switch_timer_start(uint8_t _id);
 void gpio_switch_click(uint8_t _id);
 void gpio_encoder_rotated(i2cEncoderLibV2* obj, int32_t count);
-
-#endif //  I2C_ENCODERS
 
 #endif //  _SDR_I2C_Encoder_H_

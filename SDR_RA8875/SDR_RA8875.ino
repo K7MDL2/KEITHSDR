@@ -22,6 +22,8 @@
 #include "hilbert19A.h"
 #include "hilbert121A.h"
 #include "hilbert251A.h"
+#include "SDR_I2C_Encoder.h"    // See RadioConfig.h for more config including assigning an INT pin.                                          
+                                // Hardware verson 2.1, Arduino library version 1.40.                                 
 
 //#define USB32   // Switch between F32 and I16 versions of USB Audio interface
 // So far I16 method has been working better.  Using USB32 flow results in distorted RX and TX audio.
@@ -49,6 +51,7 @@ SDR_RS_HFIQ RS_HFIQ;
                                 // For 60M coverage requires and updated libary file set.
 #endif // SV1AFN_BPF
 
+
 #ifdef I2C_ENCODERS // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
     //  This is a basic example for using the I2C Encoder V2
     //  The counter is set to work between +10 to -10, at every encoder click the counter value is printed on the terminal.
@@ -63,8 +66,7 @@ SDR_RS_HFIQ RS_HFIQ;
     //  SDA -> 18
     //  SCL -> 19
     //  INT -> 29 - Dependent on particular board pin assignments
-    #include "SDR_I2C_Encoder.h"              // See RadioConfig.h for more config including assigning an INT pin.                                          
-    // Hardware verson 2.1, Arduino library version 1.40.                                 
+    
     //Class initialization with the I2C addresses
     #ifdef I2C_ENC1_ADDR
       extern i2cEncoderLibV2 I2C_ENC1;  // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//

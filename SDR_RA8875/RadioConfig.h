@@ -342,7 +342,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN            0	    // Used as an output for Ant relay 1/2
 #else // else old proto board assignments
-  #define I2C_INT_PIN     ```````29
+  #define I2C_INT_PIN            29
 	#define GPIO_VFO_PIN_A          4     // used for VFO
 	#define GPIO_VFO_PIN_B          5
 	#define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.

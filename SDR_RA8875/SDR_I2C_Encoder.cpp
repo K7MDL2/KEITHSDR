@@ -4,6 +4,7 @@
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 #include "SDR_I2C_Encoder.h"
+#include <i2cEncoderLibV2.h>
 
 //  In RadioConfig.h use   #define USE_MIDI to enable MIDI 	-  
 //  Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
@@ -47,9 +48,6 @@
 	}
 #endif
 
-#ifdef I2C_ENCODERS
-
-#include <i2cEncoderLibV2.h>
 // These are the per-encoder function declarations
 void set_I2CEncoders(void); 
 extern void setEncoderMode(uint8_t id);
@@ -106,10 +104,10 @@ static int32_t gpio_enc_count = 0;
 #endif
 
 // create dummy objects for gpio to interface to the i2c lib
-#ifdef GPIO_ENC2_ENABLE
+#if GPIO_ENC2_ENABLE
 	i2cEncoderLibV2 GPIO_ENC2(0);
 #endif
-#ifdef GPIO_ENC3_ENABLE
+#if GPIO_ENC3_ENABLE
 	i2cEncoderLibV2 GPIO_ENC3(0);
 #endif
 
@@ -435,8 +433,10 @@ COLD void encoder_fade(i2cEncoderLibV2* obj)
 
 COLD void set_I2CEncoders()
 {
-	uint8_t slot = 0;
-
+	#if I2C_ENCODERS || GPIO_ENCODERS
+	   uint8_t slot = 0;
+	#endif
+	
 	pinMode(I2C_INT_PIN, INPUT_PULLUP);
     //DPRINTLN(F("Setup ENC"));
 
@@ -796,5 +796,3 @@ COLD void blink_I2C_ENC6_RGB(void)
     I2C_ENC6.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
-
-#endif // I2C_ENCODER
