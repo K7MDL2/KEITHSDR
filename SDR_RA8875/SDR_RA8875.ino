@@ -141,7 +141,9 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz);
 COLD void resetCodec(void);
 COLD void TwinPeaks(void);  // Test auto I2S Alignment 
 HOT  void Check_Encoders(void);
+HOT  void Check_GPIO_Switches(void);
 COLD void init_band_map(void);
+HOT  bool GPIO_Sw_read(bool sw_pushed, uint8_t sw_pin, uint8_t slot);
 //extern void update_icon_outline(void);
 
 #ifdef USE_RS_HFIQ
@@ -769,7 +771,7 @@ static uint32_t delta = 0;
 //
 HOT void loop()
 {
-    static int32_t newFreq = 0;
+    static int32_t  newFreq = 0;
     static uint32_t time_old = 0;
     static uint32_t time_n  = 0;
     #ifdef DEBUG
@@ -787,10 +789,10 @@ HOT void loop()
           uint32_t jhElapsed=millis()-jhTime;
           jhTime=millis();
           loopcount=0;      
-          tft.fillRect(200,15,46,22, BLACK);
+          tft.fillRect(234,5,46,22, BLACK);
           tft.setFont(Arial_14);
-          tft.setCursor(202,19, false);
-          tft.setTextColor(WHITE);
+          tft.setCursor(236,9, false);
+          tft.setTextColor(DARKGREY);
           tft.print(jhElapsed/10); 
       }
     #endif
@@ -2056,7 +2058,7 @@ void RS_HFIQ_Service(void)
         if (bandmem[curr_band].mode_A != mode_last)
         {
             mode_last = bandmem[curr_band].mode_A;
-            DEBUG_PRINTF("Change Mode: %d\n", mode_last);
+            //DEBUG_PRINTF("Change Mode: %d\n", mode_last);
             setMode(2);
             return;
         }

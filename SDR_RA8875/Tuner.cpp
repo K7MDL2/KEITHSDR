@@ -73,7 +73,7 @@ COLD void selectFrequency(int32_t newFreq)  // 0 = no change unless an offset is
 		else
 			Freq += rit_offset;  // Add in any RIT offset.  
 
-		DPRINTF("TUNER: Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINTLN(xit_offset);
+		//DPRINTF("TUNER: Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINTLN(xit_offset);
 	#endif
 
 	#ifdef PANADAPTER

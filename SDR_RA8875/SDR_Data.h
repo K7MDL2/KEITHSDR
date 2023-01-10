@@ -175,8 +175,8 @@ struct Transverter xvtr[XVTRS] = {
         { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, MODE_LBL,   "Mode\0"},
         { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, FILTER_LBL, "Filter\0"},
         { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, RATE_LBL,   "Rate\0"},
-        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  4, 20, ATTEN_LBL,  "ATT\0"},
-        { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, PREAMP_LBL, "Preamp\0"},
+        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 4,  20, ATTEN_LBL,  "ATT\0"},
+        { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, PREAMP_LBL, "PRE\0"},
         { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, BAND_LBL,   "Band\0"},
         //{ OFF, ON, 1, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band1\0"},
         //{ OFF, ON, 1, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
@@ -191,7 +191,7 @@ struct Transverter xvtr[XVTRS] = {
         //{ OFF, ON, 2, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
         //Panel 3
         { ON, OFF, 3, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, 255,        "Menu\0"},
-        { ON, OFF, 3, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 18, 20, ANT_LBL,    "ANT  \0"},
+        { ON, OFF, 3, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 18, 20, ANT_LBL,    "ANT  \0"},
         { ON, OFF, 3, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 25, 20, ATU_LBL,    "ATU\0"},
         { ON, OFF, 3, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 22, 20, XMIT_LBL,   "XMIT\0"},
         { ON, OFF, 3, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 12, 20, 255,        "Band -\0"},
@@ -267,37 +267,37 @@ struct Transverter xvtr[XVTRS] = {
 // A button may be used as a label also but carries some extra baggage. The Clock button is a good example,
 //    it supports touch events later to maybe pop up a menu of clock settings.
 // The UserInput.h "Button handler" will scan all reported touch events x,y coordinates for a match to any touch enabled buttons and labels.
-
+// Ensure the button area defined does not overlap with another button. The first in thr list to match coordinates will be the one chosen.
 struct Label labels[LABEL_NUM] = {
-  //  en  show   x   y    w   h   r out_col on_txtclr on_color off_txtclr off_color padx pady label 
-    {OFF, OFF,   0,   0,  40, 29, 3, BLACK, BLUE,  BLACK, CYAN,       BLACK, 3, 7, "B:\0"},   
-    {OFF,  ON,  20, 110,  90, 28, 3, BLACK, YELLOW,BLACK, YELLOW,     BLACK, 3, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 130, 110, 105, 28, 3, BLACK, CYAN,  BLACK, CYAN,       BLACK, 3, 7, "F:\0"},
-    {OFF,  ON, 280, 110,  96, 28, 3, BLACK, BLUE,  BLACK, ORANGE,     BLACK, 3, 7, "R:\0"},
-    {OFF,  ON, 430, 110,  72, 28, 3, BLACK, ORANGE,BLACK, BLUE,       BLACK, 3, 7, "AGC-\0"},
-    {OFF,  ON, 560, 110,  60, 28, 3, BLACK, RED,   BLACK, YELLOW,     BLACK, 3, 7, "ANT-\0"}, 
-    {OFF,  ON,  10,  15,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 4, 4, "ATT\0"},
-    {OFF,  ON,  70,  15,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 5, 4, "PRE\0"},
-    {OFF,  ON, 130,  15,  60, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 8, 4, "ATU\0"},
-    {OFF,  ON,  10,  40,  48, 22, 3, BLACK, WHITE, DARKGREEN,  myDARKGREY, BLACK, 7, 4, "RIT\0"},
-    {OFF,  ON,  70,  40,  48, 22, 3, BLACK, WHITE, RED,   myDARKGREY, BLACK, 8, 4, "XIT\0"},
-    {OFF,  ON, 130,  40,  60, 22, 3, BLACK, WHITE, BLUE,  myDARKGREY, BLACK, 7, 4, "FINE\0"},
-    {OFF,  ON,  10,  65,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 9, 4, "NB\0"},
-    {OFF,  ON,  70,  65,  48, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 9, 4, "NR\0"},
-    {OFF,  ON, 130,  65,  60, 22, 3, BLACK, BLACK, CYAN,  myDARKGREY, BLACK, 4, 4, "NTCH\0"},
+  //  en  show   x   y    w   h   r out_col     on_txtclr   on_color    off_txtclr off_color padx pady label 
+    {OFF, OFF,   0,   0,  40, 29, 3, BLACK,     BLUE,       BLACK,      CYAN,            BLACK, 4, 7, "B:\0"},  // Band, not in use now 
+    {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK, 4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 4, 7, "F:\0"},
+    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 4, 7, "R:\0"},
+    {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK, 5, 4, "AGC-\0"},
+    {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK, 6, 4, "ANT-\0"}, 
+    {OFF,  ON, 325, 110,  85, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
+    {OFF,  ON,  10,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 9, 4, "PRE\0"},
+    {OFF,  ON,  80,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 10, 4, "ATU\0"},
+    {OFF,  ON, 425, 110,  96, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK, 4, 7, "RIT:+0000\0"},
+    {OFF,  ON, 536, 110,  96, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK, 4, 7, "XIT:-0000\0"},
+    {OFF,  ON,  10,  65,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 7, 4, "FINE\0"},
+    {OFF,  ON, 150,   5,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 14, 4, "NB:0\0"},
+    {OFF,  ON,  80,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 16, 4, "NR\0"},
+    {OFF,  ON, 150,  65,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 4, 4, "NOTCH\0"},
     #ifdef USE_RA8875
-    {OFF,  ON, 220,  65,  90, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Split\0"},
+    {OFF,  ON, 220,  65,  90, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
     #else
-    {OFF,  ON, 320,  65,  90, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Split\0"},
+    {OFF,  ON, 320,  65,  90, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
     #endif
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
-    {OFF, OFF, 467, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "XMIT\0"}, // No label on screen for this today
-    {OFF, OFF, 583, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Xvtr\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "RefLvl\0"},  // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Spot\0"},  // No label on screen for this today
-    {OFF, OFF, 583, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 2, 4, "Zoom\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK, GREEN, BLACK, myDARKGREY, BLACK, 3, 4, "Pan\0"}, // No label on screen for this today
-    {OFF, ON,  200,  40,  46, 22, 3, BLACK,   RED, BLACK,      BLACK, BLACK, 3, 4, "CLIP\0"}
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
+    {OFF,  ON, 647, 110,  70, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 12, 7, "XMIT\0"},
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 4, 4, "Xvtr\0"}, // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "RefLvl\0"}, // No label on screen for this today 
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Spot\0"},  // No label on screen for this today
+    {OFF, OFF, 583, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 2, 4, "Zoom\0"}, // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Pan\0"}, // No label on screen for this today
+    {OFF, ON,   80,  65,  60, 22, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 8, 4, "CLIP\0"}
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
@@ -323,10 +323,10 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,            NONE},       // enc slot 1 of 6
-    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         RATE_BTN,       SW1_BTN,         FINE_BTN},   // enc slot 1 of 6
-    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         NB_BTN},    // enc slot 2
-    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    ZOOM_BTN,    ON,         PAN_BTN,        SW3_BTN,         ANT_BTN},  // enc slot 3
-    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW4_BTN,         XMIT_BTN},   // enc slot 4
+    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // enc slot 1 of 6
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  AFGAIN_BTN,  ON,         ATTEN_BTN,      SW2_BTN,         NB_BTN},    // enc slot 2
+    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    RIT_BTN,    ON,         XIT_BTN,        SW3_BTN,         ATTEN_BTN},  // enc slot 3
+    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW4_BTN,         XMIT_BTN},   // enc slot 4
     {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},         // enc slot 5
     {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      MENU_BTN},  // enc slot 6
     {GPIO_SW,   7,    GPIO_SW2_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDDN_BTN,      BAND_BTN},    // enc slot 7

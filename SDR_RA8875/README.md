@@ -7,6 +7,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     1. Added support for 6 GPIO switches. Expanded the encoder_list table to 12 entries. Table supports I2C and GPIO encoders and switches in any mix.
     2. Published updated BOM and PCB files for V2.1 7" Teensy Motherboard after building the first one.  See hardware folder.
     3. Jan 8 - Added RIT and XIT functionality. XMIT will also work in split. RIT and XIT are knob assignable.
+    4. Jan 9 - Reworked the UI status icons (labels).  Made all of them touch enabled. XMIT requires a Press. Darkened inactive label text, rearranged them, changed text colors, added RIT, XIT, XMIT, XVTR (not active) and CLIP labels. RIT and XIT display in KHz in 10Hz resolution.  The step rate (an index to the tstep table) is specified in the user_Settings table in RadioConfig.h.  CLIP is only an indicator that is lighted when the RS-HFIQ returns clipping status during transmit. Unlike the other icons it will turn red to catch your attention better.  XMIT background turns red also in transmit.
+    5. Changed NB and ATT button behaviors now that the values can be seen in the status icons.  Button or touch an icon is simple ON/OFF.  If it is adjustable then it is MF enabled and can be adjusted with an MF knob, a assigned encoder, or touch drag as usual. The goal is to sweep through the controls and standardize their operations.
 
 ## Dec 2022
 

@@ -163,16 +163,20 @@
 #define ORANGE        0xFD20
 #define GREENYELLOW   0xAFE5
 #define PINK          0xF81F
-#define LIGHTORANGE  0xFC80 // the experimentalist
+#define LIGHTORANGE   0xFC80 // the experimentalist
 
-// Some defines for ease of use 
+// Some custom color mixes   RGB565 
+// Can use the RGB565 Color PIcker tool  at https://www.barth-dev.de/online/rgb565-color-picker/
 #define myDARKGREY    31727u
-
-// Some custom color mixes
-const uint16_t myDARK_GREEN         = 0x03C0;
-const uint16_t myVERY_DARK_GREEN    = 0x02C0;
-const uint16_t myDARK_BLUE          = 0x02B0;
-const uint16_t myVERY_DARK_BLUE     = 0x01B0;
+#define myVDARKGREY   0x4A49  //0x632C //0x5AEC 0x2945  0x4A49  0x4208
+//#define myVDARKGREEN  0x12C3 // very dark green
+const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function wants this form.
+#define myDARKGREEN   0x02C0 // dark green
+#define myDARKBLUE    0x02B0
+#define myVDARKBLUE   0x01B0 // very dark blue
+#define myVDKORANGE   0xCB21 // very dark orange, maybe burnt orange
+#define myDKYELLOW    0x9422 // very dark yellow
+#define myDKPINK      0xA1F3 // dark pink
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 // Index to bandmem table rows.  Use BANDX since rows can be in any order

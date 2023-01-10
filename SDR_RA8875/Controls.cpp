@@ -496,14 +496,13 @@ COLD void AGC(int8_t dir)
         bandmem[curr_band].agc_mode = (uint8_t) a_md;
         selectAgc(bandmem[curr_band].agc_mode);
     }
-    //DPRINT("Set AGC to ");
-    //DPRINTLN(bandmem[curr_band].agc_mode);            
+    //DPRINTF("Set AGC to "); DPRINTLN(bandmem[curr_band].agc_mode);            
     sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
     sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
     displayAgc();
 }
 
-// MUTE
+// MUTE button
 COLD void Mute()
 {  
     //float _afLevel = (float) user_settings[user_Profile].afGain/100;
@@ -602,35 +601,33 @@ COLD void VFO_AB(void)
 //   toogle = 2 toggles attenuator state
 COLD void setAtten(int8_t toggle)
 {
-    //DPRINT("toggle = "); DPRINTLN(toggle);
-
     if (toggle == 2)    // toggle if ordered, else just set to current state such as for startup.
     {
         if (bandmem[curr_band].attenuator == ATTEN_ON)  // toggle the attenuator tracking state
-        {
             toggle = 0;
-            bandmem[curr_band].attenuator_byp = 0;   //Turn relay off bypassing hardware attenuator
-        }
         else
-        { 
             toggle = 1;
-            bandmem[curr_band].attenuator_byp = 1;    //Turn relay ON for hardware attenuator
-        }
     }
     
     if (toggle == 1)    // toggle is 1, turn on Atten
     {
+        bandmem[curr_band].attenuator_byp = 1;    //Turn relay ON for hardware attenuator
         bandmem[curr_band].attenuator = ATTEN_ON;  // le the attenuator tracking state to ON
         MeterInUse=true;
         setMeter(ATTEN_BTN);
+        Atten(0);  // 0 = no change to set attenuator level to value in database for this band
+    }
+
+    if (toggle == 0)
+    {   
+        bandmem[curr_band].attenuator_byp = 0;   //Turn relay off bypassing hardware attenuator
+        bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
     }
 
     if (toggle == 0 || toggle == -1)
     {   
-        bandmem[curr_band].attenuator = ATTEN_OFF;  // set attenuator tracking state to OFF
         MeterInUse = false;
-        if (toggle != -1)
-            clearMeter();
+        if (toggle != -1) clearMeter();
     }
 
     // Set the attenuation level from the value in the database
@@ -651,12 +648,9 @@ COLD void setAtten(int8_t toggle)
     #endif
 
     displayAttn();
-    //DPRINT("Set Attenuator Relay to ");
-    //DPRINT(bandmem[curr_band].attenuator);
-    //DPRINT(" Atten_dB is ");
-    //DPRINT(bandmem[curr_band].attenuator_dB);
-    //DPRINT(" and Ref Level is ");
-    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+
+    //DPRINTF("Set Attenuator Relay to "); DPRINT(bandmem[curr_band].attenuator_byp); DPRINTF(" Atten_dB is "); DPRINTLN(bandmem[curr_band].attenuator_dB);
+    //DPRINTF(" and Ref Level is "); DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 /*******************************************************************************
@@ -677,7 +671,7 @@ COLD void setAtten(int8_t toggle)
 *******************************************************************************/
 COLD void Atten(int8_t delta)
 {
-    float _atten = bandmem[curr_band].attenuator_dB;
+    int8_t _atten = bandmem[curr_band].attenuator_dB;
 
     _atten += delta*3;
 
@@ -685,9 +679,10 @@ COLD void Atten(int8_t delta)
         _atten = 100;
     if(_atten <= 0 )
         _atten = 0;
-    bandmem[curr_band].attenuator_dB = (uint8_t) _atten;  // Assign new valid value
+    bandmem[curr_band].attenuator_dB = _atten;  // Assign new valid value
+
+    //DPRINT("Setting attenuator value to "); DPRINTLN(bandmem[curr_band].attenuator_dB);
     
-    DPRINT("Setting attenuator value to "); DPRINTLN(bandmem[curr_band].attenuator_dB);
     displayAttn();  // update the button value
     
     // CALL HARDWARE SPECIFIC ATENUATOR or FIXED ATTEN HERE
@@ -869,8 +864,8 @@ COLD void setXIT(int8_t toggle)
         XIT(0);   // update frequency
     }
  
-    DPRINTF("setXIT: Set XIT ON/OFF to "); DPRINTLN(bandmem[curr_band].XIT_en);
-    DPRINTF("setXIT: Set XIT OFFSET to "); DPRINT(xit_offset); DPRINTF("  xit_offset_last = "); DPRINTLN(xit_offset_last);
+    //DPRINTF("setXIT: Set XIT ON/OFF to "); DPRINTLN(bandmem[curr_band].XIT_en);
+    //DPRINTF("setXIT: Set XIT OFFSET to "); DPRINT(xit_offset); DPRINTF("  xit_offset_last = "); DPRINTLN(xit_offset_last);
 }
 
 // XIT offset control
@@ -1093,7 +1088,7 @@ COLD void Ant()
     }
     
     displayANT();
-    DPRINTF("Set Ant Sw to "); DPRINTLN(bandmem[curr_band].ant_sw);
+    //DPRINTF("Set Ant Sw to "); DPRINTLN(bandmem[curr_band].ant_sw);
 }
 
 // AF GAIN button activate control
@@ -1403,7 +1398,11 @@ COLD void Xmit(uint8_t state)  // state ->  TX=1, RX=0; Toggle =2
     //DPRINT("Set XMIT to "); DPRINTLN(user_settings[user_Profile].xmit);
 }
 
-// NB button
+// NB ON/OFF button
+// -1 is clear meter- used by MF knob and S-meter box 
+//  0 is OFF - turn off button highlight and center pan window
+//  1 is ON
+//  2 is toggle ON/OFF state
 COLD void setNB(int8_t toggle)
 {
     //char string[80];   // print format stuff
@@ -1417,27 +1416,36 @@ COLD void setNB(int8_t toggle)
     if (toggle == 1)
     {   
         user_settings[user_Profile].nb_en = ON;
+        NBLevel(0);
         MeterInUse = true;
         setMeter(NB_BTN);
     }
     
-    if (toggle == 0 || toggle == -1) 
+    if (toggle == 0) 
     {
         user_settings[user_Profile].nb_en = OFF;
+        NBLevel(0);
+    }
+
+    if (toggle == 0 || toggle == -1) 
+    {
         MeterInUse = false;
         if (toggle != -1)
             clearMeter();
     }
 
-    //DPRINT("Set NB to ");
-    //DPRINTLN(user_settings[user_Profile].nb_en);
+    //DPRINTF("Set NB to "); DPRINTLN(user_settings[user_Profile].nb_en);
     displayNB();
 }
 
 // Adjust the NB level. NB() turn on and off only calling this to initiialize the current level with delta = 0    
+// NB Level Adjust - range is 1 to 6
+//  0 is Use Current value in DB.  If NB_en is OFF, then disable NB.
+//  + increments
+//  - decrements
 COLD void NBLevel(int8_t delta)
 {
-    float _nbLevel;
+    int8_t _nbLevel;
 
     //DPRINT(" TEST NB delta "); DPRINTLN(delta);
 
@@ -1461,12 +1469,12 @@ COLD void NBLevel(int8_t delta)
 */
     if (_nbLevel > NB_SET_NUM-1)         // Limit the value
         _nbLevel = NB_SET_NUM-1;
-    if (_nbLevel < 0)
-        _nbLevel = 0;
+    if (_nbLevel < 1)
+        _nbLevel = 1;
 
     user_settings[user_Profile].nb_level = _nbLevel;  // We have our new table index value 
 
-    if (user_settings[user_Profile].nb_level != OFF)   // Adjust the value if on
+    if (user_settings[user_Profile].nb_en == ON)   // Adjust the value if on
     {
         NoiseBlanker.showError(1);
         NoiseBlanker.useTwoChannel(true);  // true enables a path through the "I"  or left side for I and Q
@@ -1482,10 +1490,10 @@ COLD void NBLevel(int8_t delta)
     else  // NB is disabled so bypass 
     {
         NoiseBlanker.enable(false);  //  NB block is bypassed
+        //DPRINTF("NB Disabled");
     }
     
-    //DPRINT("NB level set to  "); 
-    //DPRINTLN(_nbLevel);
+    //DPRINTF("NB level set to  "); DPRINTLN(_nbLevel);
     displayNB();
 }
 
@@ -1505,8 +1513,7 @@ COLD void setNR()
         LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     }
     displayNR();
-    DPRINT("Set NR to ");
-    DPRINTLN(user_settings[user_Profile].nr_en);
+    //DPRINTF("Set NR to "); DPRINTLN(user_settings[user_Profile].nr_en);
 }
 
 // Enet button
@@ -1518,8 +1525,7 @@ COLD void Enet()
         user_settings[user_Profile].enet_output = ON;
    
     displayEnet();
-    //DPRINT("Set Ethernet to ");
-    //DPRINTLN(user_settings[user_Profile].enet_output);
+    //DPRINTF("Set Ethernet to "); DPRINTLN(user_settings[user_Profile].enet_output);
 }
 
 // Spot button
@@ -1530,8 +1536,7 @@ COLD void Spot()
     else
         user_settings[user_Profile].spot = OFF;
     //displaySpot();
-    //DPRINT("Set Spot to ");
-    //DPRINTLN(user_settings[user_Profile].spot);
+    //DPRINTF("Set Spot to "); DPRINTLN(user_settings[user_Profile].spot);
 }
 
 // REF LEVEL button activate control
@@ -1553,8 +1558,7 @@ COLD void setRefLevel(int8_t toggle)
             MeterInUse = true;
             setMeter(REFLVL_BTN);
         }
-        //DPRINT("Set REFLVL to ON ");
-        //DPRINT(std_btn[REFLVL_BTN].enabled);
+        //DPRINTF("Set REFLVL to ON "); DPRINT(std_btn[REFLVL_BTN].enabled);
     }
     
     if (toggle == 0 || toggle == -1)
@@ -1563,13 +1567,11 @@ COLD void setRefLevel(int8_t toggle)
         MeterInUse = false; 
         if (toggle != -1)
             clearMeter();
-        //DPRINT("Set REFLVL to OFF ");
-        //DPRINT(std_btn[REFLVL_BTN].enabled);
+        //DPRINTF("Set REFLVL to OFF "); DPRINT(std_btn[REFLVL_BTN].enabled);
     }
 
     displayRefLevel();
-    //DPRINT(" and Ref Level is ");
-    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+    //DPRINTF(" and Ref Level is "); DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // Ref Level adjust
@@ -1585,8 +1587,7 @@ COLD void RefLevel(int8_t newval)
     Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor = bandmem[curr_band].sp_ref_lvl;
 #endif
     displayRefLevel();
-    //DPRINT("Set Reference Level to ");
-    //DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
+    //DPRINTF("Set Reference Level to "); DPRINTLN(Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor);
 }
 
 // Notch button
@@ -1606,8 +1607,7 @@ COLD void Notch()
     }    
 
     displayNotch();
-    DPRINT("Set Notch to ");
-    DPRINTLN(user_settings[user_Profile].notch);
+    //DPRINT("Set Notch to "); DPRINTLN(user_settings[user_Profile].notch);
 }
 
 // BAND UP button
@@ -1615,8 +1615,7 @@ COLD void BandUp()
 {
     changeBands(1);
     displayBandUp();
-    //DPRINT("Set Band UP to ");
-    //DPRINTLN(bandmem[curr_band].band_num,DEC);
+    //DPRINTF("Set Band UP to "); DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 
 // BAND DOWN button
@@ -1625,8 +1624,7 @@ COLD void BandDn()
     //DPRINTLN("BAND DN");
     changeBands(-1);
     displayBandDn();
-    //DPRINT("Set Band DN to ");
-    //DPRINTLN(bandmem[curr_band].band_num,DEC);
+    //DPRINTF("Set Band DN to "); DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 
 // BAND button
@@ -1673,7 +1671,7 @@ COLD void Band(uint8_t new_band)
     displayFilter();
     //displayRefresh();
     displayFreq(); // show freq on display
-    //DPRINT("Set Band to "); DPRINTLN(bandmem[curr_band].band_num,DEC);
+    //DPRINTF("Set Band to "); DPRINTLN(bandmem[curr_band].band_num,DEC);
 }
 
 // DISPLAY button
@@ -1695,8 +1693,7 @@ COLD void Display()
     //popup = 1;
     //pop_win_up(1);
     displayDisplay();
-    //DPRINT("Set Display Button to ");
-    //DPRINTLN(display_state);
+    //DPRINTF("Set Display Button to "); DPRINTLN(display_state);
 }
 
 COLD void TouchTune(int16_t touch_Freq)
@@ -1711,13 +1708,13 @@ COLD void TouchTune(int16_t touch_Freq)
     touch_Freq -= Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_width/2 - pk;// adjust coordinate relative to center accounting for pan offset
     int32_t _newfreq = touch_Freq * fft_bin_size*2;  // convert touch X coordinate to a frequency and jump to it.    
     // We have our new target frequency from touch
-    //DPRINT(F("\npan offset (bins from center)     =")); DPRINTLN(pk);
-    //DPRINT(F("touch_Freq (bins from center)     =")); DPRINTLN(touch_Freq);
-    //DPRINT(F("Touch target change in Hz         =")); DPRINTLN(_newfreq);
-    //DPRINT(F("New target touch VFO (Hz)         =")); DPRINTLN(formatVFO(VFOA+_newfreq));
+    //DPRINTF("\npan offset (bins from center)     ="); DPRINTLN(pk);
+    //DPRINTF("touch_Freq (bins from center)     ="); DPRINTLN(touch_Freq);
+    //DPRINTF("Touch target change in Hz         ="); DPRINTLN(_newfreq);
+    //DPRINTF("New target touch VFO (Hz)         ="); DPRINTLN(formatVFO(VFOA+_newfreq));
     // Suggested frequency from the Peak Frequency function in the spectrum library - may not be the one we want! It is just the strongest.
-    //DPRINT(F("\nFreq_Peak (Hz)                  =")); DPRINTLN(formatVFO(Freq_Peak)); 
-    //DPRINT(F("Target VFOA - VFO_peak (Hz)       =")); DPRINTLN((int32_t) VFOA+_newfreq-Freq_Peak);
+    //DPRINTF("\nFreq_Peak (Hz)                  ="); DPRINTLN(formatVFO(Freq_Peak)); 
+    //DPRINTF("Target VFOA - VFO_peak (Hz)       ="); DPRINTLN((int32_t) VFOA+_newfreq-Freq_Peak);
     
     DPRINT(F("Touch-Tune frequency is "));
     VFOA += _newfreq;

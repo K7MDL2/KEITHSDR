@@ -690,7 +690,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         //DPRINTLN((ptr+i)->label);
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
         {
-            if ((ptr+i)->show && holdtime == 0)  // if the show property ius active, call the button function to act on it.
+            if ((ptr+i)->show && holdtime == 0)  // if the show property is active, call the button function to act on it.
             {                   
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 Button_Action(i);
@@ -703,11 +703,12 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 {
                     case NB_BTN:        setNB(1);       break; //Increment the mode from current value           
                     case AGC_BTN:       AGC(0);         break;   
-                    case ATTEN_BTN:     setAtten(1);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
+                    //case ATTEN_BTN:     setAtten(1);    break; // 2 = toggle state, 1 is set, 1 is off, -1 use current      
                     case SMETER_BTN:    setRFgain(1);   break;
                     case PAN_BTN:       setPAN(3);      break;  // set pan to center
                     case RIT_BTN:       setRIT(3);      break;
                     case XIT_BTN:       setXIT(3);      break;
+                    case XMIT_BTN:      Xmit(2);        break;   // Long press to help avoid accidental transmit
                     //case AFGAIN_BTN:    setAFgain(1);   break;
                     case RFGAIN_BTN:    setRFgain(3);   break;  // 
                     default:DPRINT(F("Found a LONG PRESS button with SHOW ON but has no function to call.  Index = "));
@@ -734,19 +735,40 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         //DPRINTLN((ptr+i)->label);
         if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
         {
-            if ((pLabel+i)->show)  // if the show property is active, call the button function to act on it.
-            {   
+            if ((pLabel+i)->show && holdtime == 0)  // if the show property is active, call the button function to act on it.
+            {       // Process TAP on a label            
                 touchBeep(true);  // feedback beep - a timer will shut it off.
-                // used the index to the table to match up a function to call
                 switch (i)
                 {
                     case MODE_LBL:      setMode(0);     break; //Increment the mode from current value
                     case FILTER_LBL:    Filter(0);      break;
                     case RATE_LBL:      Rate(0);        break;
-                    case AGC_LBL:       AGC(0);          break;
+                    case AGC_LBL:       AGC(2);         break;
                     case ANT_LBL:       Ant();          break;
-                    default:DPRINT(F("Found a Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
-                      DPRINTLN(i); break;
+                    case ATTEN_LBL:     setAtten(2);    break;
+                    case RIT_LBL:       setRIT(2);      break;
+                    case XIT_LBL:       setXIT(2);      break;
+                    case NB_LBL:        setNB(2);       break;
+                    case FINE_LBL:      Fine();         break;
+                    case PREAMP_LBL:    Preamp(2);      break;
+                    case NOTCH_LBL:     Notch();        break;
+                    case ATU_LBL:       ATU(2);         break;
+                    case NR_LBL:        setNR();        break;
+                    case XVTR_LBL:      Xvtr();         break;
+                    case SPLIT_LBL:     Split(2);       break;
+                    default:DPRINT(F("Found a TAP Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
+                        DPRINTLN(i); break;
+                }
+            } // Process a PRESS on a label (Long push)
+            else if ((pLabel+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
+            {   
+                touchBeep(true);  // feedback beep - a timer will shut it off.
+                // used the index to the table to match up a function to call
+                switch (i)
+                {
+                    case XMIT_LBL:      Xmit(2);        break;   // Do only Press to prevent accidental XMIT
+                    default:DPRINT(F("Found a PRESS Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
+                        DPRINTLN(i); break;
                 }
             }
         }
@@ -770,7 +792,6 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         VFO_AB();
 }
 
-
 void Button_Action(uint16_t button_name)
 {
     struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
@@ -785,7 +806,7 @@ void Button_Action(uint16_t button_name)
             case MODE_BTN:      setMode(0);     break; //Increment the mode from current value
             case FILTER_BTN:    Filter(0);      break;
             case RATE_BTN:      Rate(0);        break; //Increment from current value 
-            case AGC_BTN:       AGC(2);          break;
+            case AGC_BTN:       AGC(2);         break;
             case ANT_BTN:       Ant();          break;                    
             case MUTE_BTN:      Mute();         break;
             case MENU_BTN:      Menu();         break;
@@ -798,7 +819,6 @@ void Button_Action(uint16_t button_name)
             case XVTR_BTN:      Xvtr();         break;
             case ATU_BTN:       ATU(2);         break;
             case FINE_BTN:      Fine();         break;
-            case XMIT_BTN:      Xmit(2);        break;
             case NB_BTN:        setNB(2);       break;
             case NR_BTN:        setNR();        break;
             case ENET_BTN:      Enet();         break;

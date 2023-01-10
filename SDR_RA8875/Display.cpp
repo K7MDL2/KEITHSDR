@@ -239,7 +239,7 @@ COLD void displayAgc(void)
 
 	sprintf(std_btn[AGC_BTN].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
 	sprintf(labels[AGC_LBL].label, "%s", agc_set[bandmem[curr_band].agc_mode].agc_name);
-	//DPRINT("AGC ="); DPRINTLN(std_btn[AGC_BTN].label);
+	//DPRINTF("AGC ="); DPRINTLN(std_btn[AGC_BTN].label);
 	drawLabel(AGC_LBL, &bandmem[curr_band].agc_mode);
 	draw_2_state_Button(AGC_BTN, &bandmem[curr_band].agc_mode);
 }
@@ -250,9 +250,10 @@ COLD void displayANT(void)
 
 	sprintf(std_btn[ANT_BTN].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
 	sprintf(labels[ANT_LBL].label, "%s%1d", "ANT", bandmem[curr_band].ant_sw);
-	//DPRINT(F("Antenna Switch set to ")); DPRINTLN(std_btn[ANT_BTN].label);
-	drawLabel(ANT_LBL, &bandmem[curr_band].ant_sw);
-	draw_2_state_Button(ANT_BTN, &bandmem[curr_band].ant_sw);
+	uint8_t tmp_ant = bandmem[curr_band].ant_sw-1;
+	//DPRINTF("Antenna Switch set to "); DPRINTLN(tmp_ant);
+	drawLabel(ANT_LBL, &tmp_ant);
+	draw_2_state_Button(ANT_BTN, &tmp_ant);
 }
 
 void displayPan(void)
@@ -272,10 +273,10 @@ void displayPan(void)
 	}
 	//DPRINT(F("Pan set to ")); DPRINTLN(std_btn[PAN_BTN].label);
 	draw_2_state_Button(PAN_BTN, &user_settings[user_Profile].pan_state);
-  #ifdef I2C_LCD
-    lcd.setCursor(10,1);
-    lcd.print(std_btn[PAN_BTN].label);
-  #endif
+	#ifdef I2C_LCD
+		lcd.setCursor(10,1);
+		lcd.print(std_btn[PAN_BTN].label);
+	#endif
 }
 
 COLD void displayRFgain(void)
@@ -295,10 +296,10 @@ COLD void displayRFgain(void)
 	}
 	//DPRINT(F("RF Gain set to ")); DPRINTLN(std_btn[RFGAIN_BTN].label);
 	draw_2_state_Button(RFGAIN_BTN, &user_settings[user_Profile].rfGain_en);
-  #ifdef I2C_LCD
-    lcd.setCursor(10,1);
-    lcd.print(std_btn[RFGAIN_BTN].label);
-  #endif
+	#ifdef I2C_LCD
+		lcd.setCursor(10,1);
+		lcd.print(std_btn[RFGAIN_BTN].label);
+	#endif
 }
 
 COLD void displayAFgain(void)
@@ -317,27 +318,31 @@ COLD void displayAFgain(void)
 	}
 	//DPRINT(F("AF Gain set to ")); DPRINTLN(std_btn[AFGAIN_BTN].label);
 	draw_2_state_Button(AFGAIN_BTN, &user_settings[user_Profile].afGain_en);
-  #ifdef I2C_LCD  
-    lcd.setCursor(0,1);
-    lcd.print(std_btn[AFGAIN_BTN].label);
-  #endif
+	#ifdef I2C_LCD  
+		lcd.setCursor(0,1);
+		lcd.print(std_btn[AFGAIN_BTN].label);
+	#endif
 }
 
 COLD void displayAttn()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
-	char string[80];   // print format stuff
-	sprintf(std_btn[ATTEN_BTN].label, "%s%3d", "ATT:", bandmem[curr_band].attenuator_dB);
-	//DPRINT(F("Atten is ")); DPRINTLN(bandmem[curr_band].attenuator);
+	char string[20];   // print format stuff
+	sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
+	sprintf(labels[ATTEN_LBL].label, "%s", string);
+	sprintf(std_btn[ATTEN_BTN].label, "%s", string);
+
+	//DPRINTF("displayAttn: Atten is "); DPRINT(bandmem[curr_band].attenuator); DPRINTF(" Level is "); DPRINTLN(bandmem[curr_band].attenuator_dB);
+	
+	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
+	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
+
 	if (MF_client == ATTEN_BTN) 
 	{ 
-		sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
         MeterInUse = true;
     	displayMeter(bandmem[curr_band].attenuator_dB/10, string, 5);   // val, string label, color scheme               
 	}
-	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator_byp);
-	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator_byp);
 }
 
 COLD void displayPreamp()
@@ -363,28 +368,38 @@ COLD void displayRIT()
 	if (popup) return;  // Do not write to the screen when a window is active
 
 	char string[15];   // print format stuff
-	//sprintf(std_btn[RIT_BTN].label, "%s%3d", "RIT:", bandmem[curr_band].RIT);
-	//DPRINTF("RIT Offset is "); DPRINTLN(bandmem[curr_band].RIT);
-	if (MF_client == RIT_BTN) 
+	
+	sprintf(string, "RIT:%+01.02f", (float) rit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	sprintf(labels[RIT_LBL].label, "%s", string);   // update label text
+	
+	//DPRINTF("RIT is "); DPRINT(bandmem[curr_band].RIT_en); DPRINTF("  RIT Offset is "); DPRINTLN((float) rit_offset/1000);
+	
+	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);  // update label wiht on/off and any text changes.
+	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
+	
+	if (MF_client == RIT_BTN)  // use text string from above for s meter box
 	{ 
 		MeterInUse = true;
-		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out texst artifacts
-		sprintf(string, "RIT:%+05d", rit_offset);
+		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out text artifacts
 		ringMeter(rit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
 		DPRINTLN(string);
 	}
-	//DPRINT(F("RIT is ")); DPRINTLN(bandmem[curr_band].RIT_en);
-	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);
-	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
 }
 
 COLD void displayXIT()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
-	char string[80];   // print format stuff
-	//sprintf(std_btn[XIT_BTN].label, "%s%3d", "XIT:", bandmem[curr_band].XIT);
-	//DPRINTF("XIT Offset is "); DPRINTLN(bandmem[curr_band].XIT);
+	char string[20];   // print format stuff
+
+	sprintf(string, "XIT:%+01.02f", (float) xit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	sprintf(labels[XIT_LBL].label, "%s", string);   // update label text
+	
+	//DPRINTF("XIT is "); DPRINT(bandmem[curr_band].XIT_en); DPRINTF("  XIT Offset is "); DPRINTLN(bandmem[curr_band].xit_offset/1000);
+
+	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
+	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
+	
 	if (MF_client == XIT_BTN) 
 	{ 
         MeterInUse = true;
@@ -392,9 +407,7 @@ COLD void displayXIT()
 		sprintf(string, "XIT:%+05d", xit_offset);
 		ringMeter(xit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
 	}
-	//DPRINT(F("XIT is ")); DPRINTLN(bandmem[curr_band].XIT_en);
-	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
-	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
+
 }
 
 COLD void displayFine()
@@ -410,19 +423,24 @@ COLD void displayNB()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
-	char string[80];   // print format stuff
-	sprintf(std_btn[NB_BTN].label, "NB:%1d", user_settings[user_Profile].nb_level);
+	char string[20];   // print format stuff
+		
+	sprintf(string, "NB:%1d", user_settings[user_Profile].nb_level);
+	sprintf(std_btn[NB_BTN].label, "%s", string);
+	sprintf(labels[NB_LBL].label,  "%s", string);
     //sprintf(labels[NB_LBL].label,  "NB%s", nb[user_settings[user_Profile].nb_level].nb_name);
+	
 	//DPRINT(F("NB is ")); DPRINT(user_settings[user_Profile].nb_en);
 	//DPRINT(F("   NB Level is ")); DPRINTLN(user_settings[user_Profile].nb_level);
+
+	drawLabel(NB_LBL, &user_settings[user_Profile].nb_en);
+	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
+
 	if (MF_client == NB_BTN) 
 	{ 
-		sprintf(string, "  NB:%1d", user_settings[user_Profile].nb_level);
         MeterInUse = true;
     	displayMeter((int) user_settings[user_Profile].nb_level*1.7, string, 5);   // val, string label, color scheme        
 	}
-	drawLabel(NB_LBL, &user_settings[user_Profile].nb_level);
-	draw_2_state_Button(NB_BTN, &user_settings[user_Profile].nb_en);
 }
 
 COLD void displayZoom()
@@ -468,6 +486,26 @@ COLD void displayNotch()
 	//DPRINT(F("Notch is ")); DPRINTLN(std_btn[NOTCH_BTN].label);
 	drawLabel(NOTCH_LBL, &user_settings[user_Profile].notch);
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
+}
+
+COLD void displayXVTR()
+{
+	if (popup) return;
+	
+	//DPRINTF("displayXVTR: XVTR is "); DPRINTLN(bandmem[curr_band].xvtr_en);
+
+	drawLabel(XVTR_LBL, &bandmem[curr_band].xvtr_en);
+	draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);
+}
+
+COLD void displayXMIT()
+{
+	if (popup) return;
+
+	DPRINTF("displayXMIT: XMIT is "); DPRINTLN(user_settings[user_Profile].xmit);
+
+	drawLabel(XMIT_LBL, &user_settings[user_Profile].xmit);
+	draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 
 }
 
 COLD void displaySplit()
@@ -537,7 +575,7 @@ void displayBand_Menu(uint8_t state)
 	if (state)
     {
 		ptr += BAND_MENU;
-		sprintf(temp, "\nWindow is %s\n",ptr->label);
+		//sprintf(temp, "\nWindow is %s\n",ptr->label);
 		DPRINT(temp);
 
 		ptr_temp += BAND_MENU+1;
@@ -579,7 +617,7 @@ void displayBand_Menu(uint8_t state)
 				//sprintf(temp, "Enabled Button Pos: %d Label: %s\n", ptr->Panelpos, ptr->label); DPRINT(temp);
 			}
 		}
-		DPRINTLN("Band Select Menu Buttons Turned ON");
+		DPRINTF("Band Select Menu Buttons Turned ON\n");
 	}
 	else
 	{
@@ -607,9 +645,7 @@ COLD void displayBand() 	{draw_2_state_Button(BAND_BTN, &std_btn[BAND_BTN].enabl
 //COLD void displaySpot() 	{draw_2_state_Button(SPOT_BTN,  &user_settings[user_Profile].spot);		                     }
 COLD void displayBandDn()	{if (popup) return; draw_2_state_Button(BANDDN_BTN, &bandmem[curr_band].band_num);			 }
 COLD void displayDisplay()	{if (popup) return; draw_2_state_Button(DISPLAY_BTN, &display_state);						 }
-COLD void displayXMIT()		{if (popup) return; draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 }
 COLD void displayMute()		{if (popup) return; draw_2_state_Button(MUTE_BTN, &user_settings[user_Profile].mute);		 }
-COLD void displayXVTR()		{if (popup) return; draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);			     }
 COLD void displayEnet()		{if (popup) return; draw_2_state_Button(ENET_BTN, &user_settings[user_Profile].enet_output); }
 COLD void displayClip()		{if (popup) return;	drawLabel(CLIP_LBL, &labels[CLIP_LBL].enabled); 						 }
 

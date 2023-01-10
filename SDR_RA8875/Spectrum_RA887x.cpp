@@ -461,7 +461,7 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t Vfo
 			}
 
 			// Draw the filter width shaded box.  Translucent would be better.  Correct for pan offset
-			tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_sz/2)*filt_side)-(filterBandwidth/fft_bin_sz/2/2)-pan, ptr->sp_top_line+1, filterBandwidth/fft_bin_sz/2, ptr->sp_height-2, myVERY_DARK_GREEN);
+			tft.fillRect(ptr->l_graph_edge+ptr->wf_sp_width/2+2+((filterCenter/fft_bin_sz/2)*filt_side)-(filterBandwidth/fft_bin_sz/2/2)-pan, ptr->sp_top_line+1, filterBandwidth/fft_bin_sz/2, ptr->sp_height-2, myDARKGREEN);
         }
         //---------------------------------------------------------------------------------------------------
         // Now draw the spectrum lines
