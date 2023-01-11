@@ -204,7 +204,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
       //#define GPIO_ENCODERS           // Requires I2C_Encoders
-      #define I2C_ENCODERS            // Use I2C connected encoders
+      //#define I2C_ENCODERS            // Use I2C connected encoders
       #define V21_7_PCB
       //#define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       //#define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
@@ -367,13 +367,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 		// Assign 0 to disable, assign a unique number to identify and match the table ID field. 
   // Coordinate this assignment with any i2c encoders
   // VFO Enable is slot 0 by convention, value is ignored.
-	#define GPIO_VFO_ENABLE         0     // VFO encoder - value ignored - always enabled, not included in Encoder list table
+	#define GPIO_VFO_ENABLE         1     // VFO encoder always enabled.  Normally set to 1 for Touch tuning (via drag) to work in case there are no encoders.
   #ifdef GPIO_ENCODERS
-	 #define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-	 #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC2_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC3_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
   #else
-   #define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-	 #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+   #define GPIO_ENC2_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC3_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
 	#endif
   #define GPIO_SW1_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to pla
 	#define GPIO_SW2_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
@@ -400,13 +400,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	// Assign 0 to disable, assign a unique number to identify and match the table ID field. 
   // Coordinate this assignment with any i2c encoders
   // VFO Enable is slot 0 by convention, value is ignored.
-	#define GPIO_VFO_ENABLE         0     // VFO encoder - value ignored - always enabled, not included in Encoder list table
+	#define GPIO_VFO_ENABLE         1     // VFO encoder always enabled.  Normally set to 1 for Touch tuning (via drag) to work in case there are no encoders.
   #ifdef GPIO_ENCODERS
-	 #define GPIO_ENC2_ENABLE        1     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-	 #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC2_ENABLE       1     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC3_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
   #else
-   #define GPIO_ENC2_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-	 #define GPIO_ENC3_ENABLE        0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+   #define GPIO_ENC2_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC3_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
 	#endif
   #define GPIO_SW1_ENABLE         6     // GPIO switch, 0 disables, >0 enables, make unique to pla
 	#define GPIO_SW2_ENABLE         7     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
@@ -421,9 +421,9 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	// While there are up to 6 i2c encoders possible, the encoder table and support functions
 	//   only know about 7 encoders, the 1st is always the gpio VFO.
 	//   If any GPIO aux encoders are defined, the total must be <=7  (6 aux plus 1 VFO) so some wil be disabled
-	#define I2C_ENC1_ENABLE         2     // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
-	#define I2C_ENC2_ENABLE         3
-	#define I2C_ENC3_ENABLE         4    
+	#define I2C_ENC1_ENABLE         0//2     // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
+	#define I2C_ENC2_ENABLE         0//3
+	#define I2C_ENC3_ENABLE         0//4    
 	#define I2C_ENC4_ENABLE         0     // 0 is disabled
 	#define I2C_ENC5_ENABLE         0
 	#define I2C_ENC6_ENABLE         0

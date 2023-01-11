@@ -379,8 +379,8 @@ COLD void Touch( void)
                 #endif
             }
 
-            //DPRINT(F(" dragEvent is "));DPRINTLN(dragEvent);
-            //DPRINT(F(" holdtime is "));DPRINTLN(holdtime);
+            //DPRINT(" dragEvent is ");DPRINT(dragEvent); DPRINT(F(" holdtime is "));DPRINTLN(holdtime);
+
             if (!dragEvent)
             {
                 // if only 1 touch and X or Y distance is OK for a button call the button event handler with coordinates
@@ -485,17 +485,18 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             if (user_settings[user_Profile].zoom_level == 2)
                 zoom = 4;
             
-            //DPRINTLN(F("Drag RIGHT")); 
+            //DPRINTLN(F("Drag")); 
+            //DPRINTLN(MF_client); 
             switch (MF_client) {
                 case NB_BTN:        x /= SCREEN_WIDTH/NB_SET_NUM/2;  break; // scale for 7 steps
-                //case ATTEN_BTN: 
+                //case ATTEN_BTN:
                 //case AFGAIN_BTN:
                 //case REFLVL_BTN:
                 //case RIT_BTN:
-                //case RFGAIN_BTN:    x /=  delta;            break;  // normal direction                       
+                //case RFGAIN_BTN:    x /=  delta;            break;  // normal direction                     
                 case PAN_BTN:       x /= -delta;            break;  // Invert the direction
                 case MFTUNE:        x /= -delta*zoom;       break;  // scale for zoom
-                default:            x /=  delta;            break;  // normal direction                       
+                default:            x /=  delta;            break;  // normal direction
             }
             MF_Service(x, MF_client);
         }

@@ -317,15 +317,16 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 // Type 0 = i2c connected, type 1 = GPIO connected.
 // enabled == 1, disabled == 0
 // 1 row for each encoder slot
-// only 1 should have the default MF ENC type assignment MFTUNE.  (any non-zero value is YES, 0 is no)
+// Only 1 row should have the default MF ENC type assignment MFTUNE except for VFO which can also have, or only have, MFTUNE (or any other).  (any non-zero value is YES, 0 is no)
+// The VFO default_MF covers the case of touch only with no GPIO or I2C encoders.  Encoder events start looking at row 1.
 // The 1st row is dedicated to the main VFO and is mostly a dummy row.  The rest of the rows are for the aux encoders and their associated switches
 // The last 4 fields are the encoder shaft primary, alternate controls, and the tap and press control assignments
 struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
-    {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   NONE,    NONE,        NONE,       NONE,           NONE,            NONE},       // enc slot 1 of 6
-    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // enc slot 1 of 6
+    {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   MFTUNE,  NONE,        NONE,       NONE,           NONE,            NONE},       // Set VFO def_MF to MFTUNE in case there are no encoders
+    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // encoder events start slot sreach at 1 so skip VFO slot 0.
     {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  AFGAIN_BTN,  ON,         ATTEN_BTN,      SW2_BTN,         NB_BTN},    // enc slot 2
-    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    RIT_BTN,    ON,         XIT_BTN,        SW3_BTN,         ATTEN_BTN},  // enc slot 3
+    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW3_BTN,         ATTEN_BTN},  // enc slot 3
     {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW4_BTN,         XMIT_BTN},   // enc slot 4
     {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},         // enc slot 5
     {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      MENU_BTN},  // enc slot 6

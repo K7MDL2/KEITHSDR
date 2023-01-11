@@ -228,7 +228,7 @@ uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales
 
 // Set this to be the default MF knob function when it does not have settings focus from a button touch.
 // Choose any from the MF Knob aware list below.
-uint8_t MF_client;  // Flag for current owner of MF knob services
+uint8_t MF_client = MFTUNE;  // Flag for current owner of MF knob services
 bool    MF_default_is_active = true;
 
 //
@@ -509,15 +509,6 @@ COLD void setup()
     Wire.begin();
     Wire.setClock(100000UL); // Keep at 100K I2C bus transfer data rate for I2C Encoders to work right
     I2C_Scanner();
-    uint8_t slot;
-    for (slot=0; slot< NUM_AUX_ENCODERS; slot++)
-    {
-        if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
-            break;
-    }
-    MF_client = encoder_list[slot].default_MF_client;  
-    MF_default_is_active = true;
-    MeterInUse = false;   
 
     #ifdef  I2C_ENCODERS  
         set_I2CEncoders();
@@ -879,17 +870,17 @@ HOT void loop()
         if (!MF_default_is_active)
         {
             MeterInUse = false;
-            //DPRINT(F("Switching to Default MF knob assignment, current owner is = ")); DPRINTLN(MF_client);
+            //DPRINTF("Switching to Default MF knob assignment, current owner is = "); DPRINTLN(MF_client);
 		    for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
 		    {
                 if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
                 {
-                    break;
+                    break;  // find first control with a match
                 }
             } // got the slot number of our control
             set_MF_Service(encoder_list[slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
             MF_default_is_active = true;
-            //DPRINT(F("Switching to Default MF knob assignment = ")); DPRINTLN(MF_client);            
+            DPRINTF("Switching to Default MF knob assignment = "); DPRINTLN(MF_client);            
         }
     }
 
@@ -1200,7 +1191,7 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
     // Some buttons can be left on such as Atten or other non-button MF users.  Just leave them off this list.
     switch (old_client_name)
     {
-        case MFNONE:                            break;  // no current owner, return
+        case NONE:                              break;  // no current owner, return
         case RFGAIN_BTN:    setRFgain(-1);      break;  // since it was active toggle the output off
         case AFGAIN_BTN:    setAFgain(-1);      break;
         case REFLVL_BTN:    setRefLevel(-1);    break;
@@ -1211,8 +1202,9 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
         case RIT_BTN:       setRIT(-1);         break;
         case XIT_BTN:       setXIT(-1);         break;    
         case MFTUNE:
-        default     :                           break;  // No button for VFO tune, atten button stays on
-                                                        //MF_client = user_settings[user_Profile].default_MF_client;
+        default:    //MF_client = encoder_list[0].default_MF_client;
+                    //DPRINTF("unset_MF_Service: set default to "); DPRINTLN(MF_client);
+                    break;  // No button for VFO tune, atten button stays on
     }
 }
 // ---------------------------------- set_MF_Service -----------------------------------
@@ -1228,7 +1220,7 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
     MF_client = new_client_name;        // Now assign new owner
     MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
                          // When it expires it will be switched to default
-    //DPRINT("New MF Knob Client ID is "); DPRINTLN(MF_client);
+    //DPRINTF("New MF Knob Client ID is "); DPRINTLN(MF_client);
 }
 
 // ------------------------------------ MF_Service --------------------------------------
@@ -1246,7 +1238,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
         MF_Timeout.reset();  // if it is the MF_Client then reset (extend) timeout timer as long as there is activity.  
                             // When it expires it will be switched to default
 
-    //DPRINT("MF Knob Client ID is "); DPRINTLN(MF_client);
+    //DPRINTF("MF Knob Client ID is "); DPRINTLN(MF_client);
 
     switch (knob)      // Give this owner control until timeout
     {

@@ -1796,7 +1796,7 @@ void clearMeter(void)
     MeterInUse = false;
     // blank out text line from overruns
     draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
+    for (slot = 0; slot< NUM_AUX_ENCODERS; slot++)
     {
         if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
             break;
