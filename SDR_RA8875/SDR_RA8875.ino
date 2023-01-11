@@ -1102,25 +1102,25 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
         lastUpdate_millis = 0; //handle wrap-around of the clock
     if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis)
     { //is it time to update the user interface?
-        DPRINT(F("\nCPU Cur/Peak: "));
+        DPRINTF("\nCPU Cur/Peak: ");
         DPRINT(audio_settings.processorUsage());
-        DPRINT(F("%/"));
+        DPRINTF("%/");
         DPRINT(audio_settings.processorUsageMax());
-        DPRINTLN(F("%"));
-        DPRINT(F("CPU Temperature:"));
+        DPRINTLNF("%");
+        DPRINTF("CPU Temperature:");
         DPRINT(InternalTemperature.readTemperatureF(), 1);
-        DPRINT(F("F "));
+        DPRINTF("F ");
         DPRINT(InternalTemperature.readTemperatureC(), 1);
-        DPRINTLN(F("C"));
-        DPRINT(F(" Audio MEM Float32 Cur/Peak: "));
+        DPRINTLNF("C");
+        DPRINTF(" Audio MEM Float32 Cur/Peak: ");
         DPRINT(AudioMemoryUsage_F32());
-        DPRINT(F("/"));
+        DPRINTF("/");
         DPRINTLN(AudioMemoryUsageMax_F32());
-        DPRINT(F(" Audio MEM 16-Bit  Cur/Peak: "));
+        DPRINTF(" Audio MEM 16-Bit  Cur/Peak: ");
         DPRINT(AudioMemoryUsage());
-        DPRINT(F("/"));
+        DPRINTF("/");
         DPRINTLN(AudioMemoryUsageMax());
-        DPRINTLN(F("*** End of Report ***"));
+        DPRINTLNF("*** End of Report ***");
 
         lastUpdate_millis = curTime_millis; //we will use this value the next time around.
         delta = 0;
@@ -1279,7 +1279,7 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
                             if (counts < 0) counts = -1;
                             XIT(counts);   break;
         case MFTUNE :       old_ts = bandmem[curr_band].tune_step;   // Use MFTune as coarse Tune
-                            #if !defined GPIO_ENCODERS && !defined I2C_ENCODERS   // skip when the touchscreen is the only tuning device
+                            #if defined GPIO_ENCODERS || defined I2C_ENCODERS   // skip when the touchscreen is the only tuning device
                                 bandmem[curr_band].tune_step = old_ts+1;
                             #endif
                             selectFrequency(counts);
