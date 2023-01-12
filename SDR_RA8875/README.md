@@ -9,6 +9,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     3. Jan 8 - Added RIT and XIT functionality. XMIT will also work in split. RIT and XIT are knob assignable. Adding offset values to display in progress. Added GPIO_ANT_SW and GPIO_ANT_PIN output #defines. Can assign any GPIO pin and the ANT 1/2 menu will toggle the IO pin.
     4. Jan 9 - Reworked the UI status icons (labels).  Made all of them touch enabled. XMIT requires a Press. Darkened inactive label text, rearranged them, changed text colors, added RIT, XIT, XMIT, XVTR (not active) and CLIP labels. RIT and XIT display in KHz in 10Hz resolution.  The step rate (an index to the tstep table) is specified in the user_Settings table in RadioConfig.h.  CLIP is only an indicator that is lighted when the RS-HFIQ returns clipping status during transmit. Unlike the other icons it will turn red to catch your attention better.  XMIT background turns red also in transmit.
     5. Changed NB and ATT button behaviors now that the values can be seen in the status icons.  Button or touch an icon is simple ON/OFF.  If it is adjustable then it is MF enabled and can be adjusted with an MF knob, an assigned encoder, or touch drag as usual. The goal is to sweep through the controls and standardize their operations.
+    6. Removed many redundant for-loops in encoder list seraches.   Same for default_MF slot search.  Now generally do serach once at startup.
 
 ## Dec 2022
 
