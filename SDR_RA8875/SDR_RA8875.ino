@@ -69,22 +69,28 @@ SDR_RS_HFIQ RS_HFIQ;
     
     //Class initialization with the I2C addresses
     #ifdef I2C_ENC1_ADDR
-      extern i2cEncoderLibV2 I2C_ENC1;  // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
+        extern i2cEncoderLibV2 I2C_ENC1;  // Address 0x61 only - Jumpers A0, A5 and A6 are soldered.//
+        extern uint8_t _e1;
     #endif
     #ifdef I2C_ENC2_ADDR
-      extern i2cEncoderLibV2 I2C_ENC2;  // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+        extern i2cEncoderLibV2 I2C_ENC2;  // Address 0x62 only - Jumpers A1, A5 and A6 are soldered.//  
+        extern uint8_t _e2;
     #endif
     #ifdef I2C_ENC3_ADDR
-      extern i2cEncoderLibV2 I2C_ENC3;  // Address 0x63 only - Jumpers A1, A5 and A6 are soldered.// 
+        extern i2cEncoderLibV2 I2C_ENC3;  // Address 0x63 only - Jumpers A1, A5 and A6 are soldered.// 
+        extern uint8_t _e3;
     #endif
     #ifdef I2C_ENC4_ADDR
-      extern i2cEncoderLibV2 I2C_ENC4;  // Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.
+        extern i2cEncoderLibV2 I2C_ENC4;  // Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.
+        extern uint8_t _e4;
     #endif
     #ifdef I2C_ENC5_ADDR
-      extern i2cEncoderLibV2 I2C_ENC5;  // Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.
+        extern i2cEncoderLibV2 I2C_ENC5;  // Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.
+        extern uint8_t _e5;
     #endif
     #ifdef I2C_ENC6_ADDR
-      extern i2cEncoderLibV2 I2C_ENC6;  // Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.
+        extern i2cEncoderLibV2 I2C_ENC6;  // Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.
+        extern uint8_t _e6;
     #endif  
 #endif // I2C_ENCODER
  
@@ -195,6 +201,7 @@ int16_t     xit_offset              = 0;    // global XIT offset value in Hz. -9
 int16_t     rit_offset_last         = 0;    // track last used value when turning the RIT on and off. 
 int16_t     xit_offset_last         = 0;    // track last used value when turning the RIT on and off. 
 uint8_t     clipping                = 0;    // track state of clipping (primarily RS-HFIQ but could be applied to any RF hardware that has such indications)
+uint8_t     default_MF_slot         = 0;    // default MF client assignment slot 
 
 #ifdef USE_RA8875
     RA8875 tft    = RA8875(RA8875_CS,RA8875_RESET); //initialize the display object
@@ -217,7 +224,7 @@ Metro meter             = Metro(400);   // used to update the meters
 Metro popup_timer       = Metro(500);   // used to check for popup screen request
 Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
 Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
-Metro MF_Timeout        = Metro(3000);  // MultiFunction Knob and Switch 
+Metro MF_Timeout        = Metro(1800);  // MultiFunction Knob and Switch 
 Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
 Metro gpio_ENC2_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
 Metro gpio_ENC3_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
@@ -511,7 +518,7 @@ COLD void setup()
     I2C_Scanner();
 
     #ifdef  I2C_ENCODERS  
-        set_I2CEncoders();
+        set_I2CEncoders();   // Serasch through encoder_list table and identify active i2c encoder roles and slot assignments.
     #endif // I2C_ENCODERS
 
     #ifdef GPIO_ENCODERS
@@ -527,7 +534,18 @@ COLD void setup()
 
     // Use for ANT switch
     if (GPIO_ANT_ENABLE)  pinMode(GPIO_ANT_PIN, OUTPUT);    // Took over SW6 default input pin to make this an output (by config)
-    
+
+    // Serach for a default_MF_client tag and save it in a global var
+    for (default_MF_slot = 0; default_MF_slot < NUM_AUX_ENCODERS; default_MF_slot++)
+    {
+        if (encoder_list[default_MF_slot].default_MF_client && encoder_list[default_MF_slot].enabled) // set back to designated default control role
+        {
+            break;  // find first control with a match
+        }
+        else 
+            default_MF_slot = 0;
+    } // got the slot number of our control
+
     #ifdef SV1AFN_BPF
         // set address to 0x20 (32 decimal) for V2.X adafruit MCP23017 library. 
         // A value of 0 now kills the I2C bus.
@@ -871,14 +889,7 @@ HOT void loop()
         {
             MeterInUse = false;
             //DPRINTF("Switching to Default MF knob assignment, current owner is = "); DPRINTLN(MF_client);
-		    for (slot = 0; slot < NUM_AUX_ENCODERS; slot++)
-		    {
-                if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
-                {
-                    break;  // find first control with a match
-                }
-            } // got the slot number of our control
-            set_MF_Service(encoder_list[slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            set_MF_Service(encoder_list[default_MF_slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
             MF_default_is_active = true;
             DPRINTF("Switching to Default MF knob assignment = "); DPRINTLN(MF_client);            
         }
@@ -2119,39 +2130,7 @@ void Check_Encoders(void)
         // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
         if (digitalRead(I2C_INT_PIN) == LOW) 
         {
-            static uint8_t _e1, _e2, _e3, _e4, _e5, _e6;
-            
-            _e1=_e2=_e3=_e4=_e5=_e6=0;  // init to zero.
-
-          	for (int8_t slot = 1; slot< NUM_AUX_ENCODERS; slot++)
-            {
-                #ifdef I2C_ENC1_ADDR
-                    if ((I2C_ENC1.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
-                        {_e1 = slot; break;}
-                #endif
-                #ifdef I2C_ENC2_ADDR
-                    if ((I2C_ENC2.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
-                        {_e2 = slot; break;}
-                #endif
-                #ifdef I2C_ENC3_ADDR
-                    if ((I2C_ENC3.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
-                        {_e3 = slot; break;}
-                #endif
-                #ifdef I2C_ENC4_ADDR                    
-                    if ((I2C_ENC4.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
-                        {_e4 = slot; break;}
-                #endif
-                #ifdef I2C_ENC5_ADDR                    
-                    if ((I2C_ENC5.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
-                        {_e5 = slot; break;}
-                #endif
-                #ifdef I2C_ENC6_ADDR
-                    if ((I2C_ENC6.id == encoder_list[slot].id) && encoder_list[slot].enabled) 
-                        {_e6 = slot; break;}
-                #endif
-            }
-
-            // We now have a valid slot 
+            // We now have a valid slot determined suring progranm setup init (slot_e1, slot_e2, etc)
             #ifdef I2C_ENC1_ADDR
             // Check the status of the encoder (if enabled) and call the callback  
             if(I2C_ENC1.updateStatus() && encoder_list[_e1].role_A && encoder_list[_e1].enabled)
@@ -2365,7 +2344,6 @@ bool GPIO_Sw_read(bool sw_pushed, uint8_t sw_pin, uint8_t slot)
     //DPRINT(F("GPIO SW Pin # = ")); DPRINTLN(sw_pin);
     //DPRINT(F("GPIO SW Pushed # = ")); DPRINTLN(sw_pushed);
     //DPRINT(F("Encoder List Slot # = ")); DPRINTLN(slot);
-    
     if (!digitalRead(sw_pin) && !sw_pushed)
     {
         DPRINTF("Checking GPIO Switch - Start Timer - Slot = "); DPRINTLN(slot);

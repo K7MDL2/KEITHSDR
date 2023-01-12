@@ -80,27 +80,33 @@ static int32_t gpio_enc_count = 0;
 //i2cEncoderLibV2 i2c_encoder[2] = { i2cEncoderLibV2(0x62), i2cEncoderLibV2(0x61)};
 #ifdef I2C_ENC1_ADDR
 	void blink_I2C_ENC1_RGB(void);
-	i2cEncoderLibV2 I2C_ENC1(I2C_ENC1_ADDR);  	/* Address 0x61 only - Jumpers A0, A5 and A6 are soldered.*/
+	i2cEncoderLibV2 I2C_ENC1(I2C_ENC1_ADDR);
+	uint8_t _e1 = 0;
 #endif
 #ifdef I2C_ENC2_ADDR
 	void blink_I2C_ENC2_RGB(void);
-	i2cEncoderLibV2 I2C_ENC2(I2C_ENC2_ADDR);  	/* Address 0x62 only - Jumpers A1, A5 and A6 are soldered.*/
+	i2cEncoderLibV2 I2C_ENC2(I2C_ENC2_ADDR);
+	uint8_t _e2 = 0;
 #endif
 #ifdef I2C_ENC3_ADDR
 	void blink_I2C_ENC3_RGB(void);
-	i2cEncoderLibV2 I2C_ENC3(I2C_ENC3_ADDR);  	/* Address 0x63 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+	i2cEncoderLibV2 I2C_ENC3(I2C_ENC3_ADDR);
+	uint8_t _e3 = 0;
 #endif
 #ifdef I2C_ENC4_ADDR
 	void blink_I2C_ENC4_RGB(void);
-	i2cEncoderLibV2 I2C_ENC4(I2C_ENC4_ADDR);  	/* Address 0x64 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+	i2cEncoderLibV2 I2C_ENC4(I2C_ENC4_ADDR);
+	uint8_t _e4 = 0;
 #endif
 #ifdef I2C_ENC5_ADDR
 	void blink_I2C_ENC5_RGB(void);
-	i2cEncoderLibV2 I2C_ENC5(I2C_ENC5_ADDR);  	/* Address 0x65 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+	i2cEncoderLibV2 I2C_ENC5(I2C_ENC5_ADDR);
+	uint8_t _e5 = 0;
 #endif
 #ifdef I2C_ENC6_ADDR
 	void blink_I2C_ENC6_RGB(void);
-	i2cEncoderLibV2 I2C_ENC6(I2C_ENC6_ADDR);  	/* Address 0x66 only - Jumpers A0, A1, A5 and A6 are soldered.*/
+	i2cEncoderLibV2 I2C_ENC6(I2C_ENC6_ADDR);
+	uint8_t _e6 = 0;
 #endif
 
 // create dummy objects for gpio to interface to the i2c lib
@@ -133,7 +139,7 @@ COLD void i2c_encoder_rotated(i2cEncoderLibV2* obj)
 	int16_t count = 0;
 	uint8_t knob_assigned, z_lvl, slot;
 
-	//DPRINT(F("Encoder ID passed in = ")); DPRINTLN(obj->id);
+	DPRINT(F("Encoder ID passed in = ")); DPRINTLN(obj->id);
 	//DPRINT(F("ID from Record lookup = ")); DPRINTLN(encoder_list[obj->id].id);
 	//DPRINT(F("Check MF Client ID = ")); DPRINTLN(MF_client);
 	//DPRINT(F("Role = ")); DPRINTLN(encoder_list[obj->id].role_A);
@@ -446,12 +452,13 @@ COLD void set_I2CEncoders()
 		{
 			if (encoder_list[slot].enabled == I2C_ENC1_ENABLE  && encoder_list[slot].type == I2C_ENC)
 			{
+				_e1 = slot;
 				DPRINT(F("I2C_ENC1 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC1.reset();
 				delay(20);
 				I2C_ENC1.begin(
 					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE // Pullup is on the Teensy IO pin
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA |i2cEncoderLibV2::WRAP_ENABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
@@ -486,6 +493,7 @@ COLD void set_I2CEncoders()
 		{
 			if (encoder_list[slot].enabled == I2C_ENC2_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
+				_e2 = slot;
 				DPRINT(F("I2C_ENC2 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC2.reset();
 				delay(20);
@@ -522,12 +530,13 @@ COLD void set_I2CEncoders()
 		{
 			if (encoder_list[slot].enabled == I2C_ENC3_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{	
+				_e3 = slot;
 				DPRINT(F("I2C_ENC3 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC3.reset();
 				delay(20);
 				I2C_ENC3.begin(
 					i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::REL_MODE_ENABLE
-					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_ENABLE  // Pullup is on the Teensy IO pin
+					| i2cEncoderLibV2::DIRE_RIGHT | i2cEncoderLibV2::IPUP_DISABLE  // Pullup is on the Teensy IO pin
 					| i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_DISABLE | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::STD_ENCODER); // try also this!
 				//  Encoder.begin(i2cEncoderLibV2::INT_DATA | i2cEncoderLibV2::WRAP_ENABLE  | i2cEncoderLibV2::DIRE_LEFT | i2cEncoderLibV2::IPUP_ENABLE | i2cEncoderLibV2::RMOD_X1 | i2cEncoderLibV2::RGB_ENCODER);  // try also this!
@@ -558,6 +567,7 @@ COLD void set_I2CEncoders()
 		{
 			if (encoder_list[slot].enabled == I2C_ENC4_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
+				_e4 = slot;
 				DPRINT(F("I2C_ENC4 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC4.reset();
 				delay(20);
@@ -594,6 +604,7 @@ COLD void set_I2CEncoders()
 		{
 			if (encoder_list[slot].enabled == I2C_ENC5_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
+				_e5 = slot;				
 				DPRINT(F("I2C_ENC5 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC5.reset();
 				delay(20);
@@ -630,6 +641,7 @@ COLD void set_I2CEncoders()
 		{
 			if (encoder_list[slot].enabled == I2C_ENC6_ENABLE && encoder_list[slot].type == I2C_ENC)
 			{
+				_e6 = slot;
 				DPRINT(F("I2C_ENC6 Encoder Setup Slot "));DPRINTLN(slot);
 				I2C_ENC6.reset();
 				delay(20);

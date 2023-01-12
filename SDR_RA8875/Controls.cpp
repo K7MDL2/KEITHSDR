@@ -57,6 +57,7 @@ extern          void                touchBeep(bool enable);
 extern          bool                MeterInUse;  // S-meter flag to block updates while the MF knob has control
 extern          Metro               MF_Timeout;
 extern          bool                MF_default_is_active;
+extern          uint8_t             default_MF_slot;
 extern          void                TX_RX_Switch(bool TX,uint8_t mode_sel,bool b_Mic_On,bool b_USBIn_On,bool b_ToneA,bool b_ToneB,float TestTone_Vol);
 extern          int32_t 		    ModeOffset;
 extern AudioMixer4_F32              I_Switch;
@@ -1796,12 +1797,7 @@ void clearMeter(void)
     MeterInUse = false;
     // blank out text line from overruns
     draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show);
-    for (slot = 0; slot< NUM_AUX_ENCODERS; slot++)
-    {
-        if (encoder_list[slot].default_MF_client && encoder_list[slot].enabled) // set back to designated default control role
-            break;
-    }  // got the slot number
-    set_MF_Service(encoder_list[slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+    set_MF_Service(encoder_list[default_MF_slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
     MF_default_is_active = true;
 }
 
@@ -1823,7 +1819,7 @@ void setEncoderMode(uint8_t role)
     {
         DPRINT("Encoder Switch ID = "); DPRINTLN(role);
         int slot;
-        // find enabled encoders in order of slot assignment and copy to local var for processing in a loop
+        // find enabled aux encoders in order of slot assignment and copy to local var for processing in a loop, skip VFO slot
         for (slot = 1; slot< NUM_AUX_ENCODERS; slot++)
         {
             #ifdef DEBUG
@@ -1857,9 +1853,15 @@ void setEncoderMode(uint8_t role)
                     case SW3_BTN:
                     case SW4_BTN:
                     case SW5_BTN:
-                    case SW6_BTN:  DPRINT("Toggle Active Control "); DPRINTLN(role);
+                    case SW6_BTN:   DPRINT("Toggle Active Control "); DPRINTLN(role);
                                     encoder_list[slot].a_active ^= 1;
                                     update_icon_outline();
+                                    // if was MF knob, turn on the normal meter asap to return to normal use fast.
+                                    if (MF_client != MFTUNE && !encoder_list[slot].a_active)
+                                    {  
+                                        MF_Timeout.reset();
+                                        clearMeter();
+                                    }
                                     break;
                     default:        break;
                 }
