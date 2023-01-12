@@ -692,7 +692,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
         {
             if ((ptr+i)->show && holdtime == 0)  // if the show property is active, call the button function to act on it.
-            {                   
+            {  // TAP
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 Button_Action(i);
             } // LONG PRESS
@@ -737,7 +737,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
         {
             if ((pLabel+i)->show && holdtime == 0)  // if the show property is active, call the button function to act on it.
-            {       // Process TAP on a label            
+            {  // TAP on a label            
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 switch (i)
                 {
@@ -766,7 +766,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 // used the index to the table to match up a function to call
                 switch (i)
-                {
+                {  // PRESS on label
                     case XMIT_LBL:      Xmit(2);        break;   // Do only Press to prevent accidental XMIT
                     default:DPRINT(F("Found a PRESS Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
                         DPRINTLN(i); break;
@@ -832,6 +832,7 @@ void Button_Action(uint16_t button_name)
             case BANDUP_BTN:    BandUp();       break;
             case BANDDN_BTN:    BandDn();       break;
             case BAND_BTN:      Band(255);      break;
+            case XMIT_BTN:      Xmit(2);        break;
             case DISPLAY_BTN:   Display();      break;
             case FN_BTN:        setPanel();     break;
             case ZOOM_BTN:      setZoom(2);     break;
