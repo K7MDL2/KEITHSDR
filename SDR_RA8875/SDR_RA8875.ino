@@ -571,8 +571,8 @@ COLD void setup()
         #endif // USE_FT5206_TOUCH
     #else 
         DPRINTLN(F("Initializing RA8876 Display"));   
-        //tft.begin(30000000UL);
-        tft.begin(50000000UL);
+        tft.begin(50000000UL);  // 10 is very slow, 30, much better, 40-50 seem to be were perf gain flattens off.  
+        // Works up to 70Mhz but so little perf gain above 40Mhz thaqt 50Mhz seems a solid compromise.
         cts.begin();
         cts.setTouchLimit(MAXTOUCHLIMIT);
         tft.touchEnable(false);   // Ensure the resitive controller, if any is off
@@ -882,8 +882,6 @@ HOT void loop()
 
     if (MF_Timeout.check() == 1)
     {
-        uint8_t slot;
-
         MeterInUse = false;  
         if (!MF_default_is_active)
         {
@@ -2130,6 +2128,7 @@ void Check_Encoders(void)
         // Watch for the I2C Encoder INT pin to go low  (these I2C encoders are typically daisy-chained)
         if (digitalRead(I2C_INT_PIN) == LOW) 
         {
+            //DPRINTLNF("I2C encoder Event");
             // We now have a valid slot determined suring progranm setup init (slot_e1, slot_e2, etc)
             #ifdef I2C_ENC1_ADDR
             // Check the status of the encoder (if enabled) and call the callback  

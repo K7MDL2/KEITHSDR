@@ -10,6 +10,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     4. Jan 9 - Reworked the UI status icons (labels).  Made all of them touch enabled. XMIT requires a Press. Darkened inactive label text, rearranged them, changed text colors, added RIT, XIT, XMIT, XVTR (not active) and CLIP labels. RIT and XIT display in KHz in 10Hz resolution.  The step rate (an index to the tstep table) is specified in the user_Settings table in RadioConfig.h.  CLIP is only an indicator that is lighted when the RS-HFIQ returns clipping status during transmit. Unlike the other icons it will turn red to catch your attention better.  XMIT background turns red also in transmit.
     5. Changed NB and ATT button behaviors now that the values can be seen in the status icons.  Button or touch an icon is simple ON/OFF.  If it is adjustable then it is MF enabled and can be adjusted with an MF knob, an assigned encoder, or touch drag as usual. The goal is to sweep through the controls and standardize their operations.
     6. Removed many redundant for-loops in encoder list seraches.   Same for default_MF slot search.  Now generally do serach once at startup.
+    7. Adafruit I2C active termnnator used to extend the I2C encoder bus to 8" with no problens now.
+    8. Perf tested the RA8876 display at different SPI bus speeds. Works up to 70Mhz, not 80 though.  Perf gains levels off somewhere >30Mhz.  40Mhz to 50Mhz is a good compromise. Set defauilt ot 50Mhz.
 
 ## Dec 2022
 
