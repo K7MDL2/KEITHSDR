@@ -139,7 +139,7 @@ COLD void i2c_encoder_rotated(i2cEncoderLibV2* obj)
 	int16_t count = 0;
 	uint8_t knob_assigned, z_lvl, slot;
 
-	DPRINT(F("Encoder ID passed in = ")); DPRINTLN(obj->id);
+	//DPRINT(F("Encoder ID passed in = ")); DPRINTLN(obj->id);
 	//DPRINT(F("ID from Record lookup = ")); DPRINTLN(encoder_list[obj->id].id);
 	//DPRINT(F("Check MF Client ID = ")); DPRINTLN(MF_client);
 	//DPRINT(F("Role = ")); DPRINTLN(encoder_list[obj->id].role_A);
@@ -190,7 +190,7 @@ COLD void i2c_encoder_rotated(i2cEncoderLibV2* obj)
 	//obj->writeCounter((int32_t) 0); // Reset the counter value if in absolute mode. Not required in relative mode
 	// Update the color
 	uint32_t tval = 0x00FF00;  // Set the default color to green
-	DPRINT(F("Knob Assigned to ")); DPRINTLN(knob_assigned);
+	//DPRINT(F("Knob Assigned to ")); DPRINTLN(knob_assigned);
 
 	switch(knob_assigned)
 	{
@@ -247,28 +247,29 @@ COLD void i2c_encoder_rotated(i2cEncoderLibV2* obj)
 							MeterInUse = true;
 							displayMeter(z_lvl, string, 5);   // val, string label, color scheme
 							if (z_lvl < 2 || z_lvl > 3)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
-		case FILTER_BTN:	if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1)
-							tval = 0xFF0000;  // Change to red
+		case FILTER_BTN:	if (bandmem[curr_band].filter < 1 || bandmem[curr_band].filter >= FILTER-1 || 
+								bandmem[curr_band].var_filter < 200 || bandmem[curr_band].var_filter > 5800)
+								tval = 0xFF0000;  // Change to red
 							break;
 		case RATE_BTN:      if (bandmem[curr_band].tune_step < 1 || bandmem[curr_band].tune_step >= TS_STEPS-1)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
 		case MODE_BTN:      if (bandmem[curr_band].mode_A < 1 || bandmem[curr_band].mode_A >= MODES_NUM-1)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
 		case ATU_BTN:       if (bandmem[curr_band].ATU < 1 || bandmem[curr_band].ATU > 0)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
 		case ANT_BTN:       if (bandmem[curr_band].ant_sw < 1 || bandmem[curr_band].ant_sw > 0)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
 		case BANDUP_BTN:    if (bandmem[curr_band].ant_sw < 1 || bandmem[curr_band].ant_sw > 0)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
 		case BANDDN_BTN:    if (bandmem[curr_band].ant_sw < 1 || bandmem[curr_band].ant_sw > 0)
-							tval = 0xFF0000;  // Change to red
+								tval = 0xFF0000;  // Change to red
 							break;
 		case BAND_BTN:      tval = 0xFF0000;  // Change to red
 							break;
