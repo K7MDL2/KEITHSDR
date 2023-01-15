@@ -213,9 +213,39 @@ COLD void displayFilter(void)
 		extern int16_t filterWidth;
 		sprintf(str, "F: %dHz", filterWidth);	
 	#else
-		sprintf(str, "F: %s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
+		if (bandmem[curr_band].mode_A == FM)
+			sprintf(str, "F: N/A");  // FM is fixed wide
+		else
+			sprintf(str, "F:%s%s", filter[bandmem[curr_band].filter].Filter_name,filter[bandmem[curr_band].filter].units);	
 	#endif
-	//DPRINT(F("Filter is ")); DPRINTLN(str);
+	//DPRINTF("Filter is "); DPRINTLN(str);
+	sprintf(labels[FILTER_LBL].label, "%s", str);
+	drawLabel(FILTER_LBL, &bandmem[curr_band].filter);
+	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
+}
+
+COLD void displayVarFilter(void)
+{
+	char str[15];
+
+	if (popup) return;  // Do not write to the screen when a window is active
+
+	float _bw = bandmem[curr_band].var_filter;   // display in KHz
+	
+	if (_bw < 50.0f)
+		_bw = 50.0f;   // ensure we do not get < 0.05KHz or neg values
+
+	#ifdef PANADAPTER
+		extern int16_t filterWidth;
+		sprintf(str, "F: %dHz", filterWidth);	
+	#else
+		if (bandmem[curr_band].mode_A == FM)
+			sprintf(str, "F: N/A");  // FM is fixed wide
+		else
+			sprintf(str, "F:%01.2fKHz", _bw/1000);  // format in KHz with steps (X.XX format)
+	#endif
+
+	DPRINTF("displayVarFilter: New filter is "); DPRINTLN(str);
 	sprintf(labels[FILTER_LBL].label, "%s", str);
 	drawLabel(FILTER_LBL, &bandmem[curr_band].filter);
 	draw_2_state_Button(FILTER_BTN, &bandmem[curr_band].filter);
@@ -227,7 +257,7 @@ COLD void displayRate(void)
 
 	if (bandmem[curr_band].tune_step >= TS_STEPS)
 		bandmem[curr_band].tune_step = TS_STEPS-1;
-	sprintf(labels[RATE_LBL].label, "R: %s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
+	sprintf(labels[RATE_LBL].label, "R:%s%s", tstep[bandmem[curr_band].tune_step].ts_name, tstep[bandmem[curr_band].tune_step].ts_units);;
 	//DPRINT(F("Tune Rate is ")); DPRINTLN(labels[RATE_LBL].label);
 	drawLabel(RATE_LBL, &bandmem[curr_band].tune_step);
 	draw_2_state_Button(RATE_BTN, &bandmem[curr_band].tune_step);

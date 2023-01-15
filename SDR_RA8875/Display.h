@@ -22,6 +22,7 @@ void displayFreq();    // display frequency
 // Panel 1 buttons
 void displayMode();
 void displayFilter();
+void displayVarFilter();
 void displayAttn();
 void displayRate();
 void displayPreamp();

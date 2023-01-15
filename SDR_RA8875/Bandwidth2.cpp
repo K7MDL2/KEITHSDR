@@ -95,7 +95,7 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==4)
     {
         //bandwidth="Bw 1.8 kHz";  
-        filterCenter = 1850/2;
+        filterCenter = 1900/2;
         filterBandwidth = 1800;
         SetFilter();
     }
@@ -103,7 +103,7 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==5)
     {
         //bandwidth="Bw 2.3kHz";
-        filterCenter = 2400/2;
+        filterCenter = 2500/2;
         filterBandwidth = 2300;
         SetFilter();
     }
@@ -111,7 +111,7 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==6)
     {
         //bandwidth="Bw 2.8 kHz";
-        filterCenter = 2900/2;
+        filterCenter = 3000/2;
         filterBandwidth = 2800;
         SetFilter();
     }
@@ -119,7 +119,7 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==7)
     {
         //bandwidth="Bw 3.2 kHz";
-        filterCenter = 3300/2;
+        filterCenter = 3400/2;
         filterBandwidth = 3200;
         SetFilter();           
     }
@@ -127,14 +127,19 @@ COLD void selectBandwidth(uint8_t bndx)
     if(bndx==8) 
     {
         //bandwidth="4.0 kHz";
-        filterCenter = 4100/2;
+        filterCenter = 4200/2;
         filterBandwidth = 4000;
         SetFilter();
     } 
 
+    if(bndx==9) 
+    {
+        //bandwidth="6.0 kHz";
+        filterCenter = 6000/2;
+        filterBandwidth = 6000;
+        SetFilter();
+    } 
     bandmem[curr_band].filter = bndx; // Set new filter into memory
-    //DPRINT("Filter Set to ");
-    //DPRINTLN(filter[bandmem[curr_band].filter].Filter_name);
-    
+    //DPRINTF("Filter Set to "); DPRINTLN(filter[bandmem[curr_band].filter].Filter_name);
     //displayFilter();
 }

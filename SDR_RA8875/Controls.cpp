@@ -109,6 +109,7 @@ void Rate(int8_t dir);
 void setMode(int8_t dir);
 void AGC(int8_t dir);
 void Filter(int8_t dir);
+void Variable_Filter(int8_t dir);
 void ATU();
 void Xvtr();
 void Split();
@@ -200,9 +201,9 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     int8_t target_band;
     // TODO search bands column for match to account for mapping that does not start with 0 and bands could be in odd order and disabled.
     
-    //DPRINT("\nCurrent Band is "); DPRINTLN(bandmem[curr_band].band_name);
-    //DPRINT("Current Freq is "); DPRINTLN(VFOA);
-    //DPRINT("Current Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
+    //DPRINTF("\nCurrent Band is "); DPRINTLN(bandmem[curr_band].band_name);
+    //DPRINTF("Current Freq is "); DPRINTLN(VFOA);
+    //DPRINTF("Current Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
     Split(0);
     // Find new band index based on frequency range
     #ifdef USE_RS_HFIQ 
@@ -212,9 +213,9 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
         if (uint32_t temp_VFO = find_new_band(VFOA, &curr_band))  // VFOA and Curr_band will return updated based on RS-HFIQ capability
             VFOA = temp_VFO;
     #endif
-    //DPRINT("Band after Lookup is "); DPRINTLN(bandmem[curr_band].band_name);
-    //DPRINT("Freq is "); DPRINTLN(VFOA);
-    //DPRINT("Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
+    //DPRINTF("Band after Lookup is "); DPRINTLN(bandmem[curr_band].band_name);
+    //DPRINTF("Freq is "); DPRINTLN(VFOA);
+    //DPRINTF("Last_VFOA is "); DPRINTLN(bandmem[curr_band].vfo_A_last);
 
     // Deal with transverters later probably increase BANDS count to cover all transverter bands to (if enabled).
     target_band = bandmem[curr_band].band_num + direction;
@@ -236,8 +237,8 @@ COLD void changeBands(int8_t direction)  // neg value is down.  Can jump multipl
     if (target_band < bottom_band)   // bottom 
         target_band = top_band;
         
-    //DPRINT("Corrected Target Band is "); DPRINTLN(target_band); 
-    //DPRINT("Target Band Last_VFOA is "); DPRINTLN(bandmem[target_band].vfo_A_last);
+    //DPRINTF("Corrected Target Band is "); DPRINTLN(target_band); 
+    //DPRINTF("Target Band Last_VFOA is "); DPRINTLN(bandmem[target_band].vfo_A_last);
 
 //TODO check if band is active and if not, skip down to next until we find one active in the bandmap    
     codec1.muteHeadphone();  // remove audio thumps during hardware transients
@@ -331,7 +332,7 @@ COLD void setMode(int8_t dir)
 	
     // Update the filter setting per mode 
     Filter(2);
-    //DPRINT("Set Mode: ");  DPRINTLN(bandmem[curr_band].mode_A);
+    //DPRINTF("Set Mode: ");  DPRINTLN(bandmem[curr_band].mode_A);
     displayMode();
     selectFrequency(0);  // Call in case a mode change requires a frequency offset
 }
@@ -367,7 +368,11 @@ COLD void Filter(int8_t dir)
 
     _mode = bandmem[curr_band].mode_A;
 
-    if (_mode == CW || _mode == CW_REV)  // CW modes
+    if (_mode == FM)
+    {
+        _bw = modeList[FM].Width;
+    }
+    else if (_mode == CW || _mode == CW_REV)  // CW modes
     {
         if (_bw > FILTER-1)   // go to bottom band   
         {
@@ -394,31 +399,122 @@ COLD void Filter(int8_t dir)
         }
     }
 
-    if (dir == 0)
-        _bw += direction; // Index our step up or down
-    else
-        _bw += dir;  // forces a step higher or lower then current
-    
-    if (_bw > FILTER-1)  // limit in case of encoder counts
-        _bw = FILTER-1;
-    
-    if (_bw < 0)  // limit in case of encoder counts
-        _bw = 0; 
+    if (_mode != FM)
+    {
+        if (dir == 0)
+            _bw += direction; // Index our step up or down
+        else
+            _bw += dir;  // forces a step higher or lower then current
+        
+        if (_bw > FILTER-1)  // limit in case of encoder counts
+            _bw = FILTER-1;
+        
+        if (_bw < 0)  // limit in case of encoder counts
+            _bw = 0; 
 
-    //DPRINT("_bw=");DPRINT(_bw);
+        //DPRINT("_bw=");DPRINT(_bw);
+    }
 
     if (dir == 2) // Use last filter width used in this mode, ignore the rest (hopefully it is valid)
     {    
-        if (modeList[_mode].Width <= BW4_0 && modeList[_mode].Width >= 0)
+        if (modeList[_mode].Width < FILTER && modeList[_mode].Width >= 0)
             _bw = (int16_t) modeList[_mode].Width;
     }
     else
         modeList[_mode].Width = (uint16_t) _bw;  //if filter changed without a mode change, store it in last use per mode table.
 
+    bandmem[curr_band].var_filter = filter[modeList[_mode].Width].Width;  //update the variable filter setting with new bvalue from button
     selectBandwidth((uint8_t)_bw);
-    //DPRINT("Set Filter to ");
-    //DPRINTLN(bandmem[curr_band].filter);
+    //DPRINTF("Set Filter to "); DPRINTLN(bandmem[curr_band].filter);
     displayFilter();
+}
+
+// ---------------------------Variable_Filter() ---------------------------
+//          positive counts = Make filter wider   - step rate 100Hz
+//          negative counts = Make filter narrower
+//          2 = use last filter width used in this mode (from modeList table)
+//      This is mode-aware. In non-CW modes we will only cycle through SSB width filters as set in the filter tables
+//     
+//  FILTER button
+COLD void Variable_Filter(int8_t dir)
+{ 
+    extern int16_t  filterCenter;
+    extern int16_t  filterBandwidth;
+    extern void     SetFilter(void);
+    static int8_t   direction = 1;
+    int16_t         var_bw = bandmem[curr_band].var_filter;
+    uint16_t        var_filt_max = 6000;  // FM is NA (fixed value)
+    uint16_t        var_filt_min_CW = 50;
+    uint16_t        var_filt_min_SSB = 150;
+    extern AudioEffectGain_F32              Amp1_L;  // Some well placed gain stages
+    extern AudioEffectGain_F32              Amp1_R;  // Some well placed gain stages
+
+    uint8_t _mode;
+
+    var_bw = bandmem[curr_band].var_filter;  // get current filter width value
+
+    if (var_bw < 1000)  // 100Hz steps above 1KHz, 50Hz below
+        var_bw += (dir * 50); // 50Hz per step
+    else if (var_bw < 3000)
+        var_bw += (dir * 100); // 100Hz per step
+    else
+        var_bw += (dir * 200); // 200Hz per step up to max
+
+    if (var_bw >= var_filt_max)
+        var_bw = var_filt_max;    
+
+    if (bandmem[curr_band].mode_A == FM)
+    {
+        var_bw = modeList[FM].Width;
+    }
+    else if (bandmem[curr_band].mode_A <= CW_REV)
+    {   
+        if (var_bw <= var_filt_min_CW)
+            var_bw = var_filt_min_CW;
+        
+        filterCenter = user_settings[user_Profile].pitch;  // Use pitch since this is a CW filter
+        filterBandwidth = var_bw;
+        bandmem[curr_band].var_filter = (uint16_t) var_bw;   // Store our new filter width
+
+        float CW_boost = 0.0f;       
+        if (var_bw < 250)
+            CW_boost = 8.0f;
+        else if (var_bw < 500)
+            CW_boost = 6.0f;
+        else if (var_bw < 700)
+            CW_boost = 5.0f;
+        else if (var_bw < 1000)
+            CW_boost = 3.0f;
+        else
+            CW_boost = 0.0f;
+
+        AudioNoInterrupts();
+        Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST+6.0f);
+        AudioInterrupts();
+
+        //DPRINTF("Set CW Variable Filter = "); DPRINTLN(var_bw);
+    }
+    else
+    {        
+        if (var_bw <= var_filt_min_SSB)
+            var_bw = var_filt_min_SSB;;
+        
+        filterCenter = (var_bw/2)+var_filt_min_SSB;
+        filterBandwidth = var_bw;
+        bandmem[curr_band].var_filter = (uint16_t) var_bw;   // Store our new filter width
+
+        AudioNoInterrupts();
+        Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST);
+        AudioInterrupts();
+
+        //DPRINTF("Set Variable Filter to "); DPRINTLN(bandmem[curr_band].var_filter);
+    }
+    //ToDo: Se tthe butomn filter index to closest value of the curent variable fil;ter to permit mixed operation of encoder and button
+
+    SetFilter(); 
+    displayVarFilter();
 }
 
 // ---------------------------Rate() ---------------------------

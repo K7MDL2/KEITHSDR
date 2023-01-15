@@ -9,22 +9,22 @@
 #include "SDR_RA8875.h"
 
 struct Band_Memory bandmem[BANDS] = { 
-    // name    lower   upper       VFOA   Md_A    VFOA-1  md1     VFOA-2  md2    VFOB   modeB filt   band      ts   agc  SPLIT RT  XT  ATU ANT BPF  ATTEN   AttByp att_DB  PREAMP    XVE XV#  SpRef
-    {"160M", 1800000,  2000000,  1840000, DATA,  1860000, LSB,   1910000, LSB,  1860000, LSB, BW4_0, BAND160M,  1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  1,   80,  PREAMP_OFF,  0,  0,  5},
-    { "80M", 3500000,  4000000,  3573000, DATA,  3868000, LSB,   3813000, LSB,  3868000, LSB, BW3_2, BAND80M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 1,  ATTEN_OFF,  1,   40,  PREAMP_OFF,  0,  1,  5},
-    { "60M", 4990000,  5405000,  5000000, AM,    5287200, LSB,   5364700, LSB,  5405000, USB, BW3_2, BAND60M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 2,  ATTEN_OFF,  1,   40,  PREAMP_OFF,  0,  2,  5},
+    // name    lower   upper       VFOA   Md_A    VFOA-1  md1     VFOA-2  md2    VFOB   modeB filt   varfil band      ts   agc  SPLIT RT  XT  ATU ANT BPF  ATTEN   AttByp att_DB  PREAMP    XVE XV#  SpRef
+    {"160M", 1800000,  2000000,  1840000, DATA,  1860000, LSB,   1910000, LSB,  1860000, LSB, BW3_2, 3200,  BAND160M,  1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  1,   80,  PREAMP_OFF,  0,  0,  5},
+    { "80M", 3500000,  4000000,  3573000, DATA,  3868000, LSB,   3813000, LSB,  3868000, LSB, BW3_2, 3200,  BAND80M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 1,  ATTEN_OFF,  1,   40,  PREAMP_OFF,  0,  1,  5},
+    { "60M", 4990000,  5405000,  5000000, AM,    5287200, LSB,   5364700, LSB,  5405000, USB, BW6_0, 6000,  BAND60M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 2,  ATTEN_OFF,  1,   40,  PREAMP_OFF,  0,  2,  5},
     #ifdef PANADAPTER
-    {  "IF", 8200000,  8300000,  8215000, DATA,  8215000, USB,   8215000, USB,  8215000, LSB, BW2_8, PAN_ADAPT, 1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  0,   50,  PREAMP_OFF,  0,  0,  5}
+    {  "IF", 8200000,  8300000,  8215000, DATA,  8215000, USB,   8215000, USB,  8215000, LSB, BW2_8, 2800,  PAN_ADAPT, 1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  0,   50,  PREAMP_OFF,  0,  0,  5}
     #else 
-    { "40M", 7000000,  7300000,  7074000, DATA,  7030000, CW,    7200000, LSB,  7200000, LSB, BW4_0, BAND40M,   3,AGC_SLOW,OFF,OFF,OFF,OFF,ANT2, 3,  ATTEN_OFF,  1,   20,  PREAMP_OFF,  0,  3,  5},
+    { "40M", 7000000,  7300000,  7074000, DATA,  7030000, CW,    7200000, LSB,  7200000, LSB, BW3_2, 3200,  BAND40M,   3,AGC_SLOW,OFF,OFF,OFF,OFF,ANT2, 3,  ATTEN_OFF,  1,   20,  PREAMP_OFF,  0,  3,  5},
     #endif
-    { "30M", 9990000, 10150000, 10000000, AM,   10136000, DATA, 10130000, CW,  10136000, USB, BW3_2, BAND30M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 4,  ATTEN_OFF,  1,   10,  PREAMP_OFF,  0,  4,  5},
-    { "20M",14000000, 14350000, 14074000, DATA, 14030000, CW ,  14200000, USB, 14200000, USB, BW4_0, BAND20M,   3,AGC_SLOW,OFF,OFF,OFF,OFF,ANT2, 5,  ATTEN_OFF,  1,   50,  PREAMP_OFF,  0,  5,  5},
-    { "17M",18068000, 18168000, 18100000, DATA, 18135000, USB,  18090000, CW,  18135000, USB, BW3_2, BAND17M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 6,  ATTEN_OFF,  1,   50,  PREAMP_OFF,  0,  6,  5},
-    { "15M",21000000, 21450000, 21074000, DATA, 21030000, CW,   21300000, USB, 21350000, USB, BW4_0, BAND15M,   3,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 7,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  0,  7,  5},
-    { "12M",24890000, 24990000, 24915000, USB,  24892000, CW,   24950000, USB, 24904000, USB, BW3_2, BAND12M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 8,  ATTEN_OFF,  0,    0,  PREAMP_ON,   0,  8,  5},
-    { "10M",28000000, 29600000, 28074000, DATA, 28200000, USB,  29400000, USB, 28200000, USB, BW4_0, BAND10M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 9,  ATTEN_OFF,  0,    0,  PREAMP_ON,   0,  9,  5},
-    {  "6M",50000000, 54000000, 50125000, USB,  50313000, DATA, 50100000, CW,  50313000, DATA,BW3_2, BAND6M,    1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  0, 10,  5},
+    { "30M", 9990000, 10150000, 10000000, AM,   10136000, DATA, 10130000, CW,  10136000, USB, BW6_0, 6000,  BAND30M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 4,  ATTEN_OFF,  1,   10,  PREAMP_OFF,  0,  4,  5},
+    { "20M",14000000, 14350000, 14074000, DATA, 14030000, CW ,  14200000, USB, 14200000, USB, BW4_0, 4000,  BAND20M,   3,AGC_SLOW,OFF,OFF,OFF,OFF,ANT2, 5,  ATTEN_OFF,  1,   50,  PREAMP_OFF,  0,  5,  5},
+    { "17M",18068000, 18168000, 18100000, DATA, 18135000, USB,  18090000, CW,  18135000, USB, BW3_2, 3200,  BAND17M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 6,  ATTEN_OFF,  1,   50,  PREAMP_OFF,  0,  6,  5},
+    { "15M",21000000, 21450000, 21074000, DATA, 21030000, CW,   21300000, USB, 21350000, USB, BW3_2, 3200,  BAND15M,   3,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 7,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  0,  7,  5},
+    { "12M",24890000, 24990000, 24915000, USB,  24892000, CW,   24950000, USB, 24904000, USB, BW3_2, 3200,  BAND12M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 8,  ATTEN_OFF,  0,    0,  PREAMP_ON,   0,  8,  5},
+    { "10M",28000000, 29600000, 28074000, DATA, 28200000, USB,  29400000, USB, 28200000, USB, BW4_0, 4000,  BAND10M,   1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 9,  ATTEN_OFF,  0,    0,  PREAMP_ON,   0,  9,  5},
+    {  "6M",50000000, 54000000, 50125000, USB,  50313000, DATA, 50100000, CW,  50313000, DATA,BW3_2, 3200,  BAND6M,    1,AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  0, 10,  5},
 };
 
 // Fields are label text, enable band, Xvtr band ID, RF frequency, IF frequency, power, calibration offset, Band decoder output pattern
@@ -272,8 +272,8 @@ struct Label labels[LABEL_NUM] = {
   //  en  show   x   y    w   h   r out_col     on_txtclr   on_color    off_txtclr off_color padx pady label 
     {OFF, OFF,   0,   0,  40, 29, 3, BLACK,     BLUE,       BLACK,      CYAN,            BLACK, 4, 7, "B:\0"},  // Band, not in use now 
     {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK, 4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 4, 7, "F:\0"},
-    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 4, 7, "R:\0"},
+    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 7, 7, "F:\0"},
+    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 7, 7, "R:\0"},
     {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK, 5, 4, "AGC-\0"},
     {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK, 6, 4, "ANT-\0"}, 
     {OFF,  ON, 325, 110,  85, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
@@ -303,7 +303,7 @@ struct Label labels[LABEL_NUM] = {
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn  sub_VFO  sv_md uc1 uc2 uc3  lastB   mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB Zoom_lvl panEn panlvl RIT_tune step size RIT_tune step size
     {"ENET ON Config",    0, 0, 28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
-    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND40M,   OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 10,   15,  18,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
+    {"User Config #2",    0, 0, 14200000, USB, 0,  0,  0, BAND40M,   OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 1,    15,  18,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
     {"PanAdapter Config", 0, 0, 1420000,  USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT}
 };
 
@@ -325,12 +325,12 @@ struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   MFTUNE,  NONE,        NONE,       NONE,           NONE,            NONE},       // Set VFO def_MF to MFTUNE in case there are no encoders
     {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // encoder events start slot sreach at 1 so skip VFO slot 0.
-    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   MFTUNE,  AFGAIN_BTN,  ON,         ATTEN_BTN,      SW2_BTN,         NB_BTN},    // enc slot 2
-    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    RIT_BTN,     ON,         XIT_BTN,        SW3_BTN,         ATTEN_BTN},  // enc slot 3
-    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW4_BTN,         XMIT_BTN},   // enc slot 4
-    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},         // enc slot 5
-    {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      MENU_BTN},  // enc slot 6
-    {GPIO_SW,   7,    GPIO_SW2_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDDN_BTN,      BAND_BTN},    // enc slot 7
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         ATTEN_BTN},    // enc slot 2
+    {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW3_BTN,         NB_BTN},  // enc slot 3
+    {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    PAN_BTN,     ON,         ZOOM_BTN,       SW4_BTN,         PREAMP_BTN},   // enc slot 4
+    {I2C_ENC,   5,    I2C_ENC4_ENABLE,   MFTUNE,  MFTUNE,      ON,         RIT_BTN,        SW5_BTN,         RIT_BTN},         // enc slot 5
+    {GPIO_SW,   6,    GPIO_SW1_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDUP_BTN,      BAND_BTN},  // enc slot 6
+    {GPIO_SW,   7,    GPIO_SW2_ENABLE,   NONE,    NONE,        ON,         NONE,           BANDDN_BTN,      XMIT_BTN},    // enc slot 7
     {GPIO_SW,   8,    GPIO_SW3_ENABLE,   NONE,    NONE,        ON,         NONE,           RATE_BTN,        FINE_BTN},   // enc slot 8
     {GPIO_SW,   9,    GPIO_SW4_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},       // enc slot 9
     {GPIO_SW,   10,   GPIO_SW5_ENABLE,   NONE,    NONE,        ON,         NONE,           NONE,            NONE},       // enc slot 10
@@ -390,15 +390,16 @@ PROGMEM struct Zoom_Lvl zoom[ZOOM_NUM] = {
 };
 
 struct Filter_Settings filter[FILTER] = {
-    {"250",   250,  "Hz",    CW},
-    {"500",   500,  "Hz",    CW},
-    {"700",   700,  "Hz",    CW},
+    {"0.25",   250, "KHz",   CW},
+    {"0.50",   500, "KHz",   CW},
+    {"0.70",   700, "KHz",   CW},
     {"1.00",  1000, "KHz",   CW},
     {"1.80",  1800, "KHz",  USB},
     {"2.30",  2300, "KHz",  USB},
     {"2.80",  2800, "KHz",  USB},
-    {"3.20",  3200, "KHz",  USB},
-    {"4.00",  4000, "KHz", DATA}
+    {"3.20",  3200, "KHz", DATA},
+    {"4.00",  4000, "KHz", DATA},
+    {"6.00",  6000, "KHz",   AM}
 };
 
 //Remember filter per mode  Last field "Width" is writable
@@ -408,9 +409,9 @@ struct Modes_List modeList[MODES_NUM] = {
     {2, "USB   ", BW2_8},
     {3, "LSB   ", BW2_8},
     {4, "DATA  ", BW3_2},
-    {5, "DATA-R", BW3_2},
-    {6, "AM    ", BW4_0},
-    {7, "FM    ", BW4_0}
+    {5, "DATA-R", BW4_0},
+    {6, "AM    ", BW6_0},
+    {7, "FM    ", BW6_0}
  };
 
 struct TuneSteps  tstep[TS_STEPS] = {

@@ -176,7 +176,17 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define myVDARKBLUE   0x01B0 // very dark blue
 #define myVDKORANGE   0xCB21 // very dark orange, maybe burnt orange
 #define myDKYELLOW    0x9422 // very dark yellow
-#define myDKPINK      0xA1F3 // dark pink
+#define myDKPINK      0xA1F3 // dark 
+
+// Convert 24bit RGB to RGB565 using  http://www.drakker.org/convert_rgb565.html
+#define myBRIGHTPINK  0xF8F1
+#define myMIDGREEN    0x03E0
+#define myBRIGHTGREEN 0x6646
+#define myVIOILET     0xA01F
+#define myLAVBLUE     0x631F
+#define myGREY        0xBDF7
+//Conversion formula is RGB565 = (((RGB888&0xf80000)>>8) + ((RGB888&0xfc00)>>5) + ((RGB888&0xf8)>>3));
+
 
 ///////////////////////Set up global variables for Frequency, mode, bandwidth, step
 // Index to bandmem table rows.  Use BANDX since rows can be in any order
@@ -254,6 +264,7 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define BW2_8       6
 #define BW3_2       7
 #define BW4_0       8
+#define BW6_0       9
 #define VFO_A       1
 #define VFO_B       0
 
@@ -280,7 +291,7 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define BANDS       11
 #define XVTRS       12
 #define TS_STEPS    6
-#define FILTER      9
+#define FILTER      10
 #define AGC_SET_NUM 4
 #define NB_SET_NUM  7
 #define USER_SETTINGS_NUM 3
@@ -387,6 +398,7 @@ struct Band_Memory {
     uint32_t    vfo_B_last;   // moving away from per-band VFOB recall, moving to use a global sub-VFO which can be on any band.
     uint8_t     mode_B;         // CW, LSB, USB, DATA. - Depricating in favor is global Sub_VFO mode in user_settings 
     uint8_t     filter;         // index to Bandwidth selection for this band.
+    uint16_t    var_filter;     // Continuously variable filter setting in Hz.
     uint8_t     band_num;       // generally the same as the index but could be used to sort bands differently and skip bands
     uint8_t     tune_step;      // last step rate on this band.  Index to Tune step table 
     uint8_t     agc_mode;       // index to group of AGC settings in another table

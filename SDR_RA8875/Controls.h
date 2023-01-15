@@ -33,6 +33,7 @@ void Rate(int8_t dir);
 void setMode(int8_t dir);
 void AGC(int8_t dir);
 void Filter(int8_t dir);
+void Variable_Filter(int8_t dir);
 void ATU(uint8_t state);
 void Xvtr();
 void Split(uint8_t state);

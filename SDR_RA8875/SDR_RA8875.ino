@@ -1263,7 +1263,8 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
                             Zoom(counts);           break;
         case FILTER_BTN:    if (counts > 0) counts =  1;         // The controls here and below are not yet MF aware
                             if (counts < 0) counts = -1;
-                            Filter(counts);         break;
+                            //Filter(counts);         break;
+                            Variable_Filter(counts);break;
 		case RATE_BTN:      if (counts > 0) counts =  1;
                             if (counts < 0) counts = -1;
                             Rate(counts);           break;
