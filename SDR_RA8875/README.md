@@ -12,7 +12,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     6. Removed many redundant for-loops in encoder list seraches.   Same for default_MF slot search.  Now generally do serach once at startup.
     7. Adafruit I2C active termnnator used to extend the I2C encoder bus to 8" with no problens now.
     8. Perf tested the RA8876 display at different SPI bus speeds. Works up to 70Mhz, not 80 though.  Perf gains levels off somewhere >30Mhz.  40Mhz to 50Mhz is a good compromise. Set defauilt ot 50Mhz.
-
+    9. Added continuously variable audio filter when operated from an encoder.  Tapping the Filter button still cycles through predefined list of bandwidths as before.  Filter label format changed to always display as X.XXKHz. Under 1KHz steps in 50Hz widths, > 1K 100Hz and > 3K 200Hz. Max is 6K. MInis 150Hz for non CW modes, 50Hz for CW modes.  FM mode will have N/A for filter and is fixed bandwidth (and does nto work anyway yet but the screen is right).  The variable will usethe last button filter setting and increment smoothly off that value.  The opposite is not true yet.  Change the filter and the buttom tap does nto yet know about it.  Fix in the queue.
+    
 ## Dec 2022
 
     1. Dec 2:  Removed the T from the serial help menu.  Code accidentally deleted likely during RS-HFIQ integration.
