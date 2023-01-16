@@ -146,6 +146,10 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #define XIT_STEP_DEFAULT  1 // step size index from the tstep table.  normally index = 1 -> 10Hz.  
 
+#define VARIABLE_FILTER   0  // when defined or set to 0, the encoder will cycle through predefined filter widths same as the touch buttons do.  
+                             // When active, the encoder (only) will be variable over the allowed range based on mode and change in various step rates according to freqwuncy.
+                             //  50Hz < 1KHz, 100Hz 1-3KHz and 200Hz > 3KHz.  Max is 6.  FM is fixed and shows as N/A width.
+
 #define AUDIOBOOST   (1.0f) // Audio output amp gain.
                             // 0/0 - 32767.0.   0.0 theoretically shuts off flow so should not be used.  
                             // 1.0f is pass through (no gain or loss)

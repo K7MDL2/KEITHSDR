@@ -600,13 +600,11 @@ void displayBand_Menu(uint8_t state)
 {
     struct Standard_Button *ptr = std_btn;     // pointer to button object passed by calling function
 	struct Standard_Button *ptr_temp = std_btn;
-	char temp[32];
  	
 	if (state)
     {
 		ptr += BAND_MENU;
-		//sprintf(temp, "\nWindow is %s\n",ptr->label);
-		DPRINT(temp);
+		//sprintf(temp, "\nWindow is %s\n",ptr->label); DPRINT(temp);
 
 		ptr_temp += BAND_MENU+1;
 		for (int i=(BAND_MENU+1); i < STD_BTN_NUM; i++)    // search all button rows

@@ -441,15 +441,12 @@ COLD void Variable_Filter(int8_t dir)
     extern int16_t  filterCenter;
     extern int16_t  filterBandwidth;
     extern void     SetFilter(void);
-    static int8_t   direction = 1;
     int16_t         var_bw = bandmem[curr_band].var_filter;
     uint16_t        var_filt_max = 6000;  // FM is NA (fixed value)
     uint16_t        var_filt_min_CW = 50;
     uint16_t        var_filt_min_SSB = 150;
     extern AudioEffectGain_F32              Amp1_L;  // Some well placed gain stages
     extern AudioEffectGain_F32              Amp1_R;  // Some well placed gain stages
-
-    uint8_t _mode;
 
     var_bw = bandmem[curr_band].var_filter;  // get current filter width value
 
@@ -478,19 +475,19 @@ COLD void Variable_Filter(int8_t dir)
 
         float CW_boost = 0.0f;       
         if (var_bw < 250)
-            CW_boost = 8.0f;
+            CW_boost = 15.0f;
         else if (var_bw < 500)
-            CW_boost = 6.0f;
+            CW_boost = 12.0f;
         else if (var_bw < 700)
-            CW_boost = 5.0f;
+            CW_boost = 9.0f;
         else if (var_bw < 1000)
-            CW_boost = 3.0f;
+            CW_boost = 6.0f;
         else
             CW_boost = 0.0f;
 
         AudioNoInterrupts();
-        Amp1_L.setGain_dB(AUDIOBOOST);    // Adjustable fixed output boost in dB.
-        Amp1_R.setGain_dB(AUDIOBOOST+6.0f);
+        Amp1_L.setGain_dB(AUDIOBOOST+CW_boost);    // Adjustable fixed output boost in dB.
+        Amp1_R.setGain_dB(AUDIOBOOST+CW_boost);
         AudioInterrupts();
 
         //DPRINTF("Set CW Variable Filter = "); DPRINTLN(var_bw);
@@ -1888,7 +1885,6 @@ COLD void selectAgc(uint8_t andx)
 // Turns meter off
 void clearMeter(void)
 {
-    uint8_t slot;
     DPRINTLN("Turn OFF meter");
     MeterInUse = false;
     // blank out text line from overruns
