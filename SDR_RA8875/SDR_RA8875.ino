@@ -2092,6 +2092,7 @@ HOT void RS_HFIQ_Service(void)
             bandmem[curr_band].vfo_A_last = VFOA; // Save last band's frequency
             VFOA = last_VFOA;  // update to new VFO value
             DPRINTF("CAT: VFOA: "); DPRINTLN(VFOA);
+            selectFrequency(0);  // Update tuner to VFOA value
             displayFreq();  // Update the VF)A display        
         }
         else if (last_VFOB != VFOB)
