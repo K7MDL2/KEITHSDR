@@ -68,7 +68,7 @@ uint8_t fft_axis = FFT_AXIS;
 
 int16_t _colorMap(int16_t val, int16_t color_temp);
 int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz);
-char* _formatFreq(uint32_t Freq);
+char* _formatFreq(uint64_t Freq);
 //static uint16_t Color565(uint8_t r, uint8_t g, uint8_t b);
 //inline uint16_t _Color565(uint8_t r, uint8_t g, uint8_t b);
 int16_t _waterfall_color_update(float sample, int16_t waterfall_low);
@@ -162,7 +162,7 @@ void updateActiveWindow(bool full)
 //
 // -------------------------------------------------------------------------------------
 //
-int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float _pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc)
+uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t VfoB, int32_t Offset, uint16_t filterCenter, uint16_t filterBandwidth, float _pan, uint16_t fft_sz, float fft_bin_sz, int16_t fft_binc)
 {
 //    s = The PRESET index into Sp_Parms_Def[] structure for windows location and size params  
 //    Specify the default layout option for spectrum window placement and size.
@@ -181,9 +181,9 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t Vfo
 	//JH: put this here and make it static
     static int16_t line_buffer[SCREEN_WIDTH+2];      // Will only use the x bytes defined by wf_sp_width var.  Could be 4096 FFT later which is larger than our width in pixels. 
     //JH moved to top of function
-    static uint32_t old_VFO_            = 0;
+    static uint64_t old_VFO_            = 0;
     //JH moved to top of function, made static
-    static uint32_t _VFO_;   // Get active VFO frequency
+    static uint64_t _VFO_;   // Get active VFO frequency
 	//int16_t blanking = 3; //3;  // used to remove the DC line from the graphs at Fc
     int16_t pix_o16;
     int16_t pix_n16;
@@ -192,10 +192,10 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t Vfo
     static int16_t fft_pk_bin           = 0;
     static int16_t fftPower_pk_last     = ptr->spect_floor;
     static int16_t pix_min              = ptr->spect_floor;
-    static int32_t freq_peak            = 0;
+    static uint64_t freq_peak            = 0;
     static float old_fft_sz             = 0;        // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
     static int16_t L_EDGE               = 0; 
-    static int32_t L_EDGE_no_pan        = 0;        // internediate calculation used to pan
+    static uint64_t L_EDGE_no_pan        = 0;        // internediate calculation used to pan
     static float old_pan                = 0.0f;        // update screen freq data when pan setting changes
     static int16_t pan                  = 0;
 
@@ -783,19 +783,19 @@ int32_t spectrum_update(int16_t s, int16_t VFOA_YES, uint32_t VfoA, uint32_t Vfo
 
         if (old_VFO_ != _VFO_ || old_fft_sz != fft_sz || old_pan != pan)
         {
-            int32_t pan_freq = pan*fft_bin_sz*2;
+            uint64_t pan_freq = pan*fft_bin_sz*2;
 
             tft.fillRect( ptr->l_graph_edge, ptr->sp_txt_row, 110, 13, BLACK);
             tft.setCursor(ptr->l_graph_edge, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_ + (uint32_t) (pan_freq - (int32_t)(ptr->wf_sp_width*fft_bin_sz))));       // Write left side of graph Freq
+            tft.print(_formatFreq(_VFO_ + (uint64_t) (pan_freq - (int64_t)(ptr->wf_sp_width*fft_bin_sz))));       // Write left side of graph Freq
             
             tft.fillRect( ptr->c_graph-60, ptr->sp_txt_row, 110, 13, BLACK);
             tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_ + (uint32_t) pan_freq));   // Write center of graph Freq   
+            tft.print(_formatFreq(_VFO_ + (uint64_t) pan_freq));   // Write center of graph Freq   
             
             tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, BLACK);
             tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_ + (uint32_t) (pan_freq + (int32_t)(ptr->wf_sp_width*fft_bin_sz))));  // Write right side of graph Freq
+            tft.print(_formatFreq(_VFO_ + (uint64_t) (pan_freq + (int64_t)(ptr->wf_sp_width*fft_bin_sz))));  // Write right side of graph Freq
             
             // Update our change detector vars
             old_VFO_ = _VFO_;       // save to minimize updates for no reason.
@@ -1192,8 +1192,8 @@ int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz)    //
 }
 
 // Duplicate of the function in Display.h but included here to make the spectrum module self contained. Minor changes included
-//char* Spectrum_RA887x::_formatFreq(uint32_t Freq)
-char* _formatFreq(uint32_t Freq)
+//char* Spectrum_RA887x::_formatFreq(uint64_t Freq)
+char* _formatFreq(uint64_t Freq)
 {
 	static char Freq_str[16];
 

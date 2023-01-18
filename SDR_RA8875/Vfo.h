@@ -5,6 +5,6 @@
 #include <Arduino.h>
 
 void initVfo(void);
-void SetFreq(uint32_t Freq);
+void SetFreq(uint64_t Freq);
 
 #endif //_VFO_H_

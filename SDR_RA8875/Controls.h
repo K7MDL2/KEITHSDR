@@ -35,7 +35,6 @@ void AGC(int8_t dir);
 void Filter(int8_t dir);
 void Variable_Filter(int8_t dir);
 void ATU(uint8_t state);
-void Xvtr();
 void Split(uint8_t state);
 void setXIT(int8_t toggle);
 void XIT(int8_t delta);
@@ -60,7 +59,7 @@ void setZoom(int8_t toggle);
 void setPAN(int8_t toggle);
 void PAN(int8_t delta);
 void digital_step_attenuator_PE4305(int16_t _atten);   // Takes a 0 to 100 input, converts to the appropriate hardware steps such as 0-31dB in 1 dB steps
-uint32_t find_new_band(uint32_t new_frequency, uint8_t * rs_curr_band);
+uint64_t find_new_band(uint64_t new_frequency, uint8_t &_curr_band);
 void clearMeter(void);
 
 #endif  // _CONTROLS_H_

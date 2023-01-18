@@ -16,8 +16,8 @@
     #endif
 #endif
 
-extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern int32_t Fc;
+extern uint64_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern int64_t Fc;
 
 //#define VFO_MULT    2   // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board, defined in RadioCfg.h
 
@@ -121,7 +121,7 @@ COLD void initVfo(void)
     #endif
 }
 
-COLD void SetFreq(uint32_t Freq)
+COLD void SetFreq(uint64_t Freq)
 { 
     #ifdef USE_RS_HFIQ
         return;

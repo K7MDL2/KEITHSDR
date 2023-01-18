@@ -153,19 +153,19 @@ HOT  bool GPIO_Sw_read(bool sw_pushed, uint8_t sw_pin, uint8_t slot);
 //extern void update_icon_outline(void);
 
 #ifdef USE_RS_HFIQ
-  HOT  void RS_HFIQ_Service(void);  // commands the RS_HFIQ over USB Host serial port
+HOT void RS_HFIQ_Service(void); // commands the RS_HFIQ over USB Host serial port
 #endif
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
 //
-//#define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables. 
+// #define USE_ENET_PROFILE    // <<--- Uncomment this line if you want to use ethernet without editing any variables.
 //
 
 #ifndef PANADAPTER
     #ifdef USE_ENET_PROFILE
         uint8_t     user_Profile = 0;   // Profile 0 has enet enabled, 1 and 2 do not.
     #else  // USE_ENET_PROFILE
-    uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
+        uint8_t     user_Profile = 1;   // Profile 0 has enet enabled, 1 and 2 do not.
     #endif  // USE_ENET_PROFILE
 #else  // PANADAPTER
     uint8_t     user_Profile = 2;   // Profile 2 is optimized for Panadapter usage
@@ -176,9 +176,9 @@ HOT  bool GPIO_Sw_read(bool sw_pushed, uint8_t sw_pin, uint8_t slot);
 //
 // These should be saved in EEPROM periodically along with several other parameters
 uint8_t     curr_band   = BAND80M;  // global tracks our current band setting.  
-uint32_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-uint32_t    VFOB        = 0;
-int32_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
+uint64_t    VFOA        = 0;        // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+uint64_t    VFOB        = 0;
+int64_t     Fc          = 0;        //(sample_rate_Hz/4);  // Center Frequency - Offset from DC to see band up and down from cener of BPF.   Adjust Displayed RX freq and Tx carrier accordingly
 int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 
 //control display and serial interaction
@@ -196,6 +196,7 @@ uint8_t     PTT_Input_debounce      = 0;   // Debounce state tracking
 float       S_Meter_Peak_Avg;              // For RF AGC Limiter
 bool        TwoToneTest             = OFF; // Chooses between Mic ON or Dual test tones in transmit (Xmit() in Control.cpp)
 float       pan                     = 0.0f;
+uint64_t    xvtr_offset             = 0;
 int16_t     rit_offset              = 0;    // global RIT offset value in Hz. -9999Hz to +9999H
 int16_t     xit_offset              = 0;    // global XIT offset value in Hz. -9999Hz to +9999H
 int16_t     rit_offset_last         = 0;    // track last used value when turning the RIT on and off. 
@@ -216,42 +217,43 @@ uint8_t     default_MF_slot         = 0;    // default MF client assignment slot
     extern uint8_t rx_count;
 #endif
 
-//#include <Metro.h>
-// Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
-Metro touch             = Metro(50);    // used to check for touch events
-Metro tuner             = Metro(700);  // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
-Metro meter             = Metro(400);   // used to update the meters
-Metro popup_timer       = Metro(500);   // used to check for popup screen request
-Metro NTP_updateTx      = Metro(10000); // NTP Request Time interval
-Metro NTP_updateRx      = Metro(65000); // Initial NTP timer reply timeout. Program will shorten this after each request.
-Metro MF_Timeout        = Metro(1800);  // MultiFunction Knob and Switch 
-Metro touchBeep_timer   = Metro(80);    // Feedback beep for button touches
-Metro gpio_ENC2_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
-Metro gpio_ENC3_Read_timer = Metro(700);   // time allowed to accumulate counts for slow moving detented encoders
-Metro TX_Timeout         = Metro(180000);  // 180000 is 3 minutes for RunawayTX timeout
+// #include <Metro.h>
+//  Most of our timers are here.  Spectrum waterfall is in the spectrum settings section of that file
+Metro touch                = Metro(50);     // used to check for touch events
+Metro tuner                = Metro(700);    // used to dump unused encoder counts for high PPR encoders when counts is < enc_ppr_response for X time.
+Metro meter                = Metro(400);    // used to update the meters
+Metro popup_timer          = Metro(500);    // used to check for popup screen request
+Metro NTP_updateTx         = Metro(10000);  // NTP Request Time interval
+Metro NTP_updateRx         = Metro(65000);  // Initial NTP timer reply timeout. Program will shorten this after each request.
+Metro MF_Timeout           = Metro(1800);   // MultiFunction Knob and Switch
+Metro touchBeep_timer      = Metro(80);     // Feedback beep for button touches
+Metro gpio_ENC2_Read_timer = Metro(700);    // time allowed to accumulate counts for slow moving detented encoders
+Metro gpio_ENC3_Read_timer = Metro(700);    // time allowed to accumulate counts for slow moving detented encoders
+Metro TX_Timeout           = Metro(180000); // 180000 is 3 minutes for RunawayTX timeout
+Metro RSHFIQ_Check         = Metro(20);     // Throttle the servicing for the RS-HFIQ
 
-uint8_t enc_ppr_response = VFO_PPR;   // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  
-                            // 600ppr is very fast at 1Hz steps, worse at 10Khz!
+uint8_t enc_ppr_response = VFO_PPR; // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.
+                                    // 600ppr is very fast at 1Hz steps, worse at 10Khz!
 
 // Set this to be the default MF knob function when it does not have settings focus from a button touch.
 // Choose any from the MF Knob aware list below.
-uint8_t MF_client = MFTUNE;  // Flag for current owner of MF knob services
-bool    MF_default_is_active = true;
+uint8_t MF_client         = MFTUNE; // Flag for current owner of MF knob services
+bool MF_default_is_active = true;
 
 //
 //============================================  Start of Spectrum Setup Section =====================================================
 //
 
 // Audio Library setup stuff
-//float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
-//float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-//float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-float sample_rate_Hz = 48000.0f;  //46.875Hz /bin  24K spectrum for 1024.  
-//float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-//float sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
-//float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
+// float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
+// float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
+// float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+float sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
+// float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+// float sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
+// float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 
-float zoom_in_sample_rate_Hz = sample_rate_Hz;  // used in combo with new fft size for zoom level
+float zoom_in_sample_rate_Hz = sample_rate_Hz; // used in combo with new fft size for zoom level
 //
 // ---------------------------- Set some FFT related parameters ------------------------------------
 
@@ -298,7 +300,7 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
 #endif
 
 #ifdef W7PUA_I2S_CORRECTION
-  AudioAlignLR_F32          TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
+AudioAlignLR_F32 TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 #endif
 
 #ifdef USB32
@@ -497,7 +499,7 @@ COLD void setup()
 {
     DSERIALBEGIN(115200);
     delay(1000);
-    if (CrashReport)Serial.print(CrashReport);
+    if (CrashReport) Serial.print(CrashReport);
 
     DPRINTLNF("Initializing SDR_RA887x Program");
     DPRINTF("FFT Size is ");
@@ -505,7 +507,7 @@ COLD void setup()
     DPRINTLNF("**** Running I2C Scanner ****");
 
     if (PTT_INPUT != 255)
-        pinMode(PTT_INPUT, INPUT_PULLUP);   // Init PTT in and out lines
+        pinMode(PTT_INPUT, INPUT_PULLUP); // Init PTT in and out lines
     if (PTT_OUT1 != 255)
     {
         pinMode(PTT_OUT1, OUTPUT);
@@ -533,16 +535,16 @@ COLD void setup()
     if (GPIO_SW6_ENABLE)  pinMode(GPIO_SW6_PIN,  INPUT_PULLUP);   // By default conifg this is assigned 'disabled' to the GPIO header pin 8 can be an output for GPIO_ANT_PIN
 
     // Use for ANT switch
-    if (GPIO_ANT_ENABLE)  pinMode(GPIO_ANT_PIN, OUTPUT);    // Took over SW6 default input pin to make this an output (by config)
+    if (GPIO_ANT_ENABLE) pinMode(GPIO_ANT_PIN, OUTPUT); // Took over SW6 default input pin to make this an output (by config)
 
     // Serach for a default_MF_client tag and save it in a global var
     for (default_MF_slot = 0; default_MF_slot < NUM_AUX_ENCODERS; default_MF_slot++)
     {
         if (encoder_list[default_MF_slot].default_MF_client && encoder_list[default_MF_slot].enabled) // set back to designated default control role
         {
-            break;  // find first control with a match
+            break; // find first control with a match
         }
-        else 
+        else
             default_MF_slot = 0;
     } // got the slot number of our control
 
@@ -607,11 +609,11 @@ COLD void setup()
     tft.setFont(Arial_28_Bold);
     tft.setTextColor(BLUE);
     tft.setCursor(70, 100);
-    tft.print(F(BANNER));   // Customize the Startup Banner Text
+    tft.print(BANNER); // Customize the Startup Banner Text
     tft.setCursor(140, 200);
     tft.setFont(Arial_28_Bold);
     tft.setTextColor(WHITE);
-    tft.print(F(CALLSIGN));   // Put your callsign here
+    tft.print(CALLSIGN); // Put your callsign here
 
     // -------------------- Setup Ethernet and NTP Time and Clock button  --------------------------------
     #ifdef ENET
@@ -628,40 +630,40 @@ COLD void setup()
         if (!enet_ready)
         {
             enet_start_fail_time = millis(); // set timer for 10 minute self recovery in main loop
-            DPRINTLN(F("Ethernet System Startup Failed, setting retry timer (10 minutes)"));
+            DPRINTLNF("Ethernet System Startup Failed, setting retry timer (10 minutes)");
         }
-        DPRINTLN(F("Ethernet System Startup Completed"));
-        //setSyncProvider(getNtpTime);
+        DPRINTLNF("Ethernet System Startup Completed");
+        // setSyncProvider(getNtpTime);
     }
     #endif
 
-    // Update time on startup from RTC. If a USB connection is up, get the time from a PC.  
+    // Update time on startup from RTC. If a USB connection is up, get the time from a PC.
     // Later if enet is up, get time from NTP periodically.
-    setSyncProvider(getTeensy3Time);   // the function to get the time from the RTC
-    if(timeStatus()!= timeSet) // try this other way
-        DPRINTLN(F("Unable to sync with the RTC"));
+    setSyncProvider(getTeensy3Time); // the function to get the time from the RTC
+    if (timeStatus() != timeSet)     // try this other way
+        DPRINTLNF("Unable to sync with the RTC");
     else
-        DPRINTLN(F("RTC has set the system time")); 
-   
-    #ifdef DEBUG
-    if (Serial.available()) 
-    {
-        time_t t = processSyncMessage();
-        if (t != 0) 
-        {
-            //Teensy3Clock.set(t); // set the RTC
-            setTime(t);
-        }
-    }
-    digitalClockDisplay(); // print time to terminal
-    DPRINTLN(F("Clock Update"));
-    #endif
-    
-    init_band_map();
+        DPRINTLNF("RTC has set the system time");
 
-    #ifndef BYPASS_SPECTRUM_MODULE
-        initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+    #ifdef DEBUG
+        if (Serial.available())
+        {
+            time_t t = processSyncMessage();
+            if (t != 0)
+            {
+                // Teensy3Clock.set(t); // set the RTC
+                setTime(t);
+            }
+        }
+        digitalClockDisplay(); // print time to terminal
+        DPRINTLNF("Clock Update");
     #endif
+
+    // init_band_map();
+
+#ifndef BYPASS_SPECTRUM_MODULE
+    initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
+#endif
 
     #ifdef PE4302
         // Initialize the I/O for digital step attenuator if used.
@@ -676,56 +678,69 @@ COLD void setup()
     #ifdef I2C_LCD    // initialize the I2C LCD
         lcd.init(); 
         lcd.backlight();
-        lcd.print(F("MyCall SDR"));  // Edit this to what you like to see on your display
+        lcd.print("MyCall SDR"); // Edit this to what you like to see on your display
     #endif
 
-/*  // Read SD Card data
-    // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
-    // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD   ***IF*** they are not used for somethng else:
-    //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
-    //SPI.setSCK(14);  // Audio shield has SCK on pin 14
-    // see if the card is present and can be initialized:
-    SD_CardInfo();
-    // open or create our config file.  Filenames follow DOS 8.3 format rules
-    Open_SD_cfgfile();
-    // test our file
-    // make a string for assembling the data to log:
-    write_db_tables();
-    read_db_tables();
-    write_radiocfg_h();         // write out the #define to a file on the SD card.  
-                                // This could be used by the PC during compile to override the RadioConfig.h
-*/
+    /*  // Read SD Card data
+        // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
+        // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD   ***IF*** they are not used for somethng else:
+        //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
+        //SPI.setSCK(14);  // Audio shield has SCK on pin 14
+        // see if the card is present and can be initialized:
+        SD_CardInfo();
+        // open or create our config file.  Filenames follow DOS 8.3 format rules
+        Open_SD_cfgfile();
+        // test our file
+        // make a string for assembling the data to log:
+        write_db_tables();
+        read_db_tables();
+        write_radiocfg_h();         // write out the #define to a file on the SD card.
+                                    // This could be used by the PC during compile to override the RadioConfig.h
+    */
     // -------------------- Setup our radio settings and UI layout --------------------------------
 
-    curr_band = user_settings[user_Profile].last_band;       // get last band used from user profile.
+    curr_band = user_settings[user_Profile].last_band; // get last band used from user profile.
     PAN(0);
 
-    //==================================== Frequency Set ==========================================
+//==================================== Frequency Set ==========================================
     #ifdef PANADAPTER
         VFOA = PANADAPTER_LO;
         VFOB = PANADAPTER_LO;
     #else
-        VFOA = bandmem[curr_band].vfo_A_last; //I used 7850000  frequency CHU  Time Signal Canada
+        VFOA = bandmem[curr_band].vfo_A_last;
         VFOB = user_settings[user_Profile].sub_VFO;
     #endif
-                               
-    #ifdef USE_RS_HFIQ  // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
-        DPRINTLN(F("Initializing RS-HFIQ Radio via USB Host port"));
+
+    DPRINT("Setup: VFOA = "); DPRINTLN(VFOA);
+    // Calculate frequency difference between the designated xvtr IF band's lower edge and the current VFO band's lower edge (the LO frequency).
+    find_new_band(VFOA, curr_band);  // find band index for VFOA frequency
+    if (bandmem[curr_band].xvtr_IF)
+        xvtr_offset = bandmem[curr_band].edge_lower - bandmem[bandmem[curr_band].xvtr_IF].edge_lower; // if band is 144 then PLL will be set to VFOA-xvtr_offset
+    else
+        xvtr_offset = 0;
+    DPRINTF("Setup: xvr_offset = "); DPRINTLN(xvtr_offset);
+
+    #ifdef USE_RS_HFIQ // if RS-HFIQ is used, then send the active VFO frequency and receive the (possibly) updated VFO
+        DPRINTLNF("Initializing RS-HFIQ Radio via USB Host port");
         #ifndef NO_RSHFIQ_BLOCKING
-            RS_HFIQ.setup_RSHFIQ(1, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+            RS_HFIQ.setup_RSHFIQ(1, VFOA - xvtr_offset); // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         #else
-            RS_HFIQ.setup_RSHFIQ(0, VFOA);  // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
+            RS_HFIQ.setup_RSHFIQ(0, VFOA - xvtr_offset); // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         #endif
     #else
-        delay(1000);  // Give time to see the slash screen
+        delay(1000); // Give time to see the slash screen
     #endif
+
+    DPRINTF("Setup: Post RS-HFIQ VFOA = ");
+    DPRINTLN(VFOA);
+    RS_HFIQ_Service();
 
     #ifdef USE_RA8875
         tft.clearScreen();
     #else
         tft.clearActiveScreen();
-    #endif    
-       
+    #endif
+
 
     #ifndef BYPASS_SPECTRUM_MODULE    
         Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
@@ -741,17 +756,15 @@ COLD void setup()
         //sp.drawSpectrumFrame(6);   // for 2nd window
     #endif  
 
-    DPRINT(F("\nInitial Dial Frequency is "));
-    DPRINT(formatVFO(VFOA));
-    DPRINTLN(F("MHz"));
+    DPRINTF("\nInitial Dial Frequency is "); DPRINT(formatVFO(VFOA)); DPRINTLNF("MHz");
 
     //--------------------------   Setup our Audio System -------------------------------------
     initVfo(); // initialize the si5351 vfo
     delay(10);
     initDSP();
-    //RFgain(0);
-    changeBands(0);     // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
-                        // Call changeBands() here after volume to get proper startup volume
+    // RFgain(0);
+    changeBands(0); // Sets the VFOs to last used frequencies, sets preselector, active VFO, other last-used settings per band.
+                    // Call changeBands() here after volume to get proper startup volume
 
     //------------------Finish the setup by printing the help menu to the serial connections--------------------
     #ifdef DEBUG
@@ -759,19 +772,19 @@ COLD void setup()
     #endif
     
     InternalTemperature.begin(TEMPERATURE_NO_ADC_SETTING_CHANGES);
-   
+
     #ifdef FT817_CAT
-        DPRINTLN(F("Starting the CAT port and reading some radio information if available"));
-        init_CAT_comms();  // initialize the CAT port
-        print_CAT_status();  // Test Line to read data from FT-817 if attached.
-    #endif
-    
-    #ifdef ALL_CAT
-        CAT_setup();   // Setup the MSG_Serial port for cnfigured Radio comm port
+        DPRINTLNF("Starting the CAT port and reading some radio information if available");
+        init_CAT_comms();   // initialize the CAT port
+        print_CAT_status(); // Test Line to read data from FT-817 if attached.
     #endif
 
-    update_icon_outline();  // update any icons related to active encoders functions  This also calls displayRefresh.
-    //displayRefresh();
+    #ifdef ALL_CAT
+        CAT_setup(); // Setup the MSG_Serial port for cnfigured Radio comm port
+    #endif
+
+    update_icon_outline(); // update any icons related to active encoders functions  This also calls displayRefresh.
+    // displayRefresh();
 }
 
 static uint32_t delta = 0;
@@ -780,116 +793,115 @@ static uint32_t delta = 0;
 //
 HOT void loop()
 {
-    static int32_t  newFreq = 0;
+    static int64_t newFreq   = 0;
     static uint32_t time_old = 0;
-    static uint32_t time_n  = 0;
+    static uint32_t time_n   = 0;
     #ifdef DEBUG
-    static uint32_t time_sp;
+        static uint32_t time_sp;
     #endif
 
- 
     #ifdef DEBUG
-      //JH
-      static uint16_t loopcount=0;
-      static uint32_t jhTime=millis();
-      loopcount++;
-      if(loopcount>10) 
-      {
-          uint32_t jhElapsed=millis()-jhTime;
-          jhTime=millis();
-          loopcount=0;      
-          tft.fillRect(234,5,46,22, BLACK);
-          tft.setFont(Arial_14);
-          tft.setCursor(236,9, false);
-          tft.setTextColor(DARKGREY);
-          tft.print(jhElapsed/10); 
-      }
-    #endif
-
-    #ifndef BYPASS_SPECTRUM_MODULE
-        // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
-        //if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
-        if (!popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
-        {    
-            #ifdef DEBUG  
-            time_sp = millis();
-            #endif     
-        //if (!bandmem[curr_band].XIT_en)  // TEST:  added to test CPU impact
-            Freq_Peak = spectrum_update(
-                user_settings[user_Profile].sp_preset,
-                1,  // No longer used, set to 1
-                VFOA+rit_offset,    // for onscreen freq info
-                VFOB,               // Not really needed today
-                ModeOffset,         // Move spectrum cursor to center or offset it by pitch value when in CW modes
-                filterCenter,       // Center the on screen filter shaded area
-                filterBandwidth,    // Display the filter width on screen
-                pan,                // Pannng offset from center frequency
-                fft_size,           // use this size to display for simple zoom effect
-                fft_bin_size,       // pass along the calculated bin size
-                fft_bins            // pass along the number of bins.  FOr IQ FFTs, this is fft_size, else fft_size/2
-                ); // valid numbers are 0 through PRESETS to index the record of predefined window layouts
-            // spectrum_update(6);  // for 2nd window
+        // JH
+        static uint16_t loopcount = 0;
+        static uint32_t jhTime    = millis();
+        loopcount++;
+        if (loopcount > 10)
+        {
+            uint32_t jhElapsed = millis() - jhTime;
+            jhTime             = millis();
+            loopcount          = 0;
+            tft.fillRect(234, 5, 46, 22, BLACK);
+            tft.setFont(Arial_14);
+            tft.setCursor(236, 9, false);
+            tft.setTextColor(DARKGREY);
+            tft.print(jhElapsed / 10);
         }
     #endif
 
+#ifndef BYPASS_SPECTRUM_MODULE
+    // Update spectrum and waterfall based on timer - do not draw in the screen space while the pop up has the screen focus.
+    // if (spectrum_waterfall_update.check() == 1 && !popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
+    if (!popup) // The update rate is set in drawSpectrumFrame() with spect_wf_rate from table
+    {
+        #ifdef DEBUG
+            time_sp = millis();
+        #endif
+        Freq_Peak = spectrum_update(
+            user_settings[user_Profile].sp_preset,
+            1,                 // No longer used, set to 1
+            VFOA + rit_offset, // for onscreen freq info
+            VFOB,              // Not really needed today
+            ModeOffset,        // Move spectrum cursor to center or offset it by pitch value when in CW modes
+            filterCenter,      // Center the on screen filter shaded area
+            filterBandwidth,   // Display the filter width on screen
+            pan,               // Pannng offset from center frequency
+            fft_size,          // use this size to display for simple zoom effect
+            fft_bin_size,      // pass along the calculated bin size
+            fft_bins           // pass along the number of bins.  FOr IQ FFTs, this is fft_size, else fft_size/2
+        );                     // valid numbers are 0 through PRESETS to index the record of predefined window layouts
+        // spectrum_update(6);  // for 2nd window
+    }
+#endif
+
     time_n = millis() - time_old;
-    
-    if (time_n > delta)    // Main loop performance timer probe
+
+    if (time_n > delta) // Main loop performance timer probe
     {
         delta = time_n;
-        DPRINT(F("Loop T="));
+        DPRINTF("Loop T=");
         DPRINT(delta);
-        DPRINT(F("  Spectrum T="));
+        DPRINTF("  Spectrum T=");
         DPRINTLN(millis() - time_sp);
     }
     time_old = millis();
 
-    //if (touch.check() == 1)
+    // if (touch.check() == 1)
     //{
-        Touch(); // touch points and gestures
+    Touch(); // touch points and gestures
     //}
 
     if (!popup && tuner.check() == 1 && newFreq < enc_ppr_response) // dump counts accumulated over time but < minimum for a step to count.
     {
         VFO.readAndReset();
-        //VFO.read();
+        // VFO.read();
         newFreq = 0;
     }
 
     if (!popup)
-        newFreq += VFO.read();    // faster to poll for change since last read
-                              // accumulate counts until we have enough to act on for scaling factor to work right.
+        newFreq += VFO.read();      // faster to poll for change since last read
+                                    // accumulate counts until we have enough to act on for scaling factor to work right.
     if (!popup && newFreq != 0 && abs(newFreq) > enc_ppr_response) // newFreq is a positive or negative number of counts since last read.
     {
-        newFreq /= enc_ppr_response;    // adjust for high vs low PPR encoders.  600ppr is too fast!
+        newFreq /= enc_ppr_response; // adjust for high vs low PPR encoders.  600ppr is too fast!
         selectFrequency(newFreq);
         VFO.readAndReset();
-        //VFO.read();             // zero out counter for next read.
+        // VFO.read();             // zero out counter for next read.
         newFreq = 0;
     }
 
-    #if defined I2C_ENCODERS || defined MECH_ENCODERS
-        Check_Encoders();
-    #endif
+#if defined I2C_ENCODERS || defined MECH_ENCODERS
+    Check_Encoders();
+#endif
 
     Check_GPIO_Switches();
 
-    if (TX_Timeout.check() == 1)    // Check for runaway TX
-        Xmit(OFF);  // Turn off in case of runaway TX.
-        
+    if (TX_Timeout.check() == 1) // Check for runaway TX
+        Xmit(OFF);               // Turn off in case of runaway TX.
+
     if (user_settings[user_Profile].xmit == 0)
-        TX_Timeout.reset();  // Reset our Runaway TX timer while in RX.  Main loop will watch for this to trip calling back here to flip back to RX.
+        TX_Timeout.reset(); // Reset our Runaway TX timer while in RX.  Main loop will watch for this to trip calling back here to flip back to RX.
 
     if (MF_Timeout.check() == 1)
     {
-        MeterInUse = false;  
+        MeterInUse = false;
         if (!MF_default_is_active)
         {
             MeterInUse = false;
-            //DPRINTF("Switching to Default MF knob assignment, current owner is = "); DPRINTLN(MF_client);
-            set_MF_Service(encoder_list[default_MF_slot].default_MF_client);  // will turn off the button, if any, and set the default as new owner.
+            // DPRINTF("Switching to Default MF knob assignment, current owner is = "); DPRINTLN(MF_client);
+            set_MF_Service(encoder_list[default_MF_slot].default_MF_client); // will turn off the button, if any, and set the default as new owner.
             MF_default_is_active = true;
-            DPRINTF("Switching to Default MF knob assignment = "); DPRINTLN(MF_client);            
+            DPRINTF("Switching to Default MF knob assignment = ");
+            DPRINTLN(MF_client);
         }
     }
 
@@ -898,24 +910,22 @@ HOT void loop()
 
     if (!popup && meter.check() == 1) // update our meters
     {
-        //if(!bandmem[curr_band].XIT_en)
-            S_Meter_Peak_Avg = Peak();   // return an average for RF AGC limiter if used
-        //DPRINT("S-Meter Peak Avg = ");
-        //DPRINTLN(S_Meter_Peak_Avg);
+        S_Meter_Peak_Avg = Peak(); // return an average for RF AGC limiter if used
+        // DPRINT("S-Meter Peak Avg = "); DPRINTLN(S_Meter_Peak_Avg);
     }
 
-    //RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
-    
-    #ifdef PANADAPTER
-        #ifdef ALL_CAT
-            //if (CAT_update.check() == 1) // update our meters
-            //{
-                // update Panadapter CAT port data using same time  
-                if (!popup)
-                    CAT_handler();
-            //}
-        #endif  // ALL_CAT
-    #endif // PANADAPTER
+    // RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
+
+#ifdef PANADAPTER
+#    ifdef ALL_CAT
+    // if (CAT_update.check() == 1) // update our meters
+    //{
+    //  update Panadapter CAT port data using same time
+    if (!popup)
+        CAT_handler();
+        //}
+#    endif // ALL_CAT
+#endif     // PANADAPTER
 
     if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     {
@@ -923,88 +933,90 @@ HOT void loop()
         pop_win_down(BAND_MENU);
         Band(255);
     }
-    
+
     // The timer and flag are set by the rogerBeep() function
-    if (touchBeep_flag && touchBeep_timer.check() == 1)   
+    if (touchBeep_flag && touchBeep_timer.check() == 1)
     {
-        touchBeep(false);    
+        touchBeep(false);
     }
 
-    //respond to MSG_Serial commands
-    #ifdef DEBUG
+// respond to MSG_Serial commands
+#ifdef DEBUG
     while (!popup && Serial.available())
     {
-        //char ch = (Serial.peek());
+        // char ch = (Serial.peek());
         char ch = (Serial.read());
-        ch = toupper(ch);
+        ch      = toupper(ch);
         DPRINTLN(ch);
         switch (ch)
         {
             case 'C':
-            case 'H':   //respondToByte((char)MSG_Serial.read()); 
-                        respondToByte((char)ch); 
-                        break;
-            case 'T':   {
-                            time_t t = processSyncMessage();
-                            if (t != 0) 
-                            {
-                                DPRINTLN(F("Time Update"));
-                                Teensy3Clock.set(t); // set the RTC
-                                setTime(t);
-                                digitalClockDisplay();
-                            }
-                        }
-                        break;
+            case 'H': // respondToByte((char)MSG_Serial.read());
+                respondToByte((char)ch);
+                break;
+            case 'T': {
+                time_t t = processSyncMessage();
+                if (t != 0)
+                {
+                    DPRINTLNF("Time Update");
+                    Teensy3Clock.set(t); // set the RTC
+                    setTime(t);
+                    digitalClockDisplay();
+                }
+            }
+            break;
             default:
-                        break;  
+                break;
         }
     }
-    
-    //check to see whether to print the CPU and Memory Usage
+
+    // check to see whether to print the CPU and Memory Usage
     if (enable_printCPUandMemory)
-        printCPUandMemory(millis(), 3000); //print every 3000 msec
-    #endif
+        printCPUandMemory(millis(), 3000); // print every 3000 msec
+#endif
 
-    #ifdef USE_RS_HFIQ
-            RS_HFIQ_Service();
-    #endif
-                                
-    #ifdef ENET // Don't compile this code if no ethernet usage intended
+#ifdef USE_RS_HFIQ
+    if (RSHFIQ_Check.check() == 1) // check for incomiong CAT serial commands and transfer info between hardware and program
+        RS_HFIQ_Service();
+#endif
 
-        if (user_settings[user_Profile].enet_enabled) // only process enet if enabled.
+#ifdef ENET // Don't compile this code if no ethernet usage intended
+
+    if (user_settings[user_Profile].enet_enabled) // only process enet if enabled.
+    {
+        if (!enet_ready)
+            if ((millis() - enet_start_fail_time) > 600000) // check every 10 minutes (600K ms) and attempt a restart.
+                enet_start();
+        enet_read(); // Check for Control head commands
+        if (rx_count != 0)
         {
-            if (!enet_ready)
-                if ((millis() - enet_start_fail_time) > 600000) // check every 10 minutes (600K ms) and attempt a restart.
-                    enet_start();
-            enet_read(); // Check for Control head commands
-            if (rx_count != 0)
-            {
-            } //get_remote_cmd();       // scan buffer for command strings
+        } // get_remote_cmd();       // scan buffer for command strings
 
-            if (NTP_updateTx.check() == 1)
-            {
-                //while (Udp_NTP.parsePacket() > 0)
-                //{};  // discard any previously received packets
-                sendNTPpacket(timeServer);  // send an NTP packet to a time server
-                NTP_updateRx.interval(100); // Start a timer to check RX reply
-            }
-            if (NTP_updateRx.check() == 1) // Time to check for a reply
-            {
-                if (getNtpTime());                         // Get our reply
-                NTP_updateRx.interval(65000); // set it long until we need it again later
-                Ethernet.maintain();          // keep our connection fresh
-            }
+        if (NTP_updateTx.check() == 1)
+        {
+            // while (Udp_NTP.parsePacket() > 0)
+            //{};  // discard any previously received packets
+            sendNTPpacket(timeServer);  // send an NTP packet to a time server
+            NTP_updateRx.interval(100); // Start a timer to check RX reply
         }
-    #endif // End of Ethernet related functions here
+        if (NTP_updateRx.check() == 1) // Time to check for a reply
+        {
+            if (getNtpTime())
+                ;                         // Get our reply
+            NTP_updateRx.interval(65000); // set it long until we need it again later
+            Ethernet.maintain();          // keep our connection fresh
+        }
+    }
+#endif // End of Ethernet related functions here
 
     // Check if the time has updated (1 second) and update the clock display
     if (timeStatus() != timeNotSet) // && enet_ready) // Only display if ethernet is active and have a valid time source
     {
         if (now() != prevDisplay)
         {
-            //update the display only if time has changed
+            // update the display only if time has changed
             prevDisplay = now();
-//if(!bandmem[curr_band].XIT_en)
+            // if(!bandmem[curr_band].XIT_en)
             displayTime();
         }
     }
@@ -1015,43 +1027,43 @@ HOT void loop()
 //
 HOT void Check_PTT(void)
 {
-    if (PTT_INPUT == 255)  // if not configured skip out
+    if (PTT_INPUT == 255) // if not configured skip out
         return;
     else
         PTT_pin_state = digitalRead(PTT_INPUT);
-        
-    //DPRINT("PTT State "); DPRINTLN(PTT_pin_state);
-    // Start debounce timer if a new pin change of state detected
-    if (PTT_pin_state != last_PTT_Input)   // user_settings[user_Profile].xmit == OFF)
-    {   
-        //DPRINT("PTT Changed State "); DPRINTLN(PTT_pin_state);
+
+    // DPRINT("PTT State "); DPRINTLN(PTT_pin_state);
+    //  Start debounce timer if a new pin change of state detected
+    if (PTT_pin_state != last_PTT_Input) // user_settings[user_Profile].xmit == OFF)
+    {
+        // DPRINT("PTT Changed State "); DPRINTLN(PTT_pin_state);
         if (!PTT_Input_debounce)
         {
-            //DPRINTLN("Start PTT Settle Timer");
-            PTT_Input_debounce = 1;     // Start debounce timer
-            PTT_Input_time = millis();  // Start of transition
-            last_PTT_Input = PTT_pin_state;
+            // DPRINTLN("Start PTT Settle Timer");
+            PTT_Input_debounce = 1;        // Start debounce timer
+            PTT_Input_time     = millis(); // Start of transition
+            last_PTT_Input     = PTT_pin_state;
         }
     }
     // Debounce timer in progress?  If so exit.
-    if (PTT_Input_debounce && ((PTT_Input_time - millis()) < 30)) 
+    if (PTT_Input_debounce && ((PTT_Input_time - millis()) < 30))
     {
-        //DPRINTLN("Waiting for PTT Settle Time");
+        // DPRINTLN("Waiting for PTT Settle Time");
         return;
     }
     // If the timer is satisfied, change the TX/RX state
     if (PTT_Input_debounce)
     {
-        PTT_Input_debounce= 0;     // Reset timer for next change
-        if (!last_PTT_Input)  // if TX
+        PTT_Input_debounce = 0; // Reset timer for next change
+        if (!last_PTT_Input)    // if TX
         {
             DPRINTLN("\nPTT TX Detected");
-            Xmit(1);  // transmit state
+            Xmit(1); // transmit state
         }
         else // if RX
         {
             DPRINTLN("\nPTT TX Released");
-            Xmit(0);  // receive state
+            Xmit(0); // receive state
         }
     }
 }
@@ -1069,12 +1081,12 @@ COLD void RampVolume(float vol, int16_t rampType)
         return;
     #endif
 
-    //const char *rampName[] = {
-    //    "No Ramp (instant)", // loud pop due to instant change
-    //    "Normal Ramp",       // graceful transition between volume levels
-    //    "Linear Ramp"        // slight click/chirp
-    //};
-    //DPRINTLN(rampName[rampType]);
+    // const char *rampName[] = {
+    //     "No Ramp (instant)", // loud pop due to instant change
+    //     "Normal Ramp",       // graceful transition between volume levels
+    //     "Linear Ramp"        // slight click/chirp
+    // };
+    // DPRINTLN(rampName[rampType]);
 
     // configure which type of volume transition to use
     if (rampType == 0)
@@ -1100,17 +1112,17 @@ COLD void RampVolume(float vol, int16_t rampType)
 //
 // _______________________________________ Print CPU Stats, Adjsut Dial Freq ____________________________
 //
-//This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
+// This routine prints the current and maximum CPU usage and the current usage of the AudioMemory that has been allocated
 COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_millis)
 {
-    //static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
+    // static unsigned long updatePeriod_millis = 3000; //how many milliseconds between updating gain reading?
     static unsigned long lastUpdate_millis = 0;
 
-    //has enough time passed to update everything?
+    // has enough time passed to update everything?
     if (curTime_millis < lastUpdate_millis)
-        lastUpdate_millis = 0; //handle wrap-around of the clock
+        lastUpdate_millis = 0; // handle wrap-around of the clock
     if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis)
-    { //is it time to update the user interface?
+    { // is it time to update the user interface?
         DPRINTF("\nCPU Cur/Peak: ");
         DPRINT(audio_settings.processorUsage());
         DPRINTF("%/");
@@ -1131,43 +1143,43 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
         DPRINTLN(AudioMemoryUsageMax());
         DPRINTLNF("*** End of Report ***");
 
-        lastUpdate_millis = curTime_millis; //we will use this value the next time around.
-        delta = 0;
+        lastUpdate_millis = curTime_millis; // we will use this value the next time around.
+        delta             = 0;
         #ifdef I2C_ENCODERS
-          //blink_MF_RGB();
-          //blink_AF_RGB();
+            // blink_MF_RGB();
+            // blink_AF_RGB();
         #endif // I2C_ENCODERS
     }
 }
 //
 // _______________________________________ Console Parser ____________________________________
 //
-//switch yard to determine the desired action
+// switch yard to determine the desired action
 COLD void respondToByte(char c)
 {
-    #ifdef DEBUG
-        char s[2];
-    #endif
+#    ifdef DEBUG
+    char s[2];
+#    endif
     s[0] = c;
     s[1] = 0;
     if (!isalpha((int)c) && c != '?' && c != '*')
         return;
     switch (c)
     {
-    case 'h':
-    case 'H':
-    case '?':
-        printHelp();
-        break;
-    case 'C':
-    case 'c':
-        DPRINTLN(F("Toggle printing of memory and CPU usage."));
-        togglePrintMemoryAndCPU();
-        break;
-    default:
-        DPRINT(F("You typed "));
-        DPRINT(s);
-        DPRINTLN(F(".  What command?"));
+        case 'h':
+        case 'H':
+        case '?':
+            printHelp();
+            break;
+        case 'C':
+        case 'c':
+            DPRINTLNF("Toggle printing of memory and CPU usage.");
+            togglePrintMemoryAndCPU();
+            break;
+        default:
+            DPRINTF("You typed ");
+            DPRINT(s);
+            DPRINTLNF(".  What command?");
     }
 }
 //
@@ -1175,26 +1187,25 @@ COLD void respondToByte(char c)
 //
 COLD void printHelp(void)
 {
-    DPRINTLN();
-    DPRINTLN(F("Help: Available Commands:"));
-    DPRINTLN(F("   h: Print this help"));
-    DPRINTLN(F("   C: Toggle printing of CPU and Memory usage"));
-    //DPRINTLN(F("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970"));
-    //#ifdef USE_RS_HFIQ
-        //DPRINTLN(F("   R to display the RS-HFIQ Menu"));
-    //#endif
+    DPRINTLNF("\nHelp: Available Commands:");
+    DPRINTLNF("   h: Print this help");
+    DPRINTLNF("   C: Toggle printing of CPU and Memory usage");
+    // DPRINTLNF("   T+10 digits: Time Update. Enter T and 10 digits for seconds since 1/1/1970");
+    // #ifdef USE_RS_HFIQ
+    // DPRINTLNF("   R to display the RS-HFIQ Menu");
+    // #endif
 }
 #endif
 
 // Deregister the MF_client
-COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner button status
-{ 
-    if (old_client_name == MF_client)  // nothing needed if this is called from the button itself to deregister
+COLD void unset_MF_Service(uint8_t old_client_name) // clear the old owner button status
+{
+    if (old_client_name == MF_client) // nothing needed if this is called from the button itself to deregister
     {
-        //MF_client = user_settings[user_Profile].default_MF_client;    // assign new owner to default for now.
-        //return;   
+        // MF_client = user_settings[user_Profile].default_MF_client;    // assign new owner to default for now.
+        // return;
     }
-    
+
     // This must be from a timeout or a new button before timeout
     // Turn off button of the previous owner, if any, using the MF knob at change of owner or timeout
     // Some buttons can be left on such as Atten or other non-button MF users.  Just leave them off this list.
@@ -1221,15 +1232,15 @@ COLD void unset_MF_Service(uint8_t old_client_name)  // clear the old owner butt
 // Clears the MF knob count and sets the flag for the new owner
 // On any knob event the owner will get called with the MF counter value or switch action
 
-// Potential owners can query the MF_client variable to see who owns the MF knob.  
+// Potential owners can query the MF_client variable to see who owns the MF knob.
 // Can take ownership by calling this fucntion and passing the enum ID for it's service function
-COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner after we clear the old one
+COLD void set_MF_Service(uint8_t new_client_name) // this will be the new owner after we clear the old one
 {
-    unset_MF_Service(MF_client);    //  turn off current button if on
-    MF_client = new_client_name;        // Now assign new owner
-    MF_Timeout.reset();  // reset (extend) timeout timer as long as there is activity.  
-                         // When it expires it will be switched to default
-    //DPRINTF("New MF Knob Client ID is "); DPRINTLN(MF_client);
+    unset_MF_Service(MF_client); //  turn off current button if on
+    MF_client = new_client_name; // Now assign new owner
+    MF_Timeout.reset();          // reset (extend) timeout timer as long as there is activity.
+                                 // When it expires it will be switched to default
+    // DPRINTF("New MF Knob Client ID is "); DPRINTLN(MF_client);
 }
 
 // ------------------------------------ MF_Service --------------------------------------
@@ -1239,17 +1250,17 @@ COLD void set_MF_Service(uint8_t new_client_name)  // this will be the new owner
 //
 static uint16_t old_ts;
 COLD void MF_Service(int8_t counts, uint8_t knob)
-{  
-    if (counts == 0)  // no knob movement, nothing to do.
+{
+    if (counts == 0) // no knob movement, nothing to do.
         return;
-    
+
     if (knob == MF_client)
-        MF_Timeout.reset();  // if it is the MF_Client then reset (extend) timeout timer as long as there is activity.  
+        MF_Timeout.reset(); // if it is the MF_Client then reset (extend) timeout timer as long as there is activity.
                             // When it expires it will be switched to default
 
-    //DPRINTF("MF Knob Client ID is "); DPRINTLN(MF_client);
+    // DPRINTF("MF Knob Client ID is "); DPRINTLN(MF_client);
 
-    switch (knob)      // Give this owner control until timeout
+    switch (knob) // Give this owner control until timeout
     {
         case MFNONE:                                break; // no current owner, return
         case RFGAIN_BTN:    RFgain(counts);         break;
@@ -1305,53 +1316,53 @@ COLD void MF_Service(int8_t counts, uint8_t knob)
 //
 COLD void I2C_Scanner(void)
 {
-  byte error, address; //variable for error and I2C address
-  int nDevices;
+    byte error, address; // variable for error and I2C address
+    int nDevices;
 
-  // uncomment these to use alternate pins
-  //WIRE.setSCL(37);  // On montherboard V2 PCBs these pins are for the VFO encoder
-  //WIRE.setSDA(36);
-  //WIRE.begin();
-  
-  DPRINTLN(F("Scanning..."));
+    // uncomment these to use alternate pins
+    // WIRE.setSCL(37);  // On montherboard V2 PCBs these pins are for the VFO encoder
+    // WIRE.setSDA(36);
+    // WIRE.begin();
 
-  nDevices = 0;
-  for (address = 1; address < 127; address++ )
-  {
-    // The i2c_scanner uses the return value of
-    // the Write.endTransmisstion to see if
-    // a device did acknowledge to the address.
-    Wire.beginTransmission(address);
-    //Wire1.beginTransmission(address);   // Wire1 is the name for 2nd set of i2c port pins.
-    error = Wire.endTransmission();
-    //error = Wire1.endTransmission();    
+    DPRINTLNF("Scanning...");
 
-    if (error == 0)
+    nDevices = 0;
+    for (address = 1; address < 127; address++)
     {
-      DPRINT(F("I2C device found at address 0x"));
-      if (address < 16)
-        DPRINT("0");
-      DPRINT(address, HEX);
-      DPRINT("  (");
-      printKnownChips(address);
-      DPRINTLN(")");
-      //DPRINTLN("  !");
-      nDevices++;
-    }
-    else if (error == 4)
-    {
-      DPRINT(F("Unknown error at address 0x"));
-      if (address < 16)
-        DPRINT("0");
-      DPRINTLN(address, HEX);
-    }
-  }
-  if (nDevices == 0)
-    DPRINTLN(F("No I2C devices found\n"));
-  else
-    DPRINTLN(F("done\n"));
+        // The i2c_scanner uses the return value of
+        // the Write.endTransmisstion to see if
+        // a device did acknowledge to the address.
+        Wire.beginTransmission(address);
+        // Wire1.beginTransmission(address);   // Wire1 is the name for 2nd set of i2c port pins.
+        error = Wire.endTransmission();
+        // error = Wire1.endTransmission();
 
-  //delay(500); // wait 5 seconds for the next I2C scan
+        if (error == 0)
+        {
+            DPRINTF("I2C device found at address 0x");
+            if (address < 16)
+                DPRINT("0");
+            DPRINT(address, HEX);
+            DPRINT("  (");
+            printKnownChips(address);
+            DPRINTLN(")");
+            // DPRINTLN("  !");
+            nDevices++;
+        }
+        else if (error == 4)
+        {
+            DPRINTF("Unknown error at address 0x");
+            if (address < 16)
+                DPRINT("0");
+            DPRINTLN(address, HEX);
+        }
+    }
+    if (nDevices == 0)
+        DPRINTLNF("No I2C devices found\n");
+    else
+        DPRINTLNF("done\n");
+
+    // delay(500); // wait 5 seconds for the next I2C scan
 }
 
 // prints a list of known i2C devices that match a discovered address
@@ -1443,7 +1454,7 @@ COLD void printKnownChips(byte address)
   }
 }
 
-// Turns on or off a tone injected in the RX_summer block.  
+// Turns on or off a tone injected in the RX_summer block.
 // Function that calls for a rogerBeep sets a global flag.
 // The main loop starts a timer for a short beep an calls this to turn the tone on or off.
 COLD void touchBeep(bool enable)
@@ -1453,50 +1464,51 @@ COLD void touchBeep(bool enable)
         touchBeep_flag = true;
         touchBeep_timer.reset();
         Beep_Tone.amplitude(user_settings[user_Profile].rogerBeep_Vol);
-        Beep_Tone.frequency((float) user_settings[user_Profile].pitch); //    Alert tones
+        Beep_Tone.frequency((float)user_settings[user_Profile].pitch); //    Alert tones
     }
-    else 
+    else
     {
-        //if (rogerBeep_timer.check() == 1)   // make sure another event does not cut it off early
-        //{ 
-            touchBeep_flag = false;
-            Beep_Tone.amplitude(0.0);
+        // if (rogerBeep_timer.check() == 1)   // make sure another event does not cut it off early
+        //{
+        touchBeep_flag = false;
+        Beep_Tone.amplitude(0.0);
         //}
     }
 }
 
 COLD void printDigits(int digits)
 {
-  // utility function for digital clock display: prints preceding colon and leading 0
-  DPRINT(":");
-  if(digits < 10)
-    DPRINT('0');
-  DPRINT(digits);
+    // utility function for digital clock display: prints preceding colon and leading 0
+    DPRINT(":");
+    if (digits < 10)
+        DPRINT('0');
+    DPRINT(digits);
 }
 
 COLD time_t getTeensy3Time()
 {
-  return Teensy3Clock.get();
+    return Teensy3Clock.get();
 }
 
 /*  code to process time sync messages from the serial port   */
-#define TIME_HEADER  "T"   // Header tag for serial time sync message
+#define TIME_HEADER "T" // Header tag for serial time sync message
 
-COLD unsigned long processSyncMessage() 
+COLD unsigned long processSyncMessage()
 {
-    unsigned long pctime = 0L;
-    const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013 
+    unsigned long pctime             = 0L;
+    const unsigned long DEFAULT_TIME = 1357041600; // Jan 1 2013
 
     if (Serial.find(TIME_HEADER)) // Search for the 'T' char in incoming serial stream of chars
     {
-        pctime = Serial.parseInt();  // following the 'T' get the digits and convert to an int
-        //return pctime;
-        //DPRINTLN(pctime);
-        if( pctime < DEFAULT_TIME) { // check the value is a valid time (greater than Jan 1 2013)
+        pctime = Serial.parseInt(); // following the 'T' get the digits and convert to an int
+        // return pctime;
+        // DPRINTLN(pctime);
+        if (pctime < DEFAULT_TIME)
+        {                // check the value is a valid time (greater than Jan 1 2013)
             pctime = 0L; // return 0 to indicate that the time is not valid
         }
     }
-    return pctime;  // return will be seconds since jan 1 1970.
+    return pctime; // return will be seconds since jan 1 1970.
 }
 
 COLD void digitalClockDisplay() {
@@ -1520,33 +1532,33 @@ COLD void SetFilter(void)
 
 COLD void initDSP(void)
 {
-    AudioMemory(10);  // Does not look like we need this anymore when using all F32 functions?
-    AudioMemory_F32(150, audio_settings);   // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
+    AudioMemory(10);                      // Does not look like we need this anymore when using all F32 functions?
+    AudioMemory_F32(150, audio_settings); // 4096IQ FFT needs about 75 or 80 at 96KHz sample rate
     resetCodec();
-    delay(50);        // Sometimes a delay avoids a Twin Peaks problem.
+    delay(50); // Sometimes a delay avoids a Twin Peaks problem.
 }
 
-// initDSP() and startup in RX mode enables our resources.  
+// initDSP() and startup in RX mode enables our resources.
 // This function switches input sources between line in and mic in and Test Tones (A and B),
 //   then set levels and retores them on RX.
-// RX sends audio to the headphone only (LineOut muted), and TX audio will go to LineOut (headphone muted). 
-// 100% output results in 3Vp-p at LineOut.  Power control varies 0 to 100% of 3V (LineOutLevel => 31)  
-// Also controls test tone state.  TX often uses two tones at high level, RX single tone at low level.  
+// RX sends audio to the headphone only (LineOut muted), and TX audio will go to LineOut (headphone muted).
+// 100% output results in 3Vp-p at LineOut.  Power control varies 0 to 100% of 3V (LineOutLevel => 31)
+// Also controls test tone state.  TX often uses two tones at high level, RX single tone at low level.
 COLD void TX_RX_Switch(
-        bool    TX,             // TX = ON, RX = OFF
-        uint8_t mode_sel,       // Current VFO mode index
-        bool    b_Mic_On,       // Turn Mic source on or off
-        bool    b_USBIn_On,     // Turn on USB input source (typically for Data modes)
-        bool    b_ToneA,        // Test Tone A
-        bool    b_ToneB,        // Test Tone B
-        float   TestTone_Vol)   // 0.90 is max, clips if higher. Use 0.45f with 2 tones
+    bool TX,            // TX = ON, RX = OFF
+    uint8_t mode_sel,   // Current VFO mode index
+    bool b_Mic_On,      // Turn Mic source on or off
+    bool b_USBIn_On,    // Turn on USB input source (typically for Data modes)
+    bool b_ToneA,       // Test Tone A
+    bool b_ToneB,       // Test Tone B
+    float TestTone_Vol) // 0.90 is max, clips if higher. Use 0.45f with 2 tones
 {
-    float   Mic_On;         // 0.0f(OFF) or 1.0f (ON)
-    float   USBIn_On;       // 0.0f(OFF) or 1.0f (ON)
-    float   ToneA;          // 0.0f(OFF) or 1.0f (ON)
-    float   ToneB;          // 0.0f(OFF) or 1.0f (ON)
-    float   ch_on  = 1.0f;    
-    float   ch_off = 0.0f;
+    float Mic_On;   // 0.0f(OFF) or 1.0f (ON)
+    float USBIn_On; // 0.0f(OFF) or 1.0f (ON)
+    float ToneA;    // 0.0f(OFF) or 1.0f (ON)
+    float ToneB;    // 0.0f(OFF) or 1.0f (ON)
+    float ch_on  = 1.0f;
+    float ch_off = 0.0f;
 
     // Covert bool to floats
     if (b_Mic_On)   Mic_On   = 2.0f;  else Mic_On   = ch_off;
@@ -1555,15 +1567,15 @@ COLD void TX_RX_Switch(
     if (b_ToneB)    ToneB    = ch_on; else ToneB    = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
-    TxTestTone_A.frequency(700.0f); // for some reason this is doubled but Tone B is not.   Also getting mirror image.
+    TxTestTone_A.frequency(700.0f);       // for some reason this is doubled but Tone B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TestTone_Vol); //
-    TxTestTone_B.frequency(1900.0f); 
+    TxTestTone_B.frequency(1900.0f);
 
     // Select Mic (0), USBIn(1), Tone A(2), and/or Tone B (3) in any combo.
-    TX_Source.gain(0, Mic_On); //  Mono Mic audio
+    TX_Source.gain(0, Mic_On);   //  Mono Mic audio
     TX_Source.gain(1, USBIn_On); //  Test Tone B
-    TX_Source.gain(2, ToneA); //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
-    TX_Source.gain(3, ToneB); //  Test Tone B
+    TX_Source.gain(2, ToneA);    //  Test Tone A   - Use 0.5f with 2 tones, or 1.0f with 1 tone
+    TX_Source.gain(3, ToneB);    //  Test Tone B
 
     // use mode to control TX sideband switching.  RX is done elsewhere.
     float invert;
@@ -1572,77 +1584,78 @@ COLD void TX_RX_Switch(
         case CW:
         case DATA:
         case AM:
-        case FM: FM_Detector.setSquelchThreshold(0.7f);
+        case FM:
+            FM_Detector.setSquelchThreshold(0.7f);
         case USB:
-            invert = -1.0f; 
+            invert = -1.0f;
             break;
         default: // all other modes flip sideband
             invert = 1.0f;
             break;
     }
-    
-    if (TX)  // Switch to Mic input on TX
+
+    if (TX) // Switch to Mic input on TX
     {
-        DPRINTLN(F("Switching to Tx")); 
+        DPRINTLNF("Switching to Tx");
 
         AudioNoInterrupts();
 
-        codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio        
-        codec1.muteHeadphone(); 
-        codec1.audioProcessorDisable();   // Default 
+        codec1.inputSelect(MicAudioIn); // Mic is microphone, Line-In is from Receiver audio
+        codec1.muteHeadphone();
+        codec1.audioProcessorDisable(); // Default
 
         // TX so Turn ON
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
-        I_Switch.gain(0, ch_off);       // Ch 0 is LineIn I  - RX so shut off
-        Q_Switch.gain(0, ch_off);       // Ch 0 is LineIn Q
-        I_Switch.gain(1, ch_on);        // Ch 1 is test tone and Mic I - 
-        Q_Switch.gain(1, invert);       // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
+        I_Switch.gain(0, ch_off); // Ch 0 is LineIn I  - RX so shut off
+        Q_Switch.gain(0, ch_off); // Ch 0 is LineIn Q
+        I_Switch.gain(1, ch_on);  // Ch 1 is test tone and Mic I -
+        Q_Switch.gain(1, invert); // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
 
-        FFT_Atten_I.gain(0, 0.000000001f);    // Attenuate signals to FFT while in TX
-        FFT_Atten_Q.gain(0, 0.000000001f);  
+        FFT_Atten_I.gain(0, 0.000000001f); // Attenuate signals to FFT while in TX
+        FFT_Atten_Q.gain(0, 0.000000001f);
 
         // On switch back to RX the setMode() function on RX will restore this to RX path.
         RxTx_InputSwitch_L.setChannel(1); // Route audio to TX path (1)/
         RxTx_InputSwitch_R.setChannel(1); // Route audio to TX path (1)
 
-//  ----------------------------------------------------------------
-//
-//  In this space any extra modulation specific blocks will be added
-//
-//  ----------------------------------------------------------------
+        //  ----------------------------------------------------------------
+        //
+        //  In this space any extra modulation specific blocks will be added
+        //
+        //  ----------------------------------------------------------------
 
         // Connect modulated TX to Lineout Amplifier
-        OutputSwitch_I.gain(0, ch_off);     // Turn RX OFF (ch 0 to 0.0)
-        OutputSwitch_Q.gain(0, ch_off);     // Turn RX OFF  
-        OutputSwitch_I.gain(1, ch_on);      // Turn TX ON (ch 1 to 1.0f)
-        OutputSwitch_Q.gain(1, ch_on);      // Turn TX ON   
-        OutputSwitch_I.gain(2, ch_off);     // Turn ON for FM   ToDO: automate this based on mode
-        OutputSwitch_Q.gain(2, ch_off);     // Turn ON for FM       
+        OutputSwitch_I.gain(0, ch_off); // Turn RX OFF (ch 0 to 0.0)
+        OutputSwitch_Q.gain(0, ch_off); // Turn RX OFF
+        OutputSwitch_I.gain(1, ch_on);  // Turn TX ON (ch 1 to 1.0f)
+        OutputSwitch_Q.gain(1, ch_on);  // Turn TX ON
+        OutputSwitch_I.gain(2, ch_off); // Turn ON for FM   ToDO: automate this based on mode
+        OutputSwitch_Q.gain(2, ch_off); // Turn ON for FM
 
-        Amp1_L.setGain(AUDIOBOOST);    // Mute output to USB during TX
-        Amp1_R.setGain(AUDIOBOOST);   
-        codec1.lineInLevel(0);      // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
+        Amp1_L.setGain(AUDIOBOOST); // Mute output to USB during TX
+        Amp1_R.setGain(AUDIOBOOST);
+        codec1.lineInLevel(0); // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
         TX_FilterConv.initFilter(TX_filterCenter, 70.0f, 2, TX_filterBandwidth);
 
         AudioInterrupts();
 
-        RampVolume(ch_on, 0);        // Instant off.  0 to 1.0f for full scale.
-        codec1.unmuteLineout();           // Audio out to Line-Out and TX board        
-        AFgain(0);  // sets up the Lineout level for TX testing
+        RampVolume(ch_on, 0);   // Instant off.  0 to 1.0f for full scale.
+        codec1.unmuteLineout(); // Audio out to Line-Out and TX board
+        AFgain(0);              // sets up the Lineout level for TX testing
     }
-    else 
+    else
     //  *******************************************************************************************
     //   Back to RX
     //  *******************************************************************************************
     {
-        DPRINTLN(F("Switching to Rx"));
+        DPRINTLNF("Switching to Rx");
 
         AudioNoInterrupts();
 
-        codec1.muteLineout(); //mute the TX audio output to transmitter input 
-        codec1.inputSelect(RxAudioIn);  // switch back to RX audio input
+        codec1.muteLineout();          // mute the TX audio output to transmitter input
+        codec1.inputSelect(RxAudioIn); // switch back to RX audio input
 
-// FM RX test only
+        // FM RX test only
         if (mode_sel == FM)
         {
             TxTestTone_B.amplitude(0.2f); //
@@ -1651,22 +1664,22 @@ COLD void TX_RX_Switch(
 
         // Typically choose one pair, Ch 0, 1 or 2.
         // Use RFGain info to help give more range to adjustment then just LineIn.
-        //I_Switch.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
-        //Q_Switch.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
+        // I_Switch.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
+        // Q_Switch.gain(0, (float) user_settings[user_Profile].rfGain/100); //  1 is RX, 0 is TX
 
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
-        I_Switch.gain(0, ch_on); //  1 is LineIn
-        Q_Switch.gain(0, ch_on); //  1 is LineIn
+        I_Switch.gain(0, ch_on);  //  1 is LineIn
+        Q_Switch.gain(0, ch_on);  //  1 is LineIn
         I_Switch.gain(1, ch_off); // Ch 2 is test tone and Mic
         Q_Switch.gain(1, ch_off); // Ch 2 is test tone and Mic
 
-        FFT_Atten_I.gain(0, ch_on);    // Turn off TX Attenuation to FFT while in RX (pass through)
-        FFT_Atten_Q.gain(0, ch_on);  
+        FFT_Atten_I.gain(0, ch_on); // Turn off TX Attenuation to FFT while in RX (pass through)
+        FFT_Atten_Q.gain(0, ch_on);
 
-//-----------------------------------------------------------------------------------------------        
-// Demodulation specific blocks will be done at end of this by setMode, and other control functions
-// This RX/TX is about generic switching and should avoid mode details where possible 
-//-----------------------------------------------------------------------------------------------
+        //-----------------------------------------------------------------------------------------------
+        // Demodulation specific blocks will be done at end of this by setMode, and other control functions
+        // This RX/TX is about generic switching and should avoid mode details where possible
+        //-----------------------------------------------------------------------------------------------
 
         // Connect demodulated RX to Lineout Amplifier   Non FM choose Ch 0.  Td is Ch 2
         if (mode_sel != FM)
@@ -1674,48 +1687,48 @@ COLD void TX_RX_Switch(
             OutputSwitch_I.gain(0, ch_on);  // Ch 0 is RX, Turn on
             OutputSwitch_Q.gain(0, ch_on);  // Ch 0 is RX, Turn on
             OutputSwitch_I.gain(1, ch_off); // Turn TX off
-            OutputSwitch_Q.gain(1, ch_off); // Turn TX off 
+            OutputSwitch_Q.gain(1, ch_off); // Turn TX off
             OutputSwitch_I.gain(2, ch_off); // Turn ON for FM   ToDO: automate this based on mode
             OutputSwitch_Q.gain(2, ch_off); // Turn ON for FM
         }
-        else  // FM choose output ch 2
+        else // FM choose output ch 2
         {
 
-            OutputSwitch_I.gain(0, ch_off);  // Ch 0 is RX, Turn on
-            OutputSwitch_Q.gain(0, ch_off);  // Ch 0 is RX, Turn on
+            OutputSwitch_I.gain(0, ch_off); // Ch 0 is RX, Turn on
+            OutputSwitch_Q.gain(0, ch_off); // Ch 0 is RX, Turn on
             OutputSwitch_I.gain(1, ch_off); // Turn TX off
-            OutputSwitch_Q.gain(1, ch_off); // Turn TX off 
-            OutputSwitch_I.gain(2, ch_on); // Turn ON for FM   ToDo: automate this based on mode
-            OutputSwitch_Q.gain(2, ch_on); // Turn ON for FM
-        }   
+            OutputSwitch_Q.gain(1, ch_off); // Turn TX off
+            OutputSwitch_I.gain(2, ch_on);  // Turn ON for FM   ToDo: automate this based on mode
+            OutputSwitch_Q.gain(2, ch_on);  // Turn ON for FM
+        }
 
-        Amp1_L.setGain_dB(1.0f);    // Adjustable fixed output boost in dB. Turn on USB Out during RX
-        Amp1_R.setGain_dB(1.0f);  
+        Amp1_L.setGain_dB(1.0f); // Adjustable fixed output boost in dB. Turn on USB Out during RX
+        Amp1_R.setGain_dB(1.0f);
 
         // Set up AGC - Must Turn ON Pre and/or Post Processor to enable auto-volume control
-        codec1.audioPreProcessorEnable();   // AVC on Line-In level
-        codec1.audioPostProcessorEnable();  // AVC on Line-Out level
-        //codec1.audioProcessorDisable();   // Default 
+        codec1.audioPreProcessorEnable();  // AVC on Line-In level
+        codec1.audioPostProcessorEnable(); // AVC on Line-Out level
+        // codec1.audioProcessorDisable();   // Default
 
         // The following enables error checking inside of the "update()"
-        // Output goes to the MSG_Serial (USB) Monitor.  Normally, this is quiet. 
+        // Output goes to the MSG_Serial (USB) Monitor.  Normally, this is quiet.
         if (mode_sel == FM)
             FM_Detector.showError(1);
 
-       AudioInterrupts();
-        
+        AudioInterrupts();
+
         // Restore RX audio in and out levels, squelch large Pop in unmute.
-        delay(25);  // let audio chain settle (empty) from transient
-        
+        delay(25); // let audio chain settle (empty) from transient
+
         // setup rest of mode-specific path using control functions to do the heavy lifting
-        selectMode(mode_sel);// takes care of filter and mode-specific audio path switching         
-        float vol_temp =  map( (float) user_settings[user_Profile].lineOut_RX, 31.0f, 13.0f, 0.0f, 1.0f);
-        codec1.volume(vol_temp); //set max full scale volume
+        selectMode(mode_sel); // takes care of filter and mode-specific audio path switching
+        float vol_temp = map((float)user_settings[user_Profile].lineOut_RX, 31.0f, 13.0f, 0.0f, 1.0f);
+        codec1.volume(vol_temp); // set max full scale volume
 
         if (user_settings[user_Profile].spkr_en == ON)
         {
             codec1.unmuteHeadphone();
-            //codec1.unmuteLineout(); //unmute the audio output
+            // codec1.unmuteLineout(); //unmute the audio output
             user_settings[user_Profile].mute = OFF;
             displayMute();
         }
@@ -1725,18 +1738,18 @@ COLD void TX_RX_Switch(
             user_settings[user_Profile].mute = ON;
             displayMute();
         }
-        
-        RFgain(0);  // sets up the LineIn level
-        AFgain(0);  // sets up the Lineout level
+
+        RFgain(0); // sets up the LineIn level
+        AFgain(0); // sets up the Lineout level
     }
 }
 
-//  Change FFT data source for zoom effects 
+//  Change FFT data source for zoom effects
 COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
 {
-    fft_size        = new_size;   //  change global size to use for audio and display
-    sample_rate_Hz  = new_sample_rate_Hz;
-    fft_bin_size    = sample_rate_Hz/(fft_size*2);
+    fft_size       = new_size; //  change global size to use for audio and display
+    sample_rate_Hz = new_sample_rate_Hz;
+    fft_bin_size   = sample_rate_Hz / (fft_size * 2);
 
     AudioNoInterrupts();
     // Route selected FFT source to one of the possible many FFT processors - should save CPU time for unused FFTs
@@ -1750,7 +1763,7 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
         FFT_OutSwitch_I.setChannel(1); //  1 is 2048, 0 is Off
         FFT_OutSwitch_Q.setChannel(1); //  1 is 2048, 0 is Off
     }
-    else if(fft_size == 1024)
+    else if (fft_size == 1024)
     {
         FFT_OutSwitch_I.setChannel(2); //  1 is 1024, 0 is Off
         FFT_OutSwitch_Q.setChannel(2); //  1 is 1024, 0 is Off
@@ -1761,65 +1774,65 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
 // If peak power exceeds 100% FS, reduce LineIn level, and/or if there is an attenuator, turn it on
 // This is temporary.  It will not change RF or AG Gain levels
 // LineIn level will be restored if RFGain is adjusted manually or during band changes
-// Set an averaging timer to raise (in small steps) LineIn back up to data table setting when there is no longer overload 
+// Set an averaging timer to raise (in small steps) LineIn back up to data table setting when there is no longer overload
 HOT void RF_Limiter(float peak_avg)
 {
     static float rf_agc_limit;
     static float rf_agc_limit_last;
     float s;
     uint8_t temp = 0;
-    
-    s = S_Peak.read() * 100;   // If > 100 there is LineIn overload
-    //s = peak_avg * 100;  // use average instead of instant values
 
-    if (s > 100.0)  // Anyting over rf gain setting is excess, reduce RFGain
+    s = S_Peak.read() * 100; // If > 100 there is LineIn overload
+    // s = peak_avg * 100;  // use average instead of instant values
+
+    if (s > 100.0) // Anyting over rf gain setting is excess, reduce RFGain
     {
         rf_agc_limit = s - 100.0f;
-        //DPRINT("Peak Power = ");
-        //DPRINT(s);    
-        //DPRINT("  RF_AGC_Limit = ");
-        //DPRINT(rf_agc_limit);
-        
-        if(rf_agc_limit > 20.0f)
+        // DPRINT("Peak Power = ");
+        // DPRINT(s);
+        // DPRINT("  RF_AGC_Limit = ");
+        // DPRINT(rf_agc_limit);
+
+        if (rf_agc_limit > 20.0f)
             rf_agc_limit *= 4; // for large changes speed up gain reduction
-        else if(rf_agc_limit > 10.0f)
+        else if (rf_agc_limit > 10.0f)
             rf_agc_limit *= 3; // for large changes speed up gain reduction
-        else 
+        else
             rf_agc_limit *= 2; // for large changes speed up gain reduction
-        
-        if (rf_agc_limit >= 100.0f)  // max percent we can adjust anything
-            rf_agc_limit = 99.0f; // limit to 100% change
-        //DPRINT(" 2=");
-        //DPRINT(rf_agc_limit); 
 
-        rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta        
-        //DPRINT(" 3=%");
-        //DPRINT(rf_agc_limit); 
+        if (rf_agc_limit >= 100.0f) // max percent we can adjust anything
+            rf_agc_limit = 99.0f;   // limit to 100% change
+        // DPRINT(" 2=");
+        // DPRINT(rf_agc_limit);
 
-        rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit/100;        
-        DPRINT(F("*** RF AGC Limit (0-15) = "));
-        DPRINTLN(rf_agc_limit); 
-        
-        if (rf_agc_limit !=0)
+        rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta
+        // DPRINT(" 3=%");
+        // DPRINT(rf_agc_limit);
+
+        rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit / 100;
+        DPRINTF("*** RF AGC Limit (0-15) = ");
+        DPRINTLN(rf_agc_limit);
+
+        if (rf_agc_limit != 0)
             codec1.lineInLevel(rf_agc_limit);
-        
-        rf_agc_limit_last = rf_agc_limit; 
-        
-        //RFgain(rf_agc_limit); 
+
+        rf_agc_limit_last = rf_agc_limit;
+
+        // RFgain(rf_agc_limit);
     }
     else // Restore LineIn level to where it started (user setting)
     {
-        temp = user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain/100;
+        temp = user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain / 100;
 
-        // Time interval is set by the S meter timer multiplied by the number of samples in avg function                                
-        if (peak_avg < 0.10 && rf_agc_limit_last < temp)   // Value os peal_avg is experimentally determined
+        // Time interval is set by the S meter timer multiplied by the number of samples in avg function
+        if (peak_avg < 0.10 && rf_agc_limit_last < temp) // Value os peal_avg is experimentally determined
         {
-            //DPRINT("RF AGC Limit Last = ");
-            //DPRINT(rf_agc_limit_last); 
+            // DPRINT("RF AGC Limit Last = ");
+            // DPRINT(rf_agc_limit_last);
             rf_agc_limit_last = temp;
-            codec1.lineInLevel(temp);   // retore to normal level
-            DPRINT(F("*** Restore LineIn Level = "));
-            DPRINTLN(temp);             
+            codec1.lineInLevel(temp); // retore to normal level
+            DPRINTF("*** Restore LineIn Level = ");
+            DPRINTLN(temp);
         }
     }
 }
@@ -1828,109 +1841,111 @@ HOT void RF_Limiter(float peak_avg)
 // Can be used as a major part of initDSP()
 COLD void resetCodec(void)
 {
-    DPRINTLN(F("Start Codec Initialization"));
+    DPRINTLNF("Start Codec Initialization");
     user_settings[user_Profile].zoom_level = 0;
-    setZoom(0);  // set to user setting user profile setting
-    //Change_FFT_Size(fft_size, sample_rate_Hz);
-    
+    setZoom(0); // set to user setting user profile setting
+    // Change_FFT_Size(fft_size, sample_rate_Hz);
+
     codec1.enable(); // MUST be before inputSelect()
-    //codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
+    // codec1.inputSelect(MicAudioIn);   // Mic is microphone, Line-In is from Receiver audio
     codec1.lineInLevel(15); // Set to minimum, maybe prevent false Auto-iI2S detection
-    codec1.muteHeadphone(); //mute the TX audio output to transmitter input 
+    codec1.muteHeadphone(); // mute the TX audio output to transmitter input
     codec1.adcHighPassFilterEnable();
-    //codec1.adcHighPassFilterDisable();
+    // codec1.adcHighPassFilterDisable();
     delay(50);
 
-    #ifdef W7PUA_I2S_CORRECTION 
-        DPRINTLN(F("Start W7PUA AutoI2S Error Correction"));
-        TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin       
-    #endif
+#ifdef W7PUA_I2S_CORRECTION
+    DPRINTLNF("Start W7PUA AutoI2S Error Correction");
+    TwinPeaks(); // W7PUA auto detect and correct. Requires 100K resistors on the LineIn pins to a common Teensy GPIO pin
+#endif
 
     AudioNoInterrupts();
-    
+
     // The FM detector has error checking during object construction
     // when DPRINT is not available.  See RadioFMDetector_F32.h:
-    DPRINT(F("FM Initialization errors: "));
-    DPRINTLN(FM_Detector.returnInitializeFMError() );
-    //FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
-    //FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    DPRINTF("FM Initialization errors: "); DPRINTLN(FM_Detector.returnInitializeFMError());
+    // FM_LO_Mixer.setSampleRate_Hz(sample_rate_Hz);
+    // FM_LO_Mixer.iqmPhaseS_C(0);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
     FM_LO_Mixer.frequency(15000);
-    FM_LO_Mixer.useTwoChannel(false);  //when using only 1 channel for the FM shift this is the case.
-    FM_LO_Mixer.useSimple(true);   
+    FM_LO_Mixer.useTwoChannel(false); // when using only 1 channel for the FM shift this is the case.
+    FM_LO_Mixer.useSimple(true);
 
-    #ifdef USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum  up away from DC
-        // Configure the FFT parameters algorithm
-        int overlap_factor = 4;  //set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
-        int N_FFT = audio_block_samples * overlap_factor;  
-        DPRINT(F("    : N_FFT = ")); DPRINTLN(N_FFT);
-        FFT_SHIFT_I.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
-        FFT_SHIFT_Q.setup(audio_settings, N_FFT); //do after AudioMemory_F32();
+#ifdef USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum  up away from DC
+    // Configure the FFT parameters algorithm
+    int overlap_factor = 4; // set to 2, 4 or 8...which yields 50%, 75%, or 87.5% overlap (8x)
+    int N_FFT          = audio_block_samples * overlap_factor;
+    DPRINTF("    : N_FFT = ");
+    DPRINTLN(N_FFT);
+    FFT_SHIFT_I.setup(audio_settings, N_FFT); // do after AudioMemory_F32();
+    FFT_SHIFT_Q.setup(audio_settings, N_FFT); // do after AudioMemory_F32();
 
-        //configure the frequency shifting
-        float shiftFreq_Hz = 1200.0; //shift audio upward a bit
-        float Hz_per_bin = audio_settings.sample_rate_Hz / ((float)N_FFT);
-        int shift_bins = (int)(shiftFreq_Hz / Hz_per_bin + 0.5);  //round to nearest bin
+    // configure the frequency shifting
+    float shiftFreq_Hz = 1200.0; // shift audio upward a bit
+    float Hz_per_bin   = audio_settings.sample_rate_Hz / ((float)N_FFT);
+    int shift_bins     = (int)(shiftFreq_Hz / Hz_per_bin + 0.5); // round to nearest bin
 
-        //shiftFreq_Hz = shift_bins * Hz_per_bin;
-        DPRINT(F("Setting shift to ")); DPRINT(shiftFreq_Hz);
-        DPRINT(F(" Hz, which is ")); DPRINT(shift_bins); 
-        DPRINTLN(F(" bins"));
-        FFT_SHIFT_I.setShift_bins(shift_bins); //0 is no ffreq shifting.
-        FFT_SHIFT_Q.setShift_bins(shift_bins); //0 is no ffreq shifting.
-    #endif
-    
-    #ifdef USE_FFT_LO_MIXER   // Experimental to shift the FFT spectrum  up away from DC
-        // Mixer using LO to shift signal up the FFT spectrum  Experimental, not working yet
-        FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
-        //FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-        //FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
-        FFT_LO_Mixer_I.iqmPhaseS(-128);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-        FFT_LO_Mixer_I.frequency(0);
-        FFT_LO_Mixer_I.useTwoChannel(true);  //true when using both channels.
-        FFT_LO_Mixer_I.useSimple(false); // false to use correction factors
+    // shiftFreq_Hz = shift_bins * Hz_per_bin;
+    DPRINTF("Setting shift to ");
+    DPRINT(shiftFreq_Hz);
+    DPRINTF(" Hz, which is ");
+    DPRINT(shift_bins);
+    DPRINTLNF(" bins");
+    FFT_SHIFT_I.setShift_bins(shift_bins); // 0 is no ffreq shifting.
+    FFT_SHIFT_Q.setShift_bins(shift_bins); // 0 is no ffreq shifting.
+#endif
 
-        TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);  // Set the Hilbert transform FIR filter
+#ifdef USE_FFT_LO_MIXER // Experimental to shift the FFT spectrum  up away from DC
+    // Mixer using LO to shift signal up the FFT spectrum  Experimental, not working yet
+    FFT_LO_Mixer_I.setSampleRate_Hz(sample_rate_Hz);
+    // FFT_LO_Mixer_I.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    // FFT_LO_Mixer_I.frequency(user_settings[user_Profile].afGain*100);
+    FFT_LO_Mixer_I.iqmPhaseS(-128); // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    FFT_LO_Mixer_I.frequency(0);
+    FFT_LO_Mixer_I.useTwoChannel(true); // true when using both channels.
+    FFT_LO_Mixer_I.useSimple(false);    // false to use correction factors
 
-        //FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
-        //FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-        //FFT_LO_Mixer_Q.iqmPhaseS_C(10);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
-        //FFT_LO_Mixer_Q.frequency(user_settings[user_Profile].afGain*100);
-        //FFT_LO_Mixer_Q.frequency(0);
-        //FFT_LO_Mixer_Q.useTwoChannel(false);  
-        //FFT_LO_Mixer_Q.useSimple(true); 
-    #endif
-    
+    TX_FFT_90deg_Hilbert.begin(hilbert251A, 251); // Set the Hilbert transform FIR filter
+
+    // FFT_LO_Mixer_Q.setSampleRate_Hz(sample_rate_Hz);
+    // FFT_LO_Mixer_Q.iqmPhaseS_C(user_settings[user_Profile].rfGain*5);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    // FFT_LO_Mixer_Q.iqmPhaseS_C(10);  // 0 to cancel the default -90 phase delay  0-512 is 360deg.) We just want the LO shift feature
+    // FFT_LO_Mixer_Q.frequency(user_settings[user_Profile].afGain*100);
+    // FFT_LO_Mixer_Q.frequency(0);
+    // FFT_LO_Mixer_Q.useTwoChannel(false);
+    // FFT_LO_Mixer_Q.useSimple(true);
+#endif
+
     // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
-    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K,151);   // Left channel Rx
-    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K,151); // Right channel Rx
-    
-    //TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
-    //TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
+    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K, 151);   // Left channel Rx
+    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K, 151); // Right channel Rx
+
+    // TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
+    // TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
 
     // Pick one of the three.
-    ///TX_FFT_90deg_Hilbert.begin(hilbert19A, 19);
-    ///TX_FFT_90deg_Hilbert.begin(hilbert121A, 121);
+    /// TX_FFT_90deg_Hilbert.begin(hilbert19A, 19);
+    /// TX_FFT_90deg_Hilbert.begin(hilbert121A, 121);
     TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);
-    //TX_FFT_90deg_Hilbert.showError(1);
+    // TX_FFT_90deg_Hilbert.showError(1);
 
     // experiment with numbers  ToDo: enable/disable this via the Notch button
-    DPRINT(F("Initializing Notch/NR Feature = "));
-    DPRINTLN(LMS_Notch.initializeLMS(2, 32, 4));  // <== Modify to suit  2=Notch 1=Denoise
+    DPRINTF("Initializing Notch/NR Feature = ");
+    DPRINTLN(LMS_Notch.initializeLMS(2, 32, 4)); // <== Modify to suit  2=Notch 1=Denoise
     LMS_Notch.setParameters(0.05f, 0.999f);      // (float _beta, float _decay);
     LMS_Notch.enable(false);
     NoiseBlanker.useTwoChannel(true);
-    
+
     AudioInterrupts();
 
     // Will be done in mode function also except for Beep Tone (2)
-    //RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
-	//RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
-    RX_Summer.gain(2, 0.7f);  // Set Beep Tone ON or Off and Volume
-    //RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-    DPRINTLN(F(" Reset Codec Almost Completed"));
-    Xmit(0);  // Finish RX audio chain setup
+    // RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
+    // RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
+    RX_Summer.gain(2, 0.7f); // Set Beep Tone ON or Off and Volume
+    // RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
+    DPRINTLNF(" Reset Codec Almost Completed");
+    Xmit(0); // Finish RX audio chain setup
 
-    DPRINTLN(F(" Reset Codec Completed"));
+    DPRINTLNF(" Reset Codec Completed");
 }
 
 #ifdef TEST1
@@ -2030,98 +2045,110 @@ COLD void resetCodec(void)
         #endif        
     }
 #endif
-
-#ifdef USE_RS_HFIQ   //  Check the serial ports for manual inputs.
-void RS_HFIQ_Service(void)
+    
+#ifdef USE_RS_HFIQ //  Check the serial ports for manual inputs.
+HOT void RS_HFIQ_Service(void)
 {
-    uint32_t temp_freq;
-    static uint32_t last_VFOA = VFOA;
-    static uint32_t last_VFOB = VFOB;
-    static int8_t last_curr_band = curr_band;
-    static uint8_t CAT_xmit_last = 0;
-    static uint8_t CAT_xmit = 0;
-    static uint8_t split_last = bandmem[curr_band].split;
-    static uint8_t mode_last = bandmem[curr_band].mode_A;
-    static uint8_t swap_VFO = 0;
-    static uint8_t swap_VFO_last = 0;
-    static uint8_t clipping_last = 0;
+    
+    static uint64_t last_VFOA     = 0;
+    static uint64_t last_VFOB     = 0;
+    static uint8_t last_curr_band = 0;
+    static uint8_t CAT_xmit_last  = 0;
+    static uint8_t CAT_xmit       = 0;
+    static uint8_t split_last     = bandmem[curr_band].split;
+    static uint8_t mode_last      = bandmem[curr_band].mode_A;
+    static uint8_t swap_VFO       = 0;
+    static uint8_t swap_VFO_last  = 0;
+    static uint8_t clipping_last  = 0;
 
-    //if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &(user_settings[user_Profile].xmit), &(bandmem[curr_band].split))) != 0)
-    if ((temp_freq = RS_HFIQ.cmd_console(&swap_VFO, &VFOA, &VFOB, &curr_band, &CAT_xmit, &(bandmem[curr_band].split), &(bandmem[curr_band].mode_A), &clipping)) != 0)
+    if (popup) return; // ignore external changes while a window is active.  Changes wil be applied when the window is close (popup OFF)
+
+    // send over copies of VFO A, B and current band to the RS-HFIQ. Look to see if they come back altered via CAT comntrol messsages.
+    // use the validated values, toss the the rest.
+    last_VFOA     = VFOA;
+    last_VFOB     = VFOB;
+    last_curr_band = curr_band;
+    
+    uint64_t temp = RS_HFIQ.cmd_console(swap_VFO, last_VFOA, last_VFOB, last_curr_band, CAT_xmit, (bandmem[curr_band].split), (bandmem[curr_band].mode_A), clipping);
+
+    // for any request it needs to be on a valid/enabled band
+    temp = find_new_band(temp, last_curr_band);  // 0 if bad or Disabled band requested, Get the band index for VFOA
+
+    if (temp)  // we have a valid enabled band.  0 - Invalid freuency/band
     {
-        if (popup) return;  // ignore external changes while a window is active.  Changes wil be applied when the window is close (popup OFF)
-
+        if (curr_band != last_curr_band) // last_curr_band has our new band number.  If different than change bands
+        {
+            //DPRINTF("CAT: Valid Band Request - New Frequency is "); DPRINTLN(temp);
+            //DPRINTF("CAT: Band Index from RSHFIQ "); DPRINTLN(last_curr_band);           
+            bandmem[curr_band].vfo_A_last = VFOA;  // Save last band's frequency
+            curr_band = last_curr_band;  // update to new band
+            VFOA = last_VFOA; // update to the possibly new VFO
+            DPRINTF("CAT: Changing Bands to "); DPRINT(bandmem[curr_band].band_name); DPRINTF(" with VFOA = "); DPRINTLN(VFOA);
+            changeBands(0);
+        }
+        else if (last_VFOA != VFOA) // The CAT port sent new VFOA data on the same band
+        {
+            //DPRINTF("CAT: VFOA from RSHFIQ "); DPRINTLN(last_VFOA);
+            bandmem[curr_band].vfo_A_last = VFOA; // Save last band's frequency
+            VFOA = last_VFOA;  // update to new VFO value
+            DPRINTF("CAT: VFOA: "); DPRINTLN(VFOA);
+            displayFreq();  // Update the VF)A display        
+        }
+        else if (last_VFOB != VFOB)
+        {      
+            DPRINTF("CAT: VFOB from RSHFIQ "); DPRINTLN(last_VFOB);
+            VFOB = last_VFOB;
+            //bandmem[curr_band].vfo_B_last = VFOB;
+            user_settings[user_Profile].sub_VFO = VFOB;
+            DPRINTF("CAT: External VFOB: "); DPRINTLN(VFOB);
+            displayFreq();
+        }
+        
+        curr_band = last_curr_band;  // assume from here on the band is not different or has been updated above
+        
+        // Look for other non-VFO related command action from the CAT port
         if (bandmem[curr_band].split != split_last)
         {
-            DPRINTLN("Change Split Mode");
+            DPRINTLNF("CAT: Change Split Mode");
             split_last = bandmem[curr_band].split;
             Split(bandmem[curr_band].split);
-            return;
         }
 
         if (bandmem[curr_band].mode_A != mode_last)
         {
             mode_last = bandmem[curr_band].mode_A;
-            //DEBUG_PRINTF("Change Mode: %d\n", mode_last);
+            DEBUG_PRINTF("CAT: Change Mode: %d\n", mode_last);
             setMode(2);
-            return;
         }
 
         if (swap_VFO != swap_VFO_last)
         {
-            DPRINTLN("Swap VFOs: "); 
+            DPRINTLNF("CAT: Swap VFOs: ");
             swap_VFO_last = swap_VFO;
             VFO_AB();
         }
 
-        //DPRINT(F("Main New Band: ")); DPRINTLN(curr_band);
-        //DPRINT(F("Main VFOA: ")); DPRINTLN(VFOA);
-        //DPRINT(F("Main VFOB: ")); DPRINTLN(VFOB);
-
-        // Now we possibly have a new band so load up the per-band settings, update both VFOs for that band
-        if (last_VFOA != VFOA)
-        {                     
-            bandmem[curr_band].vfo_A_last = VFOA; 
-            //DPRINT(F("Main1A VFOA: ")); DPRINTLN(VFOA);
-        }
-        if (last_VFOB != VFOB)
-        {     
-            bandmem[curr_band].vfo_B_last = VFOB; 
-            user_settings[user_Profile].sub_VFO = VFOB;
-            //DPRINT(F("Main1B VFOB: ")); DPRINTLN(VFOB);
-        }
-        if (last_curr_band != curr_band)
+        if (clipping_last != clipping)
         {
-            changeBands(0);
-            last_curr_band = curr_band;
-            //DPRINT(F("New Band Number: ")); DPRINTLN(curr_band);  
+            clipping_last = clipping;
+            DPRINTF("CAT: Clipping: "); DPRINTLN(clipping);
+            labels[CLIP_LBL].enabled = clipping;
+            displayClip();
+        }
+
+        if (CAT_xmit_last != CAT_xmit) // Pass on any change in Xmit state from CAT port
+        {
+            DPRINTF("CAT: TX = "); DPRINTLN(CAT_xmit);
+            CAT_xmit_last = CAT_xmit;
+            Xmit(CAT_xmit);
         }
     }
-    if (clipping_last != clipping)
+    else
     {
-        clipping_last = clipping;
-        DPRINT(F("Clipping: ")); DPRINTLN(clipping);
-        labels[CLIP_LBL].enabled=clipping;
-        displayClip();
-    }
-    if (CAT_xmit_last != CAT_xmit) // Pass on any change in Xmit state from CAT port
-    {
-        //DPRINT(F("CAT Port: TX = ")); DPRINTLN(CAT_xmit);
-        CAT_xmit_last = CAT_xmit;
-        Xmit(CAT_xmit);
-    }
-    if (temp_freq != 0)
-    {
-        if (last_VFOA != VFOA || last_VFOB != VFOB)  // only act on frequency changes, skip other things like queries
-        {                         
-            selectFrequency(0);
-            displayFreq();
-            last_VFOA = VFOA;
-            last_VFOB = VFOB;
-        }
+        ;//DPRINTF("CAT: Out of Band or Invalid Band. Request was for "); DPRINTLN(last_VFOA);
     }
 }
-#endif  // USE_RS_HFIQ
+#endif // USE_RS_HFIQ
 
 #if defined I2C_ENCODERS || defined MECH_ENCODERS
 void Check_Encoders(void)
@@ -2305,36 +2332,54 @@ void Check_GPIO_Switches(void)
     static bool GPIO_sw4_pushed = 0;
     static bool GPIO_sw5_pushed = 0;
     static bool GPIO_sw6_pushed = 0;
-    
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
         if ((GPIO_SW1_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
-            { GPIO_sw1_pushed = GPIO_Sw_read(GPIO_sw1_pushed, GPIO_SW1_PIN, slot); break; }
+        {
+            GPIO_sw1_pushed = GPIO_Sw_read(GPIO_sw1_pushed, GPIO_SW1_PIN, slot);
+            break;
+        }
     }
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.            
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
         if ((GPIO_SW2_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
-            { GPIO_sw2_pushed = GPIO_Sw_read(GPIO_sw2_pushed, GPIO_SW2_PIN, slot); break; }
+        {
+            GPIO_sw2_pushed = GPIO_Sw_read(GPIO_sw2_pushed, GPIO_SW2_PIN, slot);
+            break;
+        }
     }
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
         if ((GPIO_SW3_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
-            { GPIO_sw3_pushed = GPIO_Sw_read(GPIO_sw3_pushed, GPIO_SW3_PIN, slot); break; }
+        {
+            GPIO_sw3_pushed = GPIO_Sw_read(GPIO_sw3_pushed, GPIO_SW3_PIN, slot);
+            break;
+        }
     }
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
         if ((GPIO_SW4_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
-            { GPIO_sw4_pushed = GPIO_Sw_read(GPIO_sw4_pushed, GPIO_SW4_PIN, slot); break; }
+        {
+            GPIO_sw4_pushed = GPIO_Sw_read(GPIO_sw4_pushed, GPIO_SW4_PIN, slot);
+            break;
+        }
     }
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
         if ((GPIO_SW5_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
-            { GPIO_sw5_pushed = GPIO_Sw_read(GPIO_sw5_pushed, GPIO_SW5_PIN, slot); break; }
+        {
+            GPIO_sw5_pushed = GPIO_Sw_read(GPIO_sw5_pushed, GPIO_SW5_PIN, slot);
+            break;
+        }
     }
-    for (slot = 1; slot< NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
+    for (slot = 1; slot < NUM_AUX_ENCODERS; slot++) // NUM_AUX ENCODER defines the size of the encoder/switch table.
     {
         if ((GPIO_SW6_ENABLE == encoder_list[slot].id) && encoder_list[slot].enabled)
-            { GPIO_sw6_pushed = GPIO_Sw_read(GPIO_sw6_pushed, GPIO_SW6_PIN, slot); break; }
+        {
+            GPIO_sw6_pushed = GPIO_Sw_read(GPIO_sw6_pushed, GPIO_SW6_PIN, slot);
+            break;
+        }
     }
 }
 
@@ -2343,38 +2388,40 @@ void Check_GPIO_Switches(void)
 // returns timer status so it can be tracked per switch]
 bool GPIO_Sw_read(bool sw_pushed, uint8_t sw_pin, uint8_t slot)
 {
-    //DPRINT(F("GPIO SW Pin # = ")); DPRINTLN(sw_pin);
-    //DPRINT(F("GPIO SW Pushed # = ")); DPRINTLN(sw_pushed);
-    //DPRINT(F("Encoder List Slot # = ")); DPRINTLN(slot);
+    // DPRINTF("GPIO SW Pin # = "); DPRINTLN(sw_pin);
+    // DPRINTF("GPIO SW Pushed # = "); DPRINTLN(sw_pushed);
+    // DPRINTF("Encoder List Slot # = "); DPRINTLN(slot);
     if (!digitalRead(sw_pin) && !sw_pushed)
     {
-        DPRINTF("Checking GPIO Switch - Start Timer - Slot = "); DPRINTLN(slot);
-        sw_pushed = true;   //   Start button timer to test if this is going to be a tap or press
+        DPRINTF("Checking GPIO Switch - Start Timer - Slot = ");
+        DPRINTLN(slot);
+        sw_pushed = true; //   Start button timer to test if this is going to be a tap or press
         gpio_switch_timer_start(encoder_list[slot].id);
     }
-    else  if (digitalRead(sw_pin) && sw_pushed)
+    else if (digitalRead(sw_pin) && sw_pushed)
     {
-        DPRINTF("Checking GPIO Switch - End Timer - Slot = "); DPRINTLN(slot);
-        sw_pushed = false;  
-        gpio_switch_click(encoder_list[slot].id);   // switch released, process action, tap and press
-    } 
+        DPRINTF("Checking GPIO Switch - End Timer - Slot = ");
+        DPRINTLN(slot);
+        sw_pushed = false;
+        gpio_switch_click(encoder_list[slot].id); // switch released, process action, tap and press
+    }
     return sw_pushed;
 }
 
 void init_band_map(void)
 {
-    // Initialize Band Map.  255 means band is inactive.  
+    // Initialize Band Map.  255 means band is inactive.
     // Overwrites Panel_Pos default values in std_btn table band rows.
-    struct Standard_Button *ptr = std_btn;
-    (ptr+BS_160M)->Panelpos = ENABLE_160M_BAND;
-    (ptr+BS_80M)-> Panelpos = ENABLE_80M_BAND;
-    (ptr+BS_60M)-> Panelpos = ENABLE_60M_BAND;
-    (ptr+BS_40M)-> Panelpos = ENABLE_40M_BAND;
-    (ptr+BS_30M)-> Panelpos = ENABLE_30M_BAND;
-    (ptr+BS_20M)-> Panelpos = ENABLE_20M_BAND;
-    (ptr+BS_17M)-> Panelpos = ENABLE_17M_BAND;
-    (ptr+BS_15M)-> Panelpos = ENABLE_15M_BAND;
-    (ptr+BS_12M)-> Panelpos = ENABLE_12M_BAND;
-    (ptr+BS_10M)-> Panelpos = ENABLE_10M_BAND;
-    (ptr+BS_6M)->  Panelpos = ENABLE_6M_BAND;
+    struct Standard_Button* ptr = std_btn;
+    (ptr + BS_160M)->Panelpos   = ENABLE_160M_BAND;
+    (ptr + BS_80M)->Panelpos    = ENABLE_80M_BAND;
+    (ptr + BS_60M)->Panelpos    = ENABLE_60M_BAND;
+    (ptr + BS_40M)->Panelpos    = ENABLE_40M_BAND;
+    (ptr + BS_30M)->Panelpos    = ENABLE_30M_BAND;
+    (ptr + BS_20M)->Panelpos    = ENABLE_20M_BAND;
+    (ptr + BS_17M)->Panelpos    = ENABLE_17M_BAND;
+    (ptr + BS_15M)->Panelpos    = ENABLE_15M_BAND;
+    (ptr + BS_12M)->Panelpos    = ENABLE_12M_BAND;
+    (ptr + BS_10M)->Panelpos    = ENABLE_10M_BAND;
+    (ptr + BS_6M)->Panelpos     = ENABLE_6M_BAND;
 }

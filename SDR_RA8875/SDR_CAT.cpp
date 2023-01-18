@@ -49,13 +49,13 @@ void RadioMode_Request(void);
 void RadioMode_Decode(void);
 
 //void bandSET();
-extern struct   Band_Memory         bandmem[];
-extern          uint8_t             curr_band;   // global tracks our current band setting.  
-extern struct 	User_Settings 		user_settings[];
-extern 			uint8_t 			user_Profile;
-extern          uint32_t            VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern          uint32_t            VFOB;
-extern			int32_t     		Fc;  
+extern struct   Band_Memory   bandmem[];
+extern          uint8_t       curr_band;   // global tracks our current band setting.  
+extern struct 	User_Settings user_settings[];
+extern 			    uint8_t 			user_Profile;
+extern          uint64_t      VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern          uint64_t      VFOB;
+extern			    int64_t     	Fc;  
 int16_t barGraph  	= 0;   // global for remtoe meter value for Rx and Tx from radio
 int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display label text in panadapter mode
 #define S_BUFF 500
@@ -219,7 +219,7 @@ Outputs
 //#define DEBUG              // enable some debugging
 //=====[ FREQUEN RULES ]===========================================================================================
 
-const uint32_t Freq2Band[16][2] = {/*
+const uint64_t Freq2Band[16][2] = {/*
 Freq Hz from       to   Band number
 */   {1810000,   2000000},  // #1 [160m]
      {3500000,   3800000},  // #2  [80m]
@@ -449,7 +449,7 @@ Default or BCD-1   BCD-2   BCD-3    BCD-4
 
 int BAND = 0;
 int previousBAND = -1;
-uint32_t freq = 0;
+uint64_t freq = 0;
 bool PTT = false;
 uint32_t PttTiming[2]={0, 10};            // debouncing time and also minimal PTT on time in ms
 float DCinVoltage;
@@ -512,13 +512,13 @@ int timeout2;
     int fromAdress = 0xE0;              // 0E
     byte rdI[10];   //read data icom
     String rdIS;    //read data icom string
-    uint32_t freqPrev1;
+    uint64_t freqPrev1;
     byte incomingByte = 0;
     int state = 1;  // state machine
     bool StateMachineEnd = false;
 #endif
 #if defined(KENWOOD_PC_OUT) || defined(YAESU_CAT_OUT)
-    uint32_t freqPrev2;
+    uint64_t freqPrev2;
 #endif
 #if defined(BCD_OUT)
     char BCDout;
@@ -2194,7 +2194,7 @@ FE|FE|0|A2|0| 0|20|30|96|12|FD 23cm
       return result;
     }
     //---------------------------------------------------------------------------------------------------------
-    byte PartFreqToByte(uint32_t FREQ, int PART){
+    byte PartFreqToByte(uint64_t FREQ, int PART){
       String StrFreq=String(FREQ);
       StrFreq.reserve(10);
       while (StrFreq.length() < 10){                 // leding zeros

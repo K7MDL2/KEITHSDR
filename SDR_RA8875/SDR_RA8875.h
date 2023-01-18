@@ -26,7 +26,7 @@
 
 //#define BYPASS_SPECTRUM_MODULE   // debugging temp 
 
-#define DEBUG  //set to true for debug output, false for no debug output
+#define DEBUG  //set for debug output
 
 #ifdef  DEBUG
 #define DEBUG_ERROR true
@@ -202,8 +202,19 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define BAND12M       8 // 12M
 #define BAND10M       9 // 10M
 #define BAND6M       10 // 6M
-#define BAND2M       11 // 2M
-#define PAN_ADAPT    12 // Panadapter IF band
+#define BAND144      11 // 2M
+#define BAND222      12 // 222
+#define BAND432      13 // 432
+#define BAND902      14 // 902
+#define BAND1296     15 // 1296
+#define BAND2300     16 // 2304
+#define BAND2400     17 // 2400
+#define BAND3300     18 // 3400
+#define BAND5760     19 // 5760
+#define BAND10G      20 // 10.368
+#define BAND24G      21 // 24.192
+#define BAND47G      22 // 47.1
+#define PAN_ADAPT    23 // Panadapter IF band
 
 // Zoom level for UI control
 #define ZOOMx1      0       // Zoom out the most (fft1024 @ 48K) (aka OFF)  x1 reference
@@ -237,18 +248,19 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define ATTEN_ON    1       // Turn relay on
 #define PREAMP_OFF  0       // Bypass
 #define PREAMP_ON   1       // Switch relay on
-#define XVTR1       1       // Transverter band Slot ID
-#define XVTR2       2
-#define XVTR3       3
-#define XVTR4       4
-#define XVTR5       5
-#define XVTR6       6
-#define XVTR7       7
-#define XVTR8       8
-#define XVTR9       9
-#define XVTR10      10
-#define XVTR11      11
-#define XVTR12      12
+#define XVTR1       0       // Transverter band Slot ID
+#define XVTR2       1
+#define XVTR3       2
+#define XVTR4       3
+#define XVTR5       4
+#define XVTR6       5
+#define XVTR7       6
+#define XVTR8       7
+#define XVTR9       8
+#define XVTR10      9
+#define XVTR11      10
+#define XVTR12      11
+#define XVTR13      12
 #define AGC_OFF     0       // Index to AGC Settings table
 #define AGC_SLOW    1
 #define AGC_MED     2
@@ -288,8 +300,8 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 // This group defines the number of records in each structure
 #define MODES_NUM   8
 #define FREQ_DISP_NUM  4
-#define BANDS       11
-#define XVTRS       12
+#define BANDS       24
+#define XVTRS       13
 #define TS_STEPS    6
 #define FILTER      10
 #define AGC_SET_NUM 4
@@ -387,15 +399,15 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 // Our Database of settings. This is the "factory default".  A user copy will be stored in EEPROM with user changes
 struct Band_Memory {
     char        band_name[20];  // Freindly name or label.  Default here but can be changed by user.
-    uint32_t    edge_lower;     // band edge limits for TX and for when to change to next band when tuning up or down.
-    uint32_t    edge_upper;
-    uint32_t    vfo_A_last;     // remember last VFO dial setting in this band
+    uint64_t    edge_lower;     // band edge limits for TX and for when to change to next band when tuning up or down.
+    uint64_t    edge_upper;
+    uint64_t    vfo_A_last;     // remember last VFO dial setting in this band
     uint8_t     mode_A;         // CW, LSB, USB, DATA.  
-    uint32_t    vfo_A_last_1;   // remember previous VFO dial setting in this band (bandstack)
+    uint64_t    vfo_A_last_1;   // remember previous VFO dial setting in this band (bandstack)
     uint8_t     mode_A_1;
-    uint32_t    vfo_A_last_2;   // remember previous VFO dial setting in this band (bandstack)
+    uint64_t    vfo_A_last_2;   // remember previous VFO dial setting in this band (bandstack)
     uint8_t     mode_A_2;
-    uint32_t    vfo_B_last;   // moving away from per-band VFOB recall, moving to use a global sub-VFO which can be on any band.
+    uint64_t    vfo_B_last;     // moving away from per-band VFOB recall, moving to use a global sub-VFO which can be on any band.
     uint8_t     mode_B;         // CW, LSB, USB, DATA. - Depricating in favor is global Sub_VFO mode in user_settings 
     uint8_t     filter;         // index to Bandwidth selection for this band.
     uint16_t    var_filter;     // Continuously variable filter setting in Hz.
@@ -412,20 +424,17 @@ struct Band_Memory {
     uint8_t     attenuator_byp; // 0 = bypass, 1 is attenuation hardware active
     uint8_t     attenuator_dB;  // 0 is attenuation value to set.
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2
-    uint8_t     xvtr_en;        // use Tranverter Table or not.  Want to be able to edit while disabled so this is sperate from index.
+    uint8_t     bandmap_en;     // Enable in Bandmap.  Skip band if 0, include if !0.
     uint8_t     xvtr_num;       // index to Transverter Table.
+    uint8_t     xvtr_IF;        // index to actual radio RF frequency to be used  (ex: BAND10M )
     int16_t     sp_ref_lvl;     // per band spectrum reference level.  Overides the spectrum module level by copying this value into it.
 };
 
 struct Transverter {
-    char        xvtr_name[20];
-    uint8_t     xvtr_en;
-    uint8_t     xvtr_num;
-    uint16_t    RF;
-    uint16_t    IF;
-    float       pwr_set;
-    float       offset;  
-    uint8_t     decoder_pattern;
+    char        xvtr_name[20];  // text to display (may not be needed)
+    float       pwr_set; // last used power level
+    float       offset;   // Calibration correction to apply
+    uint8_t     decoder_pattern;  // output pattern for band decoder (xvtr address)  Usually is the address or band number xvtr_num
 };
 
 struct Standard_Button {
@@ -473,7 +482,7 @@ struct User_Settings {
     char        configset_name[20]; // friendly anme for this record
     uint16_t    sp_preset;          // Sets the Spectrum module layout preset
     uint8_t     main_page;          // stores index to page settings table
-    uint32_t    sub_VFO;            // Global sub-VFO (B).  Not per band like VFOA is.
+    uint64_t    sub_VFO;            // Global sub-VFO (B).  Not per band like VFOA is.
     uint8_t     sub_VFO_mode;       // Mode for the Sub_VFO. Moved from per-band.
     uint8_t     usrcfgpage_1;       // index to user configuration page layout
     uint8_t     usrcfgpage_2;       // index to user configuration page layout

@@ -5,6 +5,6 @@
 //
 #include <Arduino.h>
 
-void selectFrequency(int32_t newFreq);
+void selectFrequency(int64_t newFreq);
 
 #endif // _TUNER_H_

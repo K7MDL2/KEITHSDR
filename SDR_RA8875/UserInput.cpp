@@ -755,7 +755,6 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                     case NOTCH_LBL:     Notch();        break;
                     case ATU_LBL:       ATU(2);         break;
                     case NR_LBL:        setNR();        break;
-                    case XVTR_LBL:      Xvtr();         break;
                     case SPLIT_LBL:     Split(2);       break;
                     default:DPRINT(F("Found a TAP Touch-enabled Label with SHOW ON but has no function to call.  Index = "));
                         DPRINTLN(i); break;
@@ -817,7 +816,6 @@ void Button_Action(uint16_t button_name)
             case RIT_BTN:       setRIT(2);      break;
             case XIT_BTN:       setXIT(2);      break;
             case SPLIT_BTN:     Split(2);       break;
-            case XVTR_BTN:      Xvtr();         break;
             case ATU_BTN:       ATU(2);         break;
             case FINE_BTN:      Fine();         break;
             case NB_BTN:        setNB(2);       break;

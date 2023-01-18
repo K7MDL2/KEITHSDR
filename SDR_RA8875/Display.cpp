@@ -22,8 +22,8 @@
 
 extern uint8_t 	display_state;   // something to hold the button state for the display pop-up window later.
 extern uint8_t 	curr_band;   // global tracks our current band setting.  
-extern uint32_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
-extern uint32_t VFOB;
+extern uint64_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
+extern uint64_t VFOB;
 extern uint8_t 	user_Profile;
 extern struct 	Band_Memory bandmem[];
 extern struct 	Filter_Settings filter[];
@@ -44,6 +44,7 @@ extern uint8_t  popup;
 extern Metro    popup_timer; // used to check for popup screen request
 extern int16_t	rit_offset;  // global rit value in Hz
 extern int16_t 	xit_offset;  // global rit value in Hz
+extern uint64_t xvtr_offset;  // global LO offset for transverters
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -81,7 +82,7 @@ uint8_t _colorIndex = 0;
 
 COLD void displayFreq(void)
 {
-	static uint32_t vfo_b_last  = 0;
+	static uint64_t vfo_b_last  = 0;
 	static uint8_t 	xmit_last   = 0;
 	static uint8_t 	xit_last    = 0;
 	
@@ -518,16 +519,6 @@ COLD void displayNotch()
 	draw_2_state_Button(NOTCH_BTN,  &user_settings[user_Profile].notch);
 }
 
-COLD void displayXVTR()
-{
-	if (popup) return;
-	
-	//DPRINTF("displayXVTR: XVTR is "); DPRINTLN(bandmem[curr_band].xvtr_en);
-
-	drawLabel(XVTR_LBL, &bandmem[curr_band].xvtr_en);
-	draw_2_state_Button(XVTR_BTN, &bandmem[curr_band].xvtr_en);
-}
-
 COLD void displayXMIT()
 {
 	if (popup) return;
@@ -760,7 +751,7 @@ COLD void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
 //
 //    formatVFO()
 //
-COLD const char* formatVFO(uint32_t vfo)
+COLD const char* formatVFO(uint64_t vfo)
 {
 	static char vfo_str[25] = {""};
 	if (ModeOffset < -1 || ModeOffset > 1)
@@ -849,7 +840,7 @@ COLD void displayRefresh(void)
 	displayVFO_AB();
 	//Panel 5 buttons
 	displayEnet();
-	displayXVTR();
+	//displayXVTR();  replce with FIlter Center frequency button
 	displayRFgain();
 	displayRefLevel();
 	displayAFgain();
