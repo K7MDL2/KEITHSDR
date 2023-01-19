@@ -93,7 +93,7 @@ struct Band_Memory bandmem[BANDS] = {
         { ON, OFF, 4, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLUE,  31, 20, 255,          "A/B\0"},
         //Panel 5
         { ON, OFF, 5, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, 255,          "Enet\0"},
-        { ON, OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, 255,          "Xvtr\0"},
+        {OFF, OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, 255,          "Xvtr\0"},
         { ON, OFF, 5, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, 255,          "RF:\0"},
         {OFF, OFF, 5, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 14, 20, REFLVL_LBL,   "RefLvl\0"},
         { ON, OFF, 5, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, 255,          "AF:\0"},
