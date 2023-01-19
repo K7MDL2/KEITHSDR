@@ -2069,23 +2069,29 @@ HOT uint64_t find_new_band(uint64_t new_frequency, uint8_t &_curr_band)
     for (i=BANDS-1; i>=0; i--)    // start at the top and look for first band that VFOA fits under bandmem[i].edge_upper
     {
         #ifdef DBG
-            DPRINTF("MAIN: Edge_Lower Search = "); DPRINTLN(bandmem[i].edge_lower);
+            DPRINTF("find_band(): Edge_Lower Search = "); DPRINTLN(bandmem[i].edge_lower);
         #endif
         if (new_frequency >= bandmem[i].edge_lower && new_frequency <= bandmem[i].edge_upper) // found a band lower than new_frequency so search has ended
         {
             #ifdef DBG
-                DPRINTF("MAIN: Edge_Lower = "); DPRINTLN(bandmem[i].edge_lower);
+                DPRINTF("find_band(): Edge_Lower = "); DPRINTLN(bandmem[i].edge_lower);
             #endif
             _curr_band = bandmem[i].band_num;
             #ifdef DBG
-                DPRINTF("MAIN: find_band(): New Band = "); DPRINTLN(*_curr_band);
+                DPRINTF("find_band(): New Band = "); DPRINTLN(_curr_band);
             #endif
             //  Calculate frequency difference between the designated xvtr IF band's lower edge and the current VFO band's lower edge (the LO frequency).
             //if (bandmem[*_curr_band].xvtr_IF)
             //    xvtr_offset = bandmem[*_curr_band].edge_lower - bandmem[bandmem[*_curr_band].xvtr_IF].edge_lower; // if band is 144 then PLL will be set to VFOA-xvtr_offset
             //else
             //    xvtr_offset = 0;
-            return new_frequency;
+            if (bandmem[_curr_band].bandmap_en) // filter out disabled bands
+                return new_frequency;
+            else
+            {
+                DPRINTF("find_band(): Disabled band requested "); DPRINTLN(bandmem[_curr_band].band_name);
+                return 0;
+            }
         }
     }
     //#ifdef DBG

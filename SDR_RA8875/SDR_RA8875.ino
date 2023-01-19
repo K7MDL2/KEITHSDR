@@ -733,7 +733,6 @@ COLD void setup()
 
     DPRINTF("Setup: Post RS-HFIQ VFOA = ");
     DPRINTLN(VFOA);
-    RS_HFIQ_Service();
 
     #ifdef USE_RA8875
         tft.clearScreen();
