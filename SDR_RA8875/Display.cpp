@@ -150,27 +150,49 @@ COLD void displayFreq(void)
 	tft.setFont(pVAct->txt_Font);
 	tft.setCursor(pVAct->bx+pVAct->padx, pVAct->by+pVAct->pady);
 	tft.setTextColor(pVAct->txt_clr);
+
+	uint64_t vfo = VFOA;
+
+	if (ModeOffset < -1 || ModeOffset > 1)
+		vfo += ModeOffset;  // Account for pitch offset when in CW mode, not others
+
 	if (!bandmem[curr_band].split) 
 	{
 		if (user_settings[user_Profile].xmit) 
-			tft.print(formatVFO(VFOA+xit_offset)); 
+			vfo = VFOA+xit_offset;
 		else
-			tft.print(formatVFO(VFOA+rit_offset)); 
+			vfo = VFOA+rit_offset;
 	}
 	else 
-		tft.print(formatVFO(VFOA+rit_offset));
+		vfo = VFOA+rit_offset;
+
+	uint32_t MHz = (vfo/1000000 % 1000000);
+	uint16_t Hz  = (vfo % 1000);
+	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
+
+	char vfo_str[20] = {""};	
+	sprintf(vfo_str, "%lu.%03d.%03d", MHz, KHz, Hz);
+	// Could try a non-printable value to hold constant width space.  The ' ' char is shortened by the proportional font
+
+	int ct = strlen(vfo_str);
+	int font_width = 31;
+	//DPRINT(" length of VFO_Str "); DPRINTLN(ct);
+	int ct1 = 14-ct;   // calc padding
+	tft.setCursor(pVAct->bx+pVAct->padx+(ct1*font_width), pVAct->by+pVAct->pady);
+
+	tft.printf(vfo_str);	
 	
 	#ifdef I2C_LCD
 		lcd.setCursor(0,0);
 		if (!bandmem[curr_band].split) 
-	{
-		if (user_settings[user_Profile].xmit) 
-			lcd.print(formatVFO(VFOA+xit_offset)); 
-		else
-			lcd.print(formatVFO(VFOA+rit_offset)); 
-	}
-	else 
-		lcd.print(formatVFO(VFOA+rit_offset));
+		{
+			if (user_settings[user_Profile].xmit) 
+				lcd.print(formatVFO(VFOA+xit_offset)); 
+			else
+				lcd.print(formatVFO(VFOA+rit_offset)); 
+		}
+		else 
+			lcd.print(formatVFO(VFOA+rit_offset));
 	#endif
 	
 	// Update VFO B only on change	
@@ -753,15 +775,17 @@ COLD void drawLabel(uint8_t lbl_num, uint8_t *function_ptr)
 //
 COLD const char* formatVFO(uint64_t vfo)
 {
-	static char vfo_str[25] = {""};
+	static char vfo_str[20] = {""};
 	if (ModeOffset < -1 || ModeOffset > 1)
 		vfo += ModeOffset;  // Account for pitch offset when in CW mode, not others
-	uint16_t MHz = (vfo/1000000 % 1000000);
+	
+	uint32_t MHz = (vfo/1000000 % 1000000);
 	uint16_t Hz  = (vfo % 1000);
 	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
-	sprintf(vfo_str, "%6d.%03d.%03d", MHz, KHz, Hz);
-	//sprintf(vfo_str, "%13s", "45.123.123");
-	//DPRINT("New VFO: ");DPRINTLN(vfo_str);
+	sprintf(vfo_str, "%6lu.%03u.%03u", MHz, KHz, Hz);
+	
+	///sprintf(vfo_str, "%-13s", "012345.123.123");  // 999GHZ max  47G = 47000.000.000
+	///DPRINT("New VFO: ");DPRINTLN(vfo_str);
 	return vfo_str;
 }
 

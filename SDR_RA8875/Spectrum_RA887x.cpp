@@ -793,10 +793,11 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
             tft.setCursor(ptr->c_graph-60, ptr->sp_txt_row);
             tft.print(_formatFreq(_VFO_ + (uint64_t) pan_freq));   // Write center of graph Freq   
             
-            tft.fillRect( ptr->r_graph_edge - 112, ptr->sp_txt_row, 110, 13, BLACK);
-            tft.setCursor(ptr->r_graph_edge - 112, ptr->sp_txt_row);
-            tft.print(_formatFreq(_VFO_ + (uint64_t) (pan_freq + (int64_t)(ptr->wf_sp_width*fft_bin_sz))));  // Write right side of graph Freq
-            
+            tft.fillRect( ptr->r_graph_edge - 122, ptr->sp_txt_row, 110, 13, BLACK);
+            tft.setCursor(ptr->r_graph_edge - 122, ptr->sp_txt_row);
+            char * d_tmp = _formatFreq(_VFO_ + (uint64_t) (pan_freq + (int64_t)(ptr->wf_sp_width*fft_bin_sz)));  // Write right side of graph Freq
+            tft.print(d_tmp);
+
             // Update our change detector vars
             old_VFO_ = _VFO_;       // save to minimize updates for no reason.
             old_fft_sz = fft_sz;    // used to update the spectrum scale frequency labels when the FFT size changes and VFO does not
@@ -1195,12 +1196,12 @@ int16_t _find_FFT_Max(uint16_t bin_min, uint16_t bin_max, uint16_t fft_sz)    //
 //char* Spectrum_RA887x::_formatFreq(uint64_t Freq)
 char* _formatFreq(uint64_t Freq)
 {
-	static char Freq_str[16];
+	static char Freq_str[20];
 
-	uint16_t MHz = (Freq/1000000 % 1000000);
+	uint32_t MHz = (Freq/1000000 % 1000000);
 	uint16_t Hz  = (Freq % 1000);
 	uint16_t KHz = ((Freq % 1000000) - Hz)/1000;
-	sprintf(Freq_str, "%5d.%03d.%03d", MHz, KHz, Hz);
+	sprintf(Freq_str, "%6lu.%03u.%03u", MHz, KHz, Hz);
 	//Serial.print("Freq: ");Serial.println(Freq_str);
 	return Freq_str;
 }

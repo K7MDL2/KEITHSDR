@@ -210,11 +210,13 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define BAND2300     16 // 2304
 #define BAND2400     17 // 2400
 #define BAND3300     18 // 3400
-#define BAND5760     19 // 5760
-#define BAND10G      20 // 10.368
-#define BAND24G      21 // 24.192
-#define BAND47G      22 // 47.1
-#define PAN_ADAPT    23 // Panadapter IF band
+#define BAND5760     19 // 5760M
+#define BAND10G      20 // 10.368.1G
+#define BAND24G      21 // 24.192G
+#define BAND47G      22 // 47.1G
+#define BAND76G      23 // 76.1G
+#define BAND122G     24 // 122G
+#define PAN_ADAPT    25 // Panadapter IF band
 
 // Zoom level for UI control
 #define ZOOMx1      0       // Zoom out the most (fft1024 @ 48K) (aka OFF)  x1 reference
@@ -261,6 +263,8 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define XVTR11      10
 #define XVTR12      11
 #define XVTR13      12
+#define XVTR14      13
+#define XVTR15      14
 #define AGC_OFF     0       // Index to AGC Settings table
 #define AGC_SLOW    1
 #define AGC_MED     2
@@ -300,8 +304,8 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 // This group defines the number of records in each structure
 #define MODES_NUM   8
 #define FREQ_DISP_NUM  4
-#define BANDS       24
-#define XVTRS       13
+#define BANDS       26
+#define XVTRS       15
 #define TS_STEPS    6
 #define FILTER      10
 #define AGC_SET_NUM 4
@@ -424,17 +428,13 @@ struct Band_Memory {
     uint8_t     attenuator_byp; // 0 = bypass, 1 is attenuation hardware active
     uint8_t     attenuator_dB;  // 0 is attenuation value to set.
     uint8_t     preamp;         // 0-off, 1 is level 2, level 2
+    int16_t     sp_ref_lvl;     // per band spectrum reference level.  Overides the spectrum module level by copying this value into it.
     uint8_t     bandmap_en;     // Enable in Bandmap.  Skip band if 0, include if !0.
     uint8_t     xvtr_num;       // index to Transverter Table.
     uint8_t     xvtr_IF;        // index to actual radio RF frequency to be used  (ex: BAND10M )
-    int16_t     sp_ref_lvl;     // per band spectrum reference level.  Overides the spectrum module level by copying this value into it.
-};
-
-struct Transverter {
-    char        xvtr_name[20];  // text to display (may not be needed)
-    float       pwr_set; // last used power level
-    float       offset;   // Calibration correction to apply
-    uint8_t     decoder_pattern;  // output pattern for band decoder (xvtr address)  Usually is the address or band number xvtr_num
+    uint16_t    xvPwrSet;       // last used power level
+    int16_t     DialCal;        // Calibration offset correction to apply to main frequency (VFOA)
+    uint16_t    bandDecode;     // Output pattern for band decoder per-band. 
 };
 
 struct Standard_Button {

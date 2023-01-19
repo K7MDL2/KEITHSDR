@@ -259,6 +259,10 @@ COLD void changeBands(int8_t direction) // neg value is down.  Can jump multiple
     else
         setRIT(0); // turn off if it was off before on this new band
 
+    // Example how and when to output new Band Decoer pattern on output IO pins. Pins assignments TBD.
+    // Set the new band decoder output pattern for this band change
+    uint16_t BandDecodePatternByte = bandmem[curr_band].bandDecode;
+
     codec1.muteHeadphone(); // remove audio thumps during hardware transients
 
     DPRINTLNF("ChangeBand: Set other per band settings");
@@ -288,7 +292,7 @@ COLD void changeBands(int8_t direction) // neg value is down.  Can jump multiple
     selectAgc(bandmem[curr_band].agc_mode);
     displayRefresh();
     codec1.unmuteHeadphone(); // reduce audio thump from hardware transitions
-    DPRINTLNF("ChangeBand: Complete");
+    DPRINTLNF("ChangeBand: Complete\n");
 }
 
 //
