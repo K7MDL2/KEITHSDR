@@ -561,6 +561,7 @@ COLD void setup()
         DPRINTLN(F("Initializing RA8875 Display"));
         tft.begin(RA8875_800x480);
         tft.setRotation(SCREEN_ROTATION); // 0 is normal, 1 is 90, 2 is 180, 3 is 270 degrees
+        delay(20);
         #ifdef USE_FT5206_TOUCH
             tft.useCapINT(RA8875_INT);
             tft.setTouchLimit(MAXTOUCHLIMIT);
@@ -610,7 +611,7 @@ COLD void setup()
     tft.setTextColor(BLUE);
     tft.setCursor(70, 100);
     tft.print(BANNER); // Customize the Startup Banner Text
-    tft.setCursor(140, 200);
+    tft.setCursor(70, 200);
     tft.setFont(Arial_28_Bold);
     tft.setTextColor(WHITE);
     tft.print(CALLSIGN); // Put your callsign here
@@ -809,8 +810,8 @@ HOT void loop()
             uint32_t jhElapsed = millis() - jhTime;
             jhTime             = millis();
             loopcount          = 0;
-            tft.fillRect(234, 5, 46, 22, BLACK);
-            tft.setFont(Arial_14);
+            tft.fillRect(234, 5, 22, 22, BLACK);
+            tft.setFont(Arial_12);
             tft.setCursor(236, 9, false);
             tft.setTextColor(DARKGREY);
             tft.print(jhElapsed / 10);

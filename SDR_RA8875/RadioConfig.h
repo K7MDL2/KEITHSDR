@@ -33,7 +33,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 ******************************  !!!!!!! ********************************** !!!!!! *****************************************/
 
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
-#define CALLSIGN  "K7MDL"   // Personalized Startup Screen Text
+#define CALLSIGN  "K7MDL CN88sf"   // Personalized Startup Screen Text
 
 #define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
@@ -146,7 +146,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #define XIT_STEP_DEFAULT  1 // step size index from the tstep table.  normally index = 1 -> 10Hz.  
 
-#define VARIABLE_FILTER   0  // when defined or set to 0, the encoder will cycle through predefined filter widths same as the touch buttons do.  
+#define VARIABLE_FILTER   1  // when undefined or set to 0, the encoder will cycle through predefined filter widths same as the touch buttons do.  
                              // When active, the encoder (only) will be variable over the allowed range based on mode and change in various step rates according to freqwuncy.
                              //  50Hz < 1KHz, 100Hz 1-3KHz and 200Hz > 3KHz.  Max is 6.  FM is fixed and shows as N/A width.
 
@@ -266,7 +266,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // Choose your actual pin assignments for any you may have.
 
 // VFO Encoder (not I2C).  uses PCB jack labeled ENC1.
-#define VFO_PPR 10  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+#define VFO_PPR 36  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
 #if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
@@ -317,7 +317,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_ENC3_PIN_A        35     // Encoder 3
 	#define GPIO_ENC3_PIN_B        34
 	#define GPIO_ENC3_PIN_SW       33
-	#define PTT_INPUT     			    2   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_INPUT     			    0   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 	#define PTT_OUT1      			    1   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 	#define GPIO_SW1_PIN            3     // pin assignment for external switches. When enabled, these will be scanned and software debounced
 	#define GPIO_SW2_PIN            4     // Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
@@ -325,7 +325,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW4_PIN            6     // 255 for unused pins
 	#define GPIO_SW5_PIN            7     // 255 for unused pins
   #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
-	#define GPIO_ANT_PIN            0		  // Used as an output for Ant relay 1/2
+	#define GPIO_ANT_PIN            2		  // Used as an output for Ant relay 1/2
   #elif defined (V21_7_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         16     // used for VFO

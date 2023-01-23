@@ -177,10 +177,12 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define myVDKORANGE   0xCB21 // very dark orange, maybe burnt orange
 #define myDKYELLOW    0x9422 // very dark yellow
 #define myDKPINK      0xA1F3 // dark 
+#define myDARKRED     0xC8C9 // dark red, lighter than Maroon
+#define myMIDGREEN    0x1688 // green , not bright
 
 // Convert 24bit RGB to RGB565 using  http://www.drakker.org/convert_rgb565.html
 #define myBRIGHTPINK  0xF8F1
-#define myMIDGREEN    0x03E0
+#define myMIDGREEN2   0x03E0
 #define myBRIGHTGREEN 0x6646
 #define myVIOILET     0xA01F
 #define myLAVBLUE     0x631F

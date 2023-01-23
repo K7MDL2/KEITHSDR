@@ -7,8 +7,12 @@
       
 #ifdef USE_RA8875
 	extern RA8875 tft;
+	int VFOA_font_px_width = 24;  //  spaces and dots are not same width as letters and numbers
+	int VFOB_font_px_width = 18;  //  This is the px width used to pad x coord in place of printing spaces.
 #else 
 	extern RA8876_t3 tft;
+	int VFOA_font_px_width = 31;
+	int VFOB_font_px_width = 24;
 #endif
 
 #ifdef I2C_LCD
@@ -152,6 +156,7 @@ COLD void displayFreq(void)
 	tft.setTextColor(pVAct->txt_clr);
 
 	uint64_t vfo = VFOA;
+	char vfo_str[20] = {""};
 
 	if (ModeOffset < -1 || ModeOffset > 1)
 		vfo += ModeOffset;  // Account for pitch offset when in CW mode, not others
@@ -159,27 +164,27 @@ COLD void displayFreq(void)
 	if (!bandmem[curr_band].split) 
 	{
 		if (user_settings[user_Profile].xmit) 
-			vfo = VFOA+xit_offset;
+			//vfo = VFOA+xit_offset;
+			strcpy(vfo_str, formatVFO(VFOA+xit_offset));
 		else
-			vfo = VFOA+rit_offset;
+			//vfo = VFOA+rit_offset;
+			strcpy(vfo_str, formatVFO(VFOA+rit_offset));
 	}
 	else 
-		vfo = VFOA+rit_offset;
+		//vfo = VFOA+rit_offset;
+		strcpy(vfo_str, formatVFO(VFOA+rit_offset));
 
-	uint32_t MHz = (vfo/1000000 % 1000000);
-	uint16_t Hz  = (vfo % 1000);
-	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
+	//uint32_t MHz = (vfo/1000000 % 1000000);
+	//uint16_t Hz  = (vfo % 1000);
+	//uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
 
-	char vfo_str[20] = {""};	
-	sprintf(vfo_str, "%lu.%03d.%03d", MHz, KHz, Hz);
+	//sprintf(vfo_str, "%lu.%03d.%03d", MHz, KHz, Hz);
 	// Could try a non-printable value to hold constant width space.  The ' ' char is shortened by the proportional font
 
 	int ct = strlen(vfo_str);
-	int font_width = 31;
-	//DPRINT(" length of VFO_Str "); DPRINTLN(ct);
-	int ct1 = 14-ct;   // calc padding
-	tft.setCursor(pVAct->bx+pVAct->padx+(ct1*font_width), pVAct->by+pVAct->pady);
-
+	int ct1 = 14-ct;   // calc padding for VFO X coordinate since sdpaces are narrower than the numbers
+    //DPRINT(" length of VFO_Str "); DPRINTLN(ct1);
+	tft.setCursor(pVAct->bx+pVAct->padx+(ct1*VFOA_font_px_width), pVAct->by+pVAct->pady);
 	tft.printf(vfo_str);	
 	
 	#ifdef I2C_LCD
@@ -201,12 +206,16 @@ COLD void displayFreq(void)
 		tft.fillRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->bg_clr);
 		tft.drawRect(pVStby->bx, pVStby->by, pVStby->bw, pVStby->bh, pVStby->ol_clr);
 		tft.setFont(pVStby->txt_Font);
-		tft.setCursor(pVStby->bx+pVStby->padx, pVStby->by+pVStby->pady);
-		tft.setTextColor(pVStby->txt_clr);
 		if (!bandmem[curr_band].split)
-			tft.print(formatVFO(VFOB));
+			strcpy(vfo_str,formatVFO(VFOB));
 		else
-			tft.print(formatVFO(VFOB+xit_offset));
+			strcpy(vfo_str, formatVFO(VFOB+xit_offset));
+		ct = strlen(vfo_str);
+		ct1 = 14-ct;   // cal
+    	//DPRINT(" length of VFO_Str "); DPRINTLN(ct1);
+		tft.setCursor(pVStby->bx+pVStby->padx+(ct1*VFOB_font_px_width), pVStby->by+pVStby->pady);
+		tft.setTextColor(pVStby->txt_clr);
+		tft.printf(vfo_str);	
 	}
 	vfo_b_last = VFOB;
 	xit_last = xit_offset;
@@ -382,10 +391,18 @@ COLD void displayAttn()
 	if (popup) return;  // Do not write to the screen when a window is active
 
 	char string[20];   // print format stuff
-	sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
+	#ifdef USE_RA8875
+		sprintf(string, "A:%d", bandmem[curr_band].attenuator_dB);
+		if (bandmem[curr_band].attenuator_dB == 100)
+			sprintf(std_btn[ATTEN_BTN].label, " %s", string);
+		else
+			sprintf(std_btn[ATTEN_BTN].label, "  %s", string);
+	#else
+		sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
+		sprintf(std_btn[ATTEN_BTN].label, "%s", string);
+	#endif
 	sprintf(labels[ATTEN_LBL].label, "%s", string);
-	sprintf(std_btn[ATTEN_BTN].label, "%s", string);
-
+	
 	//DPRINTF("displayAttn: Atten is "); DPRINT(bandmem[curr_band].attenuator); DPRINTF(" Level is "); DPRINTLN(bandmem[curr_band].attenuator_dB);
 	
 	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
@@ -422,7 +439,11 @@ COLD void displayRIT()
 
 	char string[15];   // print format stuff
 	
-	sprintf(string, "RIT:%+01.02f", (float) rit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	#ifdef USE_RA8875
+		sprintf(string, "RT:%+01.02f", (float) rit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	#else
+		sprintf(string, "RIT:%+01.02f", (float) rit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	#endif
 	sprintf(labels[RIT_LBL].label, "%s", string);   // update label text
 	
 	//DPRINTF("RIT is "); DPRINT(bandmem[curr_band].RIT_en); DPRINTF("  RIT Offset is "); DPRINTLN((float) rit_offset/1000);
@@ -445,7 +466,11 @@ COLD void displayXIT()
 
 	char string[20];   // print format stuff
 
-	sprintf(string, "XIT:%+01.02f", (float) xit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	#ifdef USE_RA8875
+		sprintf(string, "XT:%+01.02f", (float) xit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	#else
+		sprintf(string, "XIT:%+01.02f", (float) xit_offset/1000);   // Prepare va;ue to display in S meer and in label
+	#endif
 	sprintf(labels[XIT_LBL].label, "%s", string);   // update label text
 	
 	//DPRINTF("XIT is "); DPRINT(bandmem[curr_band].XIT_en); DPRINTF("  XIT Offset is "); DPRINTLN(bandmem[curr_band].xit_offset/1000);
@@ -782,7 +807,7 @@ COLD const char* formatVFO(uint64_t vfo)
 	uint32_t MHz = (vfo/1000000 % 1000000);
 	uint16_t Hz  = (vfo % 1000);
 	uint16_t KHz = ((vfo % 1000000) - Hz)/1000;
-	sprintf(vfo_str, "%6lu.%03u.%03u", MHz, KHz, Hz);
+	sprintf(vfo_str, "%lu.%03u.%03u", MHz, KHz, Hz);
 	
 	///sprintf(vfo_str, "%-13s", "012345.123.123");  // 999GHZ max  47G = 47000.000.000
 	///DPRINT("New VFO: ");DPRINTLN(vfo_str);

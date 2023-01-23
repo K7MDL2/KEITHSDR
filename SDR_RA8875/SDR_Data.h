@@ -20,8 +20,8 @@ struct Band_Memory bandmem[BANDS] = {
     { "15M",    21000000,    21450000,    21074000, DATA,    21030000, CW,      21300000,  USB,    21350000, USB,  BW3_2, 3200,  BAND15M,  3, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 7,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
     { "12M",    24890000,    24990000,    24915000, USB,     24892000, CW,      24950000,  USB,    24904000, USB,  BW3_2, 3200,  BAND12M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 8,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
     { "10M",    28000000,    29600000,    28074000, DATA,    28200000, USB,     29400000,  USB,    28200000, USB,  BW4_0, 4000,  BAND10M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 9,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
-    {  "6M",    50000000,    54000000,    50125000, USB,     50313000, DATA,    50100000,  CW,     50313000, DATA, BW3_2, 3200,  BAND6M,   1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR1,   BAND10M,  30,  -10,  0x0001},
-    { "144",   144000000,   148000000,   144200000, USB,    144200000, DATA,   144200000,  CW,    144200000, DATA, BW3_2, 3200,  BAND144,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR2,   BAND15M,  10,  -10,  0x0002},
+    {  "6M",    50000000,    54000000,    50125000, USB,     50313000, DATA,    50100000,  CW,     50313000, DATA, BW3_2, 3200,  BAND6M,   1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR1,   BAND10M,  30,  -10,  0x0001},
+    { "144",   144000000,   148000000,   144200000, USB,    144200000, DATA,   144200000,  CW,    144200000, DATA, BW3_2, 3200,  BAND144,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR2,   BAND10M,  10,  -10,  0x0002},
     { "222",   222000000,   225000000,   222100000, USB,    222100000, DATA,   222100000,  CW,    222100000, DATA, BW3_2, 3200,  BAND222,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR3,   BAND10M,  10,  -10,  0x0004},
     { "432",   432000000,   450000000,   432100000, USB,    432100000, DATA,   432100000,  CW,    432100000, DATA, BW3_2, 3200,  BAND432,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR4,   BAND10M,  40,  -10,  0x0008},
     { "903",   902000000,   904000000,   903100000, USB,    903100000, DATA,   903100000,  CW,    903100000, DATA, BW3_2, 3200,  BAND902,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR5,   BAND10M,  60,  -10,  0x0010},
@@ -32,7 +32,7 @@ struct Band_Memory bandmem[BANDS] = {
     {"5760",  5760000000,  5762000000,  5760100000, USB,   5760100000, DATA,  5760100000,  CW,   5760100000, DATA, BW3_2, 3200,  BAND5760, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR10,  BAND10M,  14,  -10,  0x002F},
     { "10G", 10368000000, 10370000000, 10368100000, USB,  10368100000, DATA, 10368100000,  CW,  10368100000, DATA, BW3_2, 3200,  BAND10G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR11,  BAND10M,  24,  -10,  0x10F1},
     { "24G", 24048000000, 24050000000, 24048200000, USB,  24192100000, DATA, 24192100000,  CW,  24192100000, DATA, BW3_2, 3200,  BAND24G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR12,  BAND10M,  45,  -10,  0x00F2},
-    {" 47G", 47000000000, 47002000000, 47000100000, USB,  47000100000, DATA, 47000100000,  CW,  47000100000, DATA, BW3_2, 3200,  BAND47G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR13,  BAND20M,  10,  -10,  0x00FF},
+    {" 47G", 47000000000, 47002000000, 47000100000, USB,  47000100000, DATA, 47000100000,  CW,  47000100000, DATA, BW3_2, 3200,  BAND47G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR13,  BAND10M,  10,  -10,  0x00FF},
     {" 76G", 76000000000, 76002000000, 76000100000, USB,  76000100000, DATA, 76000100000,  CW,  76000100000, DATA, BW3_2, 3200,  BAND76G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR14,  BAND10M,  10,  -10,  0x00FF},
     {"122G",122000000000,122002000000,122000100000, USB, 122000100000, DATA,122000100000,  CW, 122000100000, DATA, BW3_2, 3200,  BAND122G, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR15,  BAND10M,  10,  -10,  0x00FF},
     { "PAN",     8200000,     8300000,     8215000, DATA,     8215000, USB,      8215000,  USB,     8215000, LSB,  BW2_8, 2800,  PAN_ADAPT,1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  0,   50,  PREAMP_OFF,  5,  OFF,  NONE,    NONE,      2,  -10,  0x00FF}
@@ -170,7 +170,7 @@ struct Band_Memory bandmem[BANDS] = {
         { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, MODE_LBL,   "Mode\0"},
         { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, FILTER_LBL, "Filter\0"},
         { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, RATE_LBL,   "Rate\0"},
-        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 4,  20, ATTEN_LBL,  "ATT\0"},
+        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 24, 20, ATTEN_LBL,  "A\0"},
         { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, PREAMP_LBL, "PRE\0"},
         { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, BAND_LBL,   "Band\0"},
         //{ OFF, ON, 1, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band1\0"},
@@ -266,27 +266,43 @@ struct Band_Memory bandmem[BANDS] = {
 struct Label labels[LABEL_NUM] = {
   //  en  show   x   y    w   h   r out_col     on_txtclr   on_color    off_txtclr off_color padx pady label 
     {OFF, OFF,   0,   0,  40, 29, 3, BLACK,     BLUE,       BLACK,      CYAN,            BLACK, 4, 7, "B:\0"},  // Band, not in use now 
+    #ifdef USE_RA8875
     {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK, 4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 7, 7, "F:\0"},
-    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 7, 7, "R:\0"},
+    {OFF,  ON, 100, 110, 102, 28, 3, BLACK,     BLUE,       BLACK,      myDKPINK,        BLACK, 4, 7, "F:\0"},
+    {OFF,  ON, 210, 110,  85, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKYELLOW,      BLACK, 4, 7, "R:\0"},
     {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK, 5, 4, "AGC-\0"},
     {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK, 6, 4, "ANT-\0"}, 
-    {OFF,  ON, 325, 110,  85, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
+    {OFF,  ON, 303, 110,  60, 28, 3, BLACK,     DARKCYAN,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "A:\0"},
     {OFF,  ON,  10,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 9, 4, "PRE\0"},
     {OFF,  ON,  80,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 10, 4, "ATU\0"},
-    {OFF,  ON, 425, 110,  96, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK, 4, 7, "RIT:+0000\0"},
-    {OFF,  ON, 536, 110,  96, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK, 4, 7, "XIT:-0000\0"},
+    {OFF,  ON, 371, 110,  90, 28, 3, BLACK,   myMIDGREEN,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "RT:\0"},
+    {OFF,  ON, 469, 110,  90, 28, 3, BLACK,   myDARKRED,    BLACK,      myVDARKGREY,     BLACK, 4, 7, "XT:\0"},
     {OFF,  ON,  10,  65,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 7, 4, "FINE\0"},
     {OFF,  ON, 150,   5,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 14, 4, "NB:0\0"},
     {OFF,  ON,  80,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 16, 4, "NR\0"},
     {OFF,  ON, 150,  65,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 4, 4, "NOTCH\0"},
-    #ifdef USE_RA8875
-    {OFF,  ON, 220,  65,  90, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
-    #else
-    {OFF,  ON, 320,  65,  90, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
-    #endif
+    {OFF,  ON, 244,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
-    {OFF,  ON, 647, 110,  70, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 12, 7, "XMIT\0"},
+    {OFF,  ON, 567, 110,  58, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 5, 7, "XMIT\0"},
+    #else
+    {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK, 4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON,  100, 110, 102, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 4, 7, "F:\0"},
+    {OFF,  ON, 210, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 4, 7, "R:\0"},
+    {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK, 5, 4, "AGC-\0"},
+    {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK, 6, 4, "ANT-\0"}, 
+    {OFF,  ON, 303, 110,  60, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
+    {OFF,  ON,  10,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 9, 4, "PRE\0"},
+    {OFF,  ON,  80,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 10, 4, "ATU\0"},
+    {OFF,  ON, 371, 110,  90, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK, 4, 7, "RIT:+0000\0"},
+    {OFF,  ON, 469, 110,  90, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK, 4, 7, "XIT:-0000\0"},
+    {OFF,  ON,  10,  65,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 7, 4, "FINE\0"},
+    {OFF,  ON, 150,   5,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 14, 4, "NB:0\0"},
+    {OFF,  ON,  80,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 16, 4, "NR\0"},
+    {OFF,  ON, 150,  65,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 4, 4, "NOTCH\0"},
+    {OFF,  ON, 320,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
+    {OFF,  ON, 567, 110,  58, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 12, 7, "XMIT\0"},
+    #endif
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 4, 4, "Xvtr\0"}, // No label on screen for this today
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "RefLvl\0"}, // No label on screen for this today 
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Spot\0"},  // No label on screen for this today
@@ -319,7 +335,7 @@ struct User_Settings user_settings[USER_SETTINGS_NUM] = {
 struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   MFTUNE,  NONE,        NONE,       NONE,           NONE,            NONE},       // Set VFO def_MF to MFTUNE in case there are no encoders
-    {GPIO_ENC,  1,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // encoder events start slot sreach at 1 so skip VFO slot 0.
+    {GPIO_ENC,  0,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // encoder events start slot sreach at 1 so skip VFO slot 0.
     {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         ATTEN_BTN},    // enc slot 2
     {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW3_BTN,         NB_BTN},  // enc slot 3
     {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    PAN_BTN,     ON,         ZOOM_BTN,       SW4_BTN,         PREAMP_BTN},   // enc slot 4
@@ -335,9 +351,9 @@ struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     // x   y    w    h    r   bs  bm   outline_clr     box_clr              bg_clr      txt_clr              txt_Fnt   TX_clr     padx  pady
     #ifdef USE_RA8875
-    {204,  1, 380,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_40, RED,   4,   4}, // VFO Active Digits
-    {588,  6,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active Label
-    {310, 53, 274,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_28, RED,   6,   6}, // VFO Stby Digits
+    {262,  1, 320,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_32, RED,   4,   4}, // VFO Active Digits
+    {588,  1,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active Label
+    {336, 53, 274,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   6,   6}, // VFO Stby Digits
     {588, 53,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   9,   7}  // VFO Stby Label
     #else
     {310,  1, 420,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_40, RED,   4,   4}, // VFO Active Digits
