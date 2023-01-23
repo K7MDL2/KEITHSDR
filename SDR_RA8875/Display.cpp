@@ -116,7 +116,7 @@ COLD void displayFreq(void)
 	#ifdef USE_RA8875
 		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw-10, LIGHTORANGE); // for 8875
 	#else
-		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+130, LIGHTORANGE);  // For 8876
+		tft.drawFastHLine(10, pVAct->bh+pVStby->bh+12, pMAct->bx+pMAct->bw+60, LIGHTORANGE);  // For 8876
 	#endif // USE_RA8875
 	//tft.drawRect(0, 15, 792, 65, LIGHT_ORANGE);  // test box
 
