@@ -67,7 +67,7 @@ struct Band_Memory bandmem[BANDS] = {
         { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, MODE_LBL,     "Mode\0"},
         { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, FILTER_LBL,   "Filter\0"},
         { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, RATE_LBL,     "Rate\0"},
-        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  4, 20, ATTEN_LBL,    "ATT\0"},
+        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 24, 20, ATTEN_LBL,    "ATT\0"},
         { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  5, 20, PREAMP_LBL,   "Preamp\0"},
         { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, BAND_LBL,     "Band\0"},
         //Panel 2
@@ -170,7 +170,7 @@ struct Band_Memory bandmem[BANDS] = {
         { ON,  ON, 1, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, MODE_LBL,   "Mode\0"},
         { ON,  ON, 1, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 21, 20, FILTER_LBL, "Filter\0"},
         { ON,  ON, 1, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 24, 20, RATE_LBL,   "Rate\0"},
-        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 24, 20, ATTEN_LBL,  "A\0"},
+        { ON,  ON, 1, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 4,  20, ATTEN_LBL,  "ATT\0"},
         { ON,  ON, 1, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, PREAMP_LBL, "PRE\0"},
         { OFF, ON, 1, 6, x_6, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, BAND_LBL,   "Band\0"},
         //{ OFF, ON, 1, 7, x_7, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band1\0"},
@@ -284,24 +284,24 @@ struct Label labels[LABEL_NUM] = {
     {OFF,  ON, 244,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
     {OFF,  ON, 567, 110,  58, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 5, 7, "XMIT\0"},
-    #else
+    #else    
     {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK, 4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON,  100, 110, 102, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 4, 7, "F:\0"},
-    {OFF,  ON, 210, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 4, 7, "R:\0"},
+    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 7, 7, "F:\0"},
+    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 7, 7, "R:\0"},
     {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK, 5, 4, "AGC-\0"},
     {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK, 6, 4, "ANT-\0"}, 
-    {OFF,  ON, 303, 110,  60, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
+    {OFF,  ON, 325, 110,  85, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
     {OFF,  ON,  10,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 9, 4, "PRE\0"},
     {OFF,  ON,  80,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 10, 4, "ATU\0"},
-    {OFF,  ON, 371, 110,  90, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK, 4, 7, "RIT:+0000\0"},
-    {OFF,  ON, 469, 110,  90, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK, 4, 7, "XIT:-0000\0"},
+    {OFF,  ON, 425, 110,  96, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK, 4, 7, "RIT:+0000\0"},
+    {OFF,  ON, 536, 110,  96, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK, 4, 7, "XIT:-0000\0"},
     {OFF,  ON,  10,  65,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 7, 4, "FINE\0"},
     {OFF,  ON, 150,   5,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 14, 4, "NB:0\0"},
     {OFF,  ON,  80,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 16, 4, "NR\0"},
     {OFF,  ON, 150,  65,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 4, 4, "NOTCH\0"},
     {OFF,  ON, 320,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
-    {OFF,  ON, 567, 110,  58, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 12, 7, "XMIT\0"},
+    {OFF,  ON, 647, 110,  70, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 12, 7, "XMIT\0"},
     #endif
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 4, 4, "Xvtr\0"}, // No label on screen for this today
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "RefLvl\0"}, // No label on screen for this today 
@@ -357,8 +357,8 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     {588, 53,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   9,   7}  // VFO Stby Label
     #else
     {310,  1, 420,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_40, RED,   4,   4}, // VFO Active Digits
-    {742,  6,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active VFO Marker (A)
-    {490, 53, 250,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   6,   6}, // VFO Stby Digits
+    {742,  2,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active VFO Marker (A)
+    {476, 53, 274,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   6,   6}, // VFO Stby Digits
     {742, 53,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   9,   7}  // VFO Stby VFO Marker (B)
     #endif  // USE_RA8875
 };
