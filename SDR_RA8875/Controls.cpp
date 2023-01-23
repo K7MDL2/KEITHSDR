@@ -261,7 +261,7 @@ COLD void changeBands(int8_t direction) // neg value is down.  Can jump multiple
 
     // Example how and when to output new Band Decoer pattern on output IO pins. Pins assignments TBD.
     // Set the new band decoder output pattern for this band change
-    uint16_t BandDecodePatternByte = bandmem[curr_band].bandDecode;
+// uint16_t BandDecodePatternByte = bandmem[curr_band].bandDecode;
 
     codec1.muteHeadphone(); // remove audio thumps during hardware transients
 
