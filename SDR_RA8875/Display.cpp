@@ -12,7 +12,7 @@
 #else 
 	extern RA8876_t3 tft;
 	int VFOA_font_px_width = 31;
-	int VFOB_font_px_width = 24;
+	int VFOB_font_px_width = 18;
 #endif
 
 #ifdef I2C_LCD
