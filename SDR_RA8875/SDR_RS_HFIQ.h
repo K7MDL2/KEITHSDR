@@ -31,7 +31,7 @@ class SDR_RS_HFIQ
         void        print_RSHFIQ_User(int flag);  // reads response from RS-HFIQ and prints to the user terminal
         
     private:  
-        char freq_str[20] = "7074000";  // *Fxxxx command to set LO freq, PLL Clock 0
+        char freq_str[22] = "7074000";  // *Fxxxx command to set LO freq, PLL Clock 0
         const char s_initPLL[5]       = "*OF3";   // turns on LO clock0 output and sets drive current.
         const char q_freq[4]          = "*F?";    // returns current LO frequency
         const char s_freq[3]          = "*F";     // set LO frequency template.  3 to 30Mhz range
@@ -50,7 +50,6 @@ class SDR_RS_HFIQ
         const char s_BIT_freq[4]      = "*B";     // Built In Test. Uses PLL clock 1        // Internal band validation.  Can be bypassed for any frequency if desired in the code.
             
         bool refresh_RSHFIQ(void);
-        void disp_Menu(void);
         void init_PLL(void);
         void wait_reply(int blocking); // BLOCKING CALL!  Use with care       
         void update_VFOs(uint64_t newfreq);

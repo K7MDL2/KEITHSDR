@@ -78,7 +78,7 @@ USBHIDParser hid3(RSHFIQ);
 
 uint64_t rs_freq;
 int  counter  = 0;
-int  blocking = 0;  // 0 means do not wait for serial response from RS-HFIQ - for testing only.  1 is normal
+int  blocking = 1;  // 0 means do not wait for serial response from RS-HFIQ - for testing only.  1 is normal
 static char S_Input[20];
 static char R_Input[20];
 
@@ -139,11 +139,11 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint64_t VFO)  // 0 non block, 1 b
     tft.setTextColor(BLUE);
     tft.setCursor(60, 320);
     tft.print(F("Waiting for connection to RS-HFIQ Radio via USB Host port - Is it connected?"));
-    DPRINTLN(F("Looking for USB Host Connection to RS-HFIQ"));
+    DPRINTLNF("Looking for USB Host Connection to RS-HFIQ");
     delay(5000);
     RSHFIQ.begin();
     //delay(1000);
-    DPRINTLN(F("Waiting for RS-HFIQ device to register on USB Host port  "));
+    DPRINTLNF("Waiting for RS-HFIQ device to register on USB Host port  ");
 
     int retry_count = 0;
     while (!refresh_RSHFIQ())  // observed about 500ms required.
@@ -154,7 +154,7 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint64_t VFO)  // 0 non block, 1 b
         tft.setCursor(60, 420);
         tft.printf("Retry Count: %d", retry_count++);
         // wait until we have a valid USB 
-        DPRINT(F("Retry RS-HFIQ USB connection (~500ms) = ")); DPRINTLN(counter++);
+        DPRINTF("Retry RS-HFIQ USB connection (~500ms) = "); DPRINTLN(counter++);
     }
     delay(2000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
     
@@ -162,39 +162,43 @@ void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint64_t VFO)  // 0 non block, 1 b
         DPRINTLN(userial.read());
 
     send_fixed_cmd_to_RSHFIQ(q_dev_name); // get our device ID name
-    DPRINT(F("Device Name: ")); print_RSHFIQ_User(blocking);  // waits for serial available (BLOCKING call);
+    DPRINTF("Device Name: "); print_RSHFIQ_User(blocking);  // waits for serial available (BLOCKING call);
     
     send_fixed_cmd_to_RSHFIQ(q_ver_num);
-    DPRINT(F("Version: ")); print_RSHFIQ_User(blocking);  // waits for serial available (BLOCKING call);
+    DPRINTF("Version: "); print_RSHFIQ_User(blocking);  // waits for serial available (BLOCKING call);
 
     send_fixed_cmd_to_RSHFIQ(q_Temp);
-    DPRINT(F("Temp: ")); print_RSHFIQ_User(blocking);   // Print our query results
+    DPRINTF("Temp: "); print_RSHFIQ_User(blocking);   // Print our query results
     
     send_fixed_cmd_to_RSHFIQ(s_initPLL);  // Turn on the LO clock source  
-    DPRINTLN(F("Initializing PLL"));
+    DPRINTLNF("Initializing PLL");
     //delay(1000);  // about 1-2 seconds needed before RS-HFIQ ready to receive commands over USB
     
     send_fixed_cmd_to_RSHFIQ(q_Analog_Read);
-    DPRINT(F("Analog Read: ")); print_RSHFIQ_User(blocking);   // Print our query results
+    DPRINTF("Analog Read: "); print_RSHFIQ_User(blocking);   // Print our query results
     
     send_fixed_cmd_to_RSHFIQ(q_BIT_freq);
-    DPRINT(F("Built-in Test Frequency: ")); print_RSHFIQ_User(blocking);   // Print our query results
+    DPRINTF("Built-in Test Frequency: "); print_RSHFIQ_User(blocking);   // Print our query results
     
     send_fixed_cmd_to_RSHFIQ(q_clip_on);
-    DPRINT(F("Clipping (0 No Clipping, 1 Clipping): ")); print_RSHFIQ_User(blocking);   // Print our query results
+    DPRINTF("Clipping (0 No Clipping, 1 Clipping): "); print_RSHFIQ_User(blocking);   // Print our query results
 
     send_variable_cmd_to_RSHFIQ(s_freq, convert_freq_to_Str(rs_freq));
-    DPRINT(F("Starting Frequency (Hz): ")); DPRINTLN(convert_freq_to_Str(rs_freq));
+    DPRINTF("Starting Frequency (Hz): "); DPRINTLN(convert_freq_to_Str(rs_freq));
+    
+    char d_offset[20];
+    sprintf(d_offset,"%d",RSHFIQ_CAL_OFFSET);
+    send_variable_cmd_to_RSHFIQ(s_F_Offset, d_offset);
+    DPRINTF("Set F_Offset (Hz) to: "); DPRINTLN(RSHFIQ_CAL_OFFSET);  // Print our query result
 
     send_fixed_cmd_to_RSHFIQ(q_F_Offset);
-    DPRINT(F("F_Offset (Hz): ")); print_RSHFIQ_User(blocking);   // Print our query result
+    DPRINTF("F_Offset (Hz) Now: "); print_RSHFIQ_User(blocking);   // Print our query result
 
     send_fixed_cmd_to_RSHFIQ(q_freq);  // query the current frequency.
-    DPRINT(F("Reported Frequency (Hz): ")); print_RSHFIQ_User(blocking);   // Print our query results
+    DPRINTF("Reported Frequency (Hz): "); print_RSHFIQ_User(blocking);   // Print our query results
     
-    DPRINTLN(F("End of RS-HFIQ Setup"));
+    DPRINTLNF("End of RS-HFIQ Setup");
     counter = 0;
-    disp_Menu();
 }
 
 // The RS-HFIQ has only 1 "VFO" so does not itself care about VFO A or B or split, or which is active
@@ -575,43 +579,10 @@ void SDR_RS_HFIQ::print_RSHFIQ(int flag)
 void SDR_RS_HFIQ::print_RSHFIQ_User(int flag)
 {
     read_RSHFIQ(flag);
-    #ifdef DBG
+    //#ifdef DBG
         DPRINTLN(R_Input);
-    #endif
+    //#endif
     return;
-}
-
-void SDR_RS_HFIQ::disp_Menu(void)
-{
-    DPRINTLN(F("\n\n ***** Control Menu *****\n"));
-    DPRINTLN(F(" H - Main Menu"));
-    DPRINTLN(F(" 1 - TX OFF"));
-    DPRINTLN(F(" 2 - TX ON"));
-    DPRINTLN(F(" 3 - Query Frequency"));
-    DPRINTLN(F(" 4 - Query Frequency Offset"));
-    DPRINTLN(F(" 5 - Query Built-in Test Frequency"));
-    DPRINTLN(F(" 6 - Query Analog Read"));
-    DPRINTLN(F(" 7 - Query External Frequency or CW"));
-    DPRINTLN(F(" 8 - Query Temp"));
-    DPRINTLN(F(" 9 - Initialize PLL Clock0 (LO)"));
-    DPRINTLN(F(" 0 - Query Clipping"));
-    DPRINTLN(F(" ? - Query Device Name"));
-    
-    DPRINTLN(F("\n Can use upper or lower case letters"));
-    DPRINTLN(F(" Can use multiple frequency shift actions such as "));
-    DPRINTLN(F("   <<<< for 4*100Hz  to move down 400Hz"));
-    DPRINTLN(F(" K - Move Down 1000Hz "));
-    DPRINTLN(F(" L - Move Up 1000Hz "));
-    DPRINTLN(F(" < - Move Down 100Hz "));
-    DPRINTLN(F(" > - Move Up 100Hz "));
-    DPRINTLN(F(" , - Move Down 10Hz "));
-    DPRINTLN(F(" . - Move Up 10Hz "));
-
-    DPRINTLN(F("\n Enter any native command string"));
-    DPRINTLN(F("    Example: *F5000000 will change frequency to WWV at 5MHz"));
-    DPRINTLN(F("    Minimum is 3.0MHz or *F3000000, max is 30.0MHz or *F30000000"));
-    DPRINTLN(F("    Band filters and attenuation are automatically set"));
-    DPRINTLN(F("\n ***** End of Menu *****"));
 }
 
 bool SDR_RS_HFIQ::refresh_RSHFIQ(void)
