@@ -96,7 +96,7 @@
         #define  SCREEN_HEIGHT      480
         #if defined SMALL_PCB_V1
             #define  RA8875_INT        28   //for John's small V1 motherboard
-        #elif defined V1_4_3_PCB || defined V2_4_3_PCB || defined V21_7_PCB
+        #elif defined V1_4_3_PCB || defined V2_4_3_PCB || defined V21_7_PCB || defined V22_7_PCB
             #define  RA8875_INT        27   //27 for John's larger 4.3" motherboard
         #else
             #define  RA8875_INT        14   //14 for K7MDL old prototype board
@@ -118,7 +118,7 @@
         #include <FT5206.h>
         #if defined SMALL_PCB_V1
             #define  CTP_INT        28  //for John's small V1 motherboard
-        #elif definedV1_4_3_PCB || defined V2_4_3_PCB || defined V21_7_PCB
+        #elif definedV1_4_3_PCB || defined V2_4_3_PCB || defined V21_7_PCB || defined V22_7_PCB
             #define  CTP_INT        27  // for John's larger 4.3" motherboard
         #else
             #define  CTP_INT        14  //14 for K7MDL old prototype board

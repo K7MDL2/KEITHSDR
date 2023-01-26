@@ -184,11 +184,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define V1_4_3_PCB   // For the V1 4.3" motherboard 4/18/2022
 //#define V2_4_3_PCB   // For the V2 4.3" motherboard 4/21/2022
 //#define V21_7_PCB   // For the V2.1 7" motherboard 12/30/2022
+//#define V22_7_PCB   // For the V2.1 7" motherboard 12/30/2022
 //#define SMALL_PCB_V1   // For the small motgherboard 4/18/2022
 // -------------------------------------------------------------------------
 //#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
 //#define NO_RSHFIQ_BLOCKING      // When combined with USE_RS-HFIQ, bypasses wait loops for queries from hardware allowing testing with no hardware connected
-
+//#define RSHFIQ_CAL_OFFSET  (-130)  // Fixed offset applied each RS-HFIQ startup to calibrate frequency.
 
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
@@ -209,9 +210,10 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define SCREEN_ROTATION     2
       //#define GPIO_ENCODERS           // Requires I2C_Encoders
       #define I2C_ENCODERS            // Use I2C connected encoders
-      #define V21_7_PCB
-      //#define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
-      //#define V1_4_3_PCB              // For the V1 large 4.3" motherboard 4/2022     
+      #define V22_7_PCB
+      //#define V21_7_PCB
+      #define RSHFIQ_CAL_OFFSET (-7500)  // Fixed offset (0.01Hz steps) applied each RS-HFIQ startup to calibrate frequency. Multiply offset error Hz by 100.
+          // Example: WWV tunes in high at 10000130Hz.  Subtract (130*100) or -13000.   75Hz high is -7500.
     #endif
 
     // Config items common or NA to both builds        
@@ -273,7 +275,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define I2C_INT_PIN            36
 	#define GPIO_VFO_PIN_A          3     // used for VFO
 	#define GPIO_VFO_PIN_B          4
-	#define GPIO_ENC2_PIN_A        30     // Encoder 2.
+	#define GPIO_ENC2_PIN_A        30     // Encoder 2
 	#define GPIO_ENC2_PIN_B        31
 	#define GPIO_ENC2_PIN_SW       32
 	#define GPIO_ENC3_PIN_A        34     // Encoder 3
@@ -307,11 +309,11 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW5_PIN          255     // 255 for unused pins
   #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN          255		  // 255 for unused pins.  When used this is configured as an output instead of input for the GPIO_SWx_PINs
-#elif defined (V2_4_3_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
+#elif defined (V2_4_3_PCB)    // V2.0 4.3" Display PCB
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         15     // used for VFO
 	#define GPIO_VFO_PIN_B         16
-	#define GPIO_ENC2_PIN_A        36     // Encoder 2.   conflicts with I2C encoders if they are enabled
+	#define GPIO_ENC2_PIN_A        36     // Encoder 2
 	#define GPIO_ENC2_PIN_B        37
 	#define GPIO_ENC2_PIN_SW       38
 	#define GPIO_ENC3_PIN_A        35     // Encoder 3
@@ -323,10 +325,10 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW2_PIN            4     // Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
 	#define GPIO_SW3_PIN            5     // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN            6     // 255 for unused pins
-	#define GPIO_SW5_PIN            7     // 255 for unused pins
+	#define GPIO_SW5_PIN           26     // 255 for unused pins
   #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN            2		  // Used as an output for Ant relay 1/2
-  #elif defined (V21_7_PCB)    // V2.0 4.3" Display PCB and V2.1/V2.2 7" Display PCB
+  #elif defined (V21_7_PCB)    // V2.1 7" Display PCB, can also mount the 4.3" RA8875 onto it.
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         16     // used for VFO
 	#define GPIO_VFO_PIN_B         15
@@ -342,14 +344,35 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW2_PIN            4   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
 	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
 	#define GPIO_SW4_PIN            6
-	#define GPIO_SW5_PIN            7
-  #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
-	#define GPIO_ANT_PIN            0	    // Used as an output for Ant relay 1/2
+	#define GPIO_SW5_PIN           26
+  #define GPIO_SW6_PIN          255     // 0   // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
+	#define GPIO_ANT_PIN            0	    // 255 // Used as an output for Ant relay 1/2
+#elif defined (V22_7_PCB)    // V2.2 7" Display PCB, can also mount a RA8875 4.3" display
+  #define I2C_INT_PIN            17
+	#define GPIO_VFO_PIN_A         16     // used for VFO
+	#define GPIO_VFO_PIN_B         15
+	#define GPIO_ENC2_PIN_A        36     // Encoder 2
+	#define GPIO_ENC2_PIN_B        37
+	#define GPIO_ENC2_PIN_SW       38
+	#define GPIO_ENC3_PIN_A        35     // Encoder 3
+	#define GPIO_ENC3_PIN_B        34
+	#define GPIO_ENC3_PIN_SW       33
+	#define PTT_INPUT     			   40   	// buffered GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_OUT1      			   41   	// buffered GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define GPIO_SW1_PIN            3   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
+	#define GPIO_SW2_PIN            4   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
+	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
+	#define GPIO_SW4_PIN            6
+	#define GPIO_SW5_PIN            2
+  #define GPIO_SW6_PIN           26     // There are 8 GPIO pins on the header connector
+	#define GPIO_ANT_PIN           31	    // New in V2.2. Buffered output for Ant relay 1/2.  V2.2 PCB has dedicated buffered output on pin 31.
+  #define GPIO_SPARE1_PIN         0     // Placeholder for unused pin on the GPIO header.  I try to save these for hardware UART duty
+  #define GPIO_SPARE2_PIN         1     // Placeholder for unused pin on the GPIO header.  I try to save these for hardware UART duty
 #else // else old proto board assignments
   #define I2C_INT_PIN            29
 	#define GPIO_VFO_PIN_A          4     // used for VFO
 	#define GPIO_VFO_PIN_B          5
-	#define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2.
+	#define GPIO_ENC2_PIN_A        30     // GPIO Encoder 2
 	#define GPIO_ENC2_PIN_B        31
 	#define GPIO_ENC2_PIN_SW       32
 	#define GPIO_ENC3_PIN_A        33     // GPIO Encoder 3
