@@ -681,24 +681,25 @@ COLD void setup()
         lcd.backlight();
         lcd.print("MyCall SDR"); // Edit this to what you like to see on your display
     #endif
+/*
+    // -------- Read SD Card data----------------------------------------------------------
+    // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
+    // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD   ***IF*** they are not used for something else:
+    //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
+    //SPI.setSCK(14);  // Audio shield has SCK on pin 14
 
-    /*  // Read SD Card data
-        // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
-        // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD   ***IF*** they are not used for somethng else:
-        //SPI.setMOSI(7);  // Audio shield has MOSI on pin 7
-        //SPI.setSCK(14);  // Audio shield has SCK on pin 14
-        // see if the card is present and can be initialized:
-        SD_CardInfo();
-        // open or create our config file.  Filenames follow DOS 8.3 format rules
-        Open_SD_cfgfile();
-        // test our file
-        // make a string for assembling the data to log:
-        write_db_tables();
-        read_db_tables();
-        write_radiocfg_h();         // write out the #define to a file on the SD card.
+    // see if the card is present and can be initialized:
+    SD_CardInfo();
+    // open or create our config file.  Filenames follow DOS 8.3 format rules
+    Open_SD_cfgfile();
+    // test our file
+    // make a string for assembling the data to log:
+    write_db_tables();
+    read_db_tables();
+    write_radiocfg_h();         // write out the #define to a file on the SD card.
                                     // This could be used by the PC during compile to override the RadioConfig.h
-    */
-    // -------------------- Setup our radio settings and UI layout --------------------------------
+  */  
+    // -------- Setup our radio settings and UI layout --------------------------------
 
     curr_band = user_settings[user_Profile].last_band; // get last band used from user profile.
     PAN(0);
@@ -732,8 +733,7 @@ COLD void setup()
         delay(1000); // Give time to see the slash screen
     #endif
 
-    DPRINTF("Setup: Post RS-HFIQ VFOA = ");
-    DPRINTLN(VFOA);
+    DPRINTF("Setup: Post RS-HFIQ VFOA = "); DPRINTLN(VFOA);
 
     #ifdef USE_RA8875
         tft.clearScreen();
@@ -1600,6 +1600,9 @@ COLD void TX_RX_Switch(
 
         AudioNoInterrupts();
 
+        RX_Hilbert_Plus_45.end();
+        RX_Hilbert_Minus_45.end();
+
         codec1.inputSelect(MicAudioIn); // Mic is microphone, Line-In is from Receiver audio
         codec1.muteHeadphone();
         codec1.audioProcessorDisable(); // Default
@@ -1651,6 +1654,9 @@ COLD void TX_RX_Switch(
         DPRINTLNF("Switching to Rx");
 
         AudioNoInterrupts();
+
+        RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K, 151);   // Left channel Rx
+        RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K, 151); // Right channel Rx
 
         codec1.muteLineout();          // mute the TX audio output to transmitter input
         codec1.inputSelect(RxAudioIn); // switch back to RX audio input
@@ -1916,8 +1922,9 @@ COLD void resetCodec(void)
 #endif
 
     // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
-    RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K, 151);   // Left channel Rx
-    RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K, 151); // Right channel Rx
+    // Moved .begin to T/R code section, stopped and started each RX/TX transition
+    //RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K, 151);   // Left channel Rx
+    //RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K, 151); // Right channel Rx
 
     // TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
     // TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
