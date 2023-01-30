@@ -46,11 +46,10 @@ SDR_RS_HFIQ RS_HFIQ;
 #endif
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
-    #include <SVN1AFN_BandpassFilters.h> // Modified and redistributed in this build source folder
+    #include "SVN1AFN_BandpassFilters.h" // Modified and redistributed in this build source folder
     SVN1AFN_BandpassFilters bpf;  // The SV1AFN Preselector module supporing all HF bands and a preamp and Attenuator. 
                                 // For 60M coverage requires and updated libary file set.
 #endif // SV1AFN_BPF
-
 
 #ifdef I2C_ENCODERS // This turns on support for DuPPa.net I2C encoder with RGB LED integrated. 
     //  This is a basic example for using the I2C Encoder V2
@@ -114,7 +113,7 @@ Encoder VFO(GPIO_VFO_PIN_A, GPIO_VFO_PIN_B); // pins defined in RadioConfig.h - 
 
 #ifndef USE_RS_HFIQ
     #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
-        #include <si5351.h>            // Using this etherkits library because it supporst the B and C version PLLs with external ref clock
+        #include "si5351.h"            // Using the etherkits library because it supports the B and C version PLLs with external ref clock
         Si5351 si5351;
     #else // OCXO_10MHZ
         #include <si5351mcu.h>         // Github https://github.com/pavelmc/Si5351mcu

@@ -59,7 +59,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // DEPENDS on your crystal being 25Mhz
 
 //#define si5351_CORRECTION  0  // frequency correction for the si5351A PLL board crystal or TXCO.
-                            // The 5351mcu library uses Hz offset, etherkit and others use ppb.
+                            // The Si5351mcu library uses Hz offset, etherkit and others use ppb.
 
 //#define PE4302            // PE4302 Digital step attenuator. 31.5dB in 0.5 steps, only using 1dB steps today
                             // Harmless to leave this defined as long as it is not connected via an I2C port expander
@@ -180,16 +180,17 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 // --------------- Motherboard/Protoboard version --------------------------
 // Uncomment one of these to account for Touch interrupt differences, or
-// if not using any of these boards, comment them out to use the default old values
+// if not using any of these boards, comment them all out to use the default old values
+//#define SMALL_PCB_V1 // For the   small motherboard 4/18/2022
 //#define V1_4_3_PCB   // For the V1 4.3" motherboard 4/18/2022
 //#define V2_4_3_PCB   // For the V2 4.3" motherboard 4/21/2022
-//#define V21_7_PCB   // For the V2.1 7" motherboard 12/30/2022
-//#define V22_7_PCB   // For the V2.1 7" motherboard 12/30/2022
-//#define SMALL_PCB_V1   // For the small motgherboard 4/18/2022
-// -------------------------------------------------------------------------
-//#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+//#define V21_7_PCB    // For the V2.1 7" motherboard 12/30/2022
+//#define V22_7_PCB    // For the V2.1 7" motherboard 12/30/2022
+
+// ----------------- RS-HFIQ ---------------------------------------------------
+//#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR transciever for the RF hardware. Connect via USB Host serial cable.
 //#define NO_RSHFIQ_BLOCKING      // When combined with USE_RS-HFIQ, bypasses wait loops for queries from hardware allowing testing with no hardware connected
-//#define RSHFIQ_CAL_OFFSET  (-130)  // Fixed offset applied each RS-HFIQ startup to calibrate frequency.
+//#define RSHFIQ_CAL_OFFSET  (0)  // Fixed offset applied each RS-HFIQ startup to calibrate frequency.
 
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
@@ -200,30 +201,38 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #ifdef K7MDL_BUILD  
 
-    #undef USE_RA8875   // Controls RA8875 or RA8876 build
+    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
+      #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #else // My RA8876 7" specific build items
       #undef SCREEN_ROTATION
       #define SCREEN_ROTATION     2
-      //#define GPIO_ENCODERS           // Requires I2C_Encoders
+      //#define GPIO_ENCODERS           // Requires I2C_Encoders library
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V22_7_PCB
       //#define V21_7_PCB
-      #define RSHFIQ_CAL_OFFSET (-7500)  // Fixed offset (0.01Hz steps) applied each RS-HFIQ startup to calibrate frequency. Multiply offset error Hz by 100.
+      //#define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
+      //#define SV1AFN_BPF   // for 10-band BPF board
+      #undef VFO_MULT
+      #define VFO_MULT           2    // 2 for NT7V board
+      #define OCXO_10MHZ   // for Si5351C PLL board
+      #define K7MDL_OCXO
+      #ifdef USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+        #define RSHFIQ_CAL_OFFSET (-7500)  // Fixed offset (0.01Hz steps) applied each RS-HFIQ startup to calibrate frequency. Multiply offset error Hz by 100.  
           // Example: WWV tunes in high at 10000130Hz.  Subtract (130*100) or -13000.   75Hz high is -7500.
+      #endif
     #endif
 
     // Config items common or NA to both builds        
     #define USE_DHCP                  // UNCOMMENT this for static IP  
-    //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET
+    //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET --AND-- the enet profile
     #ifdef USE_ENET_PROFILE
       #define ENET
     #endif
 
-    #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #define W7PUA_I2S_CORRECTION      // Attempt to resolve twin peak problem on SGTL5000 codec chip
 
     // Experimental features - use only one or none!
@@ -328,6 +337,9 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW5_PIN           26     // 255 for unused pins
   #define GPIO_SW6_PIN          255     // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN            2		  // Used as an output for Ant relay 1/2
+  #define GPIO_GPS_TX_PIN        28     // GPS Jack CN6.  Goes to Serial Port 7 or can be used as generic GPIO.
+  #define GPIO_GPS_RX_PIN        29     // GPS Jack CN6.
+  #define GPIO_GSP_GPIO_PIN      30     // GPS Jack CN6.
   #elif defined (V21_7_PCB)    // V2.1 7" Display PCB, can also mount the 4.3" RA8875 onto it.
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         16     // used for VFO
@@ -338,15 +350,18 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_ENC3_PIN_A        35     // Encoder 3
 	#define GPIO_ENC3_PIN_B        34
 	#define GPIO_ENC3_PIN_SW       33
-	#define PTT_INPUT     			    1   	// GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
-	#define PTT_OUT1      			    2   	// GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_INPUT     			    1   	// buffered GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
+	#define PTT_OUT1      			    2   	// buffered GPIO digital output pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
 	#define GPIO_SW1_PIN            3   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
 	#define GPIO_SW2_PIN            4   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
 	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
-	#define GPIO_SW4_PIN            6
+	#define GPIO_SW4_PIN            6     // these are 3.3V!
 	#define GPIO_SW5_PIN           26
   #define GPIO_SW6_PIN          255     // 0   // There are only 8 GPIO on the header connector so disable this one and use for GPIO_ANT_PIN output.
 	#define GPIO_ANT_PIN            0	    // 255 // Used as an output for Ant relay 1/2
+  #define GPIO_GPS_TX_PIN        28     // GPS Jack CN6.  Goes to Serial Port 7 or can be used as generic GPIO.
+  #define GPIO_GPS_RX_PIN        29     // GPS Jack CN6.
+  #define GPIO_GSP_GPIO_PIN      30     // GPS Jack CN6.
 #elif defined (V22_7_PCB)    // V2.2 7" Display PCB, can also mount a RA8875 4.3" display
   #define I2C_INT_PIN            17
 	#define GPIO_VFO_PIN_A         16     // used for VFO
@@ -354,7 +369,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_ENC2_PIN_A        36     // Encoder 2
 	#define GPIO_ENC2_PIN_B        37
 	#define GPIO_ENC2_PIN_SW       38
-	#define GPIO_ENC3_PIN_A        35     // Encoder 3
+	#define GPIO_ENC3_PIN_A        35     // Encoder 3  // For K7MDL build using this jack for step attenuator
 	#define GPIO_ENC3_PIN_B        34
 	#define GPIO_ENC3_PIN_SW       33
 	#define PTT_INPUT     			   40   	// buffered GPIO digital input pin number for external PTT.  Typically LO (GND) = TX, HI = RX.
@@ -362,12 +377,16 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	#define GPIO_SW1_PIN            3   	// pin assignment for external switches. When enabled, these will be scanned and software debounced
 	#define GPIO_SW2_PIN            4   	// Rev 2 PCBs have an 8x2 header U7 that has Teensy GPIO pins 0-7 on it.  
 	#define GPIO_SW3_PIN            5		  // Pins 0 and 1 I try to reserve for hardware serial port duties so assigning pins 2 through 7.
-	#define GPIO_SW4_PIN            6
+	#define GPIO_SW4_PIN            6     // assign the rest of the pins
 	#define GPIO_SW5_PIN            2
   #define GPIO_SW6_PIN           26     // There are 8 GPIO pins on the header connector
-	#define GPIO_ANT_PIN           31	    // New in V2.2. Buffered output for Ant relay 1/2.  V2.2 PCB has dedicated buffered output on pin 31.
+	#define GPIO_ANT_PIN           31	    // New in V2.2. Buffered output for Ant relay 1/2.  V2.2 PCB has dedicated buffered output on pin 31.  Can also access at the wirepad next to D32
   #define GPIO_SPARE1_PIN         0     // Placeholder for unused pin on the GPIO header.  I try to save these for hardware UART duty
   #define GPIO_SPARE2_PIN         1     // Placeholder for unused pin on the GPIO header.  I try to save these for hardware UART duty
+  #define GPIO_SPARE3_PIN        32     // New i n V2.2. Wirepad for D32 at top of board above CPU.  
+  #define GPIO_GPS_TX_PIN        28     // GPS Jack CN6.  Goes to Serial Port 7 or can be used as generic GPIO.
+  #define GPIO_GPS_RX_PIN        29     // GPS Jack CN6.   Can also use this port for Panadapter CAT control connection
+  #define GPIO_GSP_GPIO_PIN      30     // GPS Jack CN6.
 #else // else old proto board assignments
   #define I2C_INT_PIN            29
 	#define GPIO_VFO_PIN_A          4     // used for VFO
@@ -408,7 +427,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #define GPIO_SW4_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
 	#define GPIO_SW5_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
   #define GPIO_SW6_ENABLE         0     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
-	#define GPIO_ANT_ENABLE         1     // GPIO Output, 0 disables, any value > 0 enables
+	#define GPIO_ANT_ENABLE         0     // GPIO Output, 0 disables, any value > 0 enables
 
 	// I2C connected encoders use this this pin to signal interrupts
 	// Knob assignments are the user_settings database 
@@ -433,7 +452,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 	 #define GPIO_ENC3_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
   #else
    #define GPIO_ENC2_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
-	 #define GPIO_ENC3_ENABLE       0     // Aux GPIO encoder, 0 disables, >0 enables, make unique to place into table row
+	 #define GPIO_ENC3_ENABLE       0     // for K7MDL build using this jack for PE4302 Step attenuator
 	#endif
   #define GPIO_SW1_ENABLE         6     // GPIO switch, 0 disables, >0 enables, make unique to pla
 	#define GPIO_SW2_ENABLE         7     // GPIO switch, 0 disables, >0 enables, make unique to place into table row
@@ -492,10 +511,10 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //      Could use the 3 left over pins on the MCP23017 I2C port expander servicing the SV1AFN preselector module.
 //      For now using Teensy 4.1 pins 30-32.
 //      
-#ifdef PE4302
-  #define Atten_CLK       24
-  #define Atten_DATA      25
-  #define Atten_LE        26
+#ifdef PE4302   // for V2.2 board I am not using an encoder on ENC3 so using the ENC3 pins for the Step Attenuator
+  #define Atten_CLK       33
+  #define Atten_DATA      34
+  #define Atten_LE        35
 #endif  // DIG_STEP_ATT
 //
 //
