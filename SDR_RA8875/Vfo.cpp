@@ -8,11 +8,11 @@
 
 #ifndef USE_RS_HFIQ
     #ifdef OCXO_10MHZ
-    #include <si5351.h> 
-    extern Si5351 si5351;
+        #include "si5351.h"
+        extern Si5351 si5351;
     #else
-    #include <si5351mcu.h> 
-    extern Si5351mcu si5351;
+        #include "si5351mcu.h" 
+        extern Si5351mcu si5351;
     #endif
 #endif
 
@@ -62,7 +62,7 @@ COLD void initVfo(void)
             // ----  OR  ------//
             
             #ifdef K7MDL_OCXO
-                // --------------- External Reference CLock Section -------------------------------
+                // --------------- External Reference Clock Section -------------------------------
                 //Initialize the Si5351 to use an external clock like a 10Mhz OCXO
                 si5351.init(SI5351_CRYSTAL_LOAD_0PF, 0, 0);               
                 //This section is for external ref clock
@@ -82,7 +82,7 @@ COLD void initVfo(void)
             si5351.output_enable(SI5351_CLK0, 1);   // ON by default but just in case.
             si5351.output_enable(SI5351_CLK1, 0);   // OFF by default but just in case.
             //si5351.output_enable(SI5351_CLK2, 0);   // OFF by default but just in case.  
-            //si5351.output_enable(SI5351_CLK3, 0);   // outputs 3 - 8 only apply to the C version PLL     
+            //si5351.output_enable(SI5351_CLK3, 0);   // outputs 3 - 7 only apply to the C version PLL     
             //si5351.output_enable(SI5351_CLK4, 0);     
             //si5351.output_enable(SI5351_CLK5, 0);     
             //si5351.output_enable(SI5351_CLK6, 0);        
@@ -95,10 +95,10 @@ COLD void initVfo(void)
             // Choose one of these 3 lines. The first is the default crystal which is varied among boards
             //si5351.init();  // Set this to 25MHz or 27MHz depending on what your PLL uses.
             #ifdef si5351_XTAL_25MHZ
-            //si5351.init(25000000);
-            si5351.init(24999899);       // value for TCXO board   
+                //si5351.init(25000000);
+                si5351.init(24999899);       // value for TCXO board
             #else
-            si5351.init(27000000);
+                si5351.init(27000000);
             #endif // si5351_XTAL_IS_25MHZ
 
             /// Si5351mcu library modified by K7MDL to accept load capacitor setting.  Comment this out for standard library        
