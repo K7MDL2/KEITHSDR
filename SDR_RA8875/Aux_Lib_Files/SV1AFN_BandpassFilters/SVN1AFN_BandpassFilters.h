@@ -4,7 +4,7 @@
 
 #include "Arduino.h"
 #include <Wire.h>
-#include <Adafruit_MCP23X17.h>
+#include "Adafruit_MCP23X17.h"
 
 // GPIO bits on latch A
 #define PA0 0
