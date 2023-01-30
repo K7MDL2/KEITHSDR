@@ -19,6 +19,7 @@
 //      Placed in the Public Domain.
 //
 //***************************************************************************************************
+#ifdef USE_RS_HFIQ
 
 #include <Arduino.h>
 #include <USBHost_t36.h>
@@ -682,3 +683,4 @@ uint64_t SDR_RS_HFIQ::find_new_band(uint64_t new_frequency, uint8_t &_curr_band)
     return 0;  // 0 means frequency was not found in the table
 }
 */
+#endif // USE_RS_HFIQ

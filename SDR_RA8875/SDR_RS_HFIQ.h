@@ -10,6 +10,8 @@
 #ifndef _SDR_RS_HFIQ_SERIAL_H_
 #define _SDR_RS_HFIQ_SERIAL_H_
 
+#ifdef USE_RS_HFIQ
+
 #include <Arduino.h>
 
 class SDR_RS_HFIQ
@@ -56,4 +58,6 @@ class SDR_RS_HFIQ
         void write_RSHFIQ(int ch);
         int  read_RSHFIQ(int flag);
 };
+
+#endif // USE_RS_HFIQ
 #endif   // _SDR_RS_HFIQ_SERIAL_H_
