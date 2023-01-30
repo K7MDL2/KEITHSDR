@@ -13,7 +13,7 @@
 // Using the SV1AFN Band Pass Filter board with modified I2C library for Premp, Attenuator, and for 10 HF bands of BPFs
 // #include "SVN1AFN_BandpassFilters.h>""
 #ifdef SV1AFN_BPF
-    #include <SVN1AFN_BandpassFilters.h>
+    #include "SVN1AFN_BandpassFilters.h"
     extern SVN1AFN_BandpassFilters bpf;
 #endif
 
@@ -1999,7 +1999,7 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
 
     const uint8_t atten_size_31 = 31;
 
-    char atten_str[8]  = {'\0'};
+    //char atten_str[8]  = {'\0'};
     char atten_data[8] = {'\0'};
     uint8_t i;
     int16_t atten;
@@ -2016,30 +2016,17 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
     DPRINTLN(atten);
 
     atten *= 2; // shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
-    /* Convert to 8 bits of  0 and 1 format */
-    itoa(atten, atten_str, 2);
-
-    // pad with leading 0s as needed.  6 bits for the PE4302
-    for (i = 0; (i < 6 - strlen(atten_str)); i++)
-    {
-        atten_data[i] = '0';
-    }
-    strncat(atten_data, atten_str, strlen(atten_str));
+    /* Convert to 6 bits of  0 and 1 format */
+    // pad with leading 0s as needed.  6 bits for the PE4302 + '\0' at end for 7 bytes
+    snprintf(atten_data, 7, "%06d", atten);
 
     //  LE = 0 to allow writing data into shift register
     digitalWrite(Atten_LE, (uint8_t)OFF);
     digitalWrite(Atten_DATA, (uint8_t)OFF);
     digitalWrite(Atten_CLK, (uint8_t)OFF);
     delayMicroseconds(10);
+ 
     //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.
-        //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
-    //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.
-        //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.  
-    //  Now loop for 6 bits, set data on Data pin and toggle Clock pin.
-    //    Start with the MSB first so start at the left end of the string
-        //    Start with the MSB first so start at the left end of the string   
-    //    Start with the MSB first so start at the left end of the string
-        //    Start with the MSB first so start at the left end of the string   
     //    Start with the MSB first so start at the left end of the string
     for (i = 0; i < 6; i++)
     {
