@@ -1261,7 +1261,7 @@ COLD void AFgain(int8_t delta)
 
     // DPRINT(" TEST AF Level requested "); DPRINTLN(_afLevel);
 
-    _afLevel += delta * 4; // convert percentage request to a single digit float
+    _afLevel += delta * 2; // convert percentage request to a single digit float
 
     // DPRINT(" TEST AF Level absolute "); DPRINTLN(_afLevel);
 

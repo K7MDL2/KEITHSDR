@@ -390,7 +390,7 @@ COLD void displayAttn()
 {
 	if (popup) return;  // Do not write to the screen when a window is active
 
-	char string[20];   // print format stuff
+	char string[10];   // print format stuff
 	#ifdef USE_RA8875
 		sprintf(string, "A:%d", bandmem[curr_band].attenuator_dB);
 		if (bandmem[curr_band].attenuator_dB == 100)
@@ -398,10 +398,10 @@ COLD void displayAttn()
 		else
 			sprintf(std_btn[ATTEN_BTN].label, "  %s", string);
 	#else
-		sprintf(string, "ATT:%d", bandmem[curr_band].attenuator_dB);
-		sprintf(std_btn[ATTEN_BTN].label, "%s", string);
+		snprintf(string, 10, "ATT:%3d", bandmem[curr_band].attenuator_dB);
+		snprintf(std_btn[ATTEN_BTN].label, 10, "%3s", string);
 	#endif
-	sprintf(labels[ATTEN_LBL].label, "%s", string);
+	snprintf(labels[ATTEN_LBL].label, 10, "%3s", string);
 	
 	//DPRINTF("displayAttn: Atten is "); DPRINT(bandmem[curr_band].attenuator); DPRINTF(" Level is "); DPRINTLN(bandmem[curr_band].attenuator_dB);
 	
