@@ -78,7 +78,7 @@ COLD void initVfo(void)
             #endif // K7MDL_OCXO
 
             // Below is common to both Ext Clk and Internal Xtal
-            si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_8MA);
+            si5351.drive_strength(SI5351_CLK0, SI5351_DRIVE_2MA);
             si5351.output_enable(SI5351_CLK0, 1);   // ON by default but just in case.
             si5351.output_enable(SI5351_CLK1, 0);   // OFF by default but just in case.
             //si5351.output_enable(SI5351_CLK2, 0);   // OFF by default but just in case.  

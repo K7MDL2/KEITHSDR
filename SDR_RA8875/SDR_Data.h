@@ -10,7 +10,7 @@
 
 struct Band_Memory bandmem[BANDS] = {
     // name         lower     upper         VFOA    Md_A       VFOA-1  mode1     VFOA-2     md2      VFOB    modeB filt  varfil  bandnum   ts agc     SPLIT RT  XT ATU ANT   BPF ATTEN   AttByp att_DB   PREAMP   SSPL  bmap  XV#     Xvtr_IF  XPwr DialCal Decode
-    {"160M",     1800000,     2000000,     1840000, DATA,     1860000, LSB,      1910000,  LSB,     1860000, LSB,  BW3_2, 3200,  BAND160M, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  1,   80,  PREAMP_OFF,  5,  OFF,  NONE,    NONE,    100,    0,  0xFFFF},
+    {"160M",     1800000,     2000000,     1840000, DATA,     1860000, LSB,      1910000,  LSB,     1860000, LSB,  BW3_2, 3200,  BAND160M, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  1,   80,  PREAMP_OFF,  5,  ON,   NONE,    NONE,    100,    0,  0xFFFF},
     { "80M",     3500000,     4000000,     3573000, DATA,     3868000, LSB,      3813000,  LSB,     3868000, LSB,  BW3_2, 3200,  BAND80M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 1,  ATTEN_OFF,  1,   40,  PREAMP_OFF,  5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
     { "60M",     4990000,     5405000,     5000000, AM,       5287200, LSB,      5364700,  LSB,     5405000, USB,  BW6_0, 6000,  BAND60M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 2,  ATTEN_OFF,  1,   40,  PREAMP_OFF,  5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
     { "40M",     7000000,     7300000,     7074000, DATA,     7030000, CW,       7200000,  LSB,     7200000, LSB,  BW3_2, 3200,  BAND40M,  3, AGC_SLOW,OFF,OFF,OFF,OFF,ANT2, 3,  ATTEN_OFF,  1,   20,  PREAMP_OFF,  5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
@@ -20,21 +20,21 @@ struct Band_Memory bandmem[BANDS] = {
     { "15M",    21000000,    21450000,    21074000, DATA,    21030000, CW,      21300000,  USB,    21350000, USB,  BW3_2, 3200,  BAND15M,  3, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 7,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
     { "12M",    24890000,    24990000,    24915000, USB,     24892000, CW,      24950000,  USB,    24904000, USB,  BW3_2, 3200,  BAND12M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 8,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
     { "10M",    28000000,    29600000,    28074000, DATA,    28200000, USB,     29400000,  USB,    28200000, USB,  BW4_0, 4000,  BAND10M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 9,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,  -10,  0xFFFF},
-    {  "6M",    50000000,    54000000,    50125000, USB,     50313000, DATA,    50100000,  CW,     50313000, DATA, BW3_2, 3200,  BAND6M,   1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR1,   BAND10M,  30,  -10,  0x0001},
-    { "144",   144000000,   148000000,   144200000, USB,    144200000, DATA,   144200000,  CW,    144200000, DATA, BW3_2, 3200,  BAND144,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR2,   BAND10M,  10,  -10,  0x0002},
-    { "222",   222000000,   225000000,   222100000, USB,    222100000, DATA,   222100000,  CW,    222100000, DATA, BW3_2, 3200,  BAND222,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR3,   BAND10M,  10,  -10,  0x0004},
-    { "432",   432000000,   450000000,   432100000, USB,    432100000, DATA,   432100000,  CW,    432100000, DATA, BW3_2, 3200,  BAND432,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR4,   BAND10M,  40,  -10,  0x0008},
-    { "903",   902000000,   904000000,   903100000, USB,    903100000, DATA,   903100000,  CW,    903100000, DATA, BW3_2, 3200,  BAND902,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR5,   BAND10M,  60,  -10,  0x0010},
-    {"1296",  1296000000,  1298000000,  1296100000, USB,   1296074000, DATA,  1296110000,  CW,   1296120000, USB,  BW3_2, 3200,  BAND1296, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR6,   BAND10M,  54,  -10,  0x0020},
-    {"2300",  2304000000,  2306000000,  2304100000, USB,   2304100000, DATA,  2304100000,  CW,   2304100000, DATA, BW3_2, 3200,  BAND2300, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR7,   BAND10M,  70,  -10,  0x0040},
-    {"2400",  2400000000,  2402000000,  2400100000, USB,   2400100000, DATA,  2400100000,  CW,   2400100000, DATA, BW3_2, 3200,  BAND2400, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR8,   BAND10M,  70,  -10,  0x0080},
-    {"3300",  3400000000,  3402000000,  3400100000, USB,   3400100000, DATA,  3400100000,  CW,   3400100000, DATA, BW3_2, 3200,  BAND3300, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR9,   BAND10M,  80,  -10,  0x001F},
-    {"5760",  5760000000,  5762000000,  5760100000, USB,   5760100000, DATA,  5760100000,  CW,   5760100000, DATA, BW3_2, 3200,  BAND5760, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR10,  BAND10M,  14,  -10,  0x002F},
-    { "10G", 10368000000, 10370000000, 10368100000, USB,  10368100000, DATA, 10368100000,  CW,  10368100000, DATA, BW3_2, 3200,  BAND10G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR11,  BAND10M,  24,  -10,  0x10F1},
-    { "24G", 24048000000, 24050000000, 24048200000, USB,  24192100000, DATA, 24192100000,  CW,  24192100000, DATA, BW3_2, 3200,  BAND24G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR12,  BAND10M,  45,  -10,  0x00F2},
-    {" 47G", 47000000000, 47002000000, 47000100000, USB,  47000100000, DATA, 47000100000,  CW,  47000100000, DATA, BW3_2, 3200,  BAND47G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR13,  BAND10M,  10,  -10,  0x00FF},
-    {" 76G", 76000000000, 76002000000, 76000100000, USB,  76000100000, DATA, 76000100000,  CW,  76000100000, DATA, BW3_2, 3200,  BAND76G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR14,  BAND10M,  10,  -10,  0x00FF},
-    {"122G",122000000000,122002000000,122000100000, USB, 122000100000, DATA,122000100000,  CW, 122000100000, DATA, BW3_2, 3200,  BAND122G, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   XVTR15,  BAND10M,  10,  -10,  0x00FF},
+    {  "6M",    50000000,    54000000,    50125000, USB,     50313000, DATA,    50100000,  CW,     50313000, DATA, BW3_2, 3200,  BAND6M,   1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  ON,   NONE,    NONE,     30,  -10,  0x0001},
+    { "144",   144000000,   148000000,   144200000, USB,    144200000, DATA,   144200000,  CW,    144200000, DATA, BW3_2, 3200,  BAND144,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR2,   BAND10M,  10,  -10,  0x0002},
+    { "222",   222000000,   225000000,   222100000, USB,    222100000, DATA,   222100000,  CW,    222100000, DATA, BW3_2, 3200,  BAND222,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR3,   BAND10M,  10,  -10,  0x0004},
+    { "432",   432000000,   450000000,   432100000, USB,    432100000, DATA,   432100000,  CW,    432100000, DATA, BW3_2, 3200,  BAND432,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR4,   BAND10M,  40,  -10,  0x0008},
+    { "903",   902000000,   904000000,   903100000, USB,    903100000, DATA,   903100000,  CW,    903100000, DATA, BW3_2, 3200,  BAND902,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR5,   BAND10M,  60,  -10,  0x0010},
+    {"1296",  1296000000,  1298000000,  1296100000, USB,   1296074000, DATA,  1296110000,  CW,   1296120000, USB,  BW3_2, 3200,  BAND1296, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR6,   BAND10M,  54,  -10,  0x0020},
+    {"2304",  2304000000,  2306000000,  2304100000, USB,   2304100000, DATA,  2304100000,  CW,   2304100000, DATA, BW3_2, 3200,  BAND2304, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR7,   BAND10M,  70,  -10,  0x0040},
+    {"2400",  2400000000,  2402000000,  2400100000, USB,   2400100000, DATA,  2400100000,  CW,   2400100000, DATA, BW3_2, 3200,  BAND2400, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR8,   BAND10M,  70,  -10,  0x0080},
+    {"3400",  3400000000,  3402000000,  3400100000, USB,   3400100000, DATA,  3400100000,  CW,   3400100000, DATA, BW3_2, 3200,  BAND3400, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR9,   BAND10M,  80,  -10,  0x001F},
+    {"5760",  5760000000,  5762000000,  5760100000, USB,   5760100000, DATA,  5760100000,  CW,   5760100000, DATA, BW3_2, 3200,  BAND5760, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR10,  BAND10M,  14,  -10,  0x002F},
+    { "10G", 10368000000, 10370000000, 10368100000, USB,  10368100000, DATA, 10368100000,  CW,  10368100000, DATA, BW3_2, 3200,  BAND10G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR11,  BAND10M,  24,  -10,  0x10F1},
+    { "24G", 24048000000, 24050000000, 24048200000, USB,  24192100000, DATA, 24192100000,  CW,  24192100000, DATA, BW3_2, 3200,  BAND24G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR12,  BAND10M,  45,  -10,  0x00F2},
+    {" 47G", 47000000000, 47002000000, 47000100000, USB,  47000100000, DATA, 47000100000,  CW,  47000100000, DATA, BW3_2, 3200,  BAND47G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR13,  BAND10M,  10,  -10,  0x00FF},
+    {" 76G", 76000000000, 76002000000, 76000100000, USB,  76000100000, DATA, 76000100000,  CW,  76000100000, DATA, BW3_2, 3200,  BAND76G,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR14,  BAND10M,  10,  -10,  0x00FF},
+    {"122G",122000000000,122002000000,122000100000, USB, 122000100000, DATA,122000100000,  CW, 122000100000, DATA, BW3_2, 3200,  BAND122G, 1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR15,  BAND10M,  10,  -10,  0x00FF},
     { "PAN",     8200000,     8300000,     8215000, DATA,     8215000, USB,      8215000,  USB,     8215000, LSB,  BW2_8, 2800,  PAN_ADAPT,1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 0,  ATTEN_OFF,  0,   50,  PREAMP_OFF,  5,  OFF,  NONE,    NONE,      2,  -10,  0x00FF}
 };
 
@@ -204,7 +204,7 @@ struct Band_Memory bandmem[BANDS] = {
         //{ OFF, ON, 4, 8, x_8, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK, 20, 20, "Band\0"},
         //Panel 5
         { ON, OFF, 5, 1, x_1, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 23, 20, 255,        "Enet\0"},
-        { OFF,OFF, 5,255,x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, 255,        "Xvtr\0"},  //  Xvtr deleted, replace with Filter Center Freq control
+        { OFF,OFF, 5, 2, x_2, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 30, 20, 255,        "    \0"},   //"Xvtr\0"},
         { ON, OFF, 5, 3, x_3, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, 255,        "RF:\0"},
         { OFF,OFF, 5, 4, x_4, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK, 14, 20, REFLVL_LBL, "RefLvl\0"},
         { ON, OFF, 5, 5, x_5, y_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, BLUE,  BLACK,  9, 20, 255,        "AF:\0"},
@@ -220,38 +220,55 @@ struct Band_Memory bandmem[BANDS] = {
         // For the above TouchTune hotspot box set the top and bottom some margin away from the touch labels and touch buttons
         
         // Define the Band Stack window and buttons
-        #define BS_ANCHOR_X 210
-        #define BS_ANCHOR_Y 160
+        #define BS_ANCHOR_X 46
+        #define BS_ANCHOR_Y 170
 
         // These are the Band buttons.  Use panel_num 100
         // Can use either x and y, or use the pos_num to set the displayed order as we fit buttons into the window
-        #define BSX_0 (BS_ANCHOR_X+20)
-        #define BSX_1 (BS_ANCHOR_X+20+(w_1+14))
-        #define BSX_2 ((BS_ANCHOR_X+20+(w_1+14)*2))
-        #define BSX_3 ((BS_ANCHOR_X+20+(w_1+14)*3))
-        #define BSX_4 ((BS_ANCHOR_X+20+(w_1+14)*4))
+        #define BSX_0  BS_ANCHOR_X+20
+        #define BSX_1  BS_ANCHOR_X+20+(w_1+14)
+        #define BSX_2  BS_ANCHOR_X+20+((w_1+14)*2)
+        #define BSX_3  BS_ANCHOR_X+20+((w_1+14)*3)
+        #define BSX_4  BS_ANCHOR_X+20+((w_1+14)*4)
+        #define BSX_5  BS_ANCHOR_X+20+((w_1+14)*5)
+        #define BSX_6  BS_ANCHOR_X+20+((w_1+14)*6)
+        #define BSX_7  BS_ANCHOR_X+20+((w_1+14)*7)
 
-        #define BSY_0 (BS_ANCHOR_Y+80)
-        #define BSY_1 (BS_ANCHOR_Y+80+(h_1+40))
-        #define BSY_2 (BS_ANCHOR_Y+80+(h_1+40)*2)
-        #define BSY_3 (BS_ANCHOR_Y+80+(h_1+40)*3)
+        #define BSY_0 BS_ANCHOR_Y+70
+        #define BSY_1 BS_ANCHOR_Y+70+((h_1+30))
+        #define BSY_2 BS_ANCHOR_Y+70+((h_1+30)*2)
+        #define BSY_3 BS_ANCHOR_Y+70+((h_1+30)*3)
 
         // This defines the Band Select window
-        { OFF,OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 600, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, 255, "Band Select"},   // Band Select menu Window
+        { OFF, OFF, 0, 255, BS_ANCHOR_X, BS_ANCHOR_Y, 940, 280, r_1, LIGHTGREY, LIGHTGREY, BLACK, BLACK,  9, 20, 255, "Band Select"},   // Band Select menu Window
         
         // This group is used for the Band Select Menu Window buttons.
         // 255 is disabled and will be skipped over. panelnum == 100 is the Band select Window. panelpos # is the first button to draw.
-        { OFF, OFF, 100, 255, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, 255, "160M\0"},
-        { OFF, OFF, 100,   0, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "80M\0"},   
-        { OFF, OFF, 100,   1, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "60M\0"},
-        { OFF, OFF, 100,   2, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "40M\0"},
-        { OFF, OFF, 100,   2, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "30M\0"},
-        { OFF, OFF, 100,   3, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "20M\0"},
-        { OFF, OFF, 100,   4, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20, 255, "17M\0"},
-        { OFF, OFF, 100,   5, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "15M\0"},
-        { OFF, OFF, 100,   6, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "12M\0"},
-        { OFF, OFF, 100,   7, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "10M\0"},
-        { OFF, OFF, 100, 255, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 30, 20, 255, "6M\0"}
+        { OFF, OFF, 100,   0, BSX_0, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 10, 20, 255, "160M\0"},
+        { OFF, OFF, 100,   1, BSX_1, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "80M\0"},   
+        { OFF, OFF, 100,   2, BSX_2, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "60M\0"},
+        { OFF, OFF, 100,   3, BSX_3, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "40M\0"},
+        { OFF, OFF, 100,   4, BSX_4, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "30M\0"},
+        { OFF, OFF, 100,   5, BSX_5, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "20M\0"},
+        { OFF, OFF, 100,   6, BSX_6, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20, 255, "17M\0"},
+        { OFF, OFF, 100,   7, BSX_7, BSY_0, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "15M\0"},
+        { OFF, OFF, 100,   8, BSX_0, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20, 255, "12M\0"},
+        { OFF, OFF, 100,   9, BSX_1, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 24, 20, 255, "10M\0"},
+        { OFF, OFF, 100,  10, BSX_2, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 32, 20, 255, "6M\0"},
+        { OFF, OFF, 100,  11, BSX_3, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "144\0"},  
+        { OFF, OFF, 100,  12, BSX_4, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 29, 20, 255, "222\0"},
+        { OFF, OFF, 100,  13, BSX_5, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 28, 20, 255, "432\0"},
+        { OFF, OFF, 100,  14, BSX_6, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 29, 20, 255, "903\0"},  
+        { OFF, OFF, 100,  15, BSX_7, BSY_1, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 18, 20, 255, "1296\0"},
+        { OFF, OFF, 100,  16, BSX_0, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 22, 20, 255, "2304\0"},  
+        { OFF, OFF, 100,  17, BSX_1, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 22, 20, 255, "2400\0"},
+        { OFF, OFF, 100,  18, BSX_2, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 22, 20, 255, "3400\0"},
+        { OFF, OFF, 100,  19, BSX_3, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 22, 20, 255, "5760\0"},
+        { OFF, OFF, 100,  20, BSX_4, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "10G\0"},
+        { OFF, OFF, 100,  21, BSX_5, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "24G\0"},  
+        { OFF, OFF, 100,  22, BSX_6, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "47G\0"},
+        { OFF, OFF, 100,  23, BSX_7, BSY_2, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 26, 20, 255, "76G\0"},
+        { OFF, OFF, 100,  24, BSX_0, BSY_3, w_1, h_1, r_1, LIGHTGREY, LIGHTGREY, NAVY, NAVY, 18, 20, 255, "122G\0"},
     };
 #endif  // USE_RA8875
 
@@ -284,37 +301,38 @@ struct Label labels[LABEL_NUM] = {
     {OFF,  ON, 244,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
     {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
     {OFF,  ON, 567, 110,  58, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 5, 7, "XMIT\0"},
+    {OFF,  ON, 628, 110,  58, 28, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 5, 7, "XVTR\0"}, // No label on screen for this today
     #else    
-    {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK, 4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
-    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK, 7, 7, "F:\0"},
-    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK, 7, 7, "R:\0"},
-    {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK, 5, 4, "AGC-\0"},
-    {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK, 6, 4, "ANT-\0"}, 
-    {OFF,  ON, 325, 110,  85, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK, 4, 7, "ATT:\0"},
-    {OFF,  ON,  10,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 9, 4, "PRE\0"},
+    {OFF,  ON,  10, 110,  80, 28, 3, BLACK,   myVDKORANGE,  BLACK,      myVDKORANGE,     BLACK,  4, 7, "Mode\0"}, //Set SHOW to ON if you want this label to be drawn on screen.
+    {OFF,  ON, 105, 110, 105, 28, 3, BLACK,   myDKPINK,     BLACK,      myDKPINK,        BLACK,  7, 7, "F:\0"},
+    {OFF,  ON, 225, 110,  85, 28, 3, BLACK,     BLUE,       BLACK,      myDKYELLOW,      BLACK,  7, 7, "R:\0"},
+    {OFF,  ON, 150,  35,  74, 22, 3, BLACK,     WHITE,      BLACK,      myVDARKGREY,     BLACK,  5, 4, "AGC-\0"},
+    {OFF,  ON,  10,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       WHITE,           BLACK,  6, 4, "ANT-\0"}, 
+    {OFF,  ON, 325, 110,  85, 28, 3, BLACK,   myDARKBLUE,   BLACK,      myVDARKGREY,     BLACK,  4, 7, "ATT:\0"},
+    {OFF,  ON,  10,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK,  9, 4, "PRE\0"},
     {OFF,  ON,  80,  35,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 10, 4, "ATU\0"},
-    {OFF,  ON, 425, 110,  96, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK, 4, 7, "RIT:+0000\0"},
-    {OFF,  ON, 536, 110,  96, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK, 4, 7, "XIT:-0000\0"},
-    {OFF,  ON,  10,  65,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 7, 4, "FINE\0"},
+    {OFF,  ON, 425, 110,  96, 28, 3, BLACK,   myVDARKGREEN, BLACK,      myVDARKGREY,     BLACK,  4, 7, "RIT:+0000\0"},
+    {OFF,  ON, 536, 110,  96, 28, 3, BLACK,     MAROON,     BLACK,      myVDARKGREY,     BLACK,  4, 7, "XIT:-0000\0"},
+    {OFF,  ON,  10,  65,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK,  7, 4, "FINE\0"},
     {OFF,  ON, 150,   5,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 14, 4, "NB:0\0"},
     {OFF,  ON,  80,   5,  60, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 16, 4, "NR\0"},
-    {OFF,  ON, 150,  65,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 4, 4, "NOTCH\0"},
-    {OFF,  ON, 320,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Split\0"},
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Mute\0"}, // No label on screen for this today
+    {OFF,  ON, 150,  65,  74, 22, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK,  4, 4, "NOTCH\0"},
+    {OFF,  ON, 320,  65,  84, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK,  3, 4, "Split\0"},
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK,  3, 4, "Mute\0"}, // No label on screen for this today
     {OFF,  ON, 647, 110,  70, 28, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 12, 7, "XMIT\0"},
-    #endif
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 4, 4, "Xvtr\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "RefLvl\0"}, // No label on screen for this today 
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Spot\0"},  // No label on screen for this today
-    {OFF, OFF, 583, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 2, 4, "Zoom\0"}, // No label on screen for this today
-    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK, 3, 4, "Pan\0"}, // No label on screen for this today
-    {OFF, ON,   80,  65,  60, 22, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK, 8, 4, "CLIP\0"}
+    {OFF,  ON, 732, 110,  70, 28, 3, BLACK,     WHITE,      NAVY,       myVDARKGREY,     BLACK, 12, 7, "XVTR\0"}, // No label on screen for this today
+    #endif    
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK,  3, 4, "RefLvl\0"}, // No label on screen for this today 
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK,  3, 4, "Spot\0"},  // No label on screen for this today
+    {OFF, OFF, 583, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK,  2, 4, "Zoom\0"}, // No label on screen for this today
+    {OFF, OFF, 699, 419, 100, 22, 3, BLACK,     GREEN,      BLACK,      myVDARKGREY,     BLACK,  3, 4, "Pan\0"}, // No label on screen for this today
+    {OFF, ON,   80,  65,  60, 22, 3, BLACK,     WHITE,      RED,        myVDARKGREY,     BLACK,  8, 4, "CLIP\0"}
 };
 
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
-//Profile name    sp_preset mn  sub_VFO  sv_md uc1 uc2 uc3  lastB   mute  mic_En  micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB Zoom_lvl panEn panlvl RIT_tune step size RIT_tune step size
+//Profile name    sp_preset mn   sub_VFO  sv_md uc1 uc2 uc3  lastB    mute  mic_En   micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB Zoom_lvl panEn panlvl RIT_tune step size RIT_tune step size
     {"ENET ON Config",    0, 0,   28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
-    {"User Config #2",    0, 0, 1296100000, USB, 0,  0,  0, BAND1296,  OFF, MIC_ON,  50.0,  15,   OFF,   100,   ON,   OFF, 1,    15,  18,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
+    {"User Config #2",    0, 0,    7074000, USB, 0,  0,  0, BAND40M,   OFF, MIC_ON,  50.0,   8,   OFF,   100,   ON,   OFF, 2,    15,  18,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
     {"PanAdapter Config", 0, 0,   14200000, USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT}
 };
 

@@ -2,6 +2,14 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Feb 2023
+
+    1. Switched 7" chassis from RS-HFIQ config to classic Si5351C+QSD/QSE+BPF+LNA combo fo testing.
+    2. The bandmap_en field controls if the band is disabled.  If disabled it is skipped when going up or down bands. Now it also controls if a band button is displayed in the Band Window or not.  For RS-HFIQ, or if you have no transverters, setting the bandmap_en field to NONE and that band will not exist.
+    3. Added Xvtr status label to right of XMIT label.  This performs no action, just indicates if the current band is a xvtr band or not.  If it is, then the RF input is tuned to the offset (The IF) frequency, not what the display is.
+    4. Reworked Band Window to display all enabled bands.
+    5. Reworked Band Enable config in RadioConfig.h. Now has all bands 160 to 122G.  These values will update band map table (bandmap_en) AND the related Band window button enable so there is no need to edit the SDR_Data.h bandmem table anymore.
+
 ## Jan 2023
 
     1. Added support for 6 GPIO switches. Expanded the encoder_list table to 12 entries. Table supports I2C and GPIO encoders and switches in any mix.

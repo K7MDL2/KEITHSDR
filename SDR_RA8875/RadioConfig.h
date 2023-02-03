@@ -214,7 +214,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V22_7_PCB
       //#define V21_7_PCB
-      //#define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
+      #define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
       //#define SV1AFN_BPF   // for 10-band BPF board
       #undef VFO_MULT
       #define VFO_MULT           2    // 2 for NT7V board
@@ -245,30 +245,35 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 
 // *****************************************************************************************
-//      BAND ENABLE/DISABLE
-//  Specify what bands should be skipped. Set to 255 to skip.  Value < 255 is button order (future feature)
-//  For now, only disable 160M and/or 6M or it will break things
+//      BANDMAP - sets BAND ENABLE/DISABLE
+//  Specify what bands should be skipped. Set to 0 to skip.  1 to enable
+//  For RS-HFIQ (80M-10M) users set bands 160M and everything > 10M to 0 unless you have a Xvtr active
 // *****************************************************************************************
-#ifdef USE_RS_HFIQ
- #define ENABLE_160M_BAND 255  // Do not change this, only applies to RS-HFIQ which does not support this band
-#else
- #define ENABLE_160M_BAND 0  // OK to set to 255 or any other value for non-RS-HFIQ hardware
-#endif
-#define ENABLE_80M_BAND  1  // Do not change
-#define ENABLE_60M_BAND  2  // Do not change
-#define ENABLE_40M_BAND  3  // Do not change
-#define ENABLE_30M_BAND  4  // Do not change
-#define ENABLE_20M_BAND  5  // Do not change
-#define ENABLE_17M_BAND  6  // Do not change
-#define ENABLE_15M_BAND  7  // Do not change
-#define ENABLE_12M_BAND  8  // Do not change
-#define ENABLE_10M_BAND  9  // Do not change
-#ifdef USE_RS_HFIQ
- #define ENABLE_6M_BAND 255  // Do not change this, only applies to RS-HFIQ which does not support this band
-#else
- #define ENABLE_6M_BAND 10  // OK to set to 255 or any other value for non-RS-HFIQ hardware
-#endif
-
+#define ENABLE_160M_BAND  1
+#define ENABLE_80M_BAND   1
+#define ENABLE_60M_BAND   0
+#define ENABLE_40M_BAND   1
+#define ENABLE_30M_BAND   1
+#define ENABLE_20M_BAND   1
+#define ENABLE_17M_BAND   1
+#define ENABLE_15M_BAND   1
+#define ENABLE_12M_BAND   1
+#define ENABLE_10M_BAND   1
+#define ENABLE_6M_BAND    1
+#define ENABLE_144_BAND   1
+#define ENABLE_222_BAND   0
+#define ENABLE_432_BAND   1
+#define ENABLE_902_BAND   0
+#define ENABLE_1296_BAND  1
+#define ENABLE_2304_BAND  1
+#define ENABLE_2400_BAND  1
+#define ENABLE_3400_BAND  0
+#define ENABLE_5760_BAND  0
+#define ENABLE_10G_BAND   1
+#define ENABLE_24G_BAND   0
+#define ENABLE_47G_BAND   0
+#define ENABLE_76G_BAND   0
+#define ENABLE_122G_BAND  0
 
 //--------------------------USER HARDWARE AND PREFERENCES---------------------------------------
 //

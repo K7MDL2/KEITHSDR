@@ -225,7 +225,7 @@ COLD void displayMode(void)
 {
 	uint8_t _mode;
 
-	if (popup) return;  // Do not write to the screen when a window is active
+	//if (popup) return;  // Do not write to the screen when a window is active
 
 	_mode = bandmem[curr_band].mode_A;
 
@@ -239,7 +239,7 @@ COLD void displayFilter(void)
 {
 	char str[15];
 
-	if (popup) return;  // Do not write to the screen when a window is active
+	//if (popup) return;  // Do not write to the screen when a window is active
 
 	#ifdef PANADAPTER
 		extern int16_t filterWidth;
@@ -485,7 +485,6 @@ COLD void displayXIT()
 		sprintf(string, "XIT:%+05d", xit_offset);
 		ringMeter(xit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
 	}
-
 }
 
 COLD void displayFine()
@@ -495,6 +494,21 @@ COLD void displayFine()
 	//DPRINT(F("Fine Tune is ")); DPRINTLN(user_settings[user_Profile].fine);
 	drawLabel(FINE_LBL, &user_settings[user_Profile].fine);
 	draw_2_state_Button(FINE_BTN,  &user_settings[user_Profile].fine);
+}
+
+COLD void displayXVTR()
+{
+	uint8_t xvtr = 0;
+
+	//if (popup) return;  // Do not write to the screen when a window is active
+
+	if (bandmem[curr_band].bandmap_en  && bandmem[curr_band].xvtr_num)
+		xvtr = 1;
+	else
+		xvtr = 0;
+	drawLabel(XVTR_LBL, &xvtr);
+	draw_2_state_Button(XVTR_BTN,  &xvtr);
+	DPRINTF("displayXVTR: XVTR is "); DPRINTLN(xvtr);
 }
 
 COLD void displayNB()
@@ -568,7 +582,7 @@ COLD void displayNotch()
 
 COLD void displayXMIT()
 {
-	if (popup) return;
+	//if (popup) return;
 
 	DPRINTF("displayXMIT: XMIT is "); DPRINTLN(user_settings[user_Profile].xmit);
 
@@ -666,7 +680,7 @@ void displayBand_Menu(uint8_t state)
 		tft.setFont(Arial_20);
 		tft.setTextColor(ptr->txtclr);
 		tft.setCursor(CENTER, ptr->by+30, true);
-		tft.printf("                  Band Select Menu     CPU:%dC", tempC);
+		tft.printf("                  Band Select Menu                      CPU:%dC", tempC);
 		
 		// loop through records with panelnum == 100 and panelpos !255.  
 		// In the future draw the buttons in the panelpos order, not the x,y values. For now using x,y from table.
@@ -889,7 +903,7 @@ COLD void displayRefresh(void)
 	displayVFO_AB();
 	//Panel 5 buttons
 	displayEnet();
-	//displayXVTR();  replce with FIlter Center frequency button
+	displayXVTR();  // call just to update the status label if nothing else
 	displayRFgain();
 	displayRefLevel();
 	displayAFgain();

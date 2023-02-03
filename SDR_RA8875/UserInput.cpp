@@ -867,6 +867,20 @@ void Button_Action(uint16_t button_name)
             case BS_12M:    Band(BAND12M);  break;
             case BS_10M:    Band(BAND10M);  break;
             case BS_6M:     Band(BAND6M);   break;
+            case BS_144:    Band(BAND144);  break;
+            case BS_222:    Band(BAND222);  break;
+            case BS_432:    Band(BAND432);  break;
+            case BS_902:    Band(BAND902);  break;
+            case BS_1296:   Band(BAND1296); break;
+            case BS_2304:   Band(BAND2304); break;
+            case BS_2400:   Band(BAND2400); break;
+            case BS_3400:   Band(BAND3400); break;
+            case BS_5760:   Band(BAND5760); break;
+            case BS_10G:    Band(BAND10G);  break;
+            case BS_24G:    Band(BAND24G);  break;
+            case BS_47G:    Band(BAND47G);  break;
+            case BS_76G:    Band(BAND76G);  break;
+            case BS_122G:   Band(BAND122G); break;
             default:DPRINT(F("Found a popup button with SHOW ON but has no function to call.  Index = "));
                DPRINTLN(button_name); break;
         }

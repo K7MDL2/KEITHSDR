@@ -37,12 +37,12 @@
 #endif
 
 #ifdef USE_RS_HFIQ
-// init the RS-HFIQ library
-SDR_RS_HFIQ RS_HFIQ;
+    // init the RS-HFIQ library
+    SDR_RS_HFIQ RS_HFIQ;
 #endif
 
 #ifdef USE_FFT_LO_MIXER
-#    include "hilbert251A.h" // filter coefficients
+    #include "hilbert251A.h" // filter coefficients
 #endif
 
 #ifdef SV1AFN_BPF               // This turns on support for the Bandpass Filter board and relays for LNA and Attenuation
@@ -659,7 +659,7 @@ COLD void setup()
         DPRINTLNF("Clock Update");
     #endif
 
-    // init_band_map();
+    init_band_map();
 
 #ifndef BYPASS_SPECTRUM_MODULE
     initSpectrum(user_settings[user_Profile].sp_preset); // Call before initDisplay() to put screen into Layer 1 mode before any other text is drawn!
@@ -2419,16 +2419,45 @@ void init_band_map(void)
 {
     // Initialize Band Map.  255 means band is inactive.
     // Overwrites Panel_Pos default values in std_btn table band rows.
+    (ENABLE_160M_BAND == 1)? enable_band(BS_160M, 1): enable_band(BS_160M, 0);
+    (ENABLE_80M_BAND  == 1)? enable_band(BS_80M,  1): enable_band(BS_80M,  0);
+    (ENABLE_60M_BAND  == 1)? enable_band(BS_60M,  1): enable_band(BS_60M,  0);
+    (ENABLE_40M_BAND  == 1)? enable_band(BS_40M,  1): enable_band(BS_40M,  0);
+    (ENABLE_30M_BAND  == 1)? enable_band(BS_30M,  1): enable_band(BS_30M,  0);
+    (ENABLE_20M_BAND  == 1)? enable_band(BS_20M,  1): enable_band(BS_20M,  0);
+    (ENABLE_17M_BAND  == 1)? enable_band(BS_17M,  1): enable_band(BS_17M,  0);
+    (ENABLE_15M_BAND  == 1)? enable_band(BS_15M,  1): enable_band(BS_15M,  0);
+    (ENABLE_12M_BAND  == 1)? enable_band(BS_12M,  1): enable_band(BS_12M,  0);
+    (ENABLE_10M_BAND  == 1)? enable_band(BS_10M,  1): enable_band(BS_10M,  0);
+    (ENABLE_6M_BAND   == 1)? enable_band(BS_6M,   1): enable_band(BS_6M,   0);
+    (ENABLE_144_BAND  == 1)? enable_band(BS_144,  1): enable_band(BS_144,  0);
+    (ENABLE_222_BAND  == 1)? enable_band(BS_222,  1): enable_band(BS_222,  0);
+    (ENABLE_432_BAND  == 1)? enable_band(BS_432,  1): enable_band(BS_432,  0);
+    (ENABLE_902_BAND  == 1)? enable_band(BS_902,  1): enable_band(BS_902,  0);
+    (ENABLE_1296_BAND == 1)? enable_band(BS_1296, 1): enable_band(BS_1296, 0);
+    (ENABLE_2304_BAND == 1)? enable_band(BS_2304, 1): enable_band(BS_2304, 0);
+    (ENABLE_2400_BAND == 1)? enable_band(BS_2400, 1): enable_band(BS_2400, 0);
+    (ENABLE_3400_BAND == 1)? enable_band(BS_3400, 1): enable_band(BS_3400, 0);
+    (ENABLE_5760_BAND == 1)? enable_band(BS_5760, 1): enable_band(BS_5760, 0);
+    (ENABLE_10G_BAND  == 1)? enable_band(BS_10G,  1): enable_band(BS_10G,  0);
+    (ENABLE_24G_BAND  == 1)? enable_band(BS_24G,  1): enable_band(BS_24G,  0);
+    (ENABLE_47G_BAND  == 1)? enable_band(BS_47G,  1): enable_band(BS_47G,  0);
+    (ENABLE_76G_BAND  == 1)? enable_band(BS_76G,  1): enable_band(BS_76G,  0);
+    (ENABLE_122G_BAND == 1)? enable_band(BS_122G, 1): enable_band(BS_122G, 0);
+}
+
+void enable_band(uint8_t _band, uint8_t _enable)
+{
     struct Standard_Button* ptr = std_btn;
-    (ptr + BS_160M)->Panelpos   = ENABLE_160M_BAND;
-    (ptr + BS_80M)->Panelpos    = ENABLE_80M_BAND;
-    (ptr + BS_60M)->Panelpos    = ENABLE_60M_BAND;
-    (ptr + BS_40M)->Panelpos    = ENABLE_40M_BAND;
-    (ptr + BS_30M)->Panelpos    = ENABLE_30M_BAND;
-    (ptr + BS_20M)->Panelpos    = ENABLE_20M_BAND;
-    (ptr + BS_17M)->Panelpos    = ENABLE_17M_BAND;
-    (ptr + BS_15M)->Panelpos    = ENABLE_15M_BAND;
-    (ptr + BS_12M)->Panelpos    = ENABLE_12M_BAND;
-    (ptr + BS_10M)->Panelpos    = ENABLE_10M_BAND;
-    (ptr + BS_6M)->Panelpos     = ENABLE_6M_BAND;
+
+    if (_enable) 
+    {
+        (ptr + _band)->Panelpos =  _band - BS_160M;  // set panel position to position in band window (ordered from lowest band to highest band) any that are enabled.
+        bandmem[_band - BS_160M].bandmap_en = ON; // set bandmap to enabled
+    }
+    else 
+    {
+        (ptr + _band)->Panelpos = 255;  // 255 disables showing a button
+        bandmem[_band - BS_160M].bandmap_en = OFF;   // diable the band in the band map
+    }
 }

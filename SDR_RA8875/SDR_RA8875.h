@@ -209,9 +209,9 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define BAND432      13 // 432
 #define BAND902      14 // 902
 #define BAND1296     15 // 1296
-#define BAND2300     16 // 2304
+#define BAND2304     16 // 2304
 #define BAND2400     17 // 2400
-#define BAND3300     18 // 3400
+#define BAND3400     18 // 3400
 #define BAND5760     19 // 5760M
 #define BAND10G      20 // 10.368.1G
 #define BAND24G      21 // 24.192G
@@ -321,9 +321,9 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define GPIO_SW     3
 #define NONE        0
 #ifdef USE_RA8875
-#define STD_BTN_NUM 46      // number of rows in the buttons table
+#define STD_BTN_NUM 60      // number of rows in the buttons table
 #else
-#define STD_BTN_NUM 46      // number of rows in the buttons table
+#define STD_BTN_NUM 60      // number of rows in the buttons table
 #endif
 // Alternative to #define XXX_BTN is use "const int XXX_BTN" or enum to create index names to the table.
 // enum Button_List {FN_BTN, MODE_BTN, FILTER_BTN, ATTEN_BTN, PREAMP_BTN, };
@@ -396,6 +396,21 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define BS_12M      43
 #define BS_10M      44
 #define BS_6M       45
+#define BS_144      46
+#define BS_222      47 // 222
+#define BS_432      48 // 432
+#define BS_902      49 // 902
+#define BS_1296     50 // 1296
+#define BS_2304     51 // 2304
+#define BS_2400     52 // 2400
+#define BS_3400     53 // 3400
+#define BS_5760     54 // 5760M
+#define BS_10G      55 // 10.368.1G
+#define BS_24G      56 // 24.192G
+#define BS_47G      57 // 47.1G
+#define BS_76G      58 // 76.1G
+#define BS_122G     59 // 122G
+
 
 // The #define button numbers act as the ID of possible owners of MF knob services
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
