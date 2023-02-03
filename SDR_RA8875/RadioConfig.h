@@ -251,7 +251,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 #define ENABLE_160M_BAND  1
 #define ENABLE_80M_BAND   1
-#define ENABLE_60M_BAND   0
+#define ENABLE_60M_BAND   1
 #define ENABLE_40M_BAND   1
 #define ENABLE_30M_BAND   1
 #define ENABLE_20M_BAND   1
@@ -262,14 +262,14 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 #define ENABLE_6M_BAND    1
 #define ENABLE_144_BAND   1
 #define ENABLE_222_BAND   0
-#define ENABLE_432_BAND   1
+#define ENABLE_432_BAND   0
 #define ENABLE_902_BAND   0
-#define ENABLE_1296_BAND  1
-#define ENABLE_2304_BAND  1
-#define ENABLE_2400_BAND  1
+#define ENABLE_1296_BAND  0
+#define ENABLE_2304_BAND  0
+#define ENABLE_2400_BAND  0
 #define ENABLE_3400_BAND  0
 #define ENABLE_5760_BAND  0
-#define ENABLE_10G_BAND   1
+#define ENABLE_10G_BAND   0
 #define ENABLE_24G_BAND   0
 #define ENABLE_47G_BAND   0
 #define ENABLE_76G_BAND   0
