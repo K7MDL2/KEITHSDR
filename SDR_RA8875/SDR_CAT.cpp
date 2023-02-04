@@ -8,12 +8,15 @@
 #include "RadioConfig.h"
 #include "SDR_CAT.h"
 
+//#define DBG
+
 #ifdef FT817_CAT
   FT817 ft817;  // assign our class id
 #endif
 
 #ifdef ALL_CAT
-  #define CAT_Serial Serial6
+  #define CAT_Serial SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
+  //#define CAT_Serial7  // hardware port
 #endif
 
 #ifdef PANADAPTER
@@ -61,7 +64,10 @@ int16_t filterWidth = 0;   // 4 digit fitler width.  Convert to suitable display
 #define S_BUFF 500
 byte Ser_Buff[S_BUFF];
 const char msg_type_array[8][3] = {"FA","FB","IF","BG","BW","PA","FR","FT"};
-//static char msg[S_BUFF];
+uint8_t _split;
+uint8_t _xmit;
+uint8_t _ai;
+uint8_t _mode;
 
 #ifdef FT817_CAT
 
@@ -89,8 +95,9 @@ COLD void print_CAT_status(void)
 
 
 #ifdef ALL_CAT
+static char msg[S_BUFF];
 //#include <Arduino.h>
-const char* REV = "20210215-K7MDL";
+const char* REV = "20230203-K7MDL";
 /*
 // Modified 4/2021 for SDR/Panadapter usage by K7MDL
 
@@ -544,7 +551,7 @@ void CAT_setup() {
 		//CAT_Serial.setTimeout(1);
 		
 		// use a larger RX buffer, needed to prevent buffer overwrite during startup when many messages are arriving
-		CAT_Serial.addMemoryForRead(Ser_Buff, S_BUFF);   
+		//CAT_Serial.addMemoryForRead(Ser_Buff, S_BUFF);   
 		//CAT_Serial.addMemoryForWrite(buffer, size);
 
 		CAT_Serial.flush();
@@ -688,11 +695,11 @@ void CAT_handler()
 	
 	CAT_msgs();   // This scans the message received and calls the matching function
 
-	if (meter_update.check() == 1)
-	{	
-		BarGraph_Request();		//get our bar graph update
-		CAT_msgs();   // This scans the message received and calls the matching function
-	}
+	//if (meter_update.check() == 1)
+	//{	
+		//BarGraph_Request();		//get our bar graph update
+		//CAT_msgs();   // This scans the message received and calls the matching function
+	//}
 
   //PttOff();
   #if defined(EthModule)
@@ -1618,11 +1625,11 @@ HOT void BandDecoderInput(){
 				// 36 is 1 
 				if (!(String(msg[35]).equals("1")) && String(msg[36]).equals(" "))
 				{
-						DPRINTLN(F("*** BADLY FORMATTED DATA - EXITING ***"));    // K3 Extended RSP format (K31): DATA sub-mode, if applicable:	
+						DPRINTLNF("*** BADLY FORMATTED DATA - EXITING ***");    // K3 Extended RSP format (K31): DATA sub-mode, if applicable:	
 						return;
 				}
 				
-				//DPRINTLN(F("\n*****  IF message *****"));
+				//DPRINTLNF("\n*****  IF message *****");
 					
 				// Frequency is 3-13 - done after RIT	
 				// 14-18 are blanks - skip them
@@ -2251,7 +2258,9 @@ FE|FE|0|A2|0| 0|20|30|96|12|FD 23cm
     //---------------------------------------------------------------------------------------------------------
 #endif
 
-COLD void FreqToBandRules(){
+COLD void FreqToBandRules()
+{
+return;
          if (freq >=Freq2Band[0][0] && freq <=Freq2Band[0][1] )  {BAND=1;}  // 160m
     else if (freq >=Freq2Band[1][0] && freq <=Freq2Band[1][1] )  {BAND=2;}  //  80m
     else if (freq >=Freq2Band[2][0] && freq <=Freq2Band[2][1] )  {BAND=3;}  //  40m
@@ -2432,7 +2441,7 @@ void VFOB_Decode(void)
 			rdKS = rdKS + String(msg[i]);   // append variable to string
 		}				
 		freq = rdKS.toInt();
-		FreqToBandRules();   // not using fore the panadpater but is used for othe parts of the decoder feature set if used.
+		FreqToBandRules();   // not using for the panadpater but is used for other parts of the decoder feature set if used.
 		if (freq != bandmem[curr_band].vfo_B_last)
 		{
 			//DPRINTLN(F("Update VFO B"));
@@ -2533,13 +2542,17 @@ int16_t CAT_msgs(void)
 	static int8_t i = 0;
 	int count;
 	
+	_split = bandmem[curr_band].split;
+	_xmit = user_settings[user_Profile].xmit;
+	_mode = bandmem[curr_band].mode_A;
+	
 	while ((count = CAT_Serial.available()) && ((c = CAT_Serial.read()) != 59))
 	{	
 		//DPRINT(c);
 
 		if (count > S_BUFF || c < 30)		// bail if we blow out a string, miss a terminator
 		{	// clean up for next message
-			DPRINT(F("Reached string buffer limit or invalid char - count = "));	DPRINTLN(count);
+			DPRINTF("Reached string buffer limit or invalid char - count = ");	DPRINTLN(count);
 			i = 0;
 			CAT_Serial.clear();
 			return 0;
@@ -2550,35 +2563,197 @@ int16_t CAT_msgs(void)
 		i++;
 	}
 	
-	if (c == 59)				// If terninator, stop, send string off to the right function
+	if (c == 59)				// If terminator, stop, send string off to the right function else bail
 	{
-		// clean up for next message
-		//DPRINTLN("");
-		//DPRINT("msg=");DPRINTLN(msg);
-		//DPRINT("i="); DPRINTLN(i);
-		
-		if (!strncmp(msg, "FA", 2))
-			VFOA_Decode();
-		else if (!strncmp(msg, "FB", 2))
-			VFOB_Decode();
+		DPRINTLN("");
+		DPRINT("msg=");DPRINTLN(msg);
+		DPRINT("i="); DPRINTLN(i);
+			
+		if (!strncmp(msg, "ID", 2))
+		{
+			CAT_Serial.print("ID017;");
+		}
+		else if (!strncmp(msg, "FA", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.printf("FA%011llu;", VFOA);  // Respond back for confirmation FA + 11 freq + ;
+		}
+		else if (!strncmp(msg, "FB", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.printf("FB%011llu;", VFOB);  // Respond back for confirmation FA + 11 freq + ;
+		} 
+		else if (!strncmp(msg, "FA", 2) && strlen(msg) > 2)
+		{
+		    VFOA = atoll(&msg[2]);   // Pass thru to main program to deal with and reply back to CAT program
+		}
+		else if (!strncmp(msg, "FB", 2) && strlen(msg) > 2)
+		{
+		    VFOB = atoll(&msg[2]);   // Pass thru to main program to deal with and reply back to CAT program
+		} 
+		//else if (!strncmp(msg, "FA", 2))
+		//	VFOA_Decode();
+		//else if (!strncmp(msg, "FB", 2))
+		//	VFOB_Decode();
+		else if (!strncmp(msg, "IF", 2)) // Transceiver Info
+		{
+			CAT_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", VFOA, user_settings[user_Profile].xmit, _split);
+		}
 		else if (!strncmp(msg, "BW", 2) || !strncmp(msg, "FW", 2))
 			Filter_Decode();
+		
 		else if (!strncmp(msg, "BG", 2))	
 			BarGraph_Decode();
-		else if (!strncmp(msg, "IF", 2))	
-			BandDecoderInput();
+		//else if (!strncmp(msg, "IF", 2))	
+//			BandDecoderInput();
 		else if (!strncmp(msg, "GT", 2))	
 			AGC_Decode();	
 		else if (!strncmp(msg, "AN", 2))	
 			ANT_Decode();
 		else if (!strncmp(msg, "FI", 2))	
 			IF_Center_Decode();
-    else if (!strncmp(msg, "MD", 2))	
-			RadioMode_Decode();
-		i = 0;
-		msg[0] = 0;
-		return 1;
+		else if (!strncmp(msg, "MD", 2) && strlen(msg) == 2)   // report Radio current Mode per K3 numbering
+		{
+			uint8_t _mode_ = 0;
+
+			switch (_mode)
+			{
+				case LSB:       _mode_ = 1; break;
+				case USB:       _mode_ = 2;; break;
+				case CW:        _mode_ = 3; break;
+				case FM:        _mode_ = 4; break;
+				case AM:        _mode_ = 5; break;
+				case DATA:      _mode_ = 6; break;
+				case CW_REV:    _mode_ = 7; break;
+				case DATA_REV:  _mode_ = 9; break;
+				default: break;
+			} 
+			CAT_Serial.printf("MD%d;", _mode_);
+		}
+		else if (!strncmp(msg, "MD", 2) && strlen(msg) > 2)  // map incoming mode change request from K3 values to our mode numbering and return the value
+		{
+			switch (msg[2])
+			{
+				case '1': _mode = LSB; break;
+				case '2': _mode = USB; break;
+				case '3': _mode = CW; break;
+				case '4': _mode = FM; break;
+				case '5': _mode = AM; break;
+				case '6': _mode = DATA; break;
+				case '7': _mode = CW_REV; break;
+				case '9': _mode = DATA_REV; break;
+				default: break;                    
+			} 
+		}
+		//else if (!strncmp(msg, "MD", 2))	
+		//		RadioMode_Decode();
+		else if (!strncmp(msg, "OM", 2))   // && c == 13)
+		{
+			CAT_Serial.print("OM ------------;");
+		}
+		else if (!strncmp(msg, "K2", 2) && strlen(msg) == 2)   // && c == 13)
+		{
+			CAT_Serial.print("K20;");
+		}
+		else if (!strncmp(msg, "K3", 2) && strlen(msg) == 2)   // && c == 13)
+		{
+			CAT_Serial.print("K30;");
+		}
+		else if (!strncmp(msg, "AI", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.printf("AI%1d;", _ai);  // return current AI mode
+		}
+		else if (!strncmp(msg, "AI0", 3) && strlen(msg) == 3)
+		{
+			_ai = 0;
+			//CAT_RS_Serial.print("AI0;");
+		}
+		else if (!strncmp(msg, "AI1", 3) && strlen(msg) == 3)
+		{
+			_ai = 1;
+			CAT_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", VFOA, user_settings[user_Profile].xmit, _split);
+		}
+		else if (!strncmp(msg, "AI2", 3) && strlen(msg) == 3)
+		{
+			_ai = 2;
+			//CAT_RS_Serial.print("AI2;");
+			//CAT_RS_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
+		}
+		else if (!strncmp(msg, "RVM", 3)&& strlen(msg) == 3)
+		{
+			CAT_Serial.print("RVM05.67;");
+		}
+		else if (!strncmp(msg, "RX", 2))
+		{
+			#ifdef DBG  
+			DPRINTLN(F("RS-HFIQ: RX->XMIT OFF"));
+			#endif
+			_xmit = 0;
+		}
+		else if (!strncmp(msg, "TX", 2))
+		{
+			#ifdef DBG  
+			DPRINTLN(F("RS-HFIQ: TX->XMIT ON"));
+			#endif
+			_xmit = 1;
+		}
+		else if (!strncmp(msg, "SW0", 3))
+		{
+			//if (swap_vfo_last)
+			//    swap_vfo_last = 0;
+			//else 
+			//    swap_vfo_last = 1;
+			//_swap_vfo = swap_vfo_last;
+			#ifdef DBG  
+			DPRINTF("RS-HFIQ: Swap VFOs: "); 
+			//DPRINTLN(*_swap_vfo);
+			#endif
+		} 
+		else if (!strncmp(msg, "LN", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.print("LN0;");
+		}
+		else if (!strncmp(msg, "PS", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.print("PS1;");   // radio is turned on
+		}
+		else if (!strncmp(msg, "FR", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.print("FR0;");
+		}
+		else if (!strncmp(msg, "FT", 2) && strlen(msg) == 2)
+		{
+			if (_split == 0) CAT_Serial.print("FT0;");
+			else CAT_Serial.print("FT1;");
+		}
+		else if (!strncmp(msg, "FR0", 3)  && strlen(msg) == 3) // Split OFF
+		{
+			_split = 0;
+			#ifdef DBG  
+			DPRINTLNF("RS-HFIQ: Split Mode OFF"); 
+			#endif
+		}
+		else if (!strncmp(msg, "FT1", 3)  && strlen(msg) == 3) // Split ON
+		{
+			_split = 1;
+			#ifdef DBG  
+			DPRINTLNF("RS-HFIQ: Split Mode ON VFOB=TX");
+			#endif
+		}
+		else if (!strncmp(msg, "FT0", 3)  && strlen(msg) == 3) // Split ON
+		{
+			_split = 0;
+			#ifdef DBG  
+			DPRINTLNF("RS-HFIQ: Split Mode ON VFOA=TX");
+			#endif
+		}
+		if (!strncmp(msg, "DT", 2) && strlen(msg) == 2)
+		{
+			CAT_Serial.print("DT0;");  // return 0 = DATA A mode
+		} 
+		return 0;
 	}
-	return 0;
+	// clean up for next message
+	i = 0;
+	msg[0] = 0;
+	return 1;
 }
 #endif  // ALL_CAT
