@@ -1997,8 +1997,8 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
         return; // Wrong hardware if not PE4302
     #else
 
-    const uint8_t atten_size_31 = 31;
-
+    const uint8_t atten_size_31 = 62;  // 62 steps  31dB in 0.5 dB steps
+  
     char atten_str[8]  = {'\0'};
     char atten_data[8] = {'\0'};
     uint8_t i;
@@ -2014,7 +2014,7 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
 
     //DPRINT("digital step converted = ");DPRINTLN(atten);
 
-    atten *= 2; // shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
+    //atten *= 2; // shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
 
     /* Convert to 8 bits of  0 and 1 format */
     itoa(atten, atten_str, 2);
