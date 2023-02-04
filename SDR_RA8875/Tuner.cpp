@@ -49,7 +49,7 @@ COLD void selectFrequency(int64_t newFreq)  // 0 = no change unless an offset is
 	
 	Freq += newFreq * fstep;
 
-	DPRINTF("TUNER: Initial Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
+	//DPRINTF("TUNER: Initial Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
 
     // Keep frequency within limits
   	//if (Freq >= topFreq)            
@@ -78,7 +78,7 @@ COLD void selectFrequency(int64_t newFreq)  // 0 = no change unless an offset is
 		else
 			Freq += rit_offset - xvtr_offset;  // Add in any RIT offset.  If Xvtr band then remove the LO offset 
 
-		DPRINTF("TUNER: After Xvtr Offset Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
+		//DPRINTF("TUNER: After Xvtr Offset Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
 	#endif
 
 	#ifdef PANADAPTER

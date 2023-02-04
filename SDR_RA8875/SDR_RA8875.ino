@@ -38,7 +38,11 @@
 
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
+    #include "SDR_RS_HFIQ.h"
     SDR_RS_HFIQ RS_HFIQ;
+#else
+    #include "SDR_CAT_Serial.h"
+    SDR_CAT_Serial CAT_Serial;
 #endif
 
 #ifdef USE_FFT_LO_MIXER
@@ -152,7 +156,9 @@ HOT  bool GPIO_Sw_read(bool sw_pushed, uint8_t sw_pin, uint8_t slot);
 //extern void update_icon_outline(void);
 
 #ifdef USE_RS_HFIQ
-HOT void RS_HFIQ_Service(void); // commands the RS_HFIQ over USB Host serial port
+    HOT void RS_HFIQ_Service(void); // commands the RS_HFIQ over USB Host serial port and handles CAT control
+#else    
+    HOT void CAT_Service(void); // commands from CAT Serial port
 #endif
 //
 // --------------------------------------------User Profile Selection --------------------------------------------------------
@@ -229,7 +235,7 @@ Metro touchBeep_timer      = Metro(80);     // Feedback beep for button touches
 Metro gpio_ENC2_Read_timer = Metro(700);    // time allowed to accumulate counts for slow moving detented encoders
 Metro gpio_ENC3_Read_timer = Metro(700);    // time allowed to accumulate counts for slow moving detented encoders
 Metro TX_Timeout           = Metro(180000); // 180000 is 3 minutes for RunawayTX timeout
-Metro RSHFIQ_Check         = Metro(20);     // Throttle the servicing for the RS-HFIQ
+Metro CAT_Serial_Check     = Metro(20);     // Throttle the servicing for the RS-HFIQ
 
 uint8_t enc_ppr_response = VFO_PPR; // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.
                                     // 600ppr is very fast at 1Hz steps, worse at 10Khz!
@@ -728,18 +734,17 @@ COLD void setup()
         #else
             RS_HFIQ.setup_RSHFIQ(0, VFOA - xvtr_offset); // 0 is non blocking wait, 1 is blocking wait.  Pass active VFO frequency
         #endif
+        DPRINTF("Setup: Post RS-HFIQ VFOA = "); DPRINTLN(VFOA);
     #else
+        CAT_Serial.setup_CAT_Serial();   
         delay(1000); // Give time to see the slash screen
     #endif
-
-    DPRINTF("Setup: Post RS-HFIQ VFOA = "); DPRINTLN(VFOA);
 
     #ifdef USE_RA8875
         tft.clearScreen();
     #else
         tft.clearActiveScreen();
     #endif
-
 
     #ifndef BYPASS_SPECTRUM_MODULE    
         Spectrum_Parm_Generator(0, 0, fft_bins);  // use this to generate new set of params for the current window size values. 
@@ -915,16 +920,14 @@ HOT void loop()
 
     // RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
 
-#ifdef PANADAPTER
-#    ifdef ALL_CAT
+#if defined  PANADAPTER || defined ALL_CAT
     // if (CAT_update.check() == 1) // update our meters
     //{
     //  update Panadapter CAT port data using same time
     if (!popup)
         CAT_handler();
         //}
-#    endif // ALL_CAT
-#endif     // PANADAPTER
+#endif     // PANADAPTER & ALL_CAT
 
     if (popup_timer.check() == 1 && popup) // stop spectrum updates, clear the screen and post up a keyboard or something
     {
@@ -974,10 +977,8 @@ HOT void loop()
         printCPUandMemory(millis(), 3000); // print every 3000 msec
 #endif
 
-#ifdef USE_RS_HFIQ
-    if (RSHFIQ_Check.check() == 1) // check for incomiong CAT serial commands and transfer info between hardware and program
-        RS_HFIQ_Service();
-#endif
+if (CAT_Serial_Check.check() == 1) // check for incomiong CAT serial commands and transfer info between hardware and program
+    CAT_Service();
 
 #ifdef ENET // Don't compile this code if no ethernet usage intended
 
@@ -2052,10 +2053,8 @@ COLD void resetCodec(void)
     }
 #endif
     
-#ifdef USE_RS_HFIQ //  Check the serial ports for manual inputs.
-HOT void RS_HFIQ_Service(void)
+HOT void CAT_Service(void)
 {
-    
     static uint64_t last_VFOA     = 0;
     static uint64_t last_VFOB     = 0;
     static uint8_t last_curr_band = 0;
@@ -2075,7 +2074,11 @@ HOT void RS_HFIQ_Service(void)
     last_VFOB     = VFOB;
     last_curr_band = curr_band;
     
-    uint64_t temp = RS_HFIQ.cmd_console(swap_VFO, last_VFOA, last_VFOB, last_curr_band, CAT_xmit, (bandmem[curr_band].split), (bandmem[curr_band].mode_A), clipping);
+    #ifdef USE_RS_HFIQ //  Check the serial ports for manual inputs.
+        uint64_t temp = RS_HFIQ.cmd_console(swap_VFO, last_VFOA, last_VFOB, last_curr_band, CAT_xmit, (bandmem[curr_band].split), (bandmem[curr_band].mode_A), clipping);
+    #else
+        uint64_t temp = CAT_Serial.cmd_console(swap_VFO, last_VFOA, last_VFOB, last_curr_band, CAT_xmit, (bandmem[curr_band].split), (bandmem[curr_band].mode_A), clipping);
+    #endif    
 
     // for any request it needs to be on a valid/enabled band
     temp = find_new_band(temp, last_curr_band);  // 0 if bad or Disabled band requested, Get the band index for VFOA
@@ -2085,7 +2088,7 @@ HOT void RS_HFIQ_Service(void)
         if (curr_band != last_curr_band) // last_curr_band has our new band number.  If different than change bands
         {
             //DPRINTF("CAT: Valid Band Request - New Frequency is "); DPRINTLN(temp);
-            //DPRINTF("CAT: Band Index from RSHFIQ "); DPRINTLN(last_curr_band);           
+            //DPRINTF("CAT: Band Index from CAT Port "); DPRINTLN(last_curr_band);           
             bandmem[curr_band].vfo_A_last = VFOA;  // Save last band's frequency
             curr_band = last_curr_band;  // update to new band
             VFOA = last_VFOA; // update to the possibly new VFO
@@ -2094,20 +2097,20 @@ HOT void RS_HFIQ_Service(void)
         }
         else if (last_VFOA != VFOA) // The CAT port sent new VFOA data on the same band
         {
-            //DPRINTF("CAT: VFOA from RSHFIQ "); DPRINTLN(last_VFOA);
+            //DPRINTF("CAT: VFOA from CAT Port "); DPRINTLN(last_VFOA);
             bandmem[curr_band].vfo_A_last = VFOA; // Save last band's frequency
             VFOA = last_VFOA;  // update to new VFO value
-            DPRINTF("CAT: VFOA: "); DPRINTLN(VFOA);
+            DPRINTF("CAT: VFOA from CAT Port: "); DPRINTLN(VFOA);
             selectFrequency(0);  // Update tuner to VFOA value
             displayFreq();  // Update the VF)A display        
         }
         else if (last_VFOB != VFOB)
         {      
-            DPRINTF("CAT: VFOB from RSHFIQ "); DPRINTLN(last_VFOB);
+            //DPRINTF("CAT: VFOB from CAT Port "); DPRINTLN(last_VFOB);
             VFOB = last_VFOB;
             //bandmem[curr_band].vfo_B_last = VFOB;
             user_settings[user_Profile].sub_VFO = VFOB;
-            DPRINTF("CAT: External VFOB: "); DPRINTLN(VFOB);
+            DPRINTF("CAT: VFOB from CAT Port: "); DPRINTLN(VFOB);
             displayFreq();
         }
         
@@ -2152,10 +2155,9 @@ HOT void RS_HFIQ_Service(void)
     }
     else
     {
-        ;//DPRINTF("CAT: Out of Band or Invalid Band. Request was for "); DPRINTLN(last_VFOA);
+        DPRINTF("CAT: Out of Band or Invalid Band. Request was for "); DPRINTLN(last_VFOA);
     }
 }
-#endif // USE_RS_HFIQ
 
 #if defined I2C_ENCODERS || defined MECH_ENCODERS
 void Check_Encoders(void)
