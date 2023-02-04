@@ -74,9 +74,6 @@ int16_t t1_y_e = 0;
 int16_t t2_x_e = 0;
 int16_t t2_y_e = 0;
 
-uint8_t holdtime = 0;
-uint8_t dragEvent = 0;
-
 COLD uint8_t Touched()
 {
     #ifdef USE_RA8875
@@ -115,6 +112,8 @@ COLD void Touch( void)
 {
     static uint8_t current_touches = 0;
     static uint8_t previous_touch = 0;
+    static uint8_t holdtime = 0;
+    static uint8_t dragEvent = 0;
 
 //#define DBG_GESTURE
 
@@ -189,11 +188,11 @@ COLD void Touch( void)
                 #endif
             
                 //DPRINT("Touch START time=");DPRINT(touch_evt.touch_start); 
-               DPRINT(F("\nState 2 START #="));DPRINT(i);
-               DPRINT(F(" x="));DPRINT(x);
-               DPRINT(F(" x1="));DPRINT(x1);
-               DPRINT(F("  y="));DPRINT(y);                 
-               DPRINT(F(" y1="));DPRINTLN(y1);        
+               DPRINTF("\nState 2 START #=");DPRINT(i);
+               DPRINTF(" x=");DPRINT(x);
+               DPRINTF(" x1=");DPRINT(x1);
+               DPRINTF("  y=");DPRINT(y);                 
+               DPRINTF(" y1=");DPRINTLN(y1);        
                  
             }
             #endif  //  DBG_GESTURE 
@@ -240,11 +239,11 @@ COLD void Touch( void)
                 #endif
 
                 //DPRINT("Touch START time=");DPRINT(touch_evt.touch_start); 
-               DPRINT(F("State 3 START #="));DPRINT(i);
-               DPRINT(F(" x="));DPRINT(x);
-               DPRINT(F(" x1="));DPRINT(x1);
-               DPRINT(F("  y="));DPRINT(y);                 
-               DPRINT(F(" y1="));DPRINTLN(y1);              
+               DPRINTF("State 3 START #=");DPRINT(i);
+               DPRINTF(" x=");DPRINT(x);
+               DPRINTF(" x1=");DPRINT(x1);
+               DPRINTF("  y=");DPRINT(y);                 
+               DPRINTF(" y1=");DPRINTLN(y1);              
             }
             #endif // DBG_GESTURE   
             
@@ -253,15 +252,15 @@ COLD void Touch( void)
             x = touch_evt.distance[0][0] = (touch_evt.last_coordinates[0][0] - touch_evt.start_coordinates[0][0]);            
             y = touch_evt.distance[0][1] = (touch_evt.last_coordinates[0][1] - touch_evt.start_coordinates[0][1]);
             #ifdef DBG_GESTURE 
-               DPRINT(F("Drag Event ="));DPRINT(dragEvent);
-               DPRINT(F("  Distance 1 x="));DPRINT(touch_evt.distance[0][0]); 
-               DPRINT(F(", y="));DPRINTLN(touch_evt.distance[0][1]); 
+               DPRINTF("Drag Event =");DPRINT(dragEvent);
+               DPRINTF("  Distance 1 x=");DPRINT(touch_evt.distance[0][0]); 
+               DPRINTF(", y=");DPRINTLN(touch_evt.distance[0][1]); 
             #endif
         
             if (gesture_timer.check() == 1)
             {
                 //DPRINT(F("Touch Timer expired"));
-                holdtime += 1;  // count the number of timer periods the button was presses and held for drag and press and hold feature
+                holdtime += 1;  // count the number of timer periods the button was pressed and held for drag and press and hold feature
                 //DPRINT(F("  New holdtime is "));DPRINTLN(holdtime);
             }
 
@@ -276,13 +275,13 @@ COLD void Touch( void)
                // {
                     //if ((ptr+i)->show)
                    // { 
-                        dragEvent = Gesture_Handler(previous_touch);
+                        dragEvent = Gesture_Handler(previous_touch, dragEvent, holdtime);
                         dragEvent = 1; 
                    // }
                 //}
             }
             //previous_touch = 0;// Our timer has expired
-            return;  // can calc the distance once we hav a valid event;                                           
+            return;  // can calc the distance once we have a valid event;                                           
         }
 
         // STATE 4
@@ -316,11 +315,11 @@ COLD void Touch( void)
                 #endif
                 
                 //DPRINT("Touch START time=");DPRINT(touch_evt.touch_start); 
-               DPRINT(F("State 4 START #="));DPRINT(i);
-               DPRINT(F(" x="));DPRINT(x);
-               DPRINT(F(" x1="));DPRINT(x1);
-               DPRINT(F("  y="));DPRINT(y);                 
-               DPRINT(F(" y1="));DPRINTLN(y1);                       
+               DPRINTF("State 4 START #=");DPRINT(i);
+               DPRINTF(" x=");DPRINT(x);
+               DPRINTF(" x1=");DPRINT(x1);
+               DPRINTF("  y=");DPRINT(y);                 
+               DPRINTF(" y1=");DPRINTLN(y1);                       
             }
             #endif  //  DBG_GESTURE
          
@@ -360,8 +359,8 @@ COLD void Touch( void)
             touch_evt.distance[0][0] = (touch_evt.last_coordinates[0][0] - touch_evt.start_coordinates[0][0]);
             touch_evt.distance[0][1] = (touch_evt.last_coordinates[0][1] - touch_evt.start_coordinates[0][1]);
             #ifdef DBG_GESTURE 
-               DPRINT(F("Distance 1 x="));DPRINT(touch_evt.distance[0][0]); 
-               DPRINT(F(", y="));DPRINTLN(touch_evt.distance[0][1]); 
+               DPRINTF("Distance 1 x=");DPRINT(touch_evt.distance[0][0]); 
+               DPRINTF(", y=");DPRINTLN(touch_evt.distance[0][1]); 
             #endif
 
             if (previous_touch == 1)   // A value of 2 is 2 touch points. For button & slide/drag, only 1 touch point is present
@@ -374,8 +373,8 @@ COLD void Touch( void)
                 touch_evt.distance[1][0] = (touch_evt.last_coordinates[1][0] - touch_evt.start_coordinates[1][0]);
                 touch_evt.distance[1][1] = (touch_evt.last_coordinates[1][1] - touch_evt.start_coordinates[1][1]);
                 #ifdef DBG_GESTURE                      
-                   DPRINT(F("Distance 2 x="));DPRINT(touch_evt.distance[1][0]);
-                   DPRINT(F(", y="));DPRINTLN(touch_evt.distance[1][1]);
+                   DPRINTF("Distance 2 x=");DPRINT(touch_evt.distance[1][0]);
+                   DPRINTF(", y=");DPRINTLN(touch_evt.distance[1][1]);
                 #endif
             }
 
@@ -386,7 +385,7 @@ COLD void Touch( void)
                 // if only 1 touch and X or Y distance is OK for a button call the button event handler with coordinates
                 if (previous_touch == 1 && (abs(touch_evt.distance[0][0]) < BUTTON_TOUCH && abs(touch_evt.distance[0][1]) < BUTTON_TOUCH))
                 {
-                    Button_Handler(touch_evt.start_coordinates[0][0], touch_evt.start_coordinates[0][1]);  // pass X and Y, and duration
+                    Button_Handler(touch_evt.start_coordinates[0][0], touch_evt.start_coordinates[0][1], holdtime);  // pass X and Y, and duration
                 }
                 else if (abs(touch_evt.distance[0][0]) > BUTTON_TOUCH || abs(touch_evt.distance[0][1]) > BUTTON_TOUCH*2)// Had 2 touches or 1 swipe touch - Distance was longer than a button touch so must be a swipe
                 {
@@ -401,7 +400,7 @@ COLD void Touch( void)
                         if ((ptr+i)->enabled)
                         {  
                             //DPRINTLN("Non drag type gesture allowed");
-                            Gesture_Handler(previous_touch);   // moved enough to be a gesture
+                            Gesture_Handler(previous_touch, dragEvent, holdtime);   // moved enough to be a gesture
                         }
                     }
                 }
@@ -446,9 +445,8 @@ void zero_coordinates(void)
 *   So we will track the touch point time and coordinates and figure it out on our own.
 *
 */
-COLD uint8_t Gesture_Handler(uint8_t gesture)
+COLD uint8_t Gesture_Handler(uint8_t _gesture, uint8_t _dragEvent, uint8_t _holdtime)
 {
-
     if (popup) return 0;  // Ignore gestures when a selection window is active.
 
     // Get our various coordinates
@@ -471,7 +469,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
     #endif
 
     // If a long event then must be a drag.  
-    if (gesture == 1 && dragEvent)   // must be a 1 finger drag       
+    if (_gesture == 1 && _dragEvent)   // must be a 1 finger drag       
     {    
         int x = T1_X;
         if ((T1_X > 0 && abs(T1_X) > abs(T1_Y)) || (T1_X < 0 && abs(T1_X) > abs(T1_Y))) // x is smaller so must be drag in the right direction 
@@ -515,12 +513,12 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         
         return 1;
     }
-    else if (holdtime)
+    else if (_holdtime)
     {
-        dragEvent = 0;
+        _dragEvent = 0;
         return 0;
     }
-    if (dragEvent)
+    if (_dragEvent)
         return 1;
     
     // undo the inversion for swipe
@@ -529,7 +527,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
         T1_Y *= -1;
     #endif
 
-    switch (gesture) 
+    switch (_gesture) 
     {
         ////------------------ SWIPE -------------------------------------------
         case 1:  // only 1 touch so must be a swipe or drag.  Get direction vertical or horizontal
@@ -597,8 +595,8 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             int16_t dist_start  = sqrt(pow(t2_x_s - t1_x_s, 2) + pow(t2_y_s - t1_y_s, 2));
             int16_t dist_end    = sqrt(pow(t2_x_e - t1_x_e, 2) + pow(t2_y_e - t1_y_e, 2));
             #ifdef DBG_GESTURE
-           DPRINT(F("Dist Start ="));DPRINTLN(dist_start);
-           DPRINT(F("Dist End   ="));DPRINTLN(dist_end);
+           DPRINTF("Dist Start =");DPRINTLN(dist_start);
+           DPRINTF("Dist End   =");DPRINTLN(dist_end);
             #endif
             // Calculate the distance between T1 and T2 at the end   
 #ifndef BYPASS_SPECTRUM_MODULE            
@@ -609,12 +607,12 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
 #endif                
             if (dist_end - dist_start <= 200  && abs(t1_x_s - t1_x_e) < 200  && abs(t1_y_s - t1_y_e) > 200)
             {
-               DPRINTLN(F("Volume UP"));
+               DPRINTLNF("Volume UP");
                 //codec1.volume(bandmem[0].spkr_Vol_last+0.2);  // was 2 finger swipe down
             }
             else if (dist_start - dist_end <= 200)
             {
-               DPRINTLN(F("Volume DOWN"));
+               DPRINTLNF("Volume DOWN");
                 //codec1.volume(bandmem[0].spkr_Vol_last-0.2);  // was 2 finger swipe up
             }
             break;
@@ -636,7 +634,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
             break;
         }        
         case 0: // nothing applicable, leave
-       default:DPRINTLN(F(" Gesture = 0 : Should not be here!"));
+       default:DPRINTLNF(" Gesture = 0 : Should not be here!");
                 return 0;  // leave, should not be here
     }
     return 0;
@@ -681,7 +679,7 @@ COLD uint8_t Gesture_Handler(uint8_t gesture)
 //      7.  A multi-function knob or panel switch or remote command may call a control function and no touch involved.
 //      The control and display functions must proceed.
 //  
-COLD void Button_Handler(int16_t x, uint16_t y)
+COLD void Button_Handler(int16_t x, uint16_t y, uint8_t _holdtime)
 {
     //DPRINT(F("Button:"));DPRINT(x);DPRINT(" ");DPRINTLN(y);
 
@@ -691,12 +689,12 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         //DPRINTLN((ptr+i)->label);
         if((x > (ptr+i)->bx && x < (ptr+i)->bx + (ptr+i)->bw) && ( y > (ptr+i)->by && y < (ptr+i)->by + (ptr+i)->bh))
         {
-            if ((ptr+i)->show && holdtime == 0)  // if the show property is active, call the button function to act on it.
+            if ((ptr+i)->show && _holdtime == 0)  // if the show property is active, call the button function to act on it.
             {  // TAP
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 Button_Action(i);
             } // LONG PRESS
-            else if ((ptr+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
+            else if ((ptr+i)->show && _holdtime > 0)  // if the show property is active, call the button function to act on it.
             {   // used the index to the table to match up a function to call
                 // feedback beep
                 touchBeep(true);  // a timer will shut it off.
@@ -736,7 +734,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
         //DPRINTLN((ptr+i)->label);
         if((x > (pLabel+i)->x && x < (pLabel+i)->x + (pLabel+i)->w) && ( y > (pLabel+i)->y && y < (pLabel+i)->y + (pLabel+i)->h))
         {
-            if ((pLabel+i)->show && holdtime == 0)  // if the show property is active, call the button function to act on it.
+            if ((pLabel+i)->show && _holdtime == 0)  // if the show property is active, call the button function to act on it.
             {  // TAP on a label            
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 switch (i)
@@ -760,7 +758,7 @@ COLD void Button_Handler(int16_t x, uint16_t y)
                         DPRINTLN(i); break;
                 }
             } // Process a PRESS on a label (Long push)
-            else if ((pLabel+i)->show && holdtime > 0)  // if the show property is active, call the button function to act on it.
+            else if ((pLabel+i)->show && _holdtime > 0)  // if the show property is active, call the button function to act on it.
             {   
                 touchBeep(true);  // feedback beep - a timer will shut it off.
                 // used the index to the table to match up a function to call
@@ -937,35 +935,3 @@ COLD  void setPanel()
     //DPRINT("Fn Pressed "); DPRINTLN(std_btn[FN_BTN].enabled);
     return;
 }
-
-#ifdef IGNORE_ME
-    // DISPLAY Test button (hidden area)
-    if ((x>700 && x<800)&&(y>300 && y<400))
-    {
-        // DISPLAY BUTTON  - test usage today for spectum mostly
-        //Draw a black box where the old window was
-        
-        uint8_t s = spectrum_preset;
-        tft.fillRect(Sp_Parms_Def[s].spect_x, Sp_Parms_Def[s].spect_y, Sp_Parms_Def[s].spect_width, Sp_Parms_Def[s].spect_height, RA8875_BLACK);  // x start, y start, width, height, array of colors w x h
-        spectrum_preset += 1;
-        if (spectrum_preset > PRESETS-1)
-            spectrum_preset = 0;         
-        drawSpectrumFrame(spectrum_preset);
-        spectrum_wf_style = Sp_Parms_Custom[spectrum_preset].spect_wf_style;
-        displayRefresh();   // redraw the rest of the screen and buttons
-        /*
-        Sp_Parms_Def[spectrum_preset].spect_wf_colortemp += 10;
-        if (Sp_Parms_Def[spectrum_preset].spect_wf_colortemp > 10000)
-             Sp_Parms_Def[spectrum_preset].spect_wf_colortemp = 1;              
-       DPRINT("spectrum_wf_colortemp = ");
-       DPRINTLN(Sp_Parms_Def[spectrum_preset].spect_wf_colortemp);
-        */
-        /*
-        spectrum_update_set += 1;
-        if (spectrum_update_set > 6)
-            spectrum_update_set = 0;         
-            */
-        Spectrum_Parm_Generator(spectrum_preset);  // Generate values for current display (on the fly) or filling in teh ddefauil table for Presets.  value of 0 to PRESETS.
-        return;
-    }   
-#endif
