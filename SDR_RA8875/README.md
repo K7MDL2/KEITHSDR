@@ -9,6 +9,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     3. Added Xvtr status label to right of XMIT label.  This performs no action, just indicates if the current band is a xvtr band or not.  If it is, then the RF input is tuned to the offset (The IF) frequency, not what the display is.
     4. Reworked Band Window to display all enabled bands.
     5. Reworked Band Enable config in RadioConfig.h. Now has all bands 160 to 122G.  These values will update band map table (bandmap_en) AND the related Band window button enable so there is no need to edit the SDR_Data.h bandmem table anymore.
+    6. Added 2 new files SDR_CAR_Serial.h and .cpp to add CAT conmtrol for non-RS-HFIQ hardware. This is the equivalent K3/Kenwood CAT control over USB Serial that is in the SDR_RSHFIQ files.  Eventually they could share a common core.  SDR_CAT files still exist and handles Panadapter mode provided other external changes have not broke that. This will eventually go away as I move the Panadapter specific features into the core CAT control.
+    7. Assigned the PE4302 digital step attenuator to the GPS header IO pins in RadioConfig.h.
 
 ## Jan 2023
 
