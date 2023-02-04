@@ -332,7 +332,7 @@ struct Label labels[LABEL_NUM] = {
 struct User_Settings user_settings[USER_SETTINGS_NUM] = {                      
 //Profile name    sp_preset mn   sub_VFO  sv_md uc1 uc2 uc3  lastB    mute  mic_En   micG LInLvl rfg_en rfGain SpkEn afgen afGain LoRX LoTX enet  enout  nben   nblvl  nren  spot  rbeep pitch   notch  xmit fine VFO-AB Zoom_lvl panEn panlvl RIT_tune step size RIT_tune step size
     {"ENET ON Config",    0, 0,   28000000, USB, 0,  0,  0, BAND80M,   OFF, MIC_ON,  76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,   ON,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
-    {"User Config #2",    0, 0,    7074000, USB, 0,  0,  0, BAND40M,   OFF, MIC_ON,  50.0,   8,   OFF,   100,   ON,   OFF, 2,    15,  18,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
+    {"User Config #2",    0, 0,    7074000, USB, 0,  0,  0, BAND40M,   OFF, MIC_ON,  50.0,  10,   OFF,   100,   ON,   OFF, 2,    15,  18,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT},
     {"PanAdapter Config", 0, 0,   14200000, USB, 0,  0,  0, PAN_ADAPT, OFF, MIC_OFF, 76.0,  15,   OFF,   100,   ON,   OFF, 100,  16,  16,  OFF,  OFF,  OFF,  NBOFF,  OFF,  OFF,  0.02,  600, NTCHOFF, OFF, OFF,   0,    ZOOMx1,  OFF,   50,   RIT_STEP_DEFAULT,  XIT_STEP_DEFAULT}
 };
 
