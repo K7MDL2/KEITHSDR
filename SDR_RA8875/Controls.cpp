@@ -1992,14 +1992,14 @@ void setEncoderMode(uint8_t role)
 // Can clone and modify this for other hardware, call it from teh ATTEN() function
 COLD void digital_step_attenuator_PE4302(int16_t _atten)
 {
-#ifndef PE4302
-    DPRINTLN(F("Error: PE4302 digital step attenuator not configured, exiting"));
-    return; // Wrong hardware if not PE4302
-#else
+    #ifndef PE4302
+        DPRINTLN(F("Error: PE4302 digital step attenuator not configured, exiting"));
+        return; // Wrong hardware if not PE4302
+    #else
 
     const uint8_t atten_size_31 = 31;
 
-    //char atten_str[8]  = {'\0'};
+    char atten_str[8]  = {'\0'};
     char atten_data[8] = {'\0'};
     uint8_t i;
     int16_t atten;
@@ -2012,13 +2012,18 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
     if (atten < 0)
         atten = 0;
 
-    DPRINT("digital step converted = ");
-    DPRINTLN(atten);
+    //DPRINT("digital step converted = ");DPRINTLN(atten);
 
     atten *= 2; // shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
-    /* Convert to 6 bits of  0 and 1 format */
+
+    /* Convert to 8 bits of  0 and 1 format */
+    itoa(atten, atten_str, 2);
+    //DPRINTLN(atten_str);   // should be 6 bits of binary in the range of 0 to 64
+    
+    // Convert to 6 bits of  0 and 1 format 
     // pad with leading 0s as needed.  6 bits for the PE4302 + '\0' at end for 7 bytes
-    snprintf(atten_data, 7, "%06d", atten);
+    snprintf(atten_data, 7, "%06s", atten_str);
+    //DPRINTLN(atten_data);   // should be 6 bits of binary in the range of 0 to 64
 
     //  LE = 0 to allow writing data into shift register
     digitalWrite(Atten_LE, (uint8_t)OFF);
