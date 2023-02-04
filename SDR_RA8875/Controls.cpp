@@ -280,9 +280,9 @@ COLD void changeBands(int8_t direction) // neg value is down.  Can jump multiple
     NBLevel(0); // 0 just updates things to be current value
     ATU(-1);    // -1 sets to database state. 2 is toggle state. 0 and 1 are Off and On.
 
-#ifndef BYPASS_SPECTRUM_MODULE
-    drawSpectrumFrame(user_settings[user_Profile].sp_preset);
-#endif
+    #ifndef BYPASS_SPECTRUM_MODULE
+        drawSpectrumFrame(user_settings[user_Profile].sp_preset);
+    #endif
     // Rate(0); Not needed
     // Ant() when there is hardware to setup in the future
     // ATU() when there is hardware to setup in the future
@@ -706,16 +706,20 @@ COLD void VFO_AB(void)
     DPRINTLN(VFOB);
 }
 
-// ATT
-//   toogle = -1 sets attenuator state to current database value. Used for startup or changing bands.
-//   toogle = 0 sets attenuator state off
-//   toogle = 1 sets attenuator state on
-//   toogle = 2 toggles attenuator state
+//  setAtten 
+//   -1 sets attenuator state to current database value. Used for startup or changing bands.
+//    0 sets attenuator state off
+//    1 sets attenuator state on
+//    2 toggles attenuator state
+//    3 sets meter active and allow adjustment via MF knob
 COLD void setAtten(int8_t toggle)
 {
+    if (bandmem[curr_band].attenuator_byp == 1 && toggle == 3)
+        toggle = 1;
+
     if (toggle == 2) // toggle if ordered, else just set to current state such as for startup.
     {
-        if (bandmem[curr_band].attenuator == ATTEN_ON) // toggle the attenuator tracking state
+        if (bandmem[curr_band].attenuator_byp == 1) // toggle the attenuator tracking state
             toggle = 0;
         else
             toggle = 1;
@@ -727,7 +731,6 @@ COLD void setAtten(int8_t toggle)
         bandmem[curr_band].attenuator     = ATTEN_ON; // le the attenuator tracking state to ON
         MeterInUse                        = true;
         setMeter(ATTEN_BTN);
-        Atten(0); // 0 = no change to set attenuator level to value in database for this band
     }
 
     if (toggle == 0)
@@ -743,7 +746,7 @@ COLD void setAtten(int8_t toggle)
     }
 
     // Set the attenuation level from the value in the database
-    // Atten(0);  // 0 = no change to set attenuator level to value in database for this band
+    Atten(0);  // 0 = no change to set attenuator level to value in database for this band
 
 #ifdef SV1AFN_BPF
     // if (bandmem[curr_band].attenuator == ATTEN_OFF)
@@ -756,7 +759,7 @@ COLD void setAtten(int8_t toggle)
         bpf.setAttenuator(true); // Turn attenuator relay and status icon on or off
     else
         bpf.setAttenuator(false); // Turn attenuator relay and status icon on or off
-        // RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    // RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
 #endif
 
     displayAttn();
@@ -773,10 +776,6 @@ COLD void setAtten(int8_t toggle)
  * Main function performs following functions:
  * 1: Configures the solid state attenuator by shifting 16 bits of address and
  *    atten level in LSB first.
- *
-* 
- *
-* 
  *
  * Parameters:
  *  atten = attenuation level to set in range of 0 to 100% (0 to 31 (in dB))
@@ -862,6 +861,15 @@ COLD void setRIT(int8_t toggle)
     // It never changes VFOA value to keep memory and band change complications.
     // Will be toggled between 0 and the offset value when active.
     // This eliminates the need to test for RIT at every VFOA handling point
+    if (toggle == 3 && bandmem[curr_band].RIT_en == ON) // Adjust the RIT value if active
+    {
+        toggle = 1;
+    }
+    else if (toggle == 3 && bandmem[curr_band].RIT_en == OFF) // Zero the RIT value
+    {
+        rit_offset_last = rit_offset = 0;
+        RIT(0); // update frequency offset
+    }
 
     if (toggle == 2) // toggle if ordered, else just set to current state such as for startup.
     {
@@ -891,12 +899,6 @@ COLD void setRIT(int8_t toggle)
     {
         MeterInUse = false;
         if (toggle != -1) clearMeter();
-    }
-
-    if (toggle == 3) // Zero the RIT value
-    {
-        rit_offset_last = rit_offset = 0;
-        RIT(0); // update frequency
     }
 
     // DPRINTF("setRIT: Set RIT ON/OFF to "); DPRINTLN(bandmem[curr_band].RIT_en);
@@ -943,6 +945,15 @@ COLD void setXIT(int8_t toggle)
     // It never changes VFOA value to keep memory and band change complications.
     // Will be toggled between 0 and the offset value when active.
     // This eliminates the need to test for XIT at every VFO handling point
+    if (toggle == 3 && bandmem[curr_band].XIT_en == ON) // Adjust the RIT value if active
+    {
+        toggle = 1;
+    }
+    else if (toggle == 3 && bandmem[curr_band].XIT_en == OFF) // Zero the RIT value
+    {
+        xit_offset_last = xit_offset = 0;
+        XIT(0); // update frequency offset
+    }
 
     if (toggle == 2) // toggle if ordered, else just set to current state such as for startup.
     {
@@ -1004,10 +1015,7 @@ COLD void XIT(int8_t delta)
         if (bandmem[curr_band].XIT_en == ON)
             xit_offset_last = xit_offset; // only store when XIT is active, prevent false zero for things like delayed calls from S-meter box updates
 
-        DPRINTF("XIT: Set XIT OFFSET to ");
-        DPRINT(xit_offset);
-        DPRINTF("  xit_offset_last = ");
-        DPRINTLN(xit_offset_last);
+        //DPRINTF("XIT: Set XIT OFFSET to "); DPRINT(xit_offset); DPRINTF("  xit_offset_last = "); DPRINTLN(xit_offset_last);
     }
     selectFrequency(0); // no base freq change, just correct for RIT offset
     displayFreq();
@@ -1997,7 +2005,7 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
         return; // Wrong hardware if not PE4302
     #else
 
-    const uint8_t atten_size_31 = 62;  // 62 steps  31dB in 0.5 dB steps
+    const uint8_t atten_size_31 = 62;  // 62 steps  31dB in 0.5 dB steps. Use 31 for 1dB steps
   
     char atten_str[8]  = {'\0'};
     char atten_data[8] = {'\0'};
@@ -2014,7 +2022,8 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
 
     //DPRINT("digital step converted = ");DPRINTLN(atten);
 
-    //atten *= 2; // shift the value x2 so the LSB controls the 1dB step.  We are not using the 0.5 today.
+    // comment out for 0.5dB steps
+    //atten *= 2; // shift the value x2 so the LSB controls the 1dB step.
 
     /* Convert to 8 bits of  0 and 1 format */
     itoa(atten, atten_str, 2);
@@ -2022,7 +2031,12 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
     
     // Convert to 6 bits of  0 and 1 format 
     // pad with leading 0s as needed.  6 bits for the PE4302 + '\0' at end for 7 bytes
-    snprintf(atten_data, 7, "%06s", atten_str);
+    //snprintf(atten_data, 7, "%06s", atten_str);   // works but get compiler warning for 0 and string together    
+    for (i = 0; (i < 6 - strlen(atten_str)); i++)
+    {
+        atten_data[i] = '0';
+    }
+    strncat(atten_data, atten_str, strlen(atten_str));
     //DPRINTLN(atten_data);   // should be 6 bits of binary in the range of 0 to 64
 
     //  LE = 0 to allow writing data into shift register

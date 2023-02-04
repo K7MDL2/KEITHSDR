@@ -47,7 +47,9 @@ extern int32_t 	ModeOffset;
 extern uint8_t  popup;
 extern Metro    popup_timer; // used to check for popup screen request
 extern int16_t	rit_offset;  // global rit value in Hz
+extern int16_t	rit_offset_last;  // global rit value in Hz
 extern int16_t 	xit_offset;  // global rit value in Hz
+extern int16_t	xit_offset_last;  // global rit value in Hz
 extern uint64_t xvtr_offset;  // global LO offset for transverters
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
@@ -405,8 +407,8 @@ COLD void displayAttn()
 	
 	//DPRINTF("displayAttn: Atten is "); DPRINT(bandmem[curr_band].attenuator); DPRINTF(" Level is "); DPRINTLN(bandmem[curr_band].attenuator_dB);
 	
-	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator);
-	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator);
+	drawLabel(ATTEN_LBL, &bandmem[curr_band].attenuator_byp);
+	draw_2_state_Button(ATTEN_BTN, &bandmem[curr_band].attenuator_byp);
 
 	if (MF_client == ATTEN_BTN) 
 	{ 
@@ -440,13 +442,13 @@ COLD void displayRIT()
 	char string[15];   // print format stuff
 	
 	#ifdef USE_RA8875
-		sprintf(string, "RT:%+01.02f", (float) rit_offset/1000);   // Prepare va;ue to display in S meer and in label
+		sprintf(string, "RT:%+01.02f", (float) rit_offset_last/1000);   // Prepare va;ue to display in S meer and in label
 	#else
-		sprintf(string, "RIT:%+01.02f", (float) rit_offset/1000);   // Prepare va;ue to display in S meer and in label
+		sprintf(string, "RIT:%+01.02f", (float) rit_offset_last/1000);   // Prepare va;ue to display in S meer and in label
 	#endif
 	sprintf(labels[RIT_LBL].label, "%s", string);   // update label text
 	
-	//DPRINTF("RIT is "); DPRINT(bandmem[curr_band].RIT_en); DPRINTF("  RIT Offset is "); DPRINTLN((float) rit_offset/1000);
+	//DPRINTF("RIT is "); DPRINT(bandmem[curr_band].RIT_en); DPRINTF("  RIT Offset is "); DPRINTLN((float) rit_offset_last/1000);
 	
 	drawLabel(RIT_LBL, &bandmem[curr_band].RIT_en);  // update label wiht on/off and any text changes.
 	draw_2_state_Button(RIT_BTN, &bandmem[curr_band].RIT_en);
@@ -456,7 +458,7 @@ COLD void displayRIT()
 		MeterInUse = true;
 		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out text artifacts
 		ringMeter(rit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
-		DPRINTLN(string);
+		//DPRINTLN(string);
 	}
 }
 
@@ -467,13 +469,13 @@ COLD void displayXIT()
 	char string[20];   // print format stuff
 
 	#ifdef USE_RA8875
-		sprintf(string, "XT:%+01.02f", (float) xit_offset/1000);   // Prepare va;ue to display in S meer and in label
+		sprintf(string, "XT:%+01.02f", (float) xit_offset_last/1000);   // Prepare va;ue to display in S meer and in label
 	#else
-		sprintf(string, "XIT:%+01.02f", (float) xit_offset/1000);   // Prepare va;ue to display in S meer and in label
+		sprintf(string, "XIT:%+01.02f", (float) xit_offset_last/1000);   // Prepare va;ue to display in S meer and in label
 	#endif
 	sprintf(labels[XIT_LBL].label, "%s", string);   // update label text
 	
-	//DPRINTF("XIT is "); DPRINT(bandmem[curr_band].XIT_en); DPRINTF("  XIT Offset is "); DPRINTLN(bandmem[curr_band].xit_offset/1000);
+	//DPRINTF("XIT is "); DPRINT(bandmem[curr_band].XIT_en); DPRINTF("  XIT Offset is "); DPRINTLN(bandmem[curr_band].xit_offset_last/1000);
 
 	drawLabel(XIT_LBL, &bandmem[curr_band].XIT_en);
 	draw_2_state_Button(XIT_BTN, &bandmem[curr_band].XIT_en);
@@ -482,7 +484,6 @@ COLD void displayXIT()
 	{ 
         MeterInUse = true;
 		draw_2_state_Button(SMETER_BTN, &std_btn[SMETER_BTN].show); // clear out texst artifacts
-		sprintf(string, "XIT:%+05d", xit_offset);
 		ringMeter(xit_offset, -9999, 9999, std_btn[SMETER_BTN].bx+20, std_btn[SMETER_BTN].by+10, std_btn[SMETER_BTN].bh-50, string, 5, 1, 90, 8);
 	}
 }
