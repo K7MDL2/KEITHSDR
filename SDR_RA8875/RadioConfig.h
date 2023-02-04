@@ -208,19 +208,19 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
     #else // My RA8876 7" specific build items
-      #undef SCREEN_ROTATION
+      #undef  SCREEN_ROTATION
       #define SCREEN_ROTATION     2
       //#define GPIO_ENCODERS           // Requires I2C_Encoders library
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V22_7_PCB
       //#define V21_7_PCB
       #define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
-      //#define SV1AFN_BPF   // for 10-band BPF board
-      #undef VFO_MULT
+      #define SV1AFN_BPF   // for 10-band BPF board
+      #undef  VFO_MULT
       #define VFO_MULT           2    // 2 for NT7V board
       #define OCXO_10MHZ   // for Si5351C PLL board
       #define K7MDL_OCXO
-      #ifdef USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+      #ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
         #define RSHFIQ_CAL_OFFSET (-7500)  // Fixed offset (0.01Hz steps) applied each RS-HFIQ startup to calibrate frequency. Multiply offset error Hz by 100.  
           // Example: WWV tunes in high at 10000130Hz.  Subtract (130*100) or -13000.   75Hz high is -7500.
       #endif
@@ -229,7 +229,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     // Config items common or NA to both builds        
     #define USE_DHCP                  // UNCOMMENT this for static IP  
     //#define USE_ENET_PROFILE          // UNCOMMENT to use ENET --AND-- the enet profile
-    #ifdef USE_ENET_PROFILE
+    #ifdef  USE_ENET_PROFILE
       #define ENET
     #endif
 
@@ -517,9 +517,9 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //      For now using Teensy 4.1 pins 30-32.
 //      
 #ifdef PE4302   // for V2.2 board I am not using an encoder on ENC3 so using the ENC3 pins for the Step Attenuator
-  #define Atten_CLK       33
-  #define Atten_DATA      34
-  #define Atten_LE        35
+  #define Atten_CLK       GPIO_GPS_RX_PIN
+  #define Atten_DATA      GPIO_GPS_TX_PIN
+  #define Atten_LE        GPIO_GSP_GPIO_PIN
 #endif  // DIG_STEP_ATT
 //
 //
