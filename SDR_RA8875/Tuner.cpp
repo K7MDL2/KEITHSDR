@@ -79,7 +79,9 @@ COLD void selectFrequency(int64_t newFreq)  // 0 = no change unless an offset is
 		else
 			Freq += rit_offset - xvtr_offset;  // Add in any RIT offset.  If Xvtr band then remove the LO offset 
 
-		DPRINTF("TUNER: Freq = "); DPRINT(Freq); DPRINTF("  Fc = "); DPRINT((int32_t) Fc); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
+		Freq += Fc;
+		
+		DPRINTF("TUNER: VFOA = "); DPRINT(VFOA); DPRINTF("  PLL = "); DPRINT(Freq); DPRINTF("  Fc = "); DPRINT((int32_t) Fc); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
 	#endif
 
 	#ifdef PANADAPTER
