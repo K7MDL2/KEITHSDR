@@ -754,12 +754,19 @@ COLD void setAtten(int8_t toggle)
     // else
     // Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
 
-    // RampVolume(0.0, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    codec1.muteHeadphone();
+    //codec1.lineInLevel(0); // Audio out to Line-Out and TX board
+    delay(50);
+    //RampVolume(0.0, 1); //  0 = loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     if (bandmem[curr_band].attenuator_byp)
         bpf.setAttenuator(true); // Turn attenuator relay and status icon on or off
     else
         bpf.setAttenuator(false); // Turn attenuator relay and status icon on or off
-    // RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    //RampVolume(user_settings[user_Profile].afGain, 1); //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    //RampVolume(0.01f, 0);   // Instant off.  0 to 1.0f for full scale.
+    delay(50);
+    codec1.unmuteHeadphone(); // Audio out to Line-Out and TX board
+    AFgain(0); //   Reset afGain to last used to bypass thumps
 #endif
 
     displayAttn();
@@ -832,16 +839,17 @@ COLD void Preamp(int8_t toggle)
     // else
     //   Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += 30;  // lower floor due to increased signal levels coming in
 
-    // RampVolume(0.0, 1);   //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
+    //RampVolume(0.0f, 0);   //     0 ="No Ramp (instant)"  // loud pop due to instant change || 1="Normal Ramp" // graceful transition between volume levels || 2= "Linear Ramp"
     codec1.muteHeadphone();
-    delay(5);
+    delay(50);
     uint8_t rfg_temp = user_settings[user_Profile].rfGain;
     RFgain(-1);
     bpf.setPreamp((bool)bandmem[curr_band].preamp);
-    delay(5);
+    delay(50);
     RFgain(rfg_temp);
+    //RampVolume(0.01f, 0);   // Instant off.  0 to 1.0f for full scale.
+    codec1.unmuteHeadphone(); // Audio out to Line-Out and TX board
     AFgain(0); //   Reset afGain to last used to bypass thumps
-    codec1.unmuteHeadphone();
 #endif
 
     displayPreamp();
@@ -1229,7 +1237,7 @@ COLD void setAFgain(int8_t toggle)
         else
         {
             user_settings[user_Profile].afGain_en = ON; // set the af tracking state to ON
-            MeterInUse                            = true;
+            MeterInUse = true;
             setMeter(AFGAIN_BTN);
         }
     }
@@ -1237,7 +1245,7 @@ COLD void setAFgain(int8_t toggle)
     if (toggle == 0 || toggle == -1)
     {
         user_settings[user_Profile].afGain_en = OFF;
-        MeterInUse                            = false;
+        MeterInUse = false;
         if (toggle != -1)
             clearMeter();
     }
@@ -1360,7 +1368,7 @@ COLD void RFgain(int8_t delta)
 {
     float _rfLevel;
 
-    _rfLevel = user_settings[user_Profile].rfGain; // Get last absolute  setting as a value 0-100
+    _rfLevel = user_settings[user_Profile].rfGain; // Get last absolute setting as a value 0-100
 
     _rfLevel += delta * 4; // convert percentage request to a single digit float
 
