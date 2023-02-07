@@ -3,9 +3,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project.
 
 The project has a forum and more wiki pages and info at https://groups.io/g/keithsdr
 
-This is a GitHub Repository for Group Member builds and variations of hardware and feature experiments
+This is a GitHub Repository for Group Member builds and variations of hardware and feature experiments.  There is a simpler version maintained by Keith, and this is my derivative, maintained by me, Mike.
 
-The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 with Audio Card and RA8875 based capacitive touchscreen at 800x480 or a RA8876 capacitive touchscreen at 1024x600.  
+The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 with Audio Card and RA8875 based capacitive touchscreen at 800x480, or a RA8876 capacitive touchscreen at 1024x600. The UI elements use table driven data so they are resizeable/relocatable. The size screen is less important than the controller used. I am leveraging the BTE (Bit Transfer Engine) feature of these controllers to offload the CPU enabling high resolution spectrum and waterfall graphics with minimal CPU overhead.
   
   ![K7MDL Front Panel RA8875 Compact Teensy SDR](https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/TeensySDR%20in%20Hammond%201455N1601-Front-1.jpg)
    More pics at https://github.com/K7MDL2/KEITHSDR/tree/main/SDR_RA8875/Pictures
@@ -21,6 +21,8 @@ The folder SDR_RA8875 is one such SDR project folder and is built on Teensy 4.1 
   5. Table driven UI configuration, per-band settings, and User Profile settings with centralized control functions.
   6. Supports both RA8875 and RA8876 based displays with capacitive touch controllers
   7. Supports USB Host connection to a RS-HFIQ 5W SDR transceiver.  Can use many other hardware choices and build your own RF sections.
+  8. Deafult sample rate used is 48KHz.
+  9. Supports USB Audio connection ((both in ane Out) at 48KHz to a PC for external digital mode programs along with CAT control port using the Kenwood/Elecraft K3 command set.  Works great with WSJT-X.  Instructions provided in the Wiki on how to set up a custom Dual Serial+Audio USB 48Khz configuration.
 
 See the README file in each project for specifics about that build.
 
