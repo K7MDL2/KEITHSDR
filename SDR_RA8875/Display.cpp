@@ -51,6 +51,7 @@ extern int16_t	rit_offset_last;  // global rit value in Hz
 extern int16_t 	xit_offset;  // global rit value in Hz
 extern int16_t	xit_offset_last;  // global rit value in Hz
 extern uint64_t xvtr_offset;  // global LO offset for transverters
+extern int64_t  Fc;
 
 void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme,uint16_t backSegColor,int16_t angle,uint8_t inc);
 void drawAlert(int x, int y , int side, boolean draw);
@@ -167,14 +168,14 @@ COLD void displayFreq(void)
 	{
 		if (user_settings[user_Profile].xmit) 
 			//vfo = VFOA+xit_offset;
-			strcpy(vfo_str, formatVFO(VFOA+xit_offset));
+			strcpy(vfo_str, formatVFO(vfo+xit_offset));
 		else
 			//vfo = VFOA+rit_offset;
-			strcpy(vfo_str, formatVFO(VFOA+rit_offset));
+			strcpy(vfo_str, formatVFO(vfo+rit_offset));
 	}
 	else 
 		//vfo = VFOA+rit_offset;
-		strcpy(vfo_str, formatVFO(VFOA+rit_offset));
+		strcpy(vfo_str, formatVFO(vfo+rit_offset));
 
 	//uint32_t MHz = (vfo/1000000 % 1000000);
 	//uint16_t Hz  = (vfo % 1000);
