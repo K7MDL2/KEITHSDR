@@ -25,6 +25,7 @@ extern void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
 extern int16_t rit_offset;  // global rit value in Hz
 extern int16_t xit_offset;  // global xit value in Hz
 extern uint64_t xvtr_offset;  // Adds 'LO" to displayed frequency for transverters.
+extern int64_t Fc;
 
 #ifdef SV1AFN_BPF
   #include <SVN1AFN_BandpassFilters.h>
@@ -78,7 +79,7 @@ COLD void selectFrequency(int64_t newFreq)  // 0 = no change unless an offset is
 		else
 			Freq += rit_offset - xvtr_offset;  // Add in any RIT offset.  If Xvtr band then remove the LO offset 
 
-		//DPRINTF("TUNER: After Xvtr Offset Freq = "); DPRINT(Freq); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
+		DPRINTF("TUNER: Freq = "); DPRINT(Freq); DPRINTF("  Fc = "); DPRINT((int32_t) Fc); DPRINTF("  rit = "); DPRINT(rit_offset); DPRINTF("  xit = "); DPRINT(xit_offset); DPRINTF("  xvtr_offset = "); DPRINTLN(xvtr_offset);
 	#endif
 
 	#ifdef PANADAPTER
