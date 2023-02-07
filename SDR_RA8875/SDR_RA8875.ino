@@ -253,12 +253,12 @@ bool MF_default_is_active = true;
 // float sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 // float sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
 // float sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-float sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
+float32_t sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
 // float sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float sample_rate_Hz = 192000.0f; // 190Hz/bin - does
 
-float zoom_in_sample_rate_Hz = sample_rate_Hz; // used in combo with new fft size for zoom level
+float32_t zoom_in_sample_rate_Hz = sample_rate_Hz; // used in combo with new fft size for zoom level
 //
 // ---------------------------- Set some FFT related parameters ------------------------------------
 
@@ -268,14 +268,14 @@ float zoom_in_sample_rate_Hz = sample_rate_Hz; // used in combo with new fft siz
 uint16_t    fft_size            = FFT_SIZE;       // This value will be passed to the init function.
                                                   // Ensure the matching FFT resources are enabled in the lib .h file!                            
 int16_t     fft_bins            = (int16_t) fft_size;       // Number of FFT bins which is FFT_SIZE/2 for real version or FFT_SIZE for iq version
-float       fft_bin_size        = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
+float32_t   fft_bin_size        = sample_rate_Hz/(fft_size*2);   // Size of FFT bin in HZ.  From sample_rate_Hz/FFT_SIZE for iq
 const int   audio_block_samples = 128;          // do not change this!
 const int   RxAudioIn = AUDIO_INPUT_LINEIN;
 const int   MicAudioIn = AUDIO_INPUT_MIC;
 uint16_t    filterCenter;
 uint16_t    filterBandwidth;
-float       TX_filterCenter     = 1500;
-float       TX_filterBandwidth  = 2800;
+float32_t   TX_filterCenter     = 1500;
+float32_t   TX_filterBandwidth  = 2800;
 #ifndef BYPASS_SPECTRUM_MODULE
   extern Metro    spectrum_waterfall_update;          // Timer used for controlling the Spectrum module update rate.
   extern struct   Spectrum_Parms Sp_Parms_Def[];
@@ -289,6 +289,29 @@ float       TX_filterBandwidth  = 2800;
 #endif
 
 AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);    
+
+#ifdef CESSB
+    struct levels* pLevelData;
+    uint32_t writeOne = 0;
+    uint32_t cntFFT = 0;
+    radioCESSBtransmit_F32      cessb1(audio_settings);
+    #ifdef CESSB_IQMIXER
+	    RadioIQMixer_F32            iqMixer1(audio_settings);
+    #endif
+    #ifdef CESSB_2xIQMIXER
+        RadioIQMixer_F32            iqMixer2(audio_settings);
+        RadioIQMixer_F32            iqMixer3(audio_settings);
+    #endif
+    #ifdef CESSB_MULTIPLY
+        AudioMultiply_F32           Multiply1(audio_settings);
+        AudioMultiply_F32           Multiply2(audio_settings);  
+        AudioSynthWaveformSine_F32  sine1(audio_settings);
+    #endif
+#else
+    AudioFilterConvolution_F32  TX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
+    DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
+    DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
+#endif
 
 #ifdef FFT_4096
   #ifndef BETATEST
@@ -332,10 +355,7 @@ AudioMixer4_F32             OutputSwitch_I(audio_settings); // Processed audio f
 AudioMixer4_F32             OutputSwitch_Q(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Plus_45(audio_settings);
 DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
-//DMAMEM AudioFilterFIR_F32   TX_Hilbert_Plus_45(audio_settings);
-//DMAMEM AudioFilterFIR_F32   TX_Hilbert_Minus_45(audio_settings);
 AudioFilterConvolution_F32  RX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
-AudioFilterConvolution_F32  TX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
 AudioOutputI2S_F32          Output(audio_settings);
@@ -350,7 +370,7 @@ AudioEffectGain_F32         Amp1_R(audio_settings);         // Some well placed 
 AudioMixer4_F32             FFT_Atten_I(audio_settings);
 AudioMixer4_F32             FFT_Atten_Q(audio_settings);         // Some well placed gain stages
 RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
-DMAMEM AudioFilter90Deg_F32 TX_FFT_90deg_Hilbert(audio_settings);
+//DMAMEM AudioFilter90Deg_F32 TX_FFT_90deg_Hilbert(audio_settings);
 //DMAMEM AudioFilter90Deg_F32 RX_FFT_90deg_Hilbert(audio_settings);
 
 #ifdef USE_FFT_LO_MIXER
@@ -381,36 +401,72 @@ DMAMEM AudioFilter90Deg_F32 TX_FFT_90deg_Hilbert(audio_settings);
 // switch to select inputs.  In DATA mode USB in should be default, mic in voice modes
 
 // Analog mic input
-AudioConnection_F32     patchCord_Mic_In(Input,0,                               TX_Source,0);   // Mic source
+AudioConnection_F32     patchCord_Mic_In(Input,0,                       TX_Source,0);   // Mic source
 
 #ifdef USB32
-  AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                            TX_Source,1);
+  	AudioConnection_F32     patchcord_Mic_InUL(USB_In,0,                TX_Source,1);
 #else
-  AudioConnection         patchcord_USB_InU(USB_In,0,                             convertL_In,0); 
-  AudioConnection_F32     patchCord_USB_In(convertL_In,0,                         TX_Source,1);
+  	AudioConnection         patchcord_USB_InU(USB_In,0,                 convertL_In,0); 
+  	AudioConnection_F32     patchCord_USB_In(convertL_In,0,             TX_Source,1);
 #endif
 
-AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,                     TX_Source,2);   // Combine mic, tone B and B into L channel
-AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,                     TX_Source,3);
+AudioConnection_F32     patchCord_Tx_Tone_A(TxTestTone_A,0,             TX_Source,2);   // Combine mic, tone B and B into L channel
+AudioConnection_F32     patchCord_Tx_Tone_B(TxTestTone_B,0,             TX_Source,3);
 
-AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,                     TX_FilterConv,0);  // variable filter for TX    
-AudioConnection_F32     patchCord_Audio_Filter_L(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,0);  // variable filter for TX    
-AudioConnection_F32     patchCord_Audio_Filter_R(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,1);  // variable filter for TX
-AudioConnection_F32     patchCord_Feed_L(TX_FFT_90deg_Hilbert,0,                I_Switch,1); // Feed into normal chain 
-AudioConnection_F32     patchCord_Feed_R(TX_FFT_90deg_Hilbert,1,                Q_Switch,1); 
+#ifdef CESSB
+    #ifdef CESSB_IQMIXER
+        // First attempt at 0 IF CESSB solution.  Worked until it didn't
+        AudioConnection_F32     patchCord_Audio_Source(TX_Source,0,         cessb1,0);    // CE SSB compression
+        AudioConnection_F32     patchCord_Audio_Filter_I(cessb1,0,          iqMixer1,0);  // Bump up by 1350Hz
+        AudioConnection_F32     patchCord_Audio_Filter_Q(cessb1,1,          iqMixer1,1); 
+        AudioConnection_F32     patchCord_Feed_I(iqMixer1,0,                I_Switch,1);  // Feed into normal chain 
+        AudioConnection_F32     patchCord_Feed_Q(iqMixer1,1,                Q_Switch,1);
+    #elif defined CESSB_2xIQMIXER
+        // 2x RadioIQ mixer approach without pshase shifting
+        // right freq in right sideband but image 2700Hz away in opposite sideband.
+        // sideband selection is as normal in tehlast mixer with +1.0 and -1.0
+        AudioConnection_F32     patchCord_Audio_Source(TX_Source,0,         cessb1,0);    // CE SSB compression
+        AudioConnection_F32     patchCord_Audio_Filter_I(cessb1,0,          iqMixer2,0);  // Bump up by 1350Hz
+        AudioConnection_F32     patchCord_Audio_Filter_Q(cessb1,1,          iqMixer3,0); 
+        AudioConnection_F32     patchCord_Feed_I(iqMixer2,0,                I_Switch,1);  // Feed into normal chain 
+        AudioConnection_F32     patchCord_Feed_Q(iqMixer3,0,                Q_Switch,1);
+    #elif defined CESSB_MULTIPLY
+        // Sine gen at 1350 with multiple mnethod.  This does the exact same thing as above.
+        AudioConnection_F32     patchCord_Audio_T(TX_Source,0,              cessb1,0);    // CE SSB compression
+        AudioConnection_F32     patchCord_Audio_Filter_L(cessb1,0,          Multiply1,1); // fixed 2800Hz TX filter 
+        AudioConnection_F32     patchCord_Audio_Filter_R(cessb1,1,          Multiply2,1); // output is at -1350 from source so have to shift it up.
+        AudioConnection_F32     patchCord_Audio_Filter_S1(sine1,0,          Multiply1,0); // correct for hardare shift 
+        AudioConnection_F32     patchCord_Audio_Filter_S2(sine1,0,          Multiply2,0);
+        AudioConnection_F32     patchCord_Audio_Filter_S3(Multiply1,0,      I_Switch,1); 
+        AudioConnection_F32     patchCord_Audio_Filter_S4(Multiply2,0,      Q_Switch,1); 
+    #else  //Direct to harwdre with Fc
+        #define CESSB_DIRECT
+        // Alternate approach is to send the CESSB weaver SSB direct to the QSE and shift VFO by 1350Hz
+        AudioConnection_F32     patchCord_Audio_T(TX_Source,0,              cessb1,0);    // CE SSB compression
+        AudioConnection_F32     patchCord_Audio_Filter_L(cessb1,0,          I_Switch,1); // fixed 2800Hz TX filter 
+        AudioConnection_F32     patchCord_Audio_Filter_R(cessb1,1,          Q_Switch,1); // output is at -1350 from source so have to shift it up.
+    #endif
+#else
+    // Standard appraoch with 90 Hillbert filters after pre filtering at 2800Hz.
+	AudioConnection_F32     patchCord_Audio_Filter(TX_Source,0,         TX_FilterConv,0);  // variable filter for TX    
+	AudioConnection_F32     patchCord_Audio_Filter_L(TX_FilterConv,0,   TX_Hilbert_Plus_45,0);  // variable filter for TX    
+	AudioConnection_F32     patchCord_Audio_Filter_R(TX_FilterConv,0,   TX_Hilbert_Minus_45,0);  // variable filter for TX
+	AudioConnection_F32     patchCord_Feed_L(TX_Hilbert_Minus_45,0,     I_Switch,1); // Feed into normal chain 
+	AudioConnection_F32     patchCord_Feed_R(TX_Hilbert_Plus_45,0,      Q_Switch,1); 
+#endif
 
 // I_Switch has our selected audio source(s), share with the FFT distribution switch FFT_OutSwitch.  
 #if defined (USE_FFT_LO_MIXER)
     //AudioConnection_F32     patchCord_FFT_OUT_L(I_Switch,0,                     FFT_LO_Mixer_I,0);     // Attenuate signals to FFT while in TX mode
     //AudioConnection_F32     patchCord_FFT_OUT_R(Q_Switch,0,                     FFT_LO_Mixer_I,1);
-    //AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,              FFT_90deg_Hilbert,0); // Filter I and Q
-    //AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_I,1,              FFT_90deg_Hilbert,1); 
-    //AudioConnection_F32     patchCord_LO_Fil_L(FFT_90deg_Hilbert,0,           FFT_Atten_I,0); // Filter I and Q
-    //AudioConnection_F32     patchCord_LO_Fil_R(FFT_90deg_Hilbert,1,           FFT_Atten_Q,0);
+    //AudioConnection_F32     patchCord_LO_Mix_L(FFT_LO_Mixer_I,0,                FFT_90deg_Hilbert,0); // Filter I and Q
+    //AudioConnection_F32     patchCord_LO_Mix_R(FFT_LO_Mixer_I,1,                FFT_90deg_Hilbert,1); 
+    //AudioConnection_F32     patchCord_LO_Fil_L(FFT_90deg_Hilbert,0,             FFT_Atten_I,0); // Filter I and Q
+    //AudioConnection_F32     patchCord_LO_Fil_R(FFT_90deg_Hilbert,1,             FFT_Atten_Q,0);
     AudioConnection_F32     patchCord_LO_90Fil_L(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,0); // Filter I and Q
     AudioConnection_F32     patchCord_LO_90Fil_R(TX_FilterConv,0,               TX_FFT_90deg_Hilbert,1); 
-    AudioConnection_F32     patchCord_FFT_OUT_L(TX_FFT_90deg_Hilbert,1,            I_Switch,1);     // Attenuate signals to FFT while in TX mode
-    AudioConnection_F32     patchCord_FFT_OUT_R(TX_FFT_90deg_Hilbert,0,            Q_Switch,1);     // Swap I and Q for correct FFT  
+    AudioConnection_F32     patchCord_FFT_OUT_L(TX_FFT_90deg_Hilbert,1,         I_Switch,1);     // Attenuate signals to FFT while in TX mode
+    AudioConnection_F32     patchCord_FFT_OUT_R(TX_FFT_90deg_Hilbert,0,         Q_Switch,1);     // Swap I and Q for correct FFT  
     //AudioConnection_F32     patchCord_LO_Fil_L(FFT_LO_Mixer_I,0,                FFT_Atten_I,0); // Filter I and Q
     //AudioConnection_F32     patchCord_LO_Fil_R(FFT_LO_Mixer_I,1,                FFT_Atten_Q,0);
 #elif defined(USE_FREQ_SHIFTER)
@@ -468,9 +524,9 @@ AudioConnection_F32     patchCord_Notch(LMS_Notch,0,                        RX_F
 AudioConnection_F32     patchCord_RxOut_L(RX_FilterConv,0,                  OutputSwitch_I,0);  // demod and filtering complete
 AudioConnection_F32     patchCord_RxOut_R(RX_FilterConv,0,                  OutputSwitch_Q,0);  
 
-// In TX the mic source is selected in FFT_Mixer and was phase shifted so just passed
-AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_R,1,         OutputSwitch_I,1);  // phase shift mono source 90 degrees
-AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_L,1,         OutputSwitch_Q,1);  // Using L source twice since mic source is mono
+// In TX the mic source is selected in FFT_Mixer and was phase shifted so just pass thru
+AudioConnection_F32     patchCord_Mic_Input_L(RxTx_InputSwitch_L,1,         OutputSwitch_I,1);  // phase shifted mono source 90 degrees
+AudioConnection_F32     patchCord_Mic_Input_R(RxTx_InputSwitch_R,1,         OutputSwitch_Q,1); 
 
 // Selected source goes to output (selected as headphone or lineout in the code) and boosted if needed
 AudioConnection_F32     patchCord_Output_L(OutputSwitch_I,0,                Output,0);  // output to headphone jack/Line out Left
@@ -479,17 +535,17 @@ AudioConnection_F32     patchCord_Amp1_L(OutputSwitch_I,0,                  Amp1
 AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1_R,0);  // output audio to USB, line out
 
 #ifdef USB32
-    AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                       USB_Out,0);  // output to USB Audio Out L
-    AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                       USB_Out,1);  // output to USB Audio Out R
-    //AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
-    //AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
+    AudioConnection_F32     patchcord_Out_USB_L(Amp1_L,0,                   USB_Out,0);  // output to USB Audio Out L
+    AudioConnection_F32     patchcord_Out_USB_R(Amp1_R,0,                   USB_Out,1);  // output to USB Audio Out R
+    //AudioConnection_F32     patchcord_Out_USB_L(USB_In,0,                   USB_Out,0);  // output to USB Audio Out L
+    //AudioConnection_F32     patchcord_Out_USB_R(USB_In,1,                   USB_Out,1);  // output to USB Audio Out R
 #else
-    AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                         convertL_Out,0);  // output to headphone jack Right
-    AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                         convertR_Out,0);  // output to headphone jack Right
-    AudioConnection         patchcord_Out_L16U(convertL_Out,0,                  USB_Out,0);  // output to headphone jack Right
-    AudioConnection         patchcord_Out_R16U(convertR_Out,0,                  USB_Out,1);  // output to headphone jack Right
-    //AudioConnection         patchcord_Out_USB_L16U(USB_In,0,                       USB_Out,0);  // output to USB Audio Out L
-    //AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                       USB_Out,1);  // output to USB Audio Out R
+    AudioConnection_F32     patchcord_Out_L32(Amp1_L,0,                     convertL_Out,0);  // output
+    AudioConnection_F32     patchcord_Out_R32(Amp1_R,0,                     convertR_Out,0);  // output
+    AudioConnection         patchcord_Out_L16U(convertL_Out,0,              USB_Out,0);  // output to Left
+    AudioConnection         patchcord_Out_R16U(convertR_Out,0,              USB_Out,1);  // output to Right
+    //AudioConnection         patchcord_Out_USB_L16U(USB_In,0,                USB_Out,0);  // output to USB Audio Out L
+    //AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                USB_Out,1);  // output to USB Audio Out R
 #endif
 
 AudioControlSGTL5000    codec1;
@@ -1567,9 +1623,9 @@ COLD void TX_RX_Switch(
     if (b_ToneB)    ToneB    = ch_on; else ToneB    = ch_off;
 
     TxTestTone_A.amplitude(TestTone_Vol);
-    TxTestTone_A.frequency(700.0f);       // for some reason this is doubled but Tone B is not.   Also getting mirror image.
+    TxTestTone_A.frequency(468.75f);       // for some reason this is doubled but Tone B is not.   Also getting mirror image.
     TxTestTone_B.amplitude(TestTone_Vol); //
-    TxTestTone_B.frequency(1900.0f);
+    TxTestTone_B.frequency(703.125f);
 
     // Select Mic (0), USBIn(1), Tone A(2), and/or Tone B (3) in any combo.
     TX_Source.gain(0, Mic_On);   //  Mono Mic audio
@@ -1584,11 +1640,11 @@ COLD void TX_RX_Switch(
         case CW:
         case DATA:
         case AM:
-        case FM:
-            FM_Detector.setSquelchThreshold(0.7f);
         case USB:
             invert = -1.0f;
             break;
+		case FM:
+            FM_Detector.setSquelchThreshold(0.7f);
         default: // all other modes flip sideband
             invert = 1.0f;
             break;
@@ -1611,8 +1667,49 @@ COLD void TX_RX_Switch(
         // Select converted IQ source (mic/test tones) or IQ Stereo LineIn (RX)
         I_Switch.gain(0, ch_off); // Ch 0 is LineIn I  - RX so shut off
         Q_Switch.gain(0, ch_off); // Ch 0 is LineIn Q
-        I_Switch.gain(1, ch_on);  // Ch 1 is test tone and Mic I -
-        Q_Switch.gain(1, invert); // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
+        #ifndef CESSB
+            TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K, 151);   // Left channel Rx
+            TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K, 151); // Right channel Rx
+            I_Switch.gain(1, ch_on);  // Ch 1 is test tone and Mic I -
+            Q_Switch.gain(1, invert); // Ch 1 is test tone and Mic Q  apply -1 here for sideband invert
+        #else  // use RadioIQMixer to switch sidebands
+            I_Switch.gain(1, ch_on);  // Ch 1 is test tone and Mic I -
+            Q_Switch.gain(1, invert); // Ch 1 is test tone and Mic Q
+
+            #ifdef CESSB_MULTIPLY
+                sine1.begin();
+                sine1.frequency(1350);
+            #endif
+            #ifdef CESSB_IQMIXER
+                iqMixer1.frequency(1350);   // 13650 for LSB,  16350 for USB		
+            #endif
+            #ifdef CESSB_2xIQMIXER
+                iqMixer2.frequency(1350);   // 13650 for LSB,  16350 for USB with 15KHz LO.  1350 with 0 LO
+                iqMixer3.frequency(1350);   // 13650 for LSB,  16350 for USB with 15KHz LO.  1350 with 0 LO
+            #endif
+            switch (mode_sel)
+            {
+                case LSB:
+                case DATA_REV:
+                case CW_REV:
+                    cessb1.setSideband(true);   // true reverses the sideband
+                    #ifdef CESSB_DIRECT
+                        Fc = -1350;  // shift our tuned frq down 1350Hz
+                        selectFrequency(0);
+                    #endif
+                    break;
+                case USB:
+                case DATA:
+                case CW:  
+                default: 
+                    cessb1.setSideband(true);   // true reverses the sideband          
+                    #ifdef CESSB_DIRECT
+                        Fc = 1350;  // shift our tuned frq up 1350Hz  used only for CESSB direct to hardware method
+                        selectFrequency(0);
+                    #endif
+                    break;
+            }		                                                                                        
+        #endif
 
         FFT_Atten_I.gain(0, 0.000000001f); // Attenuate signals to FFT while in TX
         FFT_Atten_Q.gain(0, 0.000000001f);
@@ -1632,14 +1729,13 @@ COLD void TX_RX_Switch(
         OutputSwitch_Q.gain(0, ch_off); // Turn RX OFF
         OutputSwitch_I.gain(1, ch_on);  // Turn TX ON (ch 1 to 1.0f)
         OutputSwitch_Q.gain(1, ch_on);  // Turn TX ON
-        OutputSwitch_I.gain(2, ch_off); // Turn ON for FM   ToDO: automate this based on mode
+        OutputSwitch_I.gain(2, ch_off); // Turn ON for FM   ToDo: automate this based on mode
         OutputSwitch_Q.gain(2, ch_off); // Turn ON for FM
 
         Amp1_L.setGain(AUDIOBOOST); // Mute output to USB during TX
         Amp1_R.setGain(AUDIOBOOST);
         codec1.lineInLevel(0); // 0 in LineIn avoids an interaction observed with o'scope on Lineout.
-        TX_FilterConv.initFilter(TX_filterCenter, 70.0f, 2, TX_filterBandwidth);
-
+    
         AudioInterrupts();
 
         RampVolume(ch_on, 0);   // Instant off.  0 to 1.0f for full scale.
@@ -1655,6 +1751,19 @@ COLD void TX_RX_Switch(
 
         AudioNoInterrupts();
 
+        #ifdef CESSB
+            #ifdef CESSB_MULTIPLY
+                sine1.end();
+            #endif
+            #ifdef CESSB_DIRECT
+                Fc=0;
+                selectFrequency(0);
+            #endif
+        #else
+            TX_Hilbert_Plus_45.end();
+            TX_Hilbert_Minus_45.end();
+        #endif
+        
         RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K, 151);   // Left channel Rx
         RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K, 151); // Right channel Rx
 
@@ -1867,6 +1976,43 @@ COLD void resetCodec(void)
 
     AudioNoInterrupts();
 
+#ifdef CESSB
+    float32_t Pre_CESSB_Gain = 1.5f; // Sets the amount of clipping, 1.0 to 2.0f, 3 is excessive
+    //pLevelData = cessb1.getLevels(0);  // Gets pointer to struct
+	//Build the CESSB SSB transmitter
+	cessb1.setSampleRate_Hz(sample_rate_Hz);  // Required
+	// Set input, correction, and output gains
+	cessb1.setGains(Pre_CESSB_Gain, 2.0f, 1.0f);
+	//pLevelData = cessb1.getLevels(0);  // Gets pointer to struct
+
+    #ifdef CESSB_IQMIXER
+        iqMixer1.useTwoChannel(true);
+        iqMixer1.useSimple(false);  // enables setGainOut()
+        // Compensate for window loss in FFT as well as x2 for mixers
+        iqMixer1.setGainOut(2.76f);
+    #endif
+
+    #ifdef CESSB_2xIQMIXER
+        iqMixer2.useTwoChannel(false);
+        iqMixer2.useSimple(true);  // enables setGainOut()
+        iqMixer2.setGainOut(2.76f);
+        iqMixer3.useTwoChannel(false);
+        iqMixer3.useSimple(true);  // enables setGainOut()
+        iqMixer3.setGainOut(2.76f);
+    #endif
+
+#else  // Default with non CESSB
+    TX_FilterConv.initFilter(TX_filterCenter, 70.0f, 2, TX_filterBandwidth);
+	TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
+	TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
+
+	// Or Pick one of the these
+	/// TX_FFT_90deg_Hilbert.begin(hilbert19A, 19);
+	/// TX_FFT_90deg_Hilbert.begin(hilbert121A, 121);
+	//TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);
+	// TX_FFT_90deg_Hilbert.showError(1);
+#endif
+
     // The FM detector has error checking during object construction
     // when DPRINT is not available.  See RadioFMDetector_F32.h:
     DPRINTF("FM Initialization errors: "); DPRINTLN(FM_Detector.returnInitializeFMError());
@@ -1921,20 +2067,6 @@ COLD void resetCodec(void)
     // FFT_LO_Mixer_Q.useSimple(true);
 #endif
 
-    // Initialize our filters for RX and TX.  Using RX and TX filters since the filters specs are different later
-    // Moved .begin to T/R code section, stopped and started each RX/TX transition
-    //RX_Hilbert_Plus_45.begin(Hilbert_Plus45_40K, 151);   // Left channel Rx
-    //RX_Hilbert_Minus_45.begin(Hilbert_Minus45_40K, 151); // Right channel Rx
-
-    // TX_Hilbert_Plus_45.begin(Hilbert_Plus45_28K,151);   // Right channel TX
-    // TX_Hilbert_Minus_45.begin(Hilbert_Minus45_28K,151); // Left channel TX
-
-    // Pick one of the three.
-    /// TX_FFT_90deg_Hilbert.begin(hilbert19A, 19);
-    /// TX_FFT_90deg_Hilbert.begin(hilbert121A, 121);
-    TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);
-    // TX_FFT_90deg_Hilbert.showError(1);
-
     // experiment with numbers  ToDo: enable/disable this via the Notch button
     DPRINTF("Initializing Notch/NR Feature = ");
     DPRINTLN(LMS_Notch.initializeLMS(2, 32, 4)); // <== Modify to suit  2=Notch 1=Denoise
@@ -1942,14 +2074,15 @@ COLD void resetCodec(void)
     LMS_Notch.enable(false);
     NoiseBlanker.useTwoChannel(true);
 
-    AudioInterrupts();
-
     // Will be done in mode function also except for Beep Tone (2)
     // RX_Summer.gain(0, 1.0f);  // Left Channel into mixer
     // RX_Summer.gain(1, 1.0f);  // Right Channel, intoi Miver
     RX_Summer.gain(2, 0.7f); // Set Beep Tone ON or Off and Volume
     // RX_Summer.gain(3, 0.0f);  // FM Detection Path.  Only turn on for FM Mode
-    DPRINTLNF(" Reset Codec Almost Completed");
+
+	AudioInterrupts();
+    
+	DPRINTLNF(" Reset Codec Almost Completed");
     Xmit(0); // Finish RX audio chain setup
 
     DPRINTLNF(" Reset Codec Completed");

@@ -240,7 +240,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
     //#define BETATEST  // audio memory external buffer test using FFT4096 
     //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
-    
+
+    //#define CESSB   // Beta test for new Weaver method CESSB.  Output is centers on 1350Hz so needs FC offset or other LO shifting
+    // Choose one or none of these 3 below.  Selecting **none of these** will default to the CESSB_DIRECT methosd with Fc = +/-1350
+    //#define CESSB_MULTIPLY
+    //#define CESSB_2xIQMIXER
+    //#define CESSB_IQMIXER
+
 #endif  // K7MDL_BUILD
 
 

@@ -1515,7 +1515,7 @@ COLD void Xmit(uint8_t state) // state ->  TX=1, RX=0; Toggle =2
 
         // enable mic input to pass to line out on audio card, set audio levels
         if (TwoToneTest)                                         // do test tones
-            TX_RX_Switch(ON, mode_idx, OFF, OFF, ON, ON, 0.45f); // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
+            TX_RX_Switch(ON, mode_idx, OFF, OFF, ON, ON, 0.05f); // TestOne_Vol => 0.90 is max, clips if higher. Use 0.45f with 2 tones
         else if (mode_idx == DATA || mode_idx == DATA_REV)       // Mic on, turn off test tones
             TX_RX_Switch(ON, mode_idx, OFF, ON, OFF, OFF, OFF);  // Turn on USB input, Turn Mic OFF
         else
