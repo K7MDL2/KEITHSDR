@@ -450,7 +450,7 @@ struct Band_Memory {
     uint8_t     xvtr_num;       // index to Transverter Table.
     uint8_t     xvtr_IF;        // index to actual radio RF frequency to be used  (ex: BAND10M )
     uint16_t    xvPwrSet;       // last used power level
-    int16_t     DialCal;        // Calibration offset correction to apply to main frequency (VFOA)
+    int16_t     DialCal;        // Calibration offset correction to apply to main frequency (VFOA) - most useful for unlocked LO transverters
     uint16_t    bandDecode;     // Output pattern for band decoder per-band. 
 };
 
