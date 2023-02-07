@@ -121,15 +121,16 @@ COLD void initVfo(void)
     #endif
 }
 
+// Fc, Filter offsets, XIT and RIT offsets should all be taken into account for the value of Freq
 COLD void SetFreq(uint64_t Freq)
 { 
     #ifdef USE_RS_HFIQ
         return;
     #else
         #ifdef OCXO_10MHZ
-            si5351.set_freq((Freq+Fc) * VFO_MULT * 100ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
+            si5351.set_freq((Freq) * VFO_MULT * 100ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
         #else
-            si5351.setFreq(0, (Freq+Fc) * VFO_MULT); // use 4x for QRP-Labs RX vboard and some others. Use 1x if using 2 outputs shifted by 90 degrees 
+            si5351.setFreq(0, (Freq) * VFO_MULT); // use 4x for QRP-Labs RX vboard and some others. Use 1x if using 2 outputs shifted by 90 degrees 
         #endif
     #endif
 }
