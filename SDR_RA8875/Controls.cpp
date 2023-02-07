@@ -489,13 +489,17 @@ COLD void Variable_Filter(int8_t dir)
         bandmem[curr_band].var_filter = (uint16_t)var_bw; // Store our new filter width
 
         float CW_boost = 0.0f;
-        if (var_bw < 250)
-            CW_boost = 15.0f;
-        else if (var_bw < 500)
+        if (var_bw < 51)
+            CW_boost = 18.0f;
+        else if (var_bw < 101)
+            CW_boost = 16.0f;
+        else if (var_bw < 251)
+            CW_boost = 14.0f;
+        else if (var_bw < 501)
             CW_boost = 12.0f;
-        else if (var_bw < 700)
+        else if (var_bw < 701)
             CW_boost = 9.0f;
-        else if (var_bw < 1000)
+        else if (var_bw < 1001)
             CW_boost = 6.0f;
         else
             CW_boost = 0.0f;
