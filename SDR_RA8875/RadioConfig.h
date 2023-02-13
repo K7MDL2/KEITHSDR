@@ -40,8 +40,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // DEPENDS on correct display controller type connected via 4-wire SPI bus.
                             // For the RA8875 (only) be sure to edit the file
                             //   For Arduino IDE <2.0 C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries\RA8875\_settings\RA8875UserSettings.h
-                            //   For IDE V2.X C:\Users\Mike\AppData\Local\Arduino15\packages\teensy\hardware\avr\0.58.3\libraries\RA8875\_settings\RA8875UserSettings.h
-                            //   to enable touch by uncommenting this config item
+                            //   For IDE V2.X %AppData%\Local\Arduino15\packages\teensy\hardware\avr\0.58.3\libraries\RA8875\_settings\RA8875UserSettings.h
+                            // To enable touch by uncommenting this config item
                             //   #define USE_FT5206_TOUCH//capacitive touch screen
             
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
@@ -109,7 +109,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define TEST_SINEWAVE_SIG   // Turns on sinewave generators for display in the spectrum FFT only.
 
 //#define PANADAPTER          // Optimize some settings for panadapter use.  VFO becomes fixed LO at designated frequency
-                              // Comment this ouot to dispable all PANADAPTER settings.
+                              // Comment this out to dispable all PANADAPTER settings.
 
 //#define PANADAPTER_LO   8215000 // Frequency of radio's IF output in Hz. 
                               // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
