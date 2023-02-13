@@ -35,16 +35,15 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
 #define CALLSIGN  "K7MDL CN88sf"   // Personalized Startup Screen Text
 
-#define USE_RA8875          // Turns on support for RA8875 LCD TOcuhscreen Display with FT5204 Touch controller
+#define USE_RA8875          // Turns on support for RA8875 LCD Touchscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
-                            // DEPENDS on correct display controller type conencted via 4-wire SPI bus.
-                            // UN-comment this line to use RA8876  ******** AND in the Spectrum_RA887x.h **********
+                            // DEPENDS on correct display controller type connected via 4-wire SPI bus.
                             // For the RA8875 (only) be sure to edit the file
-                            //   C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries\RA8875\_settings\RA8875UserSettings.h
+                            //   For Arduino IDE <2.0 C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries\RA8875\_settings\RA8875UserSettings.h
+                            //   For IDE V2.X C:\Users\Mike\AppData\Local\Arduino15\packages\teensy\hardware\avr\0.58.3\libraries\RA8875\_settings\RA8875UserSettings.h
                             //   to enable touch by uncommenting this config item
                             //   #define USE_FT5206_TOUCH//capacitive touch screen
             
-
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
 
@@ -72,7 +71,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // This is used to correct the dBm scale on the spectrum 
                             // Can also fudge it to calibrate the spectrum until a more elegant solution is built
 
-//#define SV1AFN_BPF          // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
+//#define SV1AFN_BPF        // Bandpass filter via I2C port expander.  Will hang if you do not have the port expander.
                             // DEPENDS on SV1AFN BPF board connected via a MCP23017 I2C port expander.
 
 //#define ENET              // Turn off or on ethernet features and hardware. Teeny4.1 has ethernet built in but needs an external connector.
@@ -83,9 +82,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #define USE_DHCP            // Use DHCP rather then define a static IP address (which is Defined further below)
 
-// #define I2C_LCD          // Turn of or on the optional I2C character LCD display.   
-                            // Look below to set the i2c address of the display and
-                            // the size of the display.
+// #define I2C_LCD          // Turn on or off the optional I2C character LCD display.   
+                            // Look below to set the i2c address and the size of the display.
                             // DEPENDS on LCD I2C hardware connected or it will hang on I2C comms timeouts
 
 //#define I2C_ENCODERS      // I2C connected encoders. Here we are using the RGB LED version from
@@ -94,7 +92,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 //#define GPIO_ENCODERS     // Use regular (non-I2C) GPIO connected encoders.  If this is defined and there are no encoders connected,
                             // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
-#ifdef GPIO_ENCODERS     // DEPENDS on I2C_ENCODERS for servicing functions, can disable all i2c encoder in config section below
+#ifdef GPIO_ENCODERS        // DEPENDS on I2C_ENCODERS for servicing functions, can disable all i2c encoder in config section below
     #define I2C_ENCODERS    
 #endif // GPIO_ENCODERS
                             
@@ -114,16 +112,16 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                               // Comment this ouot to dispable all PANADAPTER settings.
 
 //#define PANADAPTER_LO   8215000 // Frequency of radio's IF output in Hz. 
-                                // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
-                                // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+                              // For a K3 it is 8215Khz for DATA A mode, 8212.5KHz if USB/LSB
+                              // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
 //#define PANADAPTER_MODE_OFFSET_DATA 0   // This is the offset added by the radio in certain modes
-                                        // It is usually the Center frequency of the filter
-                                        // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+                              // It is usually the Center frequency of the filter
+                              // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-//#define PANADAPTER_INVERT // When uncommented, this inverts the tuning direction seen on screen.
-                            // Most radio IFs are inverted, though it can change depending on frequency
-                            // Enabled only when the PANADAPTER define is active. Can be left uncommented.
+//#define PANADAPTER_INVERT   // When uncommented, this inverts the tuning direction seen on screen.
+                              // Most radio IFs are inverted, though it can change depending on frequency
+                              // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
 //#define ALL_CAT           // Include support for reading radio info for PANADAPTER mode CAT control over serial port or other means
                             // Intended for use in combination with PANADAPTER mode.  
@@ -188,10 +186,11 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define V22_7_PCB    // For the V2.1 7" motherboard 12/30/2022
 
 // ----------------- RS-HFIQ ---------------------------------------------------
-//#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR transciever for the RF hardware. Connect via USB Host serial cable.
+#define USE_RS_HFIQ               // Use the RS-HFIQ 5W SDR transciever for the RF hardware. Connect via USB Host serial cable.
 //#define NO_RSHFIQ_BLOCKING      // When combined with USE_RS-HFIQ, bypasses wait loops for queries from hardware allowing testing with no hardware connected
 //#define RSHFIQ_CAL_OFFSET  (0)  // Fixed offset applied each RS-HFIQ startup to calibrate frequency.
-
+#define RSHFIQ_ALT_CAT_PORT       // Turn onto force the RSHFIQ CAT comms to use the same port as Debug for single USB serial port configurations
+                                  // This allows operation with standard Serial+MIDI+Audio USB type though the 48KHz USB audio will not work right.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
@@ -201,12 +200,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #ifdef K7MDL_BUILD  
 
-    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
+    //#undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+      #define RSHFIQ_ALT_CAT_PORT
     #else // My RA8876 7" specific build items
       #undef  SCREEN_ROTATION
       #define SCREEN_ROTATION     2
@@ -236,13 +236,14 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #define W7PUA_I2S_CORRECTION      // Attempt to resolve twin peak problem on SGTL5000 codec chip
 
     // Experimental features - use only one or none!
-    //#define USE_FREQ_SHIFTER // Experimental to shift the FFT spectrum up away from DC
+    //#define USE_FREQ_SHIFTER    // Experimental to shift the FFT spectrum up away from DC
     //#define USE_FFT_LO_MIXER    // Experimental to shift the FFT spectrum up away from DC
-    //#define BETATEST  // audio memory external buffer test using FFT4096 
-    //#define USE_MIDI  	// Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
+    //#define BETATEST            // audio memory external buffer test using FFT4096 
+    //#define USE_MIDI  	        // Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
     //#define CESSB   // Beta test for new Weaver method CESSB.  Output is centers on 1350Hz so needs FC offset or other LO shifting
-    // Choose one or none of these 3 below.  Selecting **none of these** will default to the CESSB_DIRECT methosd with Fc = +/-1350
+    // Choose one or none of these 3 below.  Selecting **none of these** will default to the CESSB_DIRECT method with Fc = +/-1350
+    // DIRECT Mode will place teh LO in the audio passband and it may be strong enough to be heard and even beat note against your test tone.
     //#define CESSB_MULTIPLY
     //#define CESSB_2xIQMIXER
     //#define CESSB_IQMIXER

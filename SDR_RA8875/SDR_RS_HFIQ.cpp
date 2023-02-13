@@ -61,8 +61,11 @@
 #endif
 
 // Serial port for external CAT control
-#define CAT_RS_Serial SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
-//#define CAT_RS_Serial Serial   // if you only have 1 serialport and want CAT, turn off DEBUG and use this.
+#ifndef RSHFIQ_ALT_CAT_PORT
+    #define CAT_RS_Serial SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
+#else
+    #define CAT_RS_Serial Serial   // if you only have 1 serial port and want CAT, turn off DEBUG and use this.
+#endif
 
 // Teensy USB Host port
 #define USBBAUD 57600   // RS-HFIQ uses 57600 baud
