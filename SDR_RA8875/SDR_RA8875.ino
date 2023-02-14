@@ -291,7 +291,7 @@ AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);
     struct levels* pLevelData;
     uint32_t writeOne = 0;
     uint32_t cntFFT = 0;
-    radioCESSBtransmit_F32      cessb1(audio_settings);
+    radioCESSB_Z_transmit_F32       cessb1(audio_settings);
     #ifdef CESSB_IQMIXER
 	    RadioIQMixer_F32            iqMixer1(audio_settings);
     #endif
@@ -1693,7 +1693,7 @@ COLD void TX_RX_Switch(
                 case CW_REV:
                     cessb1.setSideband(true);   // true reverses the sideband
                     #ifdef CESSB_DIRECT
-                        Fc = -1350;  // shift our tuned frq down 1350Hz
+                        Fc = 0; 
                         selectFrequency(0);
                     #endif
                     break;
@@ -1703,7 +1703,7 @@ COLD void TX_RX_Switch(
                 default: 
                     cessb1.setSideband(true);   // true reverses the sideband          
                     #ifdef CESSB_DIRECT
-                        Fc = 1350;  // shift our tuned frq up 1350Hz  used only for CESSB direct to hardware method
+                        Fc = 0; 
                         selectFrequency(0);
                     #endif
                     break;
