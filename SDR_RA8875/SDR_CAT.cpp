@@ -8,15 +8,20 @@
 #include "RadioConfig.h"
 #include "SDR_CAT.h"
 
+#if !defined USE_CAT_SER
+    #if defined PAN_CAT || defined FT817_CAT
+
 //#define DBG
 
 #ifdef FT817_CAT
   FT817 ft817;  // assign our class id
 #endif
 
-#ifdef ALL_CAT
-  #define CAT_Serial SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
-  //#define CAT_Serial7  // hardware port
+#ifndef ALT_CAT_PORT
+    #define CAT_port SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
+#else
+    #define CAT_port Serial   // if you only have 1 serial port and want CAT, turn off DEBUG and use this.
+    //#define CAT_port CAT_port7  // hardware port
 #endif
 
 #ifdef PANADAPTER
@@ -74,10 +79,6 @@ uint8_t _mode;
 // set this to the hardware serial port you wish to use
 COLD void init_CAT_comms(void)
 {
-    #ifdef CAT_Serial 
-      Serial1.begin(38400);
-      //setSerial(6);
-    #endif
     #ifdef FT817_CAT
       ft817.begin(19200);
     #endif
@@ -85,16 +86,16 @@ COLD void init_CAT_comms(void)
 
 COLD void print_CAT_status(void)
 {
-    CAT_Serial.print(F("FT-817 S-meter:")); CAT_Serial.println(ft817.getSMeter());
-    CAT_Serial.print(F("FT-817 Active VFO Frequency:")); CAT_Serial.println(ft817.getVFO());	  // get acxtual VF)
-    CAT_Serial.print(F("FT-817 Band VFO:")); CAT_Serial.println(ft817.getBandVFO(0)); // 0 is VFOA on FT817, 1 is VFOB
-    CAT_Serial.print(F("FT-817 Frequency and Mode:")); CAT_Serial.println(ft817.getFreqMode()); // get frequency and mode
-    CAT_Serial.print(F("FT-817 Mode:")); CAT_Serial.println(ft817.getMode());	
+    CAT_port.print(F("FT-817 S-meter:")); CAT_port.println(ft817.getSMeter());
+    CAT_port.print(F("FT-817 Active VFO Frequency:")); CAT_port.println(ft817.getVFO());	  // get acxtual VF)
+    CAT_port.print(F("FT-817 Band VFO:")); CAT_port.println(ft817.getBandVFO(0)); // 0 is VFOA on FT817, 1 is VFOB
+    CAT_port.print(F("FT-817 Frequency and Mode:")); CAT_port.println(ft817.getFreqMode()); // get frequency and mode
+    CAT_port.print(F("FT-817 Mode:")); CAT_port.println(ft817.getMode());	
 }
 #endif  //  FT817_CAT
 
 
-#ifdef ALL_CAT
+#if defined PAN_CAT && !defined FT817_CAT
 static char msg[S_BUFF];
 //#include <Arduino.h>
 const char* REV = "20230203-K7MDL";
@@ -538,27 +539,27 @@ int timeout2;
 
 void CAT_setup() {
   	#if defined(YAESU_CAT_OLD) || defined(YAESU_CAT_FT100)
-		CAT_Serial.begin(SERBAUD, SERIAL_8N2);
-		CAT_Serial.setTimeout(10);
+		CAT_port.begin(SERBAUD, SERIAL_8N2);
+		CAT_port.setTimeout(10);
   	#else
-		CAT_Serial.begin(SERBAUD);
-		//CAT_Serial.setTimeout(10);
+		CAT_port.begin(SERBAUD);
+		//CAT_port.setTimeout(10);
   	#endif
 
   	#if defined(KENWOOD_PC) || defined(YAESU_CAT)
-		//CAT_Serial.reserve(200);          // reserve bytes for the CATdata
-		CAT_Serial.begin(38400);
-		//CAT_Serial.setTimeout(1);
+		//CAT_port.reserve(200);          // reserve bytes for the CATdata
+		CAT_port.begin(38400);
+		//CAT_port.setTimeout(1);
 		
 		// use a larger RX buffer, needed to prevent buffer overwrite during startup when many messages are arriving
-		//CAT_Serial.addMemoryForRead(Ser_Buff, S_BUFF);   
-		//CAT_Serial.addMemoryForWrite(buffer, size);
+		//CAT_port.addMemoryForRead(Ser_Buff, S_BUFF);   
+		//CAT_port.addMemoryForWrite(buffer, size);
 
-		CAT_Serial.flush();
-		CAT_Serial.clear();
+		CAT_port.flush();
+		CAT_port.clear();
 
-		CAT_Serial.print(F("K31;"));		// extended K3 mode
-		CAT_Serial.print(F("AI2;"));		// Radio will send out events when they happen
+		CAT_port.print(F("K31;"));		// extended K3 mode
+		CAT_port.print(F("AI2;"));		// Radio will send out events when they happen
 
 		VFOA_Request();			// init our main indicators
 		VFOB_Request();			// init our main indicators
@@ -747,19 +748,19 @@ void TxUDP(byte FROM, byte TO, byte A, byte B, byte C){
           // RemoteSwLatency[0] = millis(); // set START time mark UDP command latency
 
           #if defined(SERIAL_debug)
-            CAT_Serial.print(F("TX direct ID-"));
-            CAT_Serial.print(i);
-            CAT_Serial.print(F(" "));
-            CAT_Serial.print(RemoteSwIP);
-            CAT_Serial.print(F(":"));
-            CAT_Serial.print(RemoteSwPort);
-            CAT_Serial.print(F(" ["));
-            CAT_Serial.print(TxUdpBuffer[0], HEX);
+            CAT_port.print(F("TX direct ID-"));
+            CAT_port.print(i);
+            CAT_port.print(F(" "));
+            CAT_port.print(RemoteSwIP);
+            CAT_port.print(F(":"));
+            CAT_port.print(RemoteSwPort);
+            CAT_port.print(F(" ["));
+            CAT_port.print(TxUdpBuffer[0], HEX);
             for (int i=1; i<8; i++){
-              CAT_Serial.print(char(TxUdpBuffer[i]));
-              // CAT_Serial.print(F(" "));
+              CAT_port.print(char(TxUdpBuffer[i]));
+              // CAT_port.print(F(" "));
             }
-            CAT_Serial.println(F("]"));
+            CAT_port.println(F("]"));
           #endif
         }
       }
@@ -772,17 +773,17 @@ void TxUDP(byte FROM, byte TO, byte A, byte B, byte C){
       IpTimeout[0][0] = millis();                      // set time mark
 
         #if defined(SERIAL_debug)
-          CAT_Serial.print(F("TX broadcast "));
-          CAT_Serial.print(BroadcastIP);
-          CAT_Serial.print(F(":"));
-          CAT_Serial.print(BroadcastPort);
-          CAT_Serial.print(F(" ["));
-          CAT_Serial.print(TxUdpBuffer[0], HEX);
+          CAT_port.print(F("TX broadcast "));
+          CAT_port.print(BroadcastIP);
+          CAT_port.print(F(":"));
+          CAT_port.print(BroadcastPort);
+          CAT_port.print(F(" ["));
+          CAT_port.print(TxUdpBuffer[0], HEX);
           for (int i=1; i<8; i++){
-            CAT_Serial.print(char(TxUdpBuffer[i]));
-            // CAT_Serial.print(F(" "));
+            CAT_port.print(char(TxUdpBuffer[i]));
+            // CAT_port.print(F(" "));
           }
-          CAT_Serial.println(F("]"));
+          CAT_port.println(F("]"));
         #endif
 
     // DATA
@@ -796,22 +797,22 @@ void TxUDP(byte FROM, byte TO, byte A, byte B, byte C){
         RemoteSwLatency[0] = millis(); // set START time mark UDP command latency
 
         #if defined(SERIAL_debug)
-          CAT_Serial.println();
-          CAT_Serial.print(F("TX ["));
-          CAT_Serial.print(TxUdpBuffer[0], HEX);
+          CAT_port.println();
+          CAT_port.print(F("TX ["));
+          CAT_port.print(TxUdpBuffer[0], HEX);
           for (int i=1; i<4; i++){
-            CAT_Serial.print(char(TxUdpBuffer[i]));
+            CAT_port.print(char(TxUdpBuffer[i]));
           }
-          CAT_Serial.print(TxUdpBuffer[4], BIN);
-          CAT_Serial.print(F("|"));
-          CAT_Serial.print(TxUdpBuffer[5], BIN);
-          CAT_Serial.print(F("|"));
-          CAT_Serial.print(TxUdpBuffer[6], BIN);
-          CAT_Serial.print(char(TxUdpBuffer[7]));
-          CAT_Serial.print(F("] "));
-          CAT_Serial.print(RemoteSwIP);
-          CAT_Serial.print(F(":"));
-          CAT_Serial.println(RemoteSwPort);
+          CAT_port.print(TxUdpBuffer[4], BIN);
+          CAT_port.print(F("|"));
+          CAT_port.print(TxUdpBuffer[5], BIN);
+          CAT_port.print(F("|"));
+          CAT_port.print(TxUdpBuffer[6], BIN);
+          CAT_port.print(char(TxUdpBuffer[7]));
+          CAT_port.print(F("] "));
+          CAT_port.print(RemoteSwIP);
+          CAT_port.print(F(":"));
+          CAT_port.println(RemoteSwPort);
         #endif
       }
     }
@@ -836,15 +837,15 @@ void RX_UDP(char FROM, char TO){
       UdpCommand.read(packetBuffer, 30);      // read the packet into packetBufffer
       // Print RAW
       // #if defined(SERIAL_debug)
-      //     CAT_Serial.print(F("RXraw "));
+      //     CAT_port.print(F("RXraw "));
       //     for (int i = 0; i < 8; i++) {
-      //       CAT_Serial.print(packetBuffer[i]);
+      //       CAT_port.print(packetBuffer[i]);
       //     }
-      //     CAT_Serial.print(F(" "));
-      //     CAT_Serial.print(UdpCommand.remoteIP());
-      //     CAT_Serial.print(":");
-      //     CAT_Serial.print(UdpCommand.remotePort());
-      //     CAT_Serial.println();
+      //     CAT_port.print(F(" "));
+      //     CAT_port.print(UdpCommand.remoteIP());
+      //     CAT_port.print(":");
+      //     CAT_port.print(UdpCommand.remotePort());
+      //     CAT_port.println();
       // #endif
       // ID-FROM-TO filter
       if(String(packetBuffer[0], DEC).toInt()==NET_ID
@@ -888,27 +889,27 @@ void RX_UDP(char FROM, char TO){
           #endif
 
           #if defined(SERIAL_debug)
-            CAT_Serial.print(F("RX ["));
-            CAT_Serial.print(packetBuffer[0], HEX);
+            CAT_port.print(F("RX ["));
+            CAT_port.print(packetBuffer[0], HEX);
             for(int i=1; i<8; i++){
-              CAT_Serial.print(char(packetBuffer[i]));
+              CAT_port.print(char(packetBuffer[i]));
             }
-            CAT_Serial.print(F("] "));
-            CAT_Serial.print(UdpCommand.remoteIP());
-            CAT_Serial.print(F(":"));
-            CAT_Serial.println(UdpCommand.remotePort());
+            CAT_port.print(F("] "));
+            CAT_port.print(UdpCommand.remoteIP());
+            CAT_port.print(F(":"));
+            CAT_port.println(UdpCommand.remotePort());
             for (int i = 0; i < 16; i++) {
-              CAT_Serial.print(i);
-              CAT_Serial.print(F("  "));
-              CAT_Serial.print(DetectedRemoteSw [i] [0]);
-              CAT_Serial.print(F("."));
-              CAT_Serial.print(DetectedRemoteSw [i] [1]);
-              CAT_Serial.print(F("."));
-              CAT_Serial.print(DetectedRemoteSw [i] [2]);
-              CAT_Serial.print(F("."));
-              CAT_Serial.print(DetectedRemoteSw [i] [3]);
-              CAT_Serial.print(F(":"));
-              CAT_Serial.println(DetectedRemoteSw [i] [4]);
+              CAT_port.print(i);
+              CAT_port.print(F("  "));
+              CAT_port.print(DetectedRemoteSw [i] [0]);
+              CAT_port.print(F("."));
+              CAT_port.print(DetectedRemoteSw [i] [1]);
+              CAT_port.print(F("."));
+              CAT_port.print(DetectedRemoteSw [i] [2]);
+              CAT_port.print(F("."));
+              CAT_port.print(DetectedRemoteSw [i] [3]);
+              CAT_port.print(F(":"));
+              CAT_port.println(DetectedRemoteSw [i] [4]);
             }
           #endif
 
@@ -923,22 +924,22 @@ void RX_UDP(char FROM, char TO){
           digitalWrite(ShiftOutLatchPin, HIGH);    // switch to output pin
 
           #if defined(SERIAL_debug)
-            CAT_Serial.print(F("RX ["));
-            CAT_Serial.print(packetBuffer[0], HEX);
+            CAT_port.print(F("RX ["));
+            CAT_port.print(packetBuffer[0], HEX);
             for(int i=1; i<4; i++){
-              CAT_Serial.print(char(packetBuffer[i]));
+              CAT_port.print(char(packetBuffer[i]));
             }
-            CAT_Serial.print((byte)packetBuffer[4], BIN);
-            CAT_Serial.print(F("|"));
-            CAT_Serial.print((byte)packetBuffer[5], BIN);
-            CAT_Serial.print(F("|"));
-            CAT_Serial.print((byte)packetBuffer[6], BIN);
-            CAT_Serial.print(F(";] "));
-            CAT_Serial.print(UdpCommand.remoteIP());
-            CAT_Serial.print(F(":"));
-            CAT_Serial.print(UdpCommand.remotePort());
-            CAT_Serial.print(F(" Latency: "));
-            CAT_Serial.println(RemoteSwLatency[1]);
+            CAT_port.print((byte)packetBuffer[4], BIN);
+            CAT_port.print(F("|"));
+            CAT_port.print((byte)packetBuffer[5], BIN);
+            CAT_port.print(F("|"));
+            CAT_port.print((byte)packetBuffer[6], BIN);
+            CAT_port.print(F(";] "));
+            CAT_port.print(UdpCommand.remoteIP());
+            CAT_port.print(F(":"));
+            CAT_port.print(UdpCommand.remotePort());
+            CAT_port.print(F(" Latency: "));
+            CAT_port.println(RemoteSwLatency[1]);
           #endif
           #if defined(LCD)
             LcdNeedRefresh = true;
@@ -947,7 +948,7 @@ void RX_UDP(char FROM, char TO){
       } // filtered end
       else{
         #if defined(SERIAL_debug)
-          CAT_Serial.println(F("   Different NET-ID, or bad packet format"));
+          CAT_port.println(F("   Different NET-ID, or bad packet format"));
         #endif
       }
       memset(packetBuffer, 0, sizeof(packetBuffer));   // Clear contents of Buffer
@@ -963,12 +964,12 @@ void EthernetCheck(){
     if ((Ethernet.linkStatus() == Unknown || Ethernet.linkStatus() == LinkOFF) && EthLinkStatus==1) {
       EthLinkStatus=0;
       #if defined(SERIAL_debug)
-        CAT_Serial.println(F("Ethernet DISCONNECTED"));
+        CAT_port.println(F("Ethernet DISCONNECTED"));
       #endif
     }else if (Ethernet.linkStatus() == LinkON && EthLinkStatus==0) {
       EthLinkStatus=1;
       #if defined(SERIAL_debug)
-        CAT_Serial.println(F("Ethernet CONNECTED"));
+        CAT_port.println(F("Ethernet CONNECTED"));
       #endif
 
       #if defined(LCD)
@@ -1109,28 +1110,28 @@ COLD void FrequencyRequest(){
     #endif
 
     #if defined(KENWOOD_PC) || defined(YAESU_CAT)
-          CAT_Serial.print("IF;");
-          CAT_Serial.flush();       // Waits for the transmission of outgoing serial data to complete
+          CAT_port.print("IF;");
+          CAT_port.flush();       // Waits for the transmission of outgoing serial data to complete
     #endif
 
     #if defined(FLEX_6000)
-          CAT_Serial.print(F("FA;"));
-          CAT_Serial.flush();       // Waits for the transmission of outgoing serial data to complete
+          CAT_port.print(F("FA;"));
+          CAT_port.flush();       // Waits for the transmission of outgoing serial data to complete
     #endif
 
     #if defined(YAESU_CAT_OLD)
-        CAT_Serial.write(0);                                    // byte 1
-        CAT_Serial.write(0);                                    // byte 2
-        CAT_Serial.write(0);                                    // byte 3
-        CAT_Serial.write(0);                                    // byte 4
-        CAT_Serial.write(3);                                    // read freq
-        CAT_Serial.flush();
+        CAT_port.write(0);                                    // byte 1
+        CAT_port.write(0);                                    // byte 2
+        CAT_port.write(0);                                    // byte 3
+        CAT_port.write(0);                                    // byte 4
+        CAT_port.write(3);                                    // read freq
+        CAT_port.flush();
     #endif
 
     #if defined(YAESU_CAT_FT100)
         byte readStatusCMD[] = {0x00,0x00,0x00,0x00,0x10};
-        CAT_Serial.write(readStatusCMD,5);
-        CAT_Serial.flush();
+        CAT_port.write(readStatusCMD,5);
+        CAT_port.flush();
     #endif
 
     RequestTimeout[0]=millis();
@@ -1379,7 +1380,7 @@ HOT void WebServer(){
             client.println(F("<p><a href=\".\" onclick=\"window.open( this.href, this.href, 'width=220,height=350,left=0,top=0,menubar=no,location=no,status=no' ); return false;\" > split&#8599;</a></p>"));
             client.println(F("</body></html>"));
 
-            // CAT_Serial.print(HTTP_req);
+            // CAT_port.print(HTTP_req);
             HTTP_req = "";
             break;
           }
@@ -1434,8 +1435,8 @@ COLD float volt(int raw, float divider) {
   // float voltage = (raw * 5.0) / 1024.0 * ResistorCoeficient;
   float voltage = float(raw) * ArefVoltage * divider / 1023.0;
   #if defined(SERIAL_debug)
-    CAT_Serial.print(F("Voltage "));
-    CAT_Serial.println(voltage);
+    CAT_port.print(F("Voltage "));
+    CAT_port.println(voltage);
   #endif
   return voltage;
 }
@@ -1488,10 +1489,10 @@ HOT void BandDecoderInput(){
 
 	//----------------------------------- Input Serial
 	#if defined(INPUT_SERIAL)
-    while (CAT_Serial.available() > 0) {
-        BAND = CAT_Serial.parseInt();
-        freq = CAT_Serial.parseInt();
-        if (CAT_Serial.read() == '\n') {
+    while (CAT_port.available() > 0) {
+        BAND = CAT_port.parseInt();
+        freq = CAT_port.parseInt();
+        if (CAT_port.read() == '\n') {
             bandSET();
             #if defined(SERIAL_echo)
                 serialEcho();
@@ -1535,9 +1536,9 @@ HOT void BandDecoderInput(){
     }
     #if defined(SERIAL_echo)
         serialEcho();
-        CAT_Serial.print(AccVoltage);
-        CAT_Serial.println(F(" V"));
-        CAT_Serial.flush();
+        CAT_port.print(AccVoltage);
+        CAT_port.println(F(" V"));
+        CAT_port.flush();
     #endif
 
     delay(500);                                   // refresh time
@@ -1545,12 +1546,12 @@ HOT void BandDecoderInput(){
 
 	//----------------------------------- Icom CIV
 	#if defined(ICOM_CIV)
-    if (CAT_Serial.available() > 0) {
-        incomingByte = CAT_Serial.read();
+    if (CAT_port.available() > 0) {
+        incomingByte = CAT_port.read();
         #if defined(DEBUG)
-          CAT_Serial.print(incomingByte);
-          CAT_Serial.print(F("|"));
-          CAT_Serial.println(incomingByte, HEX);
+          CAT_port.print(incomingByte);
+          CAT_port.print(F("|"));
+          CAT_port.println(incomingByte, HEX);
         #endif
         icomSM(incomingByte);
         rdIS="";
@@ -1564,8 +1565,8 @@ HOT void BandDecoderInput(){
               rdIS = rdIS + String(rdI[i], HEX);  // append BCD digit from HEX variable to string
           }
           freq = rdIS.toInt();
-          // CAT_Serial.println(freq);
-          // CAT_Serial.println("-------");
+          // CAT_port.println(freq);
+          // CAT_port.println("-------");
           FreqToBandRules();
           bandSET();
 
@@ -1610,12 +1611,12 @@ HOT void BandDecoderInput(){
 
     //#define DEBUG
 		#if defined(DEBUG)
-			byte incomingByte = CAT_Serial.read();
+			byte incomingByte = CAT_port.read();
 			DPRINT((char) incomingByte);
 			if (incomingByte == 59)
 					DPRINTLN("");
 		#else          	
-			//CAT_Serial.readBytesUntil(lf, rdK, 38);       // fill array from serial
+			//CAT_port.readBytesUntil(lf, rdK, 38);       // fill array from serial
 			DPRINTLN(msg);
 
 			//if (rdK[0] == 73 && rdK[1] == 70)
@@ -1783,13 +1784,13 @@ HOT void BandDecoderInput(){
     // Data exapmple IF
     // IF00007151074      000000000030000080;
     // IF000035730000100+0000000000090000000;   when 3.573 MHz
-    while (CAT_Serial.available()) {
+    while (CAT_port.available()) {
         rdKS="";
         #if defined(DEBUG)
-          byte incomingByte = CAT_Serial.read();
-          CAT_Serial.write(incomingByte);
+          byte incomingByte = CAT_port.read();
+          CAT_port.write(incomingByte);
         #else
-          CAT_Serial.readBytesUntil(lf, rdK, 14);       // fill array from serial
+          CAT_port.readBytesUntil(lf, rdK, 14);       // fill array from serial
             if (rdK[0] == 70 && rdK[1] == 65){     // filter
                 for (int i=2; i<=12; i++){          // 3-13 position to freq
                     rdKS = rdKS + String(rdK[i]);   // append variable to string
@@ -1809,13 +1810,13 @@ HOT void BandDecoderInput(){
 
   //----------------------------------- Yaesu CAT
   #if defined(YAESU_CAT)
-  while (CAT_Serial.available()) {
+  while (CAT_port.available()) {
       rdYS="";
       #if defined(DEBUG)
-        byte incomingByte = CAT_Serial.read();
-        CAT_Serial.write(incomingByte);
+        byte incomingByte = CAT_port.read();
+        CAT_port.write(incomingByte);
       #else
-      CAT_Serial.readBytesUntil(lf, rdY, 38);         // fill array from serial
+      CAT_port.readBytesUntil(lf, rdY, 38);         // fill array from serial
           if (rdY[0] == 73 && rdY[1] == 70){      // filter
               for (int i=5; i<=12; i++){          // 6-13 position to freq
                   rdYS = rdYS + String(rdY[i]);   // append variable to string
@@ -1834,14 +1835,14 @@ HOT void BandDecoderInput(){
   #endif
   //----------------------------------- Yaesu CAT OLD
   #if defined(YAESU_CAT_OLD)
-  while (CAT_Serial.available()) {
+  while (CAT_port.available()) {
       rdYOS="";
       #if defined(DEBUG)
-        byte incomingByte = CAT_Serial.read();
-        CAT_Serial.write(incomingByte);
-        CAT_Serial.print(F(" "));
+        byte incomingByte = CAT_port.read();
+        CAT_port.write(incomingByte);
+        CAT_port.print(F(" "));
       #else
-        CAT_Serial.readBytesUntil('240', rdYO, 5);                   // fill array from serial (240 = 0xF0)
+        CAT_port.readBytesUntil('240', rdYO, 5);                   // fill array from serial (240 = 0xF0)
         if (rdYO[0] != 0xF0 && rdYO[1] != 0xF0 && rdYO[2] != 0xF0 && rdYO[3] != 0xF0 && rdYO[4] != 0xF0 && rdYO[5] != 0xF0){     // filter
             for (int i=0; i<4; i++ ){
                 if (rdYO[i] < 10) {                              // leading zero
@@ -1870,12 +1871,12 @@ HOT void BandDecoderInput(){
     uint32_t integer;
   };
   ArrayToInteger convert;
-  while (CAT_Serial.available()) {
+  while (CAT_port.available()) {
     #if defined(DEBUG)
-      byte incomingByte = CAT_Serial.read();
-      CAT_Serial.write(incomingByte);
+      byte incomingByte = CAT_port.read();
+      CAT_port.write(incomingByte);
     #else
-      int numberOfBytes = CAT_Serial.readBytes(rdYO, 32);
+      int numberOfBytes = CAT_port.readBytes(rdYO, 32);
       if(numberOfBytes == 32){
           convert.array[4] = 0;
           convert.array[3] = rdYO[1];
@@ -1916,10 +1917,10 @@ COLD void BandDecoderOutput(){
           while (freqPCtx.length() < 11) {       // leding zeros
               freqPCtx = 0 + freqPCtx;
           }
-         CAT_Serial.print("FA" + freqPCtx + ";");    // sets both VFO
-         CAT_Serial.print("FB" + freqPCtx + ";");
-//          CAT_Serial.print("FA" + freqPCtx + ";");    // first packet not read every time
-         CAT_Serial.flush();
+         CAT_port.print("FA" + freqPCtx + ";");    // sets both VFO
+         CAT_port.print("FB" + freqPCtx + ";");
+//          CAT_port.print("FA" + freqPCtx + ";");    // first packet not read every time
+         CAT_port.flush();
          freqPrev2 = freq;
       }
   #endif
@@ -1930,9 +1931,9 @@ COLD void BandDecoderOutput(){
           while (freqPCtx.length() < 8) {        // leding zeros
               freqPCtx = 0 + freqPCtx;
           }
-         CAT_Serial.print("FA" + freqPCtx + ";");    // sets both VFO
-         CAT_Serial.print("FB" + freqPCtx + ";");
-         CAT_Serial.flush();
+         CAT_port.print("FA" + freqPCtx + ";");    // sets both VFO
+         CAT_port.print("FB" + freqPCtx + ";");
+         CAT_port.flush();
          freqPrev2 = freq;
       }
   #endif
@@ -1943,8 +1944,8 @@ COLD void BandDecoderOutput(){
           while (freqPCtx.length() < 8) {        // leding zeros
               freqPCtx = 0 + freqPCtx;
          }
-         CAT_Serial.write(1);                        // set freq
-         CAT_Serial.flush();
+         CAT_port.write(1);                        // set freq
+         CAT_port.flush();
          freqPrev2 = freq;
       }
   #endif
@@ -2078,22 +2079,22 @@ COLD void bandSET() {                                               // set outpu
 //---------------------------------------------------------------------------------------------------------
 
 COLD void remoteRelay() {
-    CAT_Serial.print(1);
-    CAT_Serial.print(',');
-    CAT_Serial.print(BAND, DEC);
-    CAT_Serial.print('\n');
-    CAT_Serial.flush();
+    CAT_port.print(1);
+    CAT_port.print(',');
+    CAT_port.print(BAND, DEC);
+    CAT_port.print('\n');
+    CAT_port.flush();
 }
 //---------------------------------------------------------------------------------------------------------
 
 COLD void serialEcho() {
-    CAT_Serial.print(F("<"));
-    CAT_Serial.print(BAND);
-    CAT_Serial.print(F(","));
-    CAT_Serial.print(freq);
-    CAT_Serial.print(F("> "));
-    CAT_Serial.println(ShiftByte[0], BIN);
-    CAT_Serial.flush();
+    CAT_port.print(F("<"));
+    CAT_port.print(BAND);
+    CAT_port.print(F(","));
+    CAT_port.print(freq);
+    CAT_port.print(F("> "));
+    CAT_port.println(ShiftByte[0], BIN);
+    CAT_port.flush();
 }
 //---------------------------------------------------------------------------------------------------------
 
@@ -2134,11 +2135,11 @@ FE|FE|0|A2|0| 0|20|30|96|12|FD 23cm
         // This filter solves read from 0x00 0x05 0x03 commands and 00 E0 F1 address used by software
         static bool Band23cm;
 
-        // CAT_Serial.print(b, HEX);
-        // CAT_Serial.print(" | ");
-        // CAT_Serial.print(state);
-        // CAT_Serial.print(" | ");
-        // CAT_Serial.println(Band23cm);
+        // CAT_port.print(b, HEX);
+        // CAT_port.print(" | ");
+        // CAT_port.print(state);
+        // CAT_port.print(" | ");
+        // CAT_port.println(Band23cm);
 
         switch (state) {
             case 1: if( b == 0xFE ){ state = 2; rdI[0]=b; rdI[10]=0x00; }; break;
@@ -2214,12 +2215,12 @@ FE|FE|0|A2|0| 0|20|30|96|12|FD 23cm
     //---------------------------------------------------------------------------------------------------------
 
     int txCIV(int commandCIV, uint32_t dataCIVtx, int toAddress) {
-        //CAT_Serial.flush();
-        CAT_Serial.write(254);                                    // FE
-        CAT_Serial.write(254);                                    // FE
-        CAT_Serial.write(toAddress);                              // to adress
-        CAT_Serial.write(fromAdress);                             // from OE
-        CAT_Serial.write(commandCIV);                             // data
+        //CAT_port.flush();
+        CAT_port.write(254);                                    // FE
+        CAT_port.write(254);                                    // FE
+        CAT_port.write(toAddress);                              // to adress
+        CAT_port.write(fromAdress);                             // from OE
+        CAT_port.write(commandCIV);                             // data
         if (dataCIVtx != 0){
             String freqCIVtx = String(dataCIVtx);             // to string
             freqCIVtx.reserve(11);
@@ -2230,13 +2231,13 @@ FE|FE|0|A2|0| 0|20|30|96|12|FD 23cm
             }
             for (int x=8; x>=0; x=x-2){                       // loop for 5x2 char [xx xx xx xx xx]
                 freqCIVtxPart = freqCIVtx.substring(x,x+2);   // cut freq to five part
-                    CAT_Serial.write(hexToDec(freqCIVtxPart));    // HEX to DEC, because write as DEC format from HEX variable
+                    CAT_port.write(hexToDec(freqCIVtxPart));    // HEX to DEC, because write as DEC format from HEX variable
             }
         }
-        CAT_Serial.write(253);                                    // FD
-        // CAT_Serial.flush();
-        while(CAT_Serial.available()){        // clear buffer
-          CAT_Serial.read();
+        CAT_port.write(253);                                    // FD
+        // CAT_port.flush();
+        while(CAT_port.available()){        // clear buffer
+          CAT_port.read();
         }
     }
     //---------------------------------------------------------------------------------------------------------
@@ -2484,33 +2485,33 @@ void VFOA_Decode(void)
 
 void AGC_Request(void)	  	// Get the filter width
 {
-	CAT_Serial.print(F("GT;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("GT;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 void Filter_Request(void)	  	// Get the filter width
 {
-	CAT_Serial.print(F("BW;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("BW;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 void VFOA_Request(void)			// Get VFO A
 {
-	CAT_Serial.print(F("FA;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("FA;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 void VFOB_Request(void)			// Get VFO B
 {
-	CAT_Serial.print(F("FB;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("FB;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 void BarGraph_Request(void)		// Get the bar graph value
 {
 	//DPRINTLN(F("Requesting Bar Graph Update"));
-	CAT_Serial.print(F("BG;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("BG;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 // IF Center Frewquency: 
@@ -2518,22 +2519,22 @@ void BarGraph_Request(void)		// Get the bar graph value
 void IF_Center_Request(void)		// Get the IF Center Freq value
 {
 	//DPRINTLN(F("Requesting IF Center Freq Update"));
-	CAT_Serial.print(F("FI;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("FI;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 void RadioMode_Request(void)		// Get the Mode Selection value
 {
 	//DPRINTLN(F("Requesting Mode Selection Update"));
-	CAT_Serial.print(F("MD;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("MD;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 void ANT_Request(void)		// Get the Antenna Selection value
 {
 	//DPRINTLN(F("Requesting Antenna Selection Update"));
-	CAT_Serial.print(F("AN;"));
-	CAT_Serial.flush();       	// Waits for the transmission of outgoing serial data to complete
+	CAT_port.print(F("AN;"));
+	CAT_port.flush();       	// Waits for the transmission of outgoing serial data to complete
 }
 
 int16_t CAT_msgs(void)
@@ -2546,7 +2547,7 @@ int16_t CAT_msgs(void)
 	_xmit = user_settings[user_Profile].xmit;
 	_mode = bandmem[curr_band].mode_A;
 	
-	while ((count = CAT_Serial.available()) && ((c = CAT_Serial.read()) != 59))
+	while ((count = CAT_port.available()) && ((c = CAT_port.read()) != 59))
 	{	
 		//DPRINT(c);
 
@@ -2554,7 +2555,7 @@ int16_t CAT_msgs(void)
 		{	// clean up for next message
 			DPRINTF("Reached string buffer limit or invalid char - count = ");	DPRINTLN(count);
 			i = 0;
-			CAT_Serial.clear();
+			CAT_port.clear();
 			return 0;
 		}
 
@@ -2571,15 +2572,15 @@ int16_t CAT_msgs(void)
 			
 		if (!strncmp(msg, "ID", 2))
 		{
-			CAT_Serial.print("ID017;");
+			CAT_port.print("ID017;");
 		}
 		else if (!strncmp(msg, "FA", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.printf("FA%011llu;", VFOA);  // Respond back for confirmation FA + 11 freq + ;
+			CAT_port.printf("FA%011llu;", VFOA);  // Respond back for confirmation FA + 11 freq + ;
 		}
 		else if (!strncmp(msg, "FB", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.printf("FB%011llu;", VFOB);  // Respond back for confirmation FA + 11 freq + ;
+			CAT_port.printf("FB%011llu;", VFOB);  // Respond back for confirmation FA + 11 freq + ;
 		} 
 		else if (!strncmp(msg, "FA", 2) && strlen(msg) > 2)
 		{
@@ -2595,7 +2596,7 @@ int16_t CAT_msgs(void)
 		//	VFOB_Decode();
 		else if (!strncmp(msg, "IF", 2)) // Transceiver Info
 		{
-			CAT_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", VFOA, user_settings[user_Profile].xmit, _split);
+			CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", VFOA, user_settings[user_Profile].xmit, _split);
 		}
 		else if (!strncmp(msg, "BW", 2) || !strncmp(msg, "FW", 2))
 			Filter_Decode();
@@ -2626,7 +2627,7 @@ int16_t CAT_msgs(void)
 				case DATA_REV:  _mode_ = 9; break;
 				default: break;
 			} 
-			CAT_Serial.printf("MD%d;", _mode_);
+			CAT_port.printf("MD%d;", _mode_);
 		}
 		else if (!strncmp(msg, "MD", 2) && strlen(msg) > 2)  // map incoming mode change request from K3 values to our mode numbering and return the value
 		{
@@ -2647,19 +2648,19 @@ int16_t CAT_msgs(void)
 		//		RadioMode_Decode();
 		else if (!strncmp(msg, "OM", 2))   // && c == 13)
 		{
-			CAT_Serial.print("OM ------------;");
+			CAT_port.print("OM ------------;");
 		}
 		else if (!strncmp(msg, "K2", 2) && strlen(msg) == 2)   // && c == 13)
 		{
-			CAT_Serial.print("K20;");
+			CAT_port.print("K20;");
 		}
 		else if (!strncmp(msg, "K3", 2) && strlen(msg) == 2)   // && c == 13)
 		{
-			CAT_Serial.print("K30;");
+			CAT_port.print("K30;");
 		}
 		else if (!strncmp(msg, "AI", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.printf("AI%1d;", _ai);  // return current AI mode
+			CAT_port.printf("AI%1d;", _ai);  // return current AI mode
 		}
 		else if (!strncmp(msg, "AI0", 3) && strlen(msg) == 3)
 		{
@@ -2669,7 +2670,7 @@ int16_t CAT_msgs(void)
 		else if (!strncmp(msg, "AI1", 3) && strlen(msg) == 3)
 		{
 			_ai = 1;
-			CAT_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", VFOA, user_settings[user_Profile].xmit, _split);
+			CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", VFOA, user_settings[user_Profile].xmit, _split);
 		}
 		else if (!strncmp(msg, "AI2", 3) && strlen(msg) == 3)
 		{
@@ -2679,7 +2680,7 @@ int16_t CAT_msgs(void)
 		}
 		else if (!strncmp(msg, "RVM", 3)&& strlen(msg) == 3)
 		{
-			CAT_Serial.print("RVM05.67;");
+			CAT_port.print("RVM05.67;");
 		}
 		else if (!strncmp(msg, "RX", 2))
 		{
@@ -2709,20 +2710,20 @@ int16_t CAT_msgs(void)
 		} 
 		else if (!strncmp(msg, "LN", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.print("LN0;");
+			CAT_port.print("LN0;");
 		}
 		else if (!strncmp(msg, "PS", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.print("PS1;");   // radio is turned on
+			CAT_port.print("PS1;");   // radio is turned on
 		}
 		else if (!strncmp(msg, "FR", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.print("FR0;");
+			CAT_port.print("FR0;");
 		}
 		else if (!strncmp(msg, "FT", 2) && strlen(msg) == 2)
 		{
-			if (_split == 0) CAT_Serial.print("FT0;");
-			else CAT_Serial.print("FT1;");
+			if (_split == 0) CAT_port.print("FT0;");
+			else CAT_port.print("FT1;");
 		}
 		else if (!strncmp(msg, "FR0", 3)  && strlen(msg) == 3) // Split OFF
 		{
@@ -2747,7 +2748,7 @@ int16_t CAT_msgs(void)
 		}
 		if (!strncmp(msg, "DT", 2) && strlen(msg) == 2)
 		{
-			CAT_Serial.print("DT0;");  // return 0 = DATA A mode
+			CAT_port.print("DT0;");  // return 0 = DATA A mode
 		} 
 		return 0;
 	}
@@ -2756,4 +2757,7 @@ int16_t CAT_msgs(void)
 	msg[0] = 0;
 	return 1;
 }
-#endif  // ALL_CAT
+
+#endif // PAN_CAT
+#endif // PAN_CAT
+#endif  // ! USE_CAT_SER

@@ -13,6 +13,8 @@
 
 #ifdef USE_RS_HFIQ
     extern SDR_RS_HFIQ RS_HFIQ;		// init the RS-HFIQ library
+    extern void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
+    extern char * convert_freq_to_Str(uint64_t freq);
 #endif
 extern uint8_t curr_band;   // global tracks our current band setting.
 extern uint64_t VFOA;  // 0 value should never be used more than 1st boot before EEPROM since init should read last used from table.
@@ -20,8 +22,6 @@ extern struct Band_Memory bandmem[];
 extern struct User_Settings user_settings[];
 extern uint8_t user_Profile;
 extern const struct TuneSteps tstep[];
-extern char * convert_freq_to_Str(uint64_t freq);
-extern void send_variable_cmd_to_RSHFIQ(const char * str, char * cmd_str);
 extern int16_t rit_offset;  // global rit value in Hz
 extern int16_t xit_offset;  // global xit value in Hz
 extern uint64_t xvtr_offset;  // Adds 'LO" to displayed frequency for transverters.
@@ -111,7 +111,7 @@ COLD void selectFrequency(int64_t newFreq)  // 0 = no change unless an offset is
 		RS_HFIQ.send_variable_cmd_to_RSHFIQ("*F", RS_HFIQ.convert_freq_to_Str(Freq));
 		displayFreq();
 	#else
-    	SetFreq(Freq); // send freq to SI5351
-		displayFreq(); // show freq on display
+    SetFreq(Freq); // send freq to SI5351
+    displayFreq(); // show freq on display
 	#endif
 }

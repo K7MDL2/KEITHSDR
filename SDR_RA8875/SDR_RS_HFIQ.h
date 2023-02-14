@@ -19,8 +19,8 @@ class SDR_RS_HFIQ
     public:
         SDR_RS_HFIQ()  // -- Place any args here --          
         //  Place functions here if needed    ---
-        {}  // Copy arguments to local variables
-        // publish externally available functions
+        {}  // Copy arguments to local variables here
+        // publish externally available functions below
         uint64_t cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t &_VFOB, uint8_t &_curr_band, uint8_t &_xmit, uint8_t &_split, uint8_t &_mode, uint8_t &_clip);  // returns new or unchanged active VFO value
                                                                     // returns new or unchanged VFO value and modified band index and other parameters
         void        setup_RSHFIQ(int _blocking, uint64_t VFO);
@@ -59,5 +59,5 @@ class SDR_RS_HFIQ
         int  read_RSHFIQ(int flag);
 };
 
-#endif // USE_RS_HFIQ
+  #endif // USE_RS_HFIQ
 #endif   // _SDR_RS_HFIQ_SERIAL_H_

@@ -1,7 +1,6 @@
 #ifndef _RADIOCONFIG_H_
 #define _RADIOCONFIG_H_
 
-//#include "SDR_RA8875.h"
 //
 //      RadioConfig.h
 //
@@ -123,11 +122,18 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                               // Most radio IFs are inverted, though it can change depending on frequency
                               // Enabled only when the PANADAPTER define is active. Can be left uncommented.
 
-//#define ALL_CAT           // Include support for reading radio info for PANADAPTER mode CAT control over serial port or other means
+//#define PAN_CAT           // ** NOT likely working for now***  Include support for reading radio info for PANADAPTER mode CAT control over serial port or other means
                             // Intended for use in combination with PANADAPTER mode.  
                             // Defining this without the PANADAPTER mode enabled may cause odd effects.
                             // DEPENDS on PANADAPTER mode
+                            // APPLIES to PANADAPTER usage only which is using older code that has not tested recently and may not work today
 
+//#define USE_CAT_SER         // Use CAT port for Non-RSHFIQ hardware
+                            // If USE_RS_HFIQ set then the CAT port is always enabled (for now)
+
+//#define ALT_CAT_PORT        // Turn on to force the CAT comms to use the same port as Debug for single USB serial port configurations
+                            // This allows operation with standard Serial+MIDI+Audio USB type though the 48KHz USB audio will not work right.
+                            // APPLIES to all CAT comms regardless of RF hardware
 
 #define SCREEN_ROTATION   0 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
                             // 2 is 180 flip.  This will affect the touch orientation so that must be set to match your display
@@ -186,11 +192,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define V22_7_PCB    // For the V2.1 7" motherboard 12/30/2022
 
 // ----------------- RS-HFIQ ---------------------------------------------------
-#define USE_RS_HFIQ               // Use the RS-HFIQ 5W SDR transciever for the RF hardware. Connect via USB Host serial cable.
+//#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR transceiver for the RF hardware. Connect via USB Host serial cable.
+                                  // CAT port is always enabled for RS-HFIQ module.  
+                                  // Set ALT_CAT_PORT for which USB port to use.
 //#define NO_RSHFIQ_BLOCKING      // When combined with USE_RS-HFIQ, bypasses wait loops for queries from hardware allowing testing with no hardware connected
 //#define RSHFIQ_CAL_OFFSET  (0)  // Fixed offset applied each RS-HFIQ startup to calibrate frequency.
-#define RSHFIQ_ALT_CAT_PORT       // Turn onto force the RSHFIQ CAT comms to use the same port as Debug for single USB serial port configurations
-                                  // This allows operation with standard Serial+MIDI+Audio USB type though the 48KHz USB audio will not work right.
+
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
@@ -200,13 +207,18 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #ifdef K7MDL_BUILD  
 
-    //#undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
+    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
-      #define I2C_ENCODERS            // Use I2C connected encoders. 
+      //#define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
-      #define USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-      #define RSHFIQ_ALT_CAT_PORT
+      #define USE_RS_HFIQ 
+      #ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+        #undef ALT_CAT_PORT
+        #define ALT_CAT_PORT
+        #define RSHFIQ_CAL_OFFSET (-7500)
+        #define NO_RSHFIQ_BLOCKING
+      #endif
     #else // My RA8876 7" specific build items
       #undef  SCREEN_ROTATION
       #define SCREEN_ROTATION     2
@@ -214,15 +226,22 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V22_7_PCB
       //#define V21_7_PCB
-      #define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
-      #define SV1AFN_BPF   // for 10-band BPF board
-      #undef  VFO_MULT
-      #define VFO_MULT           2    // 2 for NT7V board
-      #define OCXO_10MHZ   // for Si5351C PLL board
-      #define K7MDL_OCXO
-      #ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-        #define RSHFIQ_CAL_OFFSET (-7500)  // Fixed offset (0.01Hz steps) applied each RS-HFIQ startup to calibrate frequency. Multiply offset error Hz by 100.  
-          // Example: WWV tunes in high at 10000130Hz.  Subtract (130*100) or -13000.   75Hz high is -7500.
+      
+      #define USE_RS_HFIQ 
+      #ifndef USE_RS_HFIQ
+        #define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
+        #define SV1AFN_BPF   // for 10-band BPF board
+        #undef  VFO_MULT
+        #define VFO_MULT           2    // 2 for NT7V board
+        #define OCXO_10MHZ   // for Si5351C PLL board
+        #define K7MDL_OCXO
+        #define USE_CAT_SER  // For now USE_RSHFIQ will overide this so this can be left defined, no problem
+        //#define ALT_CAT_PORT
+      #else      
+        #undef ALT_CAT_PORT
+        //#define ALT_CAT_PORT
+        #define RSHFIQ_CAL_OFFSET (-7500) // Example: WWV tunes in high at 10000130Hz.  Subtract (130*100) or -13000.   75Hz high is -7500.
+        #define NO_RSHFIQ_BLOCKING
       #endif
     #endif
 
@@ -254,9 +273,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //      BANDMAP - sets BAND ENABLE/DISABLE
 //  Specify what bands should be skipped. Set to 0 to skip.  1 to enable
-//  For RS-HFIQ (80M-10M) users set bands 160M and everything > 10M to 0 unless you have a Xvtr active
+//  For RS-HFIQ (80M-10M) users 160M is disabled. Everything 6M and up is set to 0 unless you have a Xvtr active
 // *****************************************************************************************
-#define ENABLE_160M_BAND  1
+#ifdef USE_RS_HFIQ
+  #define ENABLE_160M_BAND  0
+#else
+  #define ENABLE_160M_BAND  1
+#endif
 #define ENABLE_80M_BAND   1
 #define ENABLE_60M_BAND   1
 #define ENABLE_40M_BAND   1
@@ -266,8 +289,11 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 #define ENABLE_15M_BAND   1
 #define ENABLE_12M_BAND   1
 #define ENABLE_10M_BAND   1
-#define ENABLE_6M_BAND    1
-#define ENABLE_144_BAND   1
+
+// These are transverter bands common to all RF hardware that covers HF bands to 30MHz.
+// The default IF is 10M band defined in the bandmem table in SDR_DATA.h
+#define ENABLE_6M_BAND    0  // if you hardware does 6M then edit the bandmem table in SDR_DATA.h
+#define ENABLE_144_BAND   0
 #define ENABLE_222_BAND   0
 #define ENABLE_432_BAND   0
 #define ENABLE_902_BAND   0
@@ -579,12 +605,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // -----------------------------   PANADAPTER CAT INTERFACES  -------------------------------------------
 //
 #ifdef  FT817_CAT
+  #define PAN_CAT
   #define HWSERIAL Serial1 // Teensy hardware Serial or USB Serial port. Set this to the hardware serial port you wish to use
   #include <ft817.h>
   #include "SDR_CAT.h"
 #endif  // FT817_CAT
 
-#ifdef ALL_CAT
+#ifdef PAN_CAT
   #include "SDR_CAT.h"
 #endif
 

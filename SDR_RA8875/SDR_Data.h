@@ -20,7 +20,7 @@ struct Band_Memory bandmem[BANDS] = {
     { "15M",    21000000,    21450000,    21074000, DATA,    21030000, CW,      21300000,  USB,    21350000, USB,  BW3_2, 3200,  BAND15M,  3, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 7,  ATTEN_ON,   1,    3,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,   -0,  0xFFFF},
     { "12M",    24890000,    24990000,    24915000, USB,     24892000, CW,      24950000,  USB,    24904000, USB,  BW3_2, 3200,  BAND12M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 8,  ATTEN_ON,   1,    3,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,   -0,  0xFFFF},
     { "10M",    28000000,    29600000,    28074000, DATA,    28200000, USB,     29400000,  USB,    28200000, USB,  BW4_0, 4000,  BAND10M,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1, 9,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   NONE,    NONE,    100,   -0,  0xFFFF},
-    {  "6M",    50000000,    54000000,    50125000, USB,     50313000, DATA,    50100000,  CW,     50313000, DATA, BW3_2, 3200,  BAND6M,   1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   NONE,    NONE,     30,   -0,  0x0001},
+    {  "6M",    50000000,    54000000,    50125000, USB,     50313000, DATA,    50100000,  CW,     50313000, DATA, BW3_2, 3200,  BAND6M,   1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_ON,   5,  ON,   XVTR1,   BAND10M,  30,   -0,  0x0001},
     { "144",   144000000,   148000000,   144200000, USB,    144200000, DATA,   144200000,  CW,    144200000, DATA, BW3_2, 3200,  BAND144,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_ON,   1,    3,  PREAMP_ON,   5,  OFF,  XVTR2,   BAND10M,  10,   -0,  0x0002},
     { "222",   222000000,   225000000,   222100000, USB,    222100000, DATA,   222100000,  CW,    222100000, DATA, BW3_2, 3200,  BAND222,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR3,   BAND10M,  10,  -10,  0x0004},
     { "432",   432000000,   450000000,   432100000, USB,    432100000, DATA,   432100000,  CW,    432100000, DATA, BW3_2, 3200,  BAND432,  1, AGC_SLOW,OFF,OFF,OFF,OFF,ANT1,10,  ATTEN_OFF,  0,    0,  PREAMP_OFF,  5,  OFF,  XVTR4,   BAND10M,  40,  -10,  0x0008},
@@ -354,7 +354,7 @@ struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   MFTUNE,  NONE,        NONE,       NONE,           NONE,            NONE},       // Set VFO def_MF to MFTUNE in case there are no encoders
     {GPIO_ENC,  0,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // encoder events start slot sreach at 1 so skip VFO slot 0.
-    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         ATTEN_BTN},    // enc slot 2
+    {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         ATTEN_BTN,      SW2_BTN,         MUTE_BTN},    // enc slot 2
     {I2C_ENC,   3,    I2C_ENC2_ENABLE,   NONE,    FILTER_BTN,  ON,         MODE_BTN,       SW3_BTN,         NB_BTN},  // enc slot 3
     {I2C_ENC,   4,    I2C_ENC3_ENABLE,   NONE,    PAN_BTN,     ON,         ZOOM_BTN,       SW4_BTN,         PREAMP_BTN},   // enc slot 4
     {I2C_ENC,   5,    I2C_ENC4_ENABLE,   MFTUNE,  MFTUNE,      ON,         RIT_BTN,        SW5_BTN,         RIT_BTN},         // enc slot 5

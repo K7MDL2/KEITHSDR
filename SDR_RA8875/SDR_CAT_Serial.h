@@ -13,6 +13,9 @@
 #ifndef _SDR_CAT_SERIAL_H_
 #define _SDR_CAT_SERIAL_H_
 
+#ifdef USE_CAT_SER
+#ifndef USE_RS_HFIQ
+
 #include <Arduino.h>
 
 class SDR_CAT_Serial
@@ -43,5 +46,6 @@ class SDR_CAT_Serial
         //void write_RSHFIQ(int ch);
         //int  read_RSHFIQ(int flag);
 };
-
+#endif //USE_RS_HFIQ
+#endif //USE_CAT_SER
 #endif   // _SDR_CAT_SERIAL_H_

@@ -9,9 +9,15 @@
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 
-void CAT_handler(void);
-void CAT_setup(void);
-void print_CAT_status(void);
-void init_CAT_comms(void);
+#ifndef USE_CAT_SER
+    #ifdef PAN_CAT
+
+    void CAT_handler(void);
+    void CAT_setup(void);
+    void print_CAT_status(void);
+    void init_CAT_comms(void);
+
+    #endif
+#endif  // ! USE_CAT_SER
 
 #endif  // _SDR_CAT_H_

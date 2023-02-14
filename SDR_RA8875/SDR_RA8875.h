@@ -78,8 +78,10 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
-#ifdef USE_RS_HFIQ
+#if defined USE_RS_HFIQ
     #include "SDR_RS_HFIQ.h"   // https://github.com/K7MDL2/Teensy4_USB_Host_RS-HFIQ_Library
+#elif defined USE_CAT_PORT
+    #include "SDR_CAT_Serial.h"
 #endif
 
 // Simple ways to designate functions to run out of fast or slower memory to help save RAM

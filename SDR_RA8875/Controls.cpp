@@ -8,6 +8,7 @@
 #ifdef USE_RS_HFIQ
     // init the RS-HFIQ library
     extern SDR_RS_HFIQ RS_HFIQ;
+    extern void send_fixed_cmd_to_RSHFIQ(const char* str);
 #endif
 
 // Using the SV1AFN Band Pass Filter board with modified I2C library for Premp, Attenuator, and for 10 HF bands of BPFs
@@ -84,7 +85,6 @@ extern int16_t rit_offset;        // global RIT offset value in Hz.
 extern int16_t xit_offset;        // global XIT offset value in Hz.
 extern int16_t rit_offset_last;   // global RIT offset value in Hz.
 extern int16_t xit_offset_last;   // global RIT offset value in Hz.
-extern void send_fixed_cmd_to_RSHFIQ(const char* str);
 extern void update_icon_outline(void);
 extern void ringMeter(int val, int minV, int maxV, int16_t x, int16_t y, uint16_t r, const char* units, uint16_t colorScheme, uint16_t backSegColor, int16_t angle, uint8_t inc);
 

@@ -19,13 +19,13 @@
 //      Placed in the Public Domain.
 //
 //***************************************************************************************************
-#ifdef USE_RS_HFIQ
-
 #include <Arduino.h>
 #include <USBHost_t36.h>
 #include "RadioConfig.h"
 #include "SDR_RA8875.h"
 #include "SDR_RS_HFIQ.h"
+
+#ifdef USE_RS_HFIQ
 /*
 //#define DEBUG_RSHFIQ  //set to true for debug output, false for no debug output
 #ifdef DEBUG_RSHFIQ
@@ -61,10 +61,10 @@
 #endif
 
 // Serial port for external CAT control
-#ifndef RSHFIQ_ALT_CAT_PORT
-    #define CAT_RS_Serial SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
+#ifndef ALT_CAT_PORT
+    #define CAT_port SerialUSB1  // if you have 2 serial ports.  Make this the 2nd.
 #else
-    #define CAT_RS_Serial Serial   // if you only have 1 serial port and want CAT, turn off DEBUG and use this.
+    #define CAT_port Serial   // if you only have 1 serial port and want CAT, turn off DEBUG and use this.
 #endif
 
 // Teensy USB Host port
@@ -132,7 +132,7 @@ extern          uint64_t            find_new_band(uint64_t new_frequency, uint8_
 // *************************************************************************************************
 void SDR_RS_HFIQ::setup_RSHFIQ(int _blocking, uint64_t VFO)  // 0 non block, 1 blocking
 {   
-    CAT_RS_Serial.begin(38400);
+    CAT_port.begin(38400);
     delay(100);
     DPRINTLN("\nStart of RS-HFIQ Setup"); 
     //SerialUSB1.println("\nStart of RS-HFIQ Setup"); 
@@ -230,65 +230,65 @@ uint64_t SDR_RS_HFIQ::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t 
 
 //   Test code.  Passes through all chars both directions.
 /*
-    while (CAT_RS_Serial.available() > 0)    // Process any and all characters in the buffer
-        userial.write(CAT_RS_Serial.read());
+    while (CAT_port.available() > 0)    // Process any and all characters in the buffer
+        userial.write(CAT_port.read());
     while (userial.available()) 
-        CAT_RS_Serial.write(userial.read());
+        CAT_port.write(userial.read());
     return 0;
 */
-    while (CAT_RS_Serial.available() > 0)    // Process any and all characters in the buffer
+    while (CAT_port.available() > 0)    // Process any and all characters in the buffer
     {
-        c = CAT_RS_Serial.readBytesUntil(';',S_Input, 15); 
+        c = CAT_port.readBytesUntil(';',S_Input, 15); 
         
         if (c>0)
         {
-            //CAT_RS_Serial.print("Count=");
-            //CAT_RS_Serial.print(c,DEC);
-            //CAT_RS_Serial.printf("  %s\r\n",S_Input);
+            //CAT_port.print("Count=");
+            //CAT_port.print(c,DEC);
+            //CAT_port.printf("  %s\r\n",S_Input);
 
             #ifdef DBG 
             //DPRINTF("\nRS-HFIQ: Cmd String: "); DPRINTLN(S_Input);
             #endif
             if (!strncmp(S_Input, "ID", 2))
             {
-                CAT_RS_Serial.print("ID017;");
+                CAT_port.print("ID017;");
             } 
             else if (!strncmp(S_Input, "OM", 2))   // && c == 13)
             {
-                CAT_RS_Serial.print("OM ------------;");
+                CAT_port.print("OM ------------;");
             }
             else if (!strncmp(S_Input, "K2", 2) && strlen(S_Input) == 2)   // && c == 13)
             {
-                CAT_RS_Serial.print("K20;");
+                CAT_port.print("K20;");
             }
             else if (!strncmp(S_Input, "K3", 2) && strlen(S_Input) == 2)   // && c == 13)
             {
-                CAT_RS_Serial.print("K30;");
+                CAT_port.print("K30;");
             }
             else if (!strncmp(S_Input, "RVM", 3)&& strlen(S_Input) == 3)
             {
-                CAT_RS_Serial.print("RVM05.67;");
+                CAT_port.print("RVM05.67;");
             }
             else if (!strncmp(S_Input, "BW", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("BW4000;");
+                CAT_port.print("BW4000;");
             }
             else if (!strncmp(S_Input, "LN", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("LN0;");
+                CAT_port.print("LN0;");
             }
             else if (!strncmp(S_Input, "PS", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("PS1;");   // radio is turned on
+                CAT_port.print("PS1;");   // radio is turned on
             }
             else if (!strncmp(S_Input, "FR", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("FR0;");
+                CAT_port.print("FR0;");
             }
             else if (!strncmp(S_Input, "FT", 2) && strlen(S_Input) == 2)
             {
-                if (_split == 0) CAT_RS_Serial.print("FT0;");
-                else CAT_RS_Serial.print("FT1;");
+                if (_split == 0) CAT_port.print("FT0;");
+                else CAT_port.print("FT1;");
             }
             else if (!strncmp(S_Input, "FR0", 3)  && strlen(S_Input) == 3) // Split OFF
             {
@@ -313,35 +313,35 @@ uint64_t SDR_RS_HFIQ::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t 
             }
             else if (!strncmp(S_Input, "DT", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("DT0;");  // return 0 = DATA A mode
+                CAT_port.print("DT0;");  // return 0 = DATA A mode
             }
             else if (!strncmp(S_Input, "FI", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.print("FI5000;");  // last 4 digits of the IF cener frequency used for shifting panadapater.
+                CAT_port.print("FI5000;");  // last 4 digits of the IF cener frequency used for shifting panadapater.
             }
             else if (!strncmp(S_Input, "AI", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.printf("AI%1d;", _ai);  // return current AI mode
+                CAT_port.printf("AI%1d;", _ai);  // return current AI mode
             }
             else if (!strncmp(S_Input, "AI0", 3) && strlen(S_Input) == 3)
             {
                 _ai = 0;
-                //CAT_RS_Serial.print("AI0;");
+                //CAT_port.print("AI0;");
             }
             else if (!strncmp(S_Input, "AI1", 3) && strlen(S_Input) == 3)
             {
                 _ai = 1;
-                CAT_RS_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
+                CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
             }
             else if (!strncmp(S_Input, "AI2", 3) && strlen(S_Input) == 3)
             {
                 _ai = 2;
-                //CAT_RS_Serial.print("AI2;");
-                //CAT_RS_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
+                //CAT_port.print("AI2;");
+                //CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, *split);
             }
             else if (!strncmp(S_Input, "IF", 2)) // Transceiver Info
             {
-                CAT_RS_Serial.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
+                CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
             }
             else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)   // report Radio current Mode per K3 numbering
             {
@@ -359,7 +359,7 @@ uint64_t SDR_RS_HFIQ::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t 
                     case DATA_REV:  _mode_ = 9; break;
                     default: break;
                 } 
-                CAT_RS_Serial.printf("MD%d;", _mode_);
+                CAT_port.printf("MD%d;", _mode_);
             }
             else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) > 2)  // map incoming mode change request from K3 values to our mode numbering and return the value
             {
@@ -378,11 +378,11 @@ uint64_t SDR_RS_HFIQ::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t 
             }
             else if (!strncmp(S_Input, "FA", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.printf("FA%011llu;", _VFOA);  // Respond back for confirmation FA + 11 freq + ;
+                CAT_port.printf("FA%011llu;", _VFOA);  // Respond back for confirmation FA + 11 freq + ;
             }
             else if (!strncmp(S_Input, "FB", 2) && strlen(S_Input) == 2)
             {
-                CAT_RS_Serial.printf("FB%011llu;", _VFOB);  // Respond back for confirmation FA + 11 freq + ;
+                CAT_port.printf("FB%011llu;", _VFOB);  // Respond back for confirmation FA + 11 freq + ;
             } 
             else if (!strncmp(S_Input, "FA", 2) && strlen(S_Input) > 2)
             {
@@ -480,7 +480,7 @@ uint64_t SDR_RS_HFIQ::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t 
     //Ser_Flag = 0;
     S_Input[0] = '\0';
     c=0;
-    CAT_RS_Serial.flush();
+    CAT_port.flush();
     //DPRINTF("rs_freq = "); DPRINTLN(rs_freq);
     //DPRINTF("_VFOA = "); DPRINTLN(_VFOA);
     return rs_freq;
@@ -574,7 +574,7 @@ int SDR_RS_HFIQ::read_RSHFIQ(int flag)
 void SDR_RS_HFIQ::print_RSHFIQ(int flag)
 {
     read_RSHFIQ(flag);
-    CAT_RS_Serial.println(R_Input);
+    CAT_port.println(R_Input);
     return;
 }
 
@@ -686,4 +686,5 @@ uint64_t SDR_RS_HFIQ::find_new_band(uint64_t new_frequency, uint8_t &_curr_band)
     return 0;  // 0 means frequency was not found in the table
 }
 */
+
 #endif // USE_RS_HFIQ
