@@ -18,9 +18,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     12. CAT now works (globally) with 1 serial port or 2 with ALT_CAT_PORT (RS-HFIQ and PAN modes included).  It can also be turned off if not using RSHFIQ or PAN configurations
     13. New RadioCOnfig.h settings for dealing with multiple Serial ports vs hardware configs. USE_CAT_SER turns CAT on or off (for non RSHFIQ config). The RSHFIQ will have CAT on always, but with the ALT_CAT_PORT set comms will be on the 1st serial.  Be sure to turn off DEBUG if you only have your USB Type set for 1 serial port.  If not using USB audio this allows operation with only 1 com port which might be the case if you have not done the USB 48KHz and/or Dual Serial + Audio patch to the USB library. NO_RSHFIQ_BLOCKING (existing) lets the RSHFIQ comms blast out requiring no response so you do not need to have one attached for testing with no RF hardware.
     14. Renamed ALL_CAT to PAN_CAT.  Note the Panadapter comms may not work, many changes have been applied for global serial port changes and it has not been tested in over a year.
-    
-
-
+    15. Multiple Experimental CESSB modes added earlier,  Today Bob updated the lib with a new module radioCESSB_Z_transmit_F32 that outputs CESSB audio at Zero IF rather thent eh traditional offset such as 1350Hz (1/2 Xmit BW),  Use #define CESSB to activate it.
 
 ## Jan 2023
 
