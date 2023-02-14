@@ -13,6 +13,14 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     7. Assigned the PE4302 digital step attenuator to the GPS header IO pins in RadioConfig.h.  Changed step size from 1dB to 0.5dB.  UI uses 1 to 100% so can represent any size attenuator.
     8. Fixed Atten button behavior.  Now it is always lighted when active.  Long Press will activate adjustment via the touch or MF knob if Att is active.
     9. Fixed RIT and XIT button behavior. Acts like the Atten button now. The value in the status icon now shows stored value when inactive vs 0.0.  When Inactive a long press will zero the values.
+    10. Feb 14: Fixed broken RS-HFIQ build, misplaced #define.
+    11. Renamed com ports globally.  Was using CAT_Serial for both a module name and port name.  RS-HFIQ module was using CAT_RS_Serial.  Panadapter code was using something else.  Now there is only 1, CAT_port.  
+    12. CAT now works (globally) with 1 serial port or 2 with ALT_CAT_PORT (RS-HFIQ and PAN modes included).  It can also be turned off if not using RSHFIQ or PAN configurations
+    13. New RadioCOnfig.h settings for dealing with multiple Serial ports vs hardware configs. USE_CAT_SER turns CAT on or off (for non RSHFIQ config). The RSHFIQ will have CAT on always, but with the ALT_CAT_PORT set comms will be on the 1st serial.  Be sure to turn off DEBUG if you only have your USB Type set for 1 serial port.  If not using USB audio this allows operation with only 1 com port which might be the case if you have not done the USB 48KHz and/or Dual Serial + Audio patch to the USB library. NO_RSHFIQ_BLOCKING (existing) lets the RSHFIQ comms blast out requiring no response so you do not need to have one attached for testing with no RF hardware.
+    14. Renamed ALL_CAT to PAN_CAT.  Note the Panadapter comms may not work, many changes have been applied for global serial port changes and it has not been tested in over a year.
+    
+
+
 
 ## Jan 2023
 
