@@ -242,7 +242,7 @@ COLD void displayFilter(void)
 {
 	char str[15];
 
-	//if (popup) return;  // Do not write to the screen when a window is active
+	if (popup) return;  // Do not write to the screen when a window is active
 
 	#ifdef PANADAPTER
 		extern int16_t filterWidth;
@@ -508,7 +508,9 @@ COLD void displayXVTR()
 		xvtr = 1;
 	else
 		xvtr = 0;
-	drawLabel(XVTR_LBL, &xvtr);
+	#ifndef USE_RA8875
+		drawLabel(XVTR_LBL, &xvtr);   // no room on the 4.3" so draw only for RA8876
+	#endif
 	draw_2_state_Button(XVTR_BTN,  &xvtr);
 	DPRINTF("displayXVTR: XVTR is "); DPRINTLN(xvtr);
 }
@@ -682,8 +684,11 @@ void displayBand_Menu(uint8_t state)
 		tft.setFont(Arial_20);
 		tft.setTextColor(ptr->txtclr);
 		tft.setCursor(CENTER, ptr->by+30, true);
+		#ifdef USE_RA8875
+		tft.printf("    Band Select Menu           CPU:%dC", tempC);
+		#else
 		tft.printf("                  Band Select Menu                      CPU:%dC", tempC);
-		
+		#endif
 		// loop through records with panelnum == 100 and panelpos !255.  
 		// In the future draw the buttons in the panelpos order, not the x,y values. For now using x,y from table.
 		ptr = std_btn;
