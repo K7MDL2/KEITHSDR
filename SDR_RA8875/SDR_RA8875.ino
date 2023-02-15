@@ -1984,6 +1984,19 @@ COLD void resetCodec(void)
 	cessb1.setGains(Pre_CESSB_Gain, 2.0f, 1.0f);
 	//pLevelData = cessb1.getLevels(0);  // Gets pointer to struct
 
+    #ifdef IQ_CORRECTION_WITH_CESSB
+        // Small corrections at the output end of this object can patch up hardware flaws.
+        // _gI should be close to 1.0, _gXIQ and _gXQI should be close to 0.0.
+        // xrossIQ and crossQI can be either + or -.  If you gainI -1.0, it will reverse the sidebands!!
+        // One of either xrossIQ or crossQI should end up as 0.0 or you are fighting yourself.
+        // If you set useIQCorrection to false, there is no processing used, so this is harmless
+        // Only available in transmit audio flows with CESSB enabled.
+        // bool _useCor, float32_t _gI, float32_t _gXIQ, float32_t _gXQI)
+        cessb1.setIQCorrections(true, 1.0, 0.0, 0.0);
+    #else
+        cessb1.setIQCorrections(false, 1.0, 0.0, 0.0);
+    #endif 
+
     #ifdef CESSB_IQMIXER
         iqMixer1.useTwoChannel(true);
         iqMixer1.useSimple(false);  // enables setGainOut()
@@ -2011,6 +2024,8 @@ COLD void resetCodec(void)
 	//TX_FFT_90deg_Hilbert.begin(hilbert251A, 251);
 	// TX_FFT_90deg_Hilbert.showError(1);
 #endif
+
+
 
     // The FM detector has error checking during object construction
     // when DPRINT is not available.  See RadioFMDetector_F32.h:

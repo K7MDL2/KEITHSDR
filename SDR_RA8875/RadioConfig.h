@@ -207,17 +207,17 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #ifdef K7MDL_BUILD  
 
-    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
+    //#undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
-      //#define I2C_ENCODERS            // Use I2C connected encoders. 
+      #define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       #define USE_RS_HFIQ 
       #ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-        #undef ALT_CAT_PORT
-        #define ALT_CAT_PORT
+        //#undef ALT_CAT_PORT
+        //#define ALT_CAT_PORT
         #define RSHFIQ_CAL_OFFSET (-7500)
-        #define NO_RSHFIQ_BLOCKING
+        //#define NO_RSHFIQ_BLOCKING
       #endif
     #else // My RA8876 7" specific build items
       #undef  SCREEN_ROTATION
@@ -227,7 +227,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define V22_7_PCB
       //#define V21_7_PCB
       
-      #define USE_RS_HFIQ 
+      //#define USE_RS_HFIQ 
       #ifndef USE_RS_HFIQ
         #define PE4302       // enable the step attenuator - using the ENC3 pins 33-35
         #define SV1AFN_BPF   // for 10-band BPF board
@@ -260,12 +260,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     //#define BETATEST            // audio memory external buffer test using FFT4096 
     //#define USE_MIDI  	        // Experimental dev work to use Teensy SDR controls to send out MIDI events over USB
 
-    //#define CESSB   // Beta test for new Weaver method CESSB.  Output is centers on 1350Hz so needs FC offset or other LO shifting
+    #define CESSB   // Beta test for new Weaver method CESSB.  Output is centers on 1350Hz so needs FC offset or other LO shifting
     // Choose one or none of these 3 below.  Selecting **none of these** will default to the CESSB_DIRECT method with Fc = +/-1350
-    // DIRECT Mode will place teh LO in the audio passband and it may be strong enough to be heard and even beat note against your test tone.
+    // DIRECT Mode will place the LO in the audio passband and it may be strong enough to be heard and even beat note against your test tone.
     //#define CESSB_MULTIPLY
     //#define CESSB_2xIQMIXER
     //#define CESSB_IQMIXER
+    #define IQ_CORRECTION_WITH_CESSB  // turns on IQ correction to possibly help improve sideband image rejection due to hardware imbalances.
 
 #endif  // K7MDL_BUILD
 
@@ -508,8 +509,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #ifdef I2C_ENCODERS
     #define I2C_ENC1_ENABLE         2 //2     // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
     #define I2C_ENC2_ENABLE         3 //3
-    #define I2C_ENC3_ENABLE         4 //4    
-    #define I2C_ENC4_ENABLE         5 //5    // 0 is disabled
+    #define I2C_ENC3_ENABLE         0 //4    
+    #define I2C_ENC4_ENABLE         0 //5    // 0 is disabled
     #define I2C_ENC5_ENABLE         0
     #define I2C_ENC6_ENABLE         0
   #else
