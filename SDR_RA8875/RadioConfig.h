@@ -201,7 +201,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
+#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -509,8 +509,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
   #ifdef I2C_ENCODERS
     #define I2C_ENC1_ENABLE         2 //2     // 0 is Disabled, > 0 to activate - set value to row number in Encoder_List table
     #define I2C_ENC2_ENABLE         3 //3
-    #define I2C_ENC3_ENABLE         0 //4    
-    #define I2C_ENC4_ENABLE         0 //5    // 0 is disabled
+    #if defined K7MDL_BUILD && defined USE_RA8875
+      #define I2C_ENC3_ENABLE         0 //4    
+      #define I2C_ENC4_ENABLE         0 //5    // 0 is disabled
+    #else
+      #define I2C_ENC3_ENABLE         4    
+      #define I2C_ENC4_ENABLE         5
+    #endif
     #define I2C_ENC5_ENABLE         0
     #define I2C_ENC6_ENABLE         0
   #else

@@ -354,7 +354,7 @@ struct EncoderList encoder_list[NUM_AUX_ENCODERS] {
 //type          id    enabled            def_MF   enca         a_active    encb            enc1_tap         enc1_press
     {GPIO_ENC,  0,    GPIO_VFO_ENABLE,   MFTUNE,  NONE,        NONE,       NONE,           NONE,            NONE},       // Set VFO def_MF to MFTUNE in case there are no encoders
     {GPIO_ENC,  0,    GPIO_ENC2_ENABLE,  NONE,    MFTUNE,      ON,         MENU_BTN,       SW1_BTN,         PREAMP_BTN},   // encoder events start slot sreach at 1 so skip VFO slot 0.
-    #ifdef USE_RA8875
+    #ifdef USE_RA8875 && K7MDL_BUILD
     {I2C_ENC,   2,    I2C_ENC1_ENABLE,   NONE,    AFGAIN_BTN,  ON,         RFGAIN_BTN,     SW2_BTN,         MUTE_BTN},    // enc slot 2
     {I2C_ENC,   3,    I2C_ENC2_ENABLE,   MFTUNE,  MFTUNE,      ON,         FILTER_BTN,     SW3_BTN,         NB_BTN},  // enc slot 3
     #else

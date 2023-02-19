@@ -720,6 +720,7 @@ void displayBand_Menu(uint8_t state)
 			}
 		}
 		DPRINTLN("Band Select Menu Buttons Turned OFF\n");
+		displayRefresh();
 	}
 }
 
