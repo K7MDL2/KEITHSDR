@@ -1156,21 +1156,21 @@ COLD void Zoom(int8_t dir)
 
     switch (_zoom_Level)
     {
-#ifdef FFT_1024
-        case ZOOMx1:
-            Change_FFT_Size(1024, sample_rate_Hz);
-            break; // Zoom farthest in
-#endif
-#ifdef FFT_2048
-        case ZOOMx2:
-            Change_FFT_Size(2048, sample_rate_Hz);
-            break; // Zoom farthest in
-#endif
-#ifdef FFT_4096
-        case ZOOMx4:
-            Change_FFT_Size(4096, sample_rate_Hz);
-            break; // Zoom farthest in
-#endif
+        #ifdef FFT_1024
+                case ZOOMx1:
+                    Change_FFT_Size(1024, sample_rate_Hz);
+                    break; // Zoom farthest in
+        #endif
+        #ifdef FFT_2048
+                case ZOOMx2:
+                    Change_FFT_Size(2048, sample_rate_Hz);
+                    break; // Zoom farthest in
+        #endif
+        #ifdef FFT_4096
+                case ZOOMx4:
+                    Change_FFT_Size(4096, sample_rate_Hz);
+                    break; // Zoom farthest in
+        #endif
         default:
             Change_FFT_Size(FFT_SIZE, sample_rate_Hz);
             break; // Zoom farthest in

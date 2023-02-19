@@ -288,7 +288,7 @@ float32_t   TX_filterBandwidth  = 2800;
 AudioSettings_F32  audio_settings(sample_rate_Hz, audio_block_samples);    
 
 #ifdef CESSB
-    struct levels* pLevelData;
+    struct levelsZ* pLevelData;
     uint32_t writeOne = 0;
     uint32_t cntFFT = 0;
     radioCESSB_Z_transmit_F32       cessb1(audio_settings);
