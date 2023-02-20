@@ -2241,6 +2241,8 @@ HOT void CAT_Service(void)
             bandmem[curr_band].vfo_A_last = VFOA;  // Save last band's frequency
             curr_band = last_curr_band;  // update to new band
             VFOA = last_VFOA; // update to the possibly new VFO
+            bandmem[curr_band].tune_step = 1;
+            displayRate();
             DPRINTF("CAT: Changing Bands to "); DPRINT(bandmem[curr_band].band_name); DPRINTF(" with VFOA = "); DPRINTLN(VFOA);
             changeBands(0);
         }
@@ -2250,7 +2252,9 @@ HOT void CAT_Service(void)
             bandmem[curr_band].vfo_A_last = VFOA; // Save last band's frequency
             VFOA = last_VFOA;  // update to new VFO value
             DPRINTF("CAT: VFOA from CAT Port: "); DPRINTLN(VFOA);
+            bandmem[curr_band].tune_step = 1;
             selectFrequency(0);  // Update tuner to VFOA value
+            displayRate();
             displayFreq();  // Update the VF)A display        
         }
         else if (last_VFOB != VFOB)
