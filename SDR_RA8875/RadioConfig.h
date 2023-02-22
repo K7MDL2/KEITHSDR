@@ -201,13 +201,13 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
+//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
 
 //******************************************************************************************
 
 #ifdef K7MDL_BUILD  
 
-    //#undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
+    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders. 
