@@ -31,3 +31,6 @@ UI as of 3/25/2021.  40M FT-8.  Testing colors and styles of indicators.
 Sample rate at 102.4KHz with 4096 point I and Q FFT on a 800x480 4.3" display. 24% max CPU, 4% average. 1:1 bins-per-pixel mapping.
 
 ![UI Screenshot 3-25-2021](https://github.com/K7MDL2/KEITHSDR/blob/main/SDR_RA8875/Pictures/3-25-2021%20ScreenShot.jpg)
+
+There are many Wiki Pages with hardware and software notes and how to build and configure.  I sugest reviewing them and then this page to start your first build.
+https://github.com/K7MDL2/KEITHSDR/wiki/Getting-Started-Building-SDR_887x-SDR-program
