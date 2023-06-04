@@ -118,6 +118,14 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             {
                 CAT_port.print("OM ------------;");
             }
+            else if (!strncmp(S_Input, "K20", 3)) // && strlen(S_Input) == 2)   // && c == 13)
+            {
+                //CAT_port.print("K20;");
+            }
+            else if (!strncmp(S_Input, "K22", 3)) // && strlen(S_Input) == 2)   // && c == 13)
+            {
+                //CAT_port.print("K22;");
+            }
             else if (!strncmp(S_Input, "K2", 2)) // && strlen(S_Input) == 2)   // && c == 13)
             {
                 CAT_port.print("K20;");
@@ -187,7 +195,7 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             else if (!strncmp(S_Input, "AI0", 3) && strlen(S_Input) == 3)
             {
                 _ai = 0;
-                CAT_port.print("AI0;");
+                //CAT_port.print("AI0;");
             }
             else if (!strncmp(S_Input, "AI1", 3) && strlen(S_Input) == 3)
             {
@@ -204,7 +212,7 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             {
                 CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
             }
-            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)   // report Radio current Mode per K3 numbering
+            else if (!strncmp(S_Input, "MD$", 3) && strlen(S_Input) == 3 || !strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)   // report Radio current Mode per K3 numbering
             {
                 uint8_t _mode_ = 0;
 
