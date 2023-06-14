@@ -2,6 +2,10 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## June 2023
+
+    1. Updated the USB based CAT control commands to work better with the latest version of WSJTX.
+
 ## Feb 2023
 
     1. Switched 7" chassis from RS-HFIQ config to classic Si5351C+QSD/QSE+BPF+LNA combo fo testing.
