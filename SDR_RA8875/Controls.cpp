@@ -50,7 +50,7 @@ extern AudioEffectCompressor2_F32 compressor1; // Audio Compressor
 extern AudioEffectCompressor2_F32 compressor2; // Audio Compressor
 extern uint8_t popup;
 extern void RampVolume(float vol, int16_t rampType);
-extern volatile uint64_t Freq_Peak;
+extern volatile int64_t Freq_Peak;
 extern void set_MF_Service(uint8_t client_name);
 extern void unset_MF_Service(uint8_t client_name);
 extern uint8_t MF_client;  // Flag for current owner of MF knob services

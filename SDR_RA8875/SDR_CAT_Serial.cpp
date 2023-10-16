@@ -2,7 +2,7 @@
 //
 //      SDR_CAT_Serial.cpp 
 //
-//      SDR_CAR_Serial Class for CAT side interface using Elecraft K3/kenwood CAT protocol to enable programs 
+//      SDR_CAT_Serial Class for CAT side interface using Elecraft K3/Kenwood CAT protocol to enable programs 
 //          like WSJT-X Hamlib interface to set split and follow BAND/VFO changes from the radio side. 
 //          Accepts expanded set of CAT port commands such as *FA, *FB, *SW0, etc. for Elecraft K3 protocol
 //          and passes back these controls to the main program.  
@@ -24,7 +24,7 @@
 
 //#define DBG
 //#define DEBUG_CAT  //set to true for debug output, false for no debug output
-/*
+
 #ifdef DEBUG_CAT
     //#define DSERIALBEGIN(...)    Serial.begin(__VA_ARGS__)
     //#define DPRINTLN(...)       Serial.println(__VA_ARGS__)
@@ -50,7 +50,7 @@
     #define DEBUG_PRINTLN(...) 
     #define DEBUG_PRINTF(...) 
 #endif
-*/
+
 
 #ifdef USE_RA8875
     extern RA8875 tft;
@@ -86,6 +86,7 @@ void SDR_CAT_Serial::setup_CAT_Serial()  // 0 non block, 1 blocking
     tft.setCursor(60, 320);
     tft.print(F("Waiting for connection to USB port - Is it connected?"));
     delay(1000);
+
     DPRINTLNF("End of CAT Serial Setup");
 }
 
@@ -103,7 +104,8 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
 
     while (CAT_port.available() > 0)    // Process any and all characters in the buffer
     {
-        c = CAT_port.readBytesUntil(';',S_Input, 15); 
+        c = CAT_port.readBytesUntil(';',S_Input, 15);   // c is length of string
+        //CAT_port.print("SDR_CAT_Serial: c = "); CAT_port.print(c);
         
         if (c>0)
         {
@@ -212,7 +214,7 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             {
                 CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
             }
-            else if (!strncmp(S_Input, "MD$", 3) && strlen(S_Input) == 3 || !strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)   // report Radio current Mode per K3 numbering
+            else if ((!strncmp(S_Input, "MD$", 3) && strlen(S_Input) == 3) || (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2))   // report Radio current Mode per K3 numbering
             {
                 uint8_t _mode_ = 0;
 

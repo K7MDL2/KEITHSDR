@@ -135,6 +135,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // This allows operation with standard Serial+MIDI+Audio USB type though the 48KHz USB audio will not work right.
                             // APPLIES to all CAT comms regardless of RF hardware
 
+//#define  FT817_CAT          // Use FT-0817 serial interface while in Panadapter mode.
+
 #define SCREEN_ROTATION   0 // 0 is normal horizontal landscape orientation  For RA8876 only at this point.
                             // 2 is 180 flip.  This will affect the touch orientation so that must be set to match your display
                             // The 7" RA8876 display has a better off-center viewing angle when horizantal when the touch panel ribbon is at the top.  This requires the touch to be rotated.
@@ -207,18 +209,18 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #ifdef K7MDL_BUILD  
 
-    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
+    //#undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders. 
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       #define USE_RS_HFIQ 
-      #ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
+      //#ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
         //#undef ALT_CAT_PORT
         //#define ALT_CAT_PORT
         #define RSHFIQ_CAL_OFFSET (-7500)
         //#define NO_RSHFIQ_BLOCKING
-      #endif
+      //#endif
     #else // My RA8876 7" specific build items
       #undef  SCREEN_ROTATION
       #define SCREEN_ROTATION     2
@@ -236,12 +238,12 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
         #define OCXO_10MHZ   // for Si5351C PLL board
         #define K7MDL_OCXO
         #define USE_CAT_SER  // For now USE_RSHFIQ will overide this so this can be left defined, no problem
-        //#define ALT_CAT_PORT
-      #else      
+        //#define ALT_CAT_PORT  // Use when only 1 USB serial port available (Such as when IO is set to Serial-MIDI-Audio)
+      #else      // Use RS-HFIQ
         #undef ALT_CAT_PORT
         //#define ALT_CAT_PORT
         #define RSHFIQ_CAL_OFFSET (-7500) // Example: WWV tunes in high at 10000130Hz.  Subtract (130*100) or -13000.   75Hz high is -7500.
-        #define NO_RSHFIQ_BLOCKING
+        //#define NO_RSHFIQ_BLOCKING
       #endif
     #endif
 

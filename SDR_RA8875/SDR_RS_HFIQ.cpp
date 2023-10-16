@@ -343,7 +343,7 @@ uint64_t SDR_RS_HFIQ::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64_t 
             {
                 CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
             }
-            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)   // report Radio current Mode per K3 numbering
+            else if ((!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2)  || (!strncmp(S_Input, "MD$", 3) && strlen(S_Input) == 3))  // report Radio current Mode per K3 numbering
             {
                 uint8_t _mode_ = 0;
 

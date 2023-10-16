@@ -187,7 +187,7 @@ int32_t     ModeOffset  = 0;        // Holds offset based on CW mode pitch
 bool        enable_printCPUandMemory = false;   // CPU , memory and temperature
 void        togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 uint8_t     popup                   = 0;   // experimental flag for pop up windows
-int32_t     Freq_Peak               = 0;
+int64_t     Freq_Peak               = 0;
 uint8_t     display_state;   // something to hold the button state for the display pop-up window later.
 bool        touchBeep_flag          = false;
 bool        MeterInUse;  // S-meter flag to block updates while the MF knob has control
@@ -249,8 +249,8 @@ bool MF_default_is_active = true;
 // Audio Library setup stuff
 // float32_t sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 // float32_t sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-// float32_t sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-float32_t sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
+float32_t sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+//float32_t sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
 // float32_t sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float32_t sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float32_t sample_rate_Hz = 192000.0f; // 190Hz/bin - does
@@ -1031,7 +1031,7 @@ HOT void loop()
 #endif
 
 #if defined USE_CAT_SER || defined USE_RS_HFIQ
-if (CAT_Serial_Check.check() == 1) // check for incomiong CAT serial commands and transfer info between hardware and program
+if (CAT_Serial_Check.check() == 1) // check for incoming CAT serial commands and transfer info between hardware and program
     CAT_Service();
 #endif
 
@@ -2223,16 +2223,16 @@ HOT void CAT_Service(void)
     last_VFOB     = VFOB;
     last_curr_band = curr_band;
     
-    #if defined  USE_RS_HFIQ //  Check the serial ports for manual inputs.
+    #if defined  USE_RS_HFIQ //  Check the serial ports for manual inputs.  Frequency is returned in temp.
         uint64_t temp = RS_HFIQ.cmd_console(swap_VFO, last_VFOA, last_VFOB, last_curr_band, CAT_xmit, (bandmem[curr_band].split), (bandmem[curr_band].mode_A), clipping);
     #elif defined USE_CAT_SER
         uint64_t temp = CAT_Serial.cmd_console(swap_VFO, last_VFOA, last_VFOB, last_curr_band, CAT_xmit, (bandmem[curr_band].split), (bandmem[curr_band].mode_A), clipping);
     #endif    
-
+    
     // for any request it needs to be on a valid/enabled band
     temp = find_new_band(temp, last_curr_band);  // 0 if bad or Disabled band requested, Get the band index for VFOA
-
-    if (temp)  // we have a valid enabled band.  0 - Invalid freuency/band
+        
+    if (temp)  // we have a valid enabled band.  0 - Invalid frequency/band
     {
         if (curr_band != last_curr_band) // last_curr_band has our new band number.  If different than change bands
         {
