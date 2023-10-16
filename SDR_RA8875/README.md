@@ -10,6 +10,10 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     4. Changed the sample rate to 44.1KSps to match the USB audio default rate of 44.1KHz. This seems to work OK with WSJT-X and has run for well over a week with no USB lockups.  The 48Khz library mods suffer from random timed USB bus lockup.  That will be difficult to debug.  To run higher sample rate a bette rsaolution is to use a dedicated I2S connected USB audio chip and skip the Teensy USB audio.
 
 
+## June 2023
+
+    1. Updated the USB based CAT control commands to work better with the latest version of WSJTX.
+
 ## Feb 2023
 
     1. Switched 7" chassis from RS-HFIQ config to classic Si5351C+QSD/QSE+BPF+LNA combo fo testing.
