@@ -185,7 +185,7 @@ COLD void displayFreq(void)
 	// Could try a non-printable value to hold constant width space.  The ' ' char is shortened by the proportional font
 
 	int ct = strlen(vfo_str);
-	int ct1 = 14-ct;   // calc padding for VFO X coordinate since sdpaces are narrower than the numbers
+	int ct1 = 14-ct;   // calc padding for VFO X coordinate since spaces are narrower than the numbers
     //DPRINT(" length of VFO_Str "); DPRINTLN(ct1);
 	tft.setCursor(pVAct->bx+pVAct->padx+(ct1*VFOA_font_px_width), pVAct->by+pVAct->pady);
 	tft.printf(vfo_str);	

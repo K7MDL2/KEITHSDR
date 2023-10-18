@@ -376,7 +376,7 @@ struct Frequency_Display disp_Freq[FREQ_DISP_NUM] = {
     #ifdef USE_RA8875
     {262,  1, 320,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_32, RED,   4,   4}, // VFO Active Digits
     {588,  1,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  GREEN,      Arial_24, RED,   9,   7}, // VFO Active Label
-    {336, 53, 274,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   6,   6}, // VFO Stby Digits
+    {336, 53, 244,  40,   3,  0,  0, BLACK,      BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   6,   6}, // VFO Stby Digits
     {588, 53,  40,  40,   3,  0,  0, LIGHTGREY,  BLACK,      BLACK,  myDARKGREY, Arial_24, RED,   9,   7}  // VFO Stby Label
     #else
     {310,  1, 420,  50,   3,  0,  0, BLACK,      LIGHTGREY,  BLACK,  LIGHTGREY,  Arial_40, RED,   4,   4}, // VFO Active Digits
