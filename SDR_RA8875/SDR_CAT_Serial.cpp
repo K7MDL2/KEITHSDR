@@ -140,9 +140,29 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             {
                 CAT_port.print("RVM05.67;");
             }
+            else if (!strncmp(S_Input, "RVD", 3)&& strlen(S_Input) == 3)
+            {
+                CAT_port.print("RVD02.88;");
+            }
+            else if (!strncmp(S_Input, "RVA", 3)&& strlen(S_Input) == 3)
+            {
+                CAT_port.print("RVA99.99;");
+            }
+            else if (!strncmp(S_Input, "RVR", 3)&& strlen(S_Input) == 3)
+            {
+                CAT_port.print("RVR99.99;");
+            }
+            else if (!strncmp(S_Input, "RVF", 3)&& strlen(S_Input) == 3)
+            {
+                CAT_port.print("RVF01.26;");
+            }
             else if (!strncmp(S_Input, "BW", 2) && strlen(S_Input) == 2)
             {
                 CAT_port.print("BW4000;");
+            }
+            else if (!strncmp(S_Input, "BW$", 3) && strlen(S_Input) == 3)
+            {
+                CAT_port.print("BW$4000;");
             }
             else if (!strncmp(S_Input, "LN", 2) && strlen(S_Input) == 2)
             {
@@ -214,7 +234,11 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             {
                 CAT_port.printf("IF%011llu     -000000 00%d600%d001 ;", rs_freq, user_settings[user_Profile].xmit, _split);
             }
-            else if ((!strncmp(S_Input, "MD$", 3) && strlen(S_Input) == 3) || (!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 2))   // report Radio current Mode per K3 numbering
+            else if (!strncmp(S_Input, "KS", 2)) // Keyer Speed.  Fake it at 12wpm
+            {
+                CAT_port.printf("KS012;");
+            }   
+            else if ((!strncmp(S_Input, "MD$", 3) && (strlen(S_Input) == 3)) || (!strncmp(S_Input, "MD", 2) && (strlen(S_Input) == 2)))  // report Radio current Mode per K3 numbering
             {
                 uint8_t _mode_ = 0;
 
@@ -230,11 +254,22 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
                     case DATA_REV:  _mode_ = 9; break;
                     default: break;
                 } 
-                CAT_port.printf("MD%d;", _mode_);
+
+                if (!strncmp(S_Input, "MD$", 3))
+                    CAT_port.printf("MD$%d;", _mode_);
+                else
+                    CAT_port.printf("MD%d;", _mode_);
             }
-            else if (!strncmp(S_Input, "MD", 2) && strlen(S_Input) > 2)  // map incoming mode change request from K3 values to our mode numbering and return the value
+            else if ((!strncmp(S_Input, "MD", 2) && strlen(S_Input) == 3) || (!strncmp(S_Input, "MD$", 3) && (strlen(S_Input) == 4)))  // map incoming mode change request from K3 values to our mode numbering and return the value
             {
-                switch (S_Input[2])
+                uint8_t _mode_ = 0;
+
+                if (S_Input[2] == '$')
+                    _mode_ = S_Input[3];
+                else
+                 _mode_ = S_Input[2];
+
+                switch (_mode_)
                 {
                     case '1': _mode = LSB; break;
                     case '2': _mode = USB; break;
