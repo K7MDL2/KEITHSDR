@@ -8,6 +8,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     2. Several very minor fixes checked in. Comment typos and some mismatched variable type sizes caught by the updated Arduino IDE 2.21.  Visual Studio Code still works, uses the arduino-cli only for compile.  I find TyCommander more reliably uploads code and resets the CPU after without requiring you to push the programming button (which is buried inside my chassis).
     3. The 4.3" config has a small VFOB display issue where part of the VFOB marker is erased. Fixed by adjusting field width in SDR_DATA.h table.
     4. Changed the sample rate to 44.1KSps to match the USB audio default rate of 44.1KHz. This seems to work OK with WSJT-X and has run for well over a week with no USB lockups.  The 48Khz library mods suffer from random timed USB bus lockup.  That will be difficult to debug.  To run higher sample rate a better solution is to use a dedicated I2S connected USB audio chip and skip the Teensy USB audio.
+    5. Added KS, BW$ and enhanced MD$ CAT commands. The newest WSJT-X 2.7.0.2 beta hamlib DLL that has the IC-905 10GHz fix now also calls more variations of the K3 commands.  If a command is not responded to correctly, delays can happen including comms timeout errors.
 
 
 ## June 2023
