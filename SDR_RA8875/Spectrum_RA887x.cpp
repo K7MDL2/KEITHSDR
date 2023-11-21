@@ -388,7 +388,7 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
         for (int j=c-w; j<=c+w; j++)   // color in the cener  range of pixels for spectrum and waterfall
         {
           pixelnew[j]= pix_min+4;  // want to use something close to the ref line as fill for spectrum line
-          line_buffer[j] = 0; //avg;  // assign to the min waterfall color
+          line_buffer[j] = 0;  // assign to the min waterfall color
         }
 
         // ***************************************************************************************************
