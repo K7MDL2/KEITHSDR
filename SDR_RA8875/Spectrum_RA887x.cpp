@@ -381,6 +381,16 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
             }
         }
 
+        //Set the center audio DC line to the min value observed to remove center screen spike but still draw a line (fill the gap)
+        int w = 2;  // blanking width == w*2
+        int c = ((ptr->wf_sp_width+2)/2);  // center of FFT array
+        
+        for (int j=c-w; j<=c+w; j++)   // color in the cener  range of pixels for spectrum and waterfall
+        {
+          pixelnew[j]= pix_min+4;  // want to use something close to the ref line as fill for spectrum line
+          line_buffer[j] = 0; //avg;  // assign to the min waterfall color
+        }
+
         // ***************************************************************************************************
         //
         //      UPDATE WATERFALL 
