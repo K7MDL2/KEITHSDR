@@ -2,6 +2,10 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Nov 2023
+
+    1. Suppressed the DC line in center fo spectrum and waterfall.
+
 ## Oct 2023
 
     1. Been on other projects all summer.  Fired up the 4.3" rig with RS-HFIQ.  A minor K3 CAT protocol error caused delays in responding to WSJT-X band change commands and split seemed to not work.  Debugged with WSJTX hamlib logging.  WSJTX issues both MD and MD$ commands at times so now handle both.  This was already fixed in the non-RS-HFIQ CAT code....
