@@ -46,9 +46,9 @@
     //#define DELAY(...)        
     //#define PINMODE(...)      
     //#define TOGGLEd13      
-    #define DEBUG_PRINT(...)    
-    #define DEBUG_PRINTLN(...) 
-    #define DEBUG_PRINTF(...) 
+    //#define DEBUG_PRINT(...)    
+    //#define DEBUG_PRINTLN(...) 
+    //#define DEBUG_PRINTF(...) 
 #endif
 
 
