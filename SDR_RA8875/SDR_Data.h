@@ -459,7 +459,7 @@ struct TuneSteps  tstep[TS_STEPS] = {
 
 // Use the generator function to create 1 set of data to define preset values for window size and placement.  
 // Just copy and paste from the serial terminal into each record row.
-#define PRESETS 1  // number of parameter records with our preset spectrum window values
+//#define PRESETS 1  // number of parameter records with our preset spectrum window values  - moved to SDR_RA8875.h for SD Card 
 struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectrum window parameters, mostly for easy testing but could be used for future custom preset layout options
         //W        LE  RE CG                                                    x   y   w  h  c sp st clr sc mode      scal reflvl wfrate
     #ifdef USE_RA8875

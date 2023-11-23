@@ -739,7 +739,7 @@ COLD void setup()
         lcd.backlight();
         lcd.print("MyCall SDR"); // Edit this to what you like to see on your display
     #endif
-/*
+
     // -------- Read SD Card data----------------------------------------------------------
     // To use the audio card SD card Reader instead of the Teensy 4.1 onboard Card Reader
     // UNCOMMENT THESE TWO LINES FOR TEENSY AUDIO BOARD   ***IF*** they are not used for something else:
@@ -752,11 +752,11 @@ COLD void setup()
     Open_SD_cfgfile();
     // test our file
     // make a string for assembling the data to log:
-    write_db_tables();
-    read_db_tables();
-    write_radiocfg_h();         // write out the #define to a file on the SD card.
+    //write_db_tables();
+    read_db_tables();              // Read in stored values to memory
+    //write_radiocfg_h();         // write out the #define to a file on the SD card.
                                     // This could be used by the PC during compile to override the RadioConfig.h
-  */  
+
     // -------- Setup our radio settings and UI layout --------------------------------
 
     curr_band = user_settings[user_Profile].last_band; // get last band used from user profile.
@@ -770,8 +770,8 @@ COLD void setup()
         VFOA = bandmem[curr_band].vfo_A_last;
         VFOB = user_settings[user_Profile].sub_VFO;
     #endif
-
     DPRINT("Setup: VFOA = "); DPRINTLN(VFOA);
+    
     // Calculate frequency difference between the designated xvtr IF band's lower edge and the current VFO band's lower edge (the LO frequency).
     find_new_band(VFOA, curr_band);  // find band index for VFOA frequency
     if (bandmem[curr_band].xvtr_IF)
@@ -867,7 +867,7 @@ HOT void loop()
             uint32_t jhElapsed = millis() - jhTime;
             jhTime             = millis();
             loopcount          = 0;
-            tft.fillRect(234, 5, 22, 22, BLACK);
+            tft.fillRect(234, 5, 25, 25, BLACK);
             tft.setFont(Arial_12);
             tft.setCursor(236, 9, false);
             tft.setTextColor(DARKGREY);

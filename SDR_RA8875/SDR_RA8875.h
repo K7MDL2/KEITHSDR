@@ -78,6 +78,7 @@
 #include "Controls.h"
 #include "UserInput.h"          // include after Spectrum_RA8875.h and Display.h
 #include "Bandwidth2.h"
+#include "SD_Card.h"
 #if defined USE_RS_HFIQ
     #include "SDR_RS_HFIQ.h"   // https://github.com/K7MDL2/Teensy4_USB_Host_RS-HFIQ_Library
 #elif defined USE_CAT_PORT
@@ -418,6 +419,8 @@ const uint16_t myVDARKGREEN = 0x12C3; // very dark green  spectrum function want
 #define MFTUNE      50      // Fake button so the MF knob can tune the VFO since there is no button
                             // Make sure this does have the same value as any buttom #defne value. 50 is safe.
 #define MFNONE      0       // No active MF knob client.  0 is safe.
+
+#define PRESETS     1  // number of parameter records with our preset spectrum window values
 
 // Our Database of settings. This is the "factory default".  A user copy will be stored in EEPROM with user changes
 struct Band_Memory {

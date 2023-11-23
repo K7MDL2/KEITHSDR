@@ -4,7 +4,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
 ## Nov 2023
 
-    1. Suppressed the DC line in center fo spectrum and waterfall.
+    1. Suppressed the DC line in center of spectrum and waterfall.
+    2. Enabled long dormant SD Card configuration storage.  With this change, when changing bands the bandmem, user_settngs are saved along with some other items.  These are the 2 main tables where user changes are stored.  When you have a SD card installed in the Teensy 4.1 card slot, when you reboot or power up the radio will read the last written config on the SD card and overwrite the default values in memory.  To use this feature you must insert a formatted SD card (I am using a 16GB SDHC with FAT32), and change bands to write the current data to the SD Card.  Fairly primitive today but I will now work more in this area to include EEPROM storage and update on selected events real time so they are not lost due to power off/reset without a band change to trigger the write. 
+    3. Longer term plans involve storing the equivalent of the RadioConfig.h file as well so that a PC based configuration tool can write the databases and config.  Most of the RadioConfig.h setting are compile time values so not directly useful on the SD Card, but part of the overall plan of a PC side editor.
 
 ## Oct 2023
 

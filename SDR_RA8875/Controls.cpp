@@ -289,7 +289,10 @@ COLD void changeBands(int8_t direction) // neg value is down.  Can jump multiple
     //
     //    insert any future features, software or hardware, that need to be altered
     //
+    user_settings[user_Profile].last_band = curr_band;
+    user_settings[user_Profile].sub_VFO = VFOB;
     selectAgc(bandmem[curr_band].agc_mode);
+    write_db_tables();
     displayRefresh();
     codec1.unmuteHeadphone(); // reduce audio thump from hardware transitions
     DPRINTLNF("ChangeBand: Complete\n");
