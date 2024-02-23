@@ -118,7 +118,7 @@
 Encoder VFO(GPIO_VFO_PIN_A, GPIO_VFO_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
 
 #ifndef USE_RS_HFIQ
-    #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
+    #if defined(OCXO_10MHZ) || (VFO_MULT == 1)               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
         #include "si5351.h"            // Using the etherkits library because it supports the B and C version PLLs with external ref clock
         Si5351 si5351;
     #else // OCXO_10MHZ
@@ -249,8 +249,8 @@ bool MF_default_is_active = true;
 // Audio Library setup stuff
 // float32_t sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 // float32_t sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-float32_t sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float32_t sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
+//float32_t sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
+float32_t sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
 // float32_t sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float32_t sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float32_t sample_rate_Hz = 192000.0f; // 190Hz/bin - does
@@ -383,13 +383,13 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
 // Connections for LineInput and FFT - chooses either the input or the output to display in the spectrum plot
 // Assuming the mic input is applied to both left and right - need to verify.  Only need the left really
 #if defined(W7PUA_I2S_CORRECTION)
-    AudioConnection_F32     patchCord_RX_In_L(Input,0,                           TwinPeak,0); // correct i2s phase imbalance
-    AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
+    AudioConnection_F32     patchCord_RX_In_L(Input,1,                           TwinPeak,0); // correct i2s phase imbalance
+    AudioConnection_F32     patchCord_RX_In_R(Input,0,                           TwinPeak,1);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(TwinPeak,1,                        Q_Switch,0);
 #else
-    AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                           I_Switch,0);  // route raw input audio to the FFT display
-    AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                           Q_Switch,0);
+    AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                           Q_Switch,0);  // route raw input audio to the FFT display
+    AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                           I_Switch,0);
 #endif
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio

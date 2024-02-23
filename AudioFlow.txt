@@ -1,0 +1,92 @@
+#include "OpenAudio_ArduinoLibrary.h"
+#include "AudioStream_F32.h"
+#include <Audio.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <SD.h>
+#include <SerialFlash.h>
+
+// GUItool: begin automatically generated code
+AudioInputI2S_F32        Input;    //xy=55,227.1999969482422
+AudioInputUSB_F32        USB_In;    //xy=58,374.20001220703125
+AudioSynthWaveformSine_F32 TxTestTone_B;          //xy=78.19999694824219,554.2000122070312
+AudioSynthSineCosine_F32 TxTestTone_A;      //xy=81.19999694824219,495.20001220703125
+AudioMixer4_F32          TX_Source;       //xy=286.20001220703125,441.20001220703125
+AudioFilterConvolution_F32 TX_FilterConv;      //xy=442.20001220703125,440.20001220703125
+AudioFilterFIR_F32       TX_Hilbert_Plus_45;           //xy=640.2000122070312,424.20001220703125
+AudioFilterFIR_F32       TX_Hilbert_Minus_45;           //xy=644.2000274658203,454.20001220703125
+RadioIQMixer_F32         FM_LO_Mixer;      //xy=806.8666000366211,821.2001323699951
+AudioMixer4_F32          Q_Switch;       //xy=861.2000122070312,251.2000274658203
+AudioMixer4_F32          I_Switch;       //xy=865.2000122070312,376.2000427246094
+AudioMixer4_F32          FFT_Atten_Q;       //xy=1074.199951171875,295.2000427246094
+AudioMixer4_F32          FFT_Atten_I;       //xy=1076.199951171875,364.2000427246094
+AudioSwitch4_OA_F32      RxTx_InputSwitch_L;      //xy=1090.1999053955078,585.8666763305664
+AudioSwitch4_OA_F32      RxTx_InputSwitch_R;      //xy=1101.199951171875,488.1999206542969
+RadioFMDetector_F32      FM_Detector;    //xy=1140.8666152954102,828.2001342773438
+AudioSwitch4_OA_F32      FFT_OutSwitch_I;      //xy=1325.199951171875,365.2001037597656
+AudioSwitch4_OA_F32      FFT_OutSwitch_Q;      //xy=1327.2000122070312,299.2000732421875
+radioNoiseBlanker_F32    NoiseBlanker;    //xy=1391.199951171875,434.20001220703125
+AudioFilterFIR_F32       RX_Hilbert_Plus_45;           //xy=1595.1999969482422,420.1999969482422
+AudioFilterFIR_F32       RX_Hilbert_Minus_45;           //xy=1599.199951171875,452.20001220703125
+AudioSynthWaveformSine_F32 Beep_Tone;          //xy=1603.1998901367188,510.2000732421875
+AudioAnalyzeFFT2048_IQ_F32 myFFT_2048;     //xy=1731.5333786010742,199.20000076293945
+AudioAnalyzeFFT4096_IQ_F32 myFFT_4096;     //xy=1732.8666610717773,120.19999313354492
+AudioAnalyzeFFT1024_IQ_F32 myFFT_1024;     //xy=1735.1998748779297,295.5333824157715
+AudioMixer4_F32          RX_Summer;       //xy=1889.2000122070312,443.2000732421875
+AudioAnalyzePeak_F32     S_Peak;          //xy=2042.2000732421875,358.2000427246094
+AudioLMSDenoiseNotch_F32 LMS_Notch;           //xy=2089.199951171875,418.40020751953125
+AudioFilterConvolution_F32 RX_FilterConv;      //xy=2266.199951171875,418.1999816894531
+AudioMixer4_F32          OutputSwitch_I;       //xy=2539.2001953125,807.2000732421875
+AudioMixer4_F32          OutputSwitch_Q;       //xy=2551.533493041992,963.2001152038574
+AudioEffectGain_F32      Amp1_L;          //xy=2966.60009765625,881.2000732421875
+AudioEffectGain_F32      Amp1_R;          //xy=2968.933406829834,940.5333890914917
+AudioOutputI2S_F32       Output;   //xy=3016.3334770202637,661.5334692001343
+AudioOutputUSB_F32       USB_Out;   //xy=3204.199951171875,864.2000732421875
+AudioConnection_F32          patchCord1(Input, 0, Q_Switch, 0);
+AudioConnection_F32          patchCord2(Input, 0, TX_Source, 0);
+AudioConnection_F32          patchCord3(Input, 1, I_Switch, 0);
+AudioConnection_F32          patchCord4(USB_In, 0, TX_Source, 1);
+AudioConnection_F32          patchCord5(TxTestTone_B, 0, TX_Source, 3);
+AudioConnection_F32          patchCord6(TxTestTone_B, 0, FM_LO_Mixer, 0);
+AudioConnection_F32          patchCord7(TxTestTone_A, 0, TX_Source, 2);
+AudioConnection_F32          patchCord8(TX_Source, TX_FilterConv);
+AudioConnection_F32          patchCord9(TX_FilterConv, TX_Hilbert_Plus_45);
+AudioConnection_F32          patchCord10(TX_FilterConv, TX_Hilbert_Minus_45);
+AudioConnection_F32          patchCord11(TX_Hilbert_Plus_45, 0, Q_Switch, 1);
+AudioConnection_F32          patchCord12(TX_Hilbert_Minus_45, 0, I_Switch, 1);
+AudioConnection_F32          patchCord13(FM_LO_Mixer, 0, FM_Detector, 0);
+AudioConnection_F32          patchCord14(Q_Switch, 0, FFT_Atten_Q, 0);
+AudioConnection_F32          patchCord15(Q_Switch, RxTx_InputSwitch_R);
+AudioConnection_F32          patchCord16(I_Switch, 0, FFT_Atten_I, 0);
+AudioConnection_F32          patchCord17(I_Switch, RxTx_InputSwitch_L);
+AudioConnection_F32          patchCord18(FFT_Atten_Q, FFT_OutSwitch_Q);
+AudioConnection_F32          patchCord19(FFT_Atten_I, FFT_OutSwitch_I);
+AudioConnection_F32          patchCord20(RxTx_InputSwitch_L, 0, NoiseBlanker, 1);
+AudioConnection_F32          patchCord21(RxTx_InputSwitch_L, 1, OutputSwitch_I, 1);
+AudioConnection_F32          patchCord22(RxTx_InputSwitch_R, 0, NoiseBlanker, 0);
+AudioConnection_F32          patchCord23(RxTx_InputSwitch_R, 1, OutputSwitch_Q, 1);
+AudioConnection_F32          patchCord24(FM_Detector, 0, OutputSwitch_I, 2);
+AudioConnection_F32          patchCord25(FM_Detector, 0, OutputSwitch_Q, 2);
+AudioConnection_F32          patchCord26(FFT_OutSwitch_I, 0, myFFT_4096, 0);
+AudioConnection_F32          patchCord27(FFT_OutSwitch_I, 1, myFFT_2048, 0);
+AudioConnection_F32          patchCord28(FFT_OutSwitch_I, 2, myFFT_1024, 0);
+AudioConnection_F32          patchCord29(FFT_OutSwitch_Q, 0, myFFT_4096, 1);
+AudioConnection_F32          patchCord30(FFT_OutSwitch_Q, 1, myFFT_2048, 1);
+AudioConnection_F32          patchCord31(FFT_OutSwitch_Q, 2, myFFT_1024, 1);
+AudioConnection_F32          patchCord32(NoiseBlanker, 0, RX_Hilbert_Plus_45, 0);
+AudioConnection_F32          patchCord33(NoiseBlanker, 1, RX_Hilbert_Minus_45, 0);
+AudioConnection_F32          patchCord34(RX_Hilbert_Plus_45, 0, RX_Summer, 0);
+AudioConnection_F32          patchCord35(RX_Hilbert_Minus_45, 0, RX_Summer, 1);
+AudioConnection_F32          patchCord36(Beep_Tone, 0, RX_Summer, 2);
+AudioConnection_F32          patchCord37(RX_Summer, S_Peak);
+AudioConnection_F32          patchCord38(RX_Summer, LMS_Notch);
+AudioConnection_F32          patchCord39(LMS_Notch, RX_FilterConv);
+AudioConnection_F32          patchCord40(RX_FilterConv, 0, OutputSwitch_I, 0);
+AudioConnection_F32          patchCord41(RX_FilterConv, 0, OutputSwitch_Q, 0);
+AudioConnection_F32          patchCord42(OutputSwitch_I, 0, Output, 0);
+AudioConnection_F32          patchCord43(OutputSwitch_I, Amp1_L);
+AudioConnection_F32          patchCord44(OutputSwitch_Q, 0, Output, 1);
+AudioConnection_F32          patchCord45(OutputSwitch_Q, Amp1_R);
+AudioConnection_F32          patchCord46(Amp1_L, 0, USB_Out, 0);
+AudioConnection_F32          patchCord47(Amp1_R, 0, USB_Out, 1);
+// GUItool: end automatically generated code
