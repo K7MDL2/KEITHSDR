@@ -32,7 +32,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 ******************************  !!!!!!! ********************************** !!!!!! *****************************************/
 
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
-#define CALLSIGN  "K7MDL CN88sf"   // Personalized Startup Screen Text
+#define CALLSIGN  "VE3LHO"   // Personalized Startup Screen Text
 
 #define USE_RA8875          // Turns on support for RA8875 LCD Touchscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
@@ -50,7 +50,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // DEPENDS on a modified si5351mcu mod by library by K7MDL.
                             // Alternative is to use the Etherkit library or Adafruit or other. 
 
-#define si5351_XTAL_25MHZ   // This depends on what your PLL uses.
+//#define si5351_XTAL_25MHZ   // This depends on what your PLL uses.
                             // Uncomment this if your Si5351A crysal is 25MHz
                             // Commented out it will use 27MHz in VFO.h
                             // This is ignored if OCXO_10MHz is defined.
@@ -146,7 +146,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
-#define VFO_MULT          4 // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+#define VFO_MULT          1 // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board, 1 for quadrature output on 2 si5351 outputs
 
 #define RIT_STEP_DEFAULT  1 // step size index from the tstep table.  normally index = 1 -> 10Hz.  
 
@@ -318,7 +318,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // Choose your actual pin assignments for any you may have.
 
 // VFO Encoder (not I2C).  uses PCB jack labeled ENC1.
-#define VFO_PPR 36  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
+#define VFO_PPR 2  // for VFO A/B Tuning encoder. This scales the PPR to account for high vs low PPR encoders.  600ppr is very fast at 1Hz steps, worse at 10Khz!
 // I find a value of 60 works good for 600ppr. 30 should be good for 300ppr, 1 or 2 for typical 24-36 ppr encoders. Best to use even numbers above 1. 
 
 #if defined(SMALL_PCB_V1)     // Generic compact display to Teensy Adapter, any size display
@@ -571,7 +571,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
     #include <NativeEthernetUdp.h>
     
     // Choose or create your desired time zone offset or use 0 for UTC.
-    #define MYTZ -8
+    #define MYTZ -4
     // here are some example values
     //  1 Central European Time
     //  0 UTC

@@ -1,6 +1,8 @@
 //
 //     SDR_I2C_Encoder.cpp
 //
+//#ifdef I2C_ENCODERS
+
 #include "SDR_RA8875.h"
 #include "RadioConfig.h"
 #include "SDR_I2C_Encoder.h"
@@ -809,3 +811,4 @@ COLD void blink_I2C_ENC6_RGB(void)
     I2C_ENC6.writeFadeRGB(3); //Fade enabled with 3ms step
 }
 #endif
+//#endif //I2C_ENCODERS
