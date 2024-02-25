@@ -45,6 +45,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
             
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
                             // DEPENDS on si5351C version PLL board.  Otherwise uses the standard issue Si5351A PLL
+                            // CANNOT be used with VFO_MULT == 1 (Quadrature Si5351 output) - Coder changes in VFO.cpp file required
 
 //#define si5351_TCXO       // If your Si5351 PLL module has a TCXO then turn off the load capacitors.
                             // DEPENDS on a modified si5351mcu mod by library by K7MDL.
@@ -86,8 +87,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // DEPENDS on LCD I2C hardware connected or it will hang on I2C comms timeouts
 
 //#define I2C_ENCODERS      // I2C connected encoders. Here we are using the RGB LED version from
-                            // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib
-                            // Hardware verson 2.1, Arduino library version 1.40.
+                            // GitHub https://github.com/Fattoresaimon/ArduinoDuPPaLib   
+                            // Hardware version 2.1, Arduino library version 1.40.
 
 //#define GPIO_ENCODERS     // Use regular (non-I2C) GPIO connected encoders.  If this is defined and there are no encoders connected,
                             // *** AND *** ENET is defined, you will get reboot right after enet initialization completes.
@@ -146,7 +147,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define TOUCH_ROTATION    // if not defined (commented out) there is no correction.                        
                             // if defined (uncommented) correction is applied flipping the coordinates top to bottom.
 
-#define VFO_MULT          4 // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board
+#define VFO_MULT          4 // 4x for QRP-Labs RX, 2x for NT7V QSE/QSD board, 1 for quadrature output on 2x si5351 outputs.
+                            // Value of 1 is not compatiable with OCXO_10MHz today, changes required in VFO.cpp.
 
 #define RIT_STEP_DEFAULT  1 // step size index from the tstep table.  normally index = 1 -> 10Hz.  
 
@@ -177,7 +179,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // Auto I2S alignment error correction (aka Twin Peaks problem)
 // Requires 10K resistors on each SGTL5000 codec LineIn pin (L and R) to a common GPIO pin, pin 22 by default, defined in this file
 //
-//#define W7PUA_I2S_CORRECTION  
+#define W7PUA_I2S_CORRECTION  
 //
 // Can leave these 2 defined, no effect on other things.
 #define PIN_FOR_TP 22       // Teensy pin used for both Codec and I/O pin signal source methods (W7PUA I2S correction)
@@ -191,7 +193,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 //#define V1_4_3_PCB   // For the V1 4.3" motherboard 4/18/2022
 //#define V2_4_3_PCB   // For the V2 4.3" motherboard 4/21/2022
 //#define V21_7_PCB    // For the V2.1 7" motherboard 12/30/2022
-//#define V22_7_PCB    // For the V2.1 7" motherboard 12/30/2022
+#define V22_7_PCB    // For the V2.1 7" motherboard 12/30/2022
 
 // ----------------- RS-HFIQ ---------------------------------------------------
 //#define USE_RS_HFIQ             // Use the RS-HFIQ 5W SDR transceiver for the RF hardware. Connect via USB Host serial cable.
@@ -209,7 +211,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 
 #ifdef K7MDL_BUILD  
 
-    //#undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
+    #undef USE_RA8875   // Controls RA8875 or RA8876 build - Comment this line to choose RA8875, uncomment for RA8876
     
 	#ifdef USE_RA8875   // My RA8875 4.3" specific build items
       #define I2C_ENCODERS            // Use I2C connected encoders. 
@@ -228,6 +230,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define I2C_ENCODERS            // Use I2C connected encoders
       #define V22_7_PCB
       //#define V21_7_PCB
+      //#define USE_CAT_SER  // For now USE_RSHFIQ will overide this so this can be left defined, no problem
       
       //#define USE_RS_HFIQ 
       #ifndef USE_RS_HFIQ
@@ -237,7 +240,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
         #define VFO_MULT           2    // 2 for NT7V board
         #define OCXO_10MHZ   // for Si5351C PLL board
         #define K7MDL_OCXO
-        #define USE_CAT_SER  // For now USE_RSHFIQ will overide this so this can be left defined, no problem
+        #define USE_CAT_SER  // For now USE_RSHFIQ will override this so this can be left defined, no problem
         //#define ALT_CAT_PORT  // Use when only 1 USB serial port available (Such as when IO is set to Serial-MIDI-Audio)
       #else      // Use RS-HFIQ
         #undef ALT_CAT_PORT
