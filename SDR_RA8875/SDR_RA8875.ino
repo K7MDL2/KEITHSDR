@@ -118,7 +118,7 @@
 Encoder VFO(GPIO_VFO_PIN_A, GPIO_VFO_PIN_B); // pins defined in RadioConfig.h - mapped to ENC1 on the PCB
 
 #ifndef USE_RS_HFIQ
-    #ifdef OCXO_10MHZ               // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
+    #if defined(OCXO_10MHZ) || (VFO_MULT == 1)  // This turns on a group of features feature that are hardware required.  Leave this commented out if you do not have this hardware!
         #include "si5351.h"            // Using the etherkits library because it supports the B and C version PLLs with external ref clock
         Si5351 si5351;
     #else // OCXO_10MHZ
