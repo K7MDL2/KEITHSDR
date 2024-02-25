@@ -1,6 +1,9 @@
 //
 //  Vfo.cpp
 //
+
+// ToDO:  Fix up Quadrature Ouput config (VFO_MULT==1) to work with OCXO_10MHz preoperly).  Currently code is either/or.
+
 //
 #include "SDR_RA8875.h"
 #include "Vfo.h"
