@@ -2,6 +2,12 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Feb 2024
+
+    1. Updated Arduino IDE to 2.3.1 and TeensyDuino 1.59.0.  Previously used IDE 2.21 and 0.50.3 beta (1.59 Beta 3). Verified all compikes good.
+    2. Merged changes from Dave VE3LHO to support quadrature clock outputs on the Si5351a.  Set VFO_MULT==1 in RadioConfig.h to use.  Note that this config is currently incompatible with use of OCXO_10MHz option.  Will work on that.
+
+
 ## Nov 2023
 
     1. Suppressed the DC line in center of spectrum and waterfall.
