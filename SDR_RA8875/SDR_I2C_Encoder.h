@@ -1,6 +1,5 @@
 #ifndef _SDR_I2C_Encoder_H_
 #define _SDR_I2C_Encoder_H_
-//#ifdef I2C_ENCODERS
 //
 //   SDR_I2C_Encoder.h
 //
@@ -43,5 +42,4 @@ void gpio_switch_timer_start(uint8_t _id);
 void gpio_switch_click(uint8_t _id);
 void gpio_encoder_rotated(i2cEncoderLibV2* obj, int32_t count);
 
-//#endif //I2C_ENCODERS
 #endif //  _SDR_I2C_Encoder_H_
