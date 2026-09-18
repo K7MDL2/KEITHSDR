@@ -1939,6 +1939,7 @@ HOT void RF_Limiter(float peak_avg)
     if (++status_timer >= 5)
     {
         status_timer = 0;
+        /*
         DPRINTF("RF_Limiter: peak=");
         DPRINT(s);
         DPRINTF("%  lineIn=");
@@ -1949,6 +1950,7 @@ HOT void RF_Limiter(float peak_avg)
         DPRINT(adc_gain);
         DPRINTF("  atten_byp=");
         DPRINTLN(bandmem[curr_band].attenuator_byp);
+        */
     }
 
     // Overload threshold as a percentage of ADC full scale on the raw I-channel.
@@ -2099,7 +2101,7 @@ HOT void RF_Limiter(float peak_avg)
                         rf_agc_limit_last = temp;
                         selectAgc(bandmem[curr_band].agc_mode); // re-init AVC attack/decay
                     }
-                    DPRINTLNF("*** RF AGC: released auto attenuator");
+                    //DPRINTLNF("*** RF AGC: released auto attenuator");
                 }
             }
             else

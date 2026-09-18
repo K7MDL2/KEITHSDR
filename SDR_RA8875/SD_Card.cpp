@@ -219,7 +219,7 @@ void write_db_tables(void)
     // if the file is available, write to it:
     if (SDR_sd_file) {
         // Write our data file here
-        Serial.println("Copy Database Records from memory to SD Card file radiocfg.db");
+        //Serial.println("Copy Database Records from memory to SD Card file radiocfg.db");
         if (SDR_sd_file.write((const uint8_t *)&radio_config_db_header,
                               sizeof(radio_config_db_header)) != sizeof(radio_config_db_header))
         {
@@ -258,14 +258,14 @@ void write_db_tables(void)
             //SDR_sd_file.read(dataS, sizeof(dataS));  //read it back
             //memmove(&user_settings[0], dataS, sizeof(user_settings[i]));
 
-        Serial.println("\nClose File");
+        //Serial.println("\nClose File");
         SDR_sd_file.close();
         
-        Serial.println("Print Directory");
+        //Serial.println("Print Directory");
         SDR_sd_file = SD.open("/");
-        printDirectory(SDR_sd_file, 0);
+        //printDirectory(SDR_sd_file, 0);
         
-        Serial.println("Close Directory\n");
+        //Serial.println("Close Directory\n");
         SDR_sd_file.close();
     }  
     // if the file isn't open, pop up an error:
@@ -310,7 +310,7 @@ void read_db_tables(void)
         }
 
         // Read our data file here
-        Serial.println("Copy Database Records from SD Card file radiocfg.db to memory");
+        //Serial.println("Copy Database Records from SD Card file radiocfg.db to memory");
         // Start with User Profiles 
         for (int i = 0; i < USER_SETTINGS_NUM; i++)
         {
@@ -367,14 +367,14 @@ void read_db_tables(void)
             Sp_Parms_Def[i] = loaded_spectrum;
         }
 
-        Serial.println("\nClose File");
+        //Serial.println("\nClose File");
         SDR_sd_file.close();
         
-        Serial.println("Print Directory");
+        //Serial.println("Print Directory");
         SDR_sd_file = SD.open("/");
         printDirectory(SDR_sd_file, 0);
         
-        Serial.println("Close Directory\n");
+        //Serial.println("Close Directory\n");
         SDR_sd_file.close();
     }  
     // if the file isn't open, pop up an error:
@@ -388,7 +388,7 @@ bool write_radiocfg_h(void) // Standalone function wil create a file if needed a
     char buf[80];
     uint8_t success;
 
-    Serial.print("\nWriting RadioCfg.h to SD Card...");
+    //Serial.print("\nWriting RadioCfg.h to SD Card...");
   
     // see if the card is present and can be initialized:
     if (!SD.begin(chipSelect)) {

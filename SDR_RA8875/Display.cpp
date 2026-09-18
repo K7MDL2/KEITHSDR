@@ -512,7 +512,7 @@ COLD void displayXVTR()
 		drawLabel(XVTR_LBL, &xvtr);   // no room on the 4.3" so draw only for RA8876
 	#endif
 	draw_2_state_Button(XVTR_BTN,  &xvtr);
-	DPRINTF("displayXVTR: XVTR is "); DPRINTLN(xvtr);
+	//DPRINTF("displayXVTR: XVTR is "); DPRINTLN(xvtr);
 }
 
 COLD void displayNB()
@@ -588,7 +588,7 @@ COLD void displayXMIT()
 {
 	//if (popup) return;
 
-	DPRINTF("displayXMIT: XMIT is "); DPRINTLN(user_settings[user_Profile].xmit);
+	//DPRINTF("displayXMIT: XMIT is "); DPRINTLN(user_settings[user_Profile].xmit);
 
 	drawLabel(XMIT_LBL, &user_settings[user_Profile].xmit);
 	draw_2_state_Button(XMIT_BTN, &user_settings[user_Profile].xmit);		 
