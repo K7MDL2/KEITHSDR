@@ -18,6 +18,26 @@ updates cannot replace the versions used by KEITHSDR:
 arduino-cli compile --libraries SDR_RA8875\libraries --libraries D:\Documents\Arduino\libraries ...
 ```
 
+Summary 
+RF Overload Protection / Auto-Attenuator (2026-09-18)
+Reworked the RF AGC limiter so it actually protects against ADC and front-end overload on strong signals (e.g. FT8 on 20M), including with the preamp on.
+
+What was wrong
+
+The limiter was commented out entirely, so nothing reduced gain on overload.
+Even when enabled, it watched the post-AVC S-meter peak, which the codec's AVC compresses — so it never saw the clip.
+What changed
+
+Re-enabled the RF_Limiter() loop (runs at the 400 ms meter tick).
+Added a dedicated peak analyzer (ADC_Peak) tapped on the raw pre-AVC ADC I-channel (the same point the FFT/spectrum reads), so the limiter sees true ADC clipping that the AVC masks.
+Triggers at a tunable threshold — RF_OL_THRESHOLD 55%, RF_OL_HARD 70% (in RF_Limiter()) — chosen so the attenuator engages before the analog preamp/BPF chain distorts, which happens well before ADC full scale.
+AGC-F/S/M: freezes the codec AVC, floors codec gain (keeps the spectrum clean), and engages the hardware step attenuator. On release it restores gain and re-initializes the AVC via selectAgc() to avoid a slow gain ramp (the "5-second fade").
+AGC-OFF: ratchets codec gain down first; the attenuator is a last resort after codec gain bottoms out. Restore uses hysteresis (waits for a few clean ticks, steps gain up gradually) to avoid up/down pumping.
+The attenuator never overrides a manual ATT setting, and has release hysteresis so it doesn't chatter on a fading signal.
+Re-enabled the spectrum reference-level compensation for the attenuator so the dBm scale stays correct with the relay in or out.
+Removed a noisy Si5351 CLK0 debug print that spammed every tune step.
+
+
 ## Feb 2024
 
     1. Updated Arduino IDE to 2.3.1 and TeensyDuino 1.59.0.  Previously used IDE 2.21 and 0.50.3 beta (1.59 Beta 3). Verified all compiles good.
