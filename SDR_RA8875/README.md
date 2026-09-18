@@ -2,6 +2,17 @@
 
 Teensy4.X with PJRC audio card Arduino based SDR Radio project
 
+## Bundled Arduino Libraries
+
+The `libraries` folder contains the tested `Etherkit_Si5351` and
+`Ra8876LiteTeensy` versions used by this sketch, including local fixes. Build
+with this folder before global Arduino libraries so package-manager or IDE
+updates cannot replace the versions used by KEITHSDR:
+
+```text
+arduino-cli compile --libraries SDR_RA8875\libraries --libraries D:\Documents\Arduino\libraries ...
+```
+
 ## Feb 2024
 
     1. Updated Arduino IDE to 2.3.1 and TeensyDuino 1.59.0.  Previously used IDE 2.21 and 0.50.3 beta (1.59 Beta 3). Verified all compikes good.

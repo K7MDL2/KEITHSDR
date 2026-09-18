@@ -11,6 +11,7 @@
 // Placement of these 2 files here is critical to a successful complile beginning with TeensyDuinot 0.58.3, else get undefined AudioConnection reference errors.
 #include "Arduino.h"
 #include "Audio.h" // Teensy I16 Audio Library
+#include "usb_audio.h"
 //#include "AudioStream_F32.h"
 #include "OpenAudio_ArduinoLibrary.h" // F32 library
 
@@ -249,8 +250,8 @@ bool MF_default_is_active = true;
 // Audio Library setup stuff
 // float32_t sample_rate_Hz = 11000.0f;  //43Hz /bin  5K spectrum
 // float32_t sample_rate_Hz = 22000.0f;  //21Hz /bin 6K wide
-float32_t sample_rate_Hz = 44100.0f;  //43Hz /bin  12.5K spectrum
-//float32_t sample_rate_Hz = 48000.0f; // 46.875Hz /bin  24K spectrum for 1024.
+float32_t sample_rate_Hz = 48000.0f; // 46.875Hz/bin with a 1024-point FFT
+//float32_t sample_rate_Hz = 44100.0f; // 43Hz /bin  12.5K spectrum
 // float32_t sample_rate_Hz = 96000.0f;  // <100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float32_t sample_rate_Hz = 102000.0f;  // 100Hz/bin at 1024FFT, 50Hz at 2048, 40Khz span at 800 pixels and 2048FFT
 // float32_t sample_rate_Hz = 192000.0f; // 190Hz/bin - does
@@ -1196,6 +1197,12 @@ COLD void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePe
         DPRINT(AudioMemoryUsage());
         DPRINTF("/");
         DPRINTLN(AudioMemoryUsageMax());
+#if defined(AUDIO_INTERFACE)
+        DPRINTF(" USB Audio Underruns/Overruns: ");
+        DPRINT(usb_audio_underrun_count);
+        DPRINTF("/");
+        DPRINTLN(usb_audio_overrun_count);
+#endif
         DPRINTLNF("*** End of Report ***");
 
         lastUpdate_millis = curTime_millis; // we will use this value the next time around.

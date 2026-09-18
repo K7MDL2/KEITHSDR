@@ -1,0 +1,12 @@
+{
+	"name": "Ra8876LiteTeensy",
+	"frameworks": "Arduino",
+	"platforms": "Teensy 3.6 - T4",
+	"keywords": "Ra8876_Lite",
+	"description": "wwatson Ra8876LiteTeensy Library",
+	"version": "1.0.0",
+	"authors":
+	{	"name": "Warren Watson",
+		"maintainer": true
+	}
+}

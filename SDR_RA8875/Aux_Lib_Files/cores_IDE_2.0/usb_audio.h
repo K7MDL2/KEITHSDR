@@ -46,6 +46,8 @@ extern uint16_t usb_audio_transmit_buffer[];
 extern uint32_t usb_audio_sync_feedback;
 extern uint8_t usb_audio_receive_setting;
 extern uint8_t usb_audio_transmit_setting;
+extern volatile uint32_t usb_audio_underrun_count;
+extern volatile uint32_t usb_audio_overrun_count;
 extern void usb_audio_receive_callback(unsigned int len);
 extern unsigned int usb_audio_transmit_callback(void);
 extern int usb_audio_set_feature(void *stp, uint8_t *buf);

@@ -2022,8 +2022,7 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
 
     const uint8_t atten_size_31 = 62;  // 62 steps  31dB in 0.5 dB steps. Use 31 for 1dB steps
   
-    char atten_str[8]  = {'\0'};
-    char atten_data[8] = {'\0'};
+    char atten_data[7];
     uint8_t i;
     int16_t atten;
 
@@ -2040,19 +2039,11 @@ COLD void digital_step_attenuator_PE4302(int16_t _atten)
     // comment out for 0.5dB steps
     //atten *= 2; // shift the value x2 so the LSB controls the 1dB step.
 
-    /* Convert to 8 bits of  0 and 1 format */
-    itoa(atten, atten_str, 2);
-    //DPRINTLN(atten_str);   // should be 6 bits of binary in the range of 0 to 64
-    
-    // Convert to 6 bits of  0 and 1 format 
-    // pad with leading 0s as needed.  6 bits for the PE4302 + '\0' at end for 7 bytes
-    //snprintf(atten_data, 7, "%06s", atten_str);   // works but get compiler warning for 0 and string together    
-    for (i = 0; (i < 6 - strlen(atten_str)); i++)
+    for (i = 0; i < 6; i++)
     {
-        atten_data[i] = '0';
+        atten_data[i] = (atten & (1 << (5 - i))) ? '1' : '0';
     }
-    strncat(atten_data, atten_str, strlen(atten_str));
-    //DPRINTLN(atten_data);   // should be 6 bits of binary in the range of 0 to 64
+    atten_data[6] = '\0';
 
     //  LE = 0 to allow writing data into shift register
     digitalWrite(Atten_LE, (uint8_t)OFF);
