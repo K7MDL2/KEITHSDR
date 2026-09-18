@@ -171,11 +171,28 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
 //    records set the global variables the call the Spectrum_Generator() function and copy and paste the output displayed 
 //    on the Serial Terminal into the default array init table.
 
-	//if (s >= PRESETS)
-    //    s=PRESETS-1;   // Cycle back to 0
+    if (s < 0 || s >= PRESETS)
+    {
+        Serial.printf("ERROR: Invalid spectrum preset %d (valid range 0-%d)\n", s, PRESETS - 1);
+        return 0;
+    }
+    if (fft_sz < 5)
+    {
+        Serial.printf("ERROR: Invalid FFT size %u\n", fft_sz);
+        return 0;
+    }
     // See Spectrum_Parm_Generator() below for details on Global values requires and how the woindows variables are used.    
     //struct Spectrum_Parms *ptr = &Sp_Parms_Def[s];
     *ptr = Sp_Parms_Def[s];
+
+    const int16_t max_spectrum_width = min((int16_t)SCREEN_WIDTH, (int16_t)(fft_sz - 2));
+    if (ptr->wf_sp_width < 5 || ptr->wf_sp_width > max_spectrum_width)
+    {
+        Serial.printf("ERROR: Invalid spectrum width %d; limiting to %d\n",
+                      ptr->wf_sp_width, max_spectrum_width);
+        ptr->wf_sp_width = max_spectrum_width;
+        Sp_Parms_Def[s].wf_sp_width = max_spectrum_width;
+    }
  
     static uint8_t cycleCounter         = 0; //JH
 	//JH: put this here and make it static

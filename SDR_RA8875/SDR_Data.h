@@ -481,24 +481,43 @@ struct Spectrum_Parms Sp_Parms_Def[PRESETS] = { // define default sets of spectr
 struct New_Spectrum_Layout Custom_Layout[1] = {      // Temp storage for generating new layouts    
     0,        // spectrum_x >  0 to width of display - window width. Must fit within the button frame edges left and right
                     // ->Pay attention to the fact that position X starts with 0 so 100 pixels wide makes the right side value of x=99.
+#ifdef USE_RA8875
     153,      // spectrum_y0 to vertical height of display - height of your window. Odd Numbers are best if needed to make the height an even number and still fit on the screen
     256,      // spectrum_height Total height of the window. Even numbers are best. (height + Y) cannot exceed height of the display or the window will be off screen.
     50,       // spectrum_center Value 0 to 100.  Smaller value = biggger waterfall. Specifies the relative size (%) between the spectrum and waterfall areas by moving the dividing line up or down as a percentage
                     // Smaller value makes spectrum smaller, waterfall bigger
     799,      // spectrum_width Total width of window. Even numbers are best. 552 is minimum to fit a full 512 pixel graph plus the min 20 pixel border used on each side. Can be smaller but will reduce graph area
+#else
+    139,
+    390,
+    40,
+    1023,
+#endif
     20,       // spectrum_span Value in KHz.  Ths will be the maximum span shown in the display graphs.  
                     // The graph code knows how many Hz per bin so will scale down to magnify a smaller range.
                     // Max value and resolutoin (pixels per bin) is dependent on sample frequency
                     // 25000 is max for 1024 FFT with 500 bins at 1:1 bins per pixel
                     // 12500 would result in 2 pixels per bin. Bad numbers here should be corrected to best fit by the function
+#ifdef USE_RA8875
     2,        // spectrum_wf_style Range 1- 6. Specifies the Waterfall style.
     330,      // spectrum_wf_colortemp Range 1 - 1023. Specifies the waterfall color temperature to tune it to your liking
-    1.0f,      // spectrum_wf_scal e0.0f to 40.0f. Specifies thew waterfall zoom level - may be redundant when Span is worked out later.
+    1.0f,     // spectrum_wf_scale 0.0f to 40.0f. Specifies the waterfall zoom level.
+#else
+    6,
+    890,
+    1.5f,
+#endif
     0.9f,      // spectrum_LPFcoeff 1.0f to 0.0f. Data smoothing
     1,        // spectrum_dot_bar_mode 0=bar, 1=Line. Spectrum box
+#ifdef USE_RA8875
     40,       // spectrum_sp_scale 10 to 80. Spectrum scale factor in dB. This is the height of the scale (if possible by windows sizes). Will plot the spectrum window of values between the floor and the scale value creating a zoom effect.
     -175,     // spectrum_floor 0 to -150. The reference point for plotting values.  Anything signal value > than this (less negative) will be plotted until stronger than the window height*scale factor.
     70        // spectrum_wf_rate window update rate in ms.  25 is fast enough to see dit and dahs well    
+#else
+    20,
+    10,
+    80
+#endif
 };
 
 #endif //  _SDR_DATA_RA8876_H_ 

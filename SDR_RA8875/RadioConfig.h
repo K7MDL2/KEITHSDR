@@ -205,7 +205,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
+#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -241,7 +241,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
         #define OCXO_10MHZ   // for Si5351C PLL board
         #define K7MDL_OCXO
         #define USE_CAT_SER  // For now USE_RSHFIQ will override this so this can be left defined, no problem
-        //#define ALT_CAT_PORT  // Use when only 1 USB serial port available (Such as when IO is set to Serial-MIDI-Audio)
+        #define ALT_CAT_PORT  // Use when only 1 USB serial port available (Such as when IO is set to Serial-MIDI-Audio)
       #else      // Use RS-HFIQ
         #undef ALT_CAT_PORT
         //#define ALT_CAT_PORT

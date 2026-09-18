@@ -87,9 +87,12 @@ COLD void initVfo(void)
             #ifdef K7MDL_OCXO
                 // --------------- External Reference Clock Section -------------------------------
                 //Initialize the Si5351 to use an external clock like a 10Mhz OCXO
-                si5351.init(SI5351_CRYSTAL_LOAD_0PF, 0, 0);               
+                const bool si5351_found = si5351.init(SI5351_CRYSTAL_LOAD_0PF, 0, 0);
+                DPRINTF("Si5351 I2C device: ");
+                DPRINTLN(si5351_found ? "found" : "NOT FOUND");
+                if (!si5351_found)
+                    return;
                 //This section is for external ref clock
-                si5351.set_clock_source(SI5351_CLK0, SI5351_CLK_SRC_CLKIN);    // Use the OCXO for Clock 0 output                       
                 // Set the CLKIN reference frequency to 10 MHz
                 si5351.set_ref_freq(10000000UL, SI5351_PLL_INPUT_CLKIN);
                 // Apply a correction factor to CLKIN
@@ -97,6 +100,8 @@ COLD void initVfo(void)
                 // Set PLLA and PLLB to use the signal on CLKIN instead of the XTAL
                 si5351.set_pll_input(SI5351_PLLA, SI5351_PLL_INPUT_CLKIN);
                 si5351.set_pll_input(SI5351_PLLB, SI5351_PLL_INPUT_CLKIN);
+                // CLK0 must use MultiSynth 0; PLLA already uses the external CLKIN reference.
+                si5351.set_clock_source(SI5351_CLK0, SI5351_CLK_SRC_MS);
                 // ------------   ---End Ext Clock section ----------------------------------------
             #endif // K7MDL_OCXO
 
@@ -112,7 +117,26 @@ COLD void initVfo(void)
             //si5351.output_enable(SI5351_CLK7, 0);     
             // Set CLK0 to output Dial Frequency
             si5351.set_freq((VFOA+Fc) * VFO_MULT + 100ULL , SI5351_CLK0);                         // set the output freq on CLK 0 top 5Mhz to start out.
-            si5351.reset();   // Must do this for external clock!       
+            si5351.reset();   // Must do this for external clock!
+            delay(20);
+            si5351.update_status();
+            DPRINTF("Si5351 CLK0 target: ");
+            DPRINT((VFOA + Fc) * VFO_MULT);
+            DPRINTLNF(" Hz");
+            DPRINTF("Si5351 status: SYS_INIT=");
+            DPRINT(si5351.dev_status.SYS_INIT);
+            DPRINTF(" LOL_A=");
+            DPRINT(si5351.dev_status.LOL_A);
+            DPRINTF(" LOL_B=");
+            DPRINT(si5351.dev_status.LOL_B);
+            DPRINTF(" LOS=");
+            DPRINTLN(si5351.dev_status.LOS);
+            #ifdef K7MDL_OCXO
+                if (si5351.dev_status.LOS)
+                    DPRINTLNF("ERROR: Si5351 CLKIN signal missing; check the external 10 MHz reference");
+                if (si5351.dev_status.LOL_A)
+                    DPRINTLNF("ERROR: Si5351 PLLA is not locked");
+            #endif
         #elif (VFO_MULT == 1)
             si5351.init(SI5351_CRYSTAL_LOAD_8PF, 0, 330); // 330 is the frequency compensation value and needs to measured.
             //si5351.set_correction(330);      // Set to specific Si5351 calibration number
@@ -181,7 +205,18 @@ int oldEvenDivisor = currentEvenDivisor;
         return;
     #else
         #ifdef OCXO_10MHZ
-            si5351.set_freq((Freq) * VFO_MULT * 100ULL, SI5351_CLK0); // generating 4 x frequency ... set 400ULL to 100ULL for 1x frequency
+            const uint64_t clk0_freq = Freq * VFO_MULT;
+            const uint8_t set_freq_error = si5351.set_freq(clk0_freq * 100ULL, SI5351_CLK0);
+            const uint8_t clk0_control = si5351.si5351_read(SI5351_CLK0_CTRL);
+            const uint8_t output_enable = si5351.si5351_read(SI5351_OUTPUT_ENABLE_CTRL);
+            DPRINTF("Si5351 CLK0 programmed=");
+            DPRINT(clk0_freq);
+            DPRINTF(" Hz result=");
+            DPRINT(set_freq_error);
+            DPRINTF(" CTRL=0x");
+            DPRINT(clk0_control, HEX);
+            DPRINTF(" OE=0x");
+            DPRINTLN(output_enable, HEX);
         #else
             si5351.setFreq(0, (Freq) * VFO_MULT); // use 4x for QRP-Labs RX vboard and some others. Use 1x if using 2 outputs shifted by 90 degrees 
         #endif

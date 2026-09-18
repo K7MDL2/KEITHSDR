@@ -39,6 +39,33 @@ File SDR_sd_file;
 void printDirectory(File dir, int numTabs);
 // make a string for assembling the data to log:
 String dataString = "";
+
+struct RadioConfigDbHeader
+{
+    uint32_t magic;
+    uint32_t version;
+    uint32_t screen_width;
+    uint32_t screen_height;
+    uint32_t user_settings_size;
+    uint32_t user_settings_count;
+    uint32_t band_memory_size;
+    uint32_t band_memory_count;
+    uint32_t spectrum_size;
+    uint32_t spectrum_count;
+};
+
+static const RadioConfigDbHeader radio_config_db_header = {
+    0x4B534452,
+    1,
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    sizeof(user_settings[0]),
+    USER_SETTINGS_NUM,
+    sizeof(bandmem[0]),
+    BANDS,
+    sizeof(Sp_Parms_Def[0]),
+    PRESETS
+};
 //
 // *******************************   SD Card  ************************************************************
 
@@ -193,6 +220,13 @@ void write_db_tables(void)
     if (SDR_sd_file) {
         // Write our data file here
         Serial.println("Copy Database Records from memory to SD Card file radiocfg.db");
+        if (SDR_sd_file.write((const uint8_t *)&radio_config_db_header,
+                              sizeof(radio_config_db_header)) != sizeof(radio_config_db_header))
+        {
+            Serial.println("ERROR: Could not write radiocfg.db header");
+            SDR_sd_file.close();
+            return;
+        }
         
         // Start with User Profiles 
         for (int i = 0; i < USER_SETTINGS_NUM; i++)
@@ -246,30 +280,91 @@ void read_db_tables(void)
     
     // if the file is available, read it:
     if (SDR_sd_file) {
+        const uint32_t expected_size =
+            sizeof(radio_config_db_header) +
+            USER_SETTINGS_NUM * sizeof(user_settings[0]) +
+            BANDS * sizeof(bandmem[0]) +
+            PRESETS * sizeof(Sp_Parms_Def[0]);
+        if (SDR_sd_file.size() != expected_size)
+        {
+            Serial.print("Ignoring incompatible radiocfg.db: expected ");
+            Serial.print(expected_size);
+            Serial.print(" bytes, found ");
+            Serial.println(SDR_sd_file.size());
+            SDR_sd_file.close();
+            return;
+        }
+
+        RadioConfigDbHeader loaded_header;
+        if (SDR_sd_file.read((uint8_t *)&loaded_header, sizeof(loaded_header)) != sizeof(loaded_header))
+        {
+            Serial.println("ERROR: Could not read radiocfg.db header");
+            SDR_sd_file.close();
+            return;
+        }
+        if (memcmp(&loaded_header, &radio_config_db_header, sizeof(loaded_header)) != 0)
+        {
+            Serial.println("Ignoring radiocfg.db created for a different firmware or display");
+            SDR_sd_file.close();
+            return;
+        }
+
         // Read our data file here
         Serial.println("Copy Database Records from SD Card file radiocfg.db to memory");
         // Start with User Profiles 
         for (int i = 0; i < USER_SETTINGS_NUM; i++)
         {
             byte dataS[sizeof(user_settings[0])];
-            SDR_sd_file.read(dataS, sizeof(dataS));  //read it back
-            memmove(&user_settings[i], dataS, sizeof(user_settings[i]));
+            if (SDR_sd_file.read(dataS, sizeof(dataS)) != sizeof(dataS))
+            {
+                Serial.println("ERROR: Could not read a complete user settings record");
+                SDR_sd_file.close();
+                return;
+            }
+            User_Settings loaded_settings;
+            memmove(&loaded_settings, dataS, sizeof(loaded_settings));
+            if (loaded_settings.sp_preset >= PRESETS || loaded_settings.last_band >= BANDS)
+            {
+                Serial.println("ERROR: Ignoring invalid user settings record");
+                continue;
+            }
+            user_settings[i] = loaded_settings;
         }
 
         // Band Memory table         
         for (int i = 0; i < BANDS; i++)
         {
             byte dataS[sizeof(bandmem[0])];
-            SDR_sd_file.read(dataS, sizeof(dataS));
+            if (SDR_sd_file.read(dataS, sizeof(dataS)) != sizeof(dataS))
+            {
+                Serial.println("ERROR: Could not read a complete band memory record");
+                SDR_sd_file.close();
+                return;
+            }
             memmove(&bandmem[i], dataS, sizeof(bandmem[i]));
         }
         
         // Spectrum table         
         for (int i = 0; i < PRESETS; i++)
         {
-            byte dataS[sizeof(Sp_Parms_Def[0])];;
-            SDR_sd_file.read(dataS, sizeof(dataS));
-            memmove(&Sp_Parms_Def[i], dataS, sizeof(Sp_Parms_Def[i]));
+            byte dataS[sizeof(Sp_Parms_Def[0])];
+            if (SDR_sd_file.read(dataS, sizeof(dataS)) != sizeof(dataS))
+            {
+                Serial.println("ERROR: Could not read a complete spectrum record");
+                SDR_sd_file.close();
+                return;
+            }
+            Spectrum_Parms loaded_spectrum;
+            memmove(&loaded_spectrum, dataS, sizeof(loaded_spectrum));
+            if (loaded_spectrum.wf_sp_width < 5 ||
+                loaded_spectrum.wf_sp_width > SCREEN_WIDTH ||
+                loaded_spectrum.spect_width < 5 ||
+                loaded_spectrum.spect_width > SCREEN_WIDTH)
+            {
+                Serial.println("ERROR: Ignoring invalid spectrum record");
+                continue;
+            }
+            Sp_Parms_Def[i] = loaded_spectrum;
         }
 
         Serial.println("\nClose File");
