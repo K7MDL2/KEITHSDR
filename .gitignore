@@ -43,3 +43,4 @@ SDR_RA8875/.vscode/arduino.json
 SDR_RA8875/.vscode/c_cpp_properties.json
 SDR_RA8875/.vscode/settings.json
 .gitignore
+.vscode

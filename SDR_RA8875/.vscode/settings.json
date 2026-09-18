@@ -14,10 +14,10 @@
   "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
   "C_Cpp.errorSquiggles": "enabled",
   "C_Cpp.default.includePath": [
-    "C:\\ProgramFiles\\Arduino",
-    "C:\\Program Files (x86)\\Arduino",
-    "C:\\Users\\%USERPROFILE%\\Documents\\Arduino\\libraries",
-    "C:\\Program Files (x86)\\Arduino\\hardware\\teensy\\avr\\libraries"
+    "D:\\OneDrive\\Documents\\Arduino\\libraries",
+    "C:\\Users\\k7mdl\\AppData\\Local\\Arduino15",
+    "D:\\Documents\\Arduino\\libraries",
+    "C:\\Users\\k7mdl\\AppData\\Local\\Arduino15\\packages\\teensy\\hardware\\avr\\1.59.0\\libraries"
   ],
   "task.autoDetect": "off",
   "compiler-explorer.url": "http://localhost:10240",
@@ -36,7 +36,11 @@
     null
   ],
   "gnuGlobal.libraryPath": [
-    "C:\\Program Files (x86)\\Arduino\\libraries"
+    "C:\\Users\\k7mdl\\AppData\\Local\\Arduino15",
+    "D:\\OneDrive\\Documents\\Arduino\\libraries",
+    "D:\\Documents\\Arduino\\libraries",
+    "D:\\Documents\\Arduino\\libraries\\OpenAudio_ArduinoLibrary",
+    "C:\\Users\\k7mdl\\AppData\\Local\\Arduino15\\packages\\teensy\\hardware\\avr\\1.59.0\\libraries"
   ],
   "C_Cpp.default.compilerPath": "",
   "C_Cpp.default.mergeConfigurations": true

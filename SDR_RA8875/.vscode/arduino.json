@@ -3,5 +3,5 @@
     "configuration": "usb=serialserialaudio,speed=816,opt=o2std,keys=en-us",
     "board": "teensy:avr:teensy41",
     "output": "..\\build",
-    "port": "COM27"
+    "port": "COM32"
 }

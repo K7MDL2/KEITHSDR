@@ -31,6 +31,7 @@
 			"regex": "cpp",
 			"sdr_i2c_encoder.h": "c",
 			"encoder.h": "c"
-		}
+		},
+		"arduino.useArduinoCli": true
 	}
 }

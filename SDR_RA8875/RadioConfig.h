@@ -32,7 +32,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 ******************************  !!!!!!! ********************************** !!!!!! *****************************************/
 
 #define BANNER "Teensy 4 SDR"  // Custom Startup Screen Text
-#define CALLSIGN  "K7MDL CN88sf"   // Personalized Startup Screen Text
+#define CALLSIGN  "K7MDL CN87xs"   // Personalized Startup Screen Text
 
 #define USE_RA8875          // Turns on support for RA8875 LCD Touchscreen Display with FT5204 Touch controller
                             // When commented out it will default to the RA8876 controller and FT5206 touch controller
@@ -40,7 +40,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
                             // For the RA8875 (only) be sure to edit the file
                             //   For Arduino IDE <2.0 C:\Program Files (x86)\Arduino\hardware\teensy\avr\libraries\RA8875\_settings\RA8875UserSettings.h
                             //   For IDE V2.X %AppData%\Local\Arduino15\packages\teensy\hardware\avr\0.58.3\libraries\RA8875\_settings\RA8875UserSettings.h
-                            // To enable touch by uncommenting this config item
+          // <== NOTE! ==>> // To enable touch by uncommenting this config item
                             //   #define USE_FT5206_TOUCH//capacitive touch screen
             
 //#define OCXO_10MHZ        // Uncomment this line to use a different library that supports External CLKIN for si5351C version PLL boards.
@@ -205,7 +205,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
 // *****************************************************************************************
 //    K7MDL specific Build Configuration rolled up into one #define for easier testing in multiple configurations
 
-//#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
+#define K7MDL_BUILD  // This section overrides general settings above to permit fast switching between my current 2 SDR configs, RA8875 and RA8876
 
 //******************************************************************************************
 
@@ -218,8 +218,8 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
       #define V2_4_3_PCB              // For the V2 large 4.3" motherboard 4/2022
       #define USE_RS_HFIQ 
       //#ifdef  USE_RS_HFIQ  // use the RS-HFIQ 5W SDR tranciever for the RF hardware. Connect via USB Host serial cable.
-        //#undef ALT_CAT_PORT
-        //#define ALT_CAT_PORT
+        #undef ALT_CAT_PORT
+        #define ALT_CAT_PORT
         #define RSHFIQ_CAL_OFFSET (-7500)
         //#define NO_RSHFIQ_BLOCKING
       //#endif
@@ -241,7 +241,7 @@ OmniRig V1 RS-HFIQ compatible CAT control from an external PC.
         #define OCXO_10MHZ   // for Si5351C PLL board
         #define K7MDL_OCXO
         #define USE_CAT_SER  // For now USE_RSHFIQ will override this so this can be left defined, no problem
-        //#define ALT_CAT_PORT  // Use when only 1 USB serial port available (Such as when IO is set to Serial-MIDI-Audio)
+        #define ALT_CAT_PORT  // Use when only 1 USB serial port available (Such as when IO is set to Serial-MIDI-Audio)
       #else      // Use RS-HFIQ
         #undef ALT_CAT_PORT
         //#define ALT_CAT_PORT
