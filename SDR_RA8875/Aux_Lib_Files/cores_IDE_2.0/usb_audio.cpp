@@ -71,7 +71,6 @@ static void rx_event(transfer_t *t)
 {
 	if (t) {
 		int len = AUDIO_RX_SIZE - ((rx_transfer.status >> 16) & 0x7FFF);
-		printf("rx %u\n", len);
 		usb_audio_receive_callback(len);
 	}
 	usb_prepare_transfer(&rx_transfer, rx_buffer, AUDIO_RX_SIZE, 0);
@@ -94,7 +93,11 @@ void usb_audio_configure(void)
 	printf("usb_audio_configure\n");
 	usb_audio_underrun_count = 0;
 	usb_audio_overrun_count = 0;
+#ifdef USB_AUDIO_48KHZ
+	feedback_accumulator = 805306368; // 48.0 * 2^24
+#else
 	feedback_accumulator = 739875226; // 44.1 * 2^24
+#endif
 	if (usb_high_speed) {
 		usb_audio_sync_nbytes = 4;
 		usb_audio_sync_rshift = 8;

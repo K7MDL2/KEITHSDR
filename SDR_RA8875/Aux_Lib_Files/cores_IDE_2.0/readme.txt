@@ -2,6 +2,12 @@ Dec 21, 2022 Update
 I was able to get Windows to recognize the Teensy USB Audio Sample Rate at 48KHz and get clean audio on both TX and RX by doing the steps below.
 The default Teensy usb audio sample rate is 44.1KHz. We want 48KHz.  
 
+Important: Do not leave diagnostic `printf()` calls enabled in `usb_audio.cpp`
+receive or transmit event callbacks.  Those callbacks run in USB interrupt
+context at approximately 1,000 packets per second.  Printing from them can
+starve the same USB controller that carries the audio and serial data, causing
+USB audio to lock up after the device has been running for a while.
+
 Thanks threads in the PJRC forum, and the work of Steve KF7O, DL1YCF, and others creating a Teensy keyer with low latency audio at 48KHz, I am able to get things working. It also works with the OpenAudio_Library F32 functions.  
 
 The CW keyer code used AUDIO_BLOCK_SAMPLES  32 and has lots of code for on the fly feedback correction. 
@@ -263,6 +269,5 @@ or for Arduino > 2.0
 The changes are in the #defines at the top to set the default to either 44.1KHz or 48KHz.  
 
 We are using 48KHz.  Kept the sample block count the same at 128.  The CWKeyer project used 32 to keep latency low and has lots of feedback loop code for on the fly corrections.
-
 
 
