@@ -1955,8 +1955,8 @@ HOT void RF_Limiter(float peak_avg)
     // The analog front end (preamp/BPF) distorts before the ADC reaches 100%, so
     // a 100% threshold never triggers.  Strong FT8 measured ~60% peak with no
     // clipping, so 75% sits above normal signals but catches genuine overload.
-    #define RF_OL_THRESHOLD   75.0f   // % of ADC full scale that counts as overload
-    #define RF_OL_HARD        90.0f   // % considered "still clipping hard" (step atten)
+    #define RF_OL_THRESHOLD   55.0f   // % of ADC full scale that counts as overload
+    #define RF_OL_HARD        70.0f   // % considered "still clipping hard" (step atten)
     // Overload when the raw ADC peak exceeds the threshold.  (Analog preamp/BPF
     // clipping is not visible in software without a hardware RF detector, so the
     // raw ADC peak is the proxy.)
