@@ -206,17 +206,7 @@ int oldEvenDivisor = currentEvenDivisor;
     #else
         #ifdef OCXO_10MHZ
             const uint64_t clk0_freq = Freq * VFO_MULT;
-            const uint8_t set_freq_error = si5351.set_freq(clk0_freq * 100ULL, SI5351_CLK0);
-            const uint8_t clk0_control = si5351.si5351_read(SI5351_CLK0_CTRL);
-            const uint8_t output_enable = si5351.si5351_read(SI5351_OUTPUT_ENABLE_CTRL);
-            DPRINTF("Si5351 CLK0 programmed=");
-            DPRINT(clk0_freq);
-            DPRINTF(" Hz result=");
-            DPRINT(set_freq_error);
-            DPRINTF(" CTRL=0x");
-            DPRINT(clk0_control, HEX);
-            DPRINTF(" OE=0x");
-            DPRINTLN(output_enable, HEX);
+            si5351.set_freq(clk0_freq * 100ULL, SI5351_CLK0);
         #else
             si5351.setFreq(0, (Freq) * VFO_MULT); // use 4x for QRP-Labs RX vboard and some others. Use 1x if using 2 outputs shifted by 90 degrees 
         #endif

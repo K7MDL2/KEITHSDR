@@ -356,6 +356,7 @@ DMAMEM AudioFilterFIR_F32   RX_Hilbert_Minus_45(audio_settings);
 AudioFilterConvolution_F32  RX_FilterConv(audio_settings);  // DMAMEM on this causes it to not be adjustable. Would save 50K local variable space if it worked.
 AudioMixer4_F32             RX_Summer(audio_settings);
 AudioAnalyzePeak_F32        S_Peak(audio_settings); 
+AudioAnalyzePeak_F32        ADC_Peak(audio_settings); // raw pre-AVC ADC I-channel peak, for RF overload detection
 AudioOutputI2S_F32          Output(audio_settings);
 radioNoiseBlanker_F32       NoiseBlanker(audio_settings);   // DMAMEM on this item breaks stopping RX audio flow.  Would save 10K local variable space
 AudioLMSDenoiseNotch_F32    LMS_Notch(audio_settings);
@@ -388,9 +389,11 @@ RadioIQMixer_F32            FM_LO_Mixer(audio_settings);
     AudioConnection_F32     patchCord_RX_In_R(Input,1,                           TwinPeak,1);
     AudioConnection_F32     patchCord_RX_Ph_L(TwinPeak,0,                        I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(TwinPeak,1,                        Q_Switch,0);
+    AudioConnection_F32     patchCord_ADC_Peak(TwinPeak,0,                       ADC_Peak,0);  // raw pre-AVC ADC peak for the RF limiter
 #else
     AudioConnection_F32     patchCord_RX_Ph_L(Input,0,                           I_Switch,0);  // route raw input audio to the FFT display
     AudioConnection_F32     patchCord_RX_Ph_R(Input,1,                           Q_Switch,0);
+    AudioConnection_F32     patchCord_ADC_Peak(Input,0,                          ADC_Peak,0);  // raw pre-AVC ADC peak for the RF limiter
 #endif
 
 // Test tone sources for single or two tone in place of (or in addition to) real input audio
@@ -546,7 +549,7 @@ AudioConnection_F32     patchCord_Amp1_R(OutputSwitch_Q,0,                  Amp1
     //AudioConnection         patchcord_Out_USB_R16U(USB_In,1,                USB_Out,1);  // output to USB Audio Out R
 #endif
 
-AudioControlSGTL5000    codec1;
+CodecRegisterAccess   codec1;
 //AudioControlWM8960    codec1;   // Does not work yet, hangs
 
 // -------------------------------------Setup() -------------------------------------------------------------------
@@ -970,9 +973,9 @@ HOT void loop()
     {
         S_Meter_Peak_Avg = Peak(); // return an average for RF AGC limiter if used
         // DPRINT("S-Meter Peak Avg = "); DPRINTLN(S_Meter_Peak_Avg);
+        // reduce LineIn gain temporarily until below max level.  Uses the average to restore level
+        RF_Limiter(S_Meter_Peak_Avg);
     }
-
-    // RF_Limiter(S_Meter_Peak_Avg);  // reduce LineIn gain temprarily until below max level.  Uses the average to restore level
 
 #if defined  PANADAPTER || defined PAN_CAT
     // if (CAT_update.check() == 1) // update our meters
@@ -1898,62 +1901,215 @@ COLD void Change_FFT_Size(uint16_t new_size, float new_sample_rate_Hz)
 // Set an averaging timer to raise (in small steps) LineIn back up to data table setting when there is no longer overload
 HOT void RF_Limiter(float peak_avg)
 {
-    static float rf_agc_limit;
-    static float rf_agc_limit_last;
+    static float   rf_agc_limit_last = -1.0f; // last LineIn level we applied, -1 = not yet initialized
+    static bool    atten_auto = false;        // true when the limiter engaged the attenuator itself
+    static uint8_t status_timer = 0;
+    static uint8_t release_wait = 0;          // clean-tick counter for attenuator release hysteresis
     float s;
+    float excess;
+    float new_level;
     uint8_t temp = 0;
 
-    s = S_Peak.read() * 100; // If > 100 there is LineIn overload
-    // s = peak_avg * 100;  // use average instead of instant values
+    // Overload trigger uses the RAW pre-AVC ADC I-channel peak (ADC_Peak), tapped
+    // at the same point the FFT/spectrum reads.  The AVC compresses the post-
+    // summer signal that S_Peak reads, so S_Peak never sees the clip; the raw ADC
+    // peak does.  Only update when fresh data is available, else reuse the last
+    // reading so the 400ms tick rate does not outpace the analyzer.
+    static float adc_peak_last = 0.0f;
+    if (ADC_Peak.available())
+        adc_peak_last = ADC_Peak.read();
+    s = adc_peak_last * 100; // If > 100 there is ADC overload
 
-    if (s > 100.0) // Anyting over rf gain setting is excess, reduce RFGain
+    // Current effective LineIn level per the user's RF Gain setting (same formula as RFgain())
+    temp = user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain / 100;
+
+    // First run, or RF Gain was raised since we last limited: start from the user level
+    if (rf_agc_limit_last < 0.0f || rf_agc_limit_last > temp)
+        rf_agc_limit_last = temp;
+
+    // Read the codec's actual ADC input gain (CHIP_ANA_ADC_CTRL 0x0020, low nibble
+    // = right channel gain 0-15, ~0.75dB/step).  Diagnostic only.  NOTE: while the
+    // attenuator is engaged with AVC frozen we set this to 0 ourselves, so it is
+    // NOT an independent overload measurement and must not be used as a trigger.
+    uint16_t adc_gain = codec1.readRegister(0x0020) & 0x0F;
+    bool avc_active = (bandmem[curr_band].agc_mode != AGC_OFF);
+
+    // Throttled status line (every ~2s) so the loop is visible even when not limiting.
+    // Comment this block out if it interferes with CAT on the shared USB serial port.
+    if (++status_timer >= 5)
     {
-        rf_agc_limit = s - 100.0f;
-        // DPRINT("Peak Power = ");
-        // DPRINT(s);
-        // DPRINT("  RF_AGC_Limit = ");
-        // DPRINT(rf_agc_limit);
-
-        if (rf_agc_limit > 20.0f)
-            rf_agc_limit *= 4; // for large changes speed up gain reduction
-        else if (rf_agc_limit > 10.0f)
-            rf_agc_limit *= 3; // for large changes speed up gain reduction
-        else
-            rf_agc_limit *= 2; // for large changes speed up gain reduction
-
-        if (rf_agc_limit >= 100.0f) // max percent we can adjust anything
-            rf_agc_limit = 99.0f;   // limit to 100% change
-        // DPRINT(" 2=");
-        // DPRINT(rf_agc_limit);
-
-        rf_agc_limit = 100.0f - rf_agc_limit; // invert for % delta
-        // DPRINT(" 3=%");
-        // DPRINT(rf_agc_limit);
-
-        rf_agc_limit = user_settings[user_Profile].lineIn_level * rf_agc_limit / 100;
-        DPRINTF("*** RF AGC Limit (0-15) = ");
-        DPRINTLN(rf_agc_limit);
-
-        if (rf_agc_limit != 0)
-            codec1.lineInLevel(rf_agc_limit);
-
-        rf_agc_limit_last = rf_agc_limit;
-
-        // RFgain(rf_agc_limit);
+        status_timer = 0;
+        DPRINTF("RF_Limiter: peak=");
+        DPRINT(s);
+        DPRINTF("%  lineIn=");
+        DPRINT(rf_agc_limit_last);
+        DPRINTF("/");
+        DPRINT(temp);
+        DPRINTF("  adc_gain=");
+        DPRINT(adc_gain);
+        DPRINTF("  atten_byp=");
+        DPRINTLN(bandmem[curr_band].attenuator_byp);
     }
-    else // Restore LineIn level to where it started (user setting)
-    {
-        temp = user_settings[user_Profile].lineIn_level * user_settings[user_Profile].rfGain / 100;
 
-        // Time interval is set by the S meter timer multiplied by the number of samples in avg function
-        if (peak_avg < 0.10 && rf_agc_limit_last < temp) // Value os peal_avg is experimentally determined
+    // Overload threshold as a percentage of ADC full scale on the raw I-channel.
+    // The analog front end (preamp/BPF) distorts before the ADC reaches 100%, so
+    // a 100% threshold never triggers.  Strong FT8 measured ~60% peak with no
+    // clipping, so 75% sits above normal signals but catches genuine overload.
+    #define RF_OL_THRESHOLD   75.0f   // % of ADC full scale that counts as overload
+    #define RF_OL_HARD        90.0f   // % considered "still clipping hard" (step atten)
+    // Overload when the raw ADC peak exceeds the threshold.  (Analog preamp/BPF
+    // clipping is not visible in software without a hardware RF detector, so the
+    // raw ADC peak is the proxy.)
+    bool overload = (s > RF_OL_THRESHOLD);
+
+    if (overload)
+    {
+        release_wait = 0; // overload present, hold off any release
+
+        if (avc_active)
         {
-            // DPRINT("RF AGC Limit Last = ");
-            // DPRINT(rf_agc_limit_last);
-            rf_agc_limit_last = temp;
-            codec1.lineInLevel(temp); // retore to normal level
-            DPRINTF("*** Restore LineIn Level = ");
-            DPRINTLN(temp);
+            // AGC-F/S/M: the codec's AVC owns CHIP_ANA_ADC_CTRL and rewrites it
+            // every audio frame to hold its target level, so writing lineInLevel()
+            // here is undone immediately (we would fight the AVC and lose).  The
+            // AVC already handles codec gain; the only thing it CANNOT counteract
+            // is the hardware attenuator.  So on digital clip with AVC active,
+            // engage the attenuator directly and let the AVC settle around it.
+            if (bandmem[curr_band].attenuator_byp == 0)
+            {
+                atten_auto = true;
+                // Freeze the AVC while the attenuator is in.  Otherwise the AVC
+                // sees the sudden attenuator cut as a quiet signal and pumps gain
+                // back up over several seconds (the audible fade), fighting the
+                // relay.  Re-enabled on release.
+                codec1.autoVolumeDisable();
+                // With the AVC frozen it no longer pulls the codec input gain
+                // down, so the ADC would clip on the strong signal and splatter
+                // the FFT spectrum.  Drop the codec gain to the floor ourselves
+                // while the AVC is frozen; the attenuator's fixed dB provides the
+                // real cut, this just keeps the ADC out of clipping.
+                rf_agc_limit_last = 0.0f;
+                codec1.lineInLevel(0);
+                setAtten(1); // relay on, applies this band's configured dB
+                DPRINTF("*** RF AGC: auto-engaged attenuator (AVC active, peak=");
+                DPRINT(s);
+                DPRINTLNF("%)");
+            }
+            else if (s > RF_OL_HARD)
+            {
+                Atten(1); // still clipping, step the attenuator up
+            }
+        }
+        else
+        {
+            // AGC-OFF: no AVC, so we own the codec gain.  Ratchet it down first
+            // (fast, reversible); the attenuator is a LAST RESORT after codec
+            // gain is genuinely driven to the floor over successive ticks, so a
+            // single strong transient cannot slam the relay.
+            excess = s - RF_OL_THRESHOLD;
+            if (excess < 0.0f) excess = 0.0f;
+
+            if (excess > 20.0f)
+                excess *= 4; // for large changes speed up gain reduction
+            else if (excess > 10.0f)
+                excess *= 3; // for large changes speed up gain reduction
+            else
+                excess *= 2; // for large changes speed up gain reduction
+
+            if (excess >= 100.0f) // max percent we can adjust anything
+                excess = 99.0f;   // limit to 100% change
+
+            new_level = rf_agc_limit_last * (100.0f - excess) / 100.0f;
+            if (new_level > temp)
+                new_level = temp;
+            if (new_level < 0.0f)
+                new_level = 0.0f;
+
+            if (new_level != rf_agc_limit_last)
+            {
+                codec1.lineInLevel(new_level);
+                rf_agc_limit_last = new_level;
+                DPRINTF("*** RF AGC Limit (0-15) = ");
+                DPRINTLN(new_level);
+            }
+
+            if (rf_agc_limit_last <= 1.0f && bandmem[curr_band].attenuator_byp == 0)
+            {
+                atten_auto = true;
+                setAtten(1);      // relay on, applies this band's configured dB
+                codec1.lineInLevel(temp); // attenuator provides the cut now, restore codec level
+                rf_agc_limit_last = temp;
+                DPRINTF("*** RF AGC: auto-engaged attenuator (codec gain floor, adc_gain=");
+                DPRINT(adc_gain);
+                DPRINTLNF(")");
+            }
+            else if (rf_agc_limit_last <= 1.0f && bandmem[curr_band].attenuator_byp == 1 && s > RF_OL_HARD)
+            {
+                Atten(1); // codec gain exhausted and still overloading, step the attenuator up
+            }
+        }
+    }
+    else // No overload this tick
+    {
+        // Restore codec gain (AGC-off only) with hysteresis: require the overload
+        // to be clearly gone for several ticks before raising gain again, and step
+        // back up gradually instead of jumping to the user setting.  This stops
+        // the cut/restore/cut hunting (audible up-down pumping) on a marginal
+        // signal.  Skip when AVC is active (AVC owns the gain register).
+        if (!avc_active && rf_agc_limit_last < temp)
+        {
+            if (peak_avg < 0.10)
+            {
+                if (++release_wait >= 5) // ~5 ticks (400ms each) of clean signal
+                {
+                    release_wait = 0;
+                    float step_up = rf_agc_limit_last + 1.0f;
+                    if (step_up > temp) step_up = temp;
+                    codec1.lineInLevel(step_up);
+                    rf_agc_limit_last = step_up;
+                    DPRINTF("*** RF AGC restore step (0-15) = ");
+                    DPRINTLN(step_up);
+                }
+            }
+            else
+            {
+                release_wait = 0; // signal still present, reset the clean timer
+            }
+        }
+
+        // Release the attenuator only if the limiter engaged it (never touch a
+        // manual attenuator setting).  Require sustained low signal (hysteresis)
+        // so it does not chatter on a fading signal.  Peak is read with the
+        // attenuator in, so a low peak here means the strong signal has cleared.
+        if (atten_auto)
+        {
+            if (peak_avg < 0.05f && s < 50.0f)
+            {
+                if (++release_wait >= 10) // ~10 clean ticks (~4s) before releasing
+                {
+                    release_wait = 0;
+                    atten_auto = false;
+                    setAtten(0); // bypass the attenuator relay
+                    // Restore codec gain to the user's level, then re-init the AVC
+                    // via selectAgc() (which rewrites autoVolumeControl and re-
+                    // enables it) so the integrator restarts from the configured
+                    // state instead of ramping up slowly from the frozen state.
+                    if (avc_active)
+                    {
+                        codec1.lineInLevel(temp);
+                        rf_agc_limit_last = temp;
+                        selectAgc(bandmem[curr_band].agc_mode); // re-init AVC attack/decay
+                    }
+                    DPRINTLNF("*** RF AGC: released auto attenuator");
+                }
+            }
+            else
+            {
+                release_wait = 0; // signal still present, hold the attenuator
+            }
+        }
+        else
+        {
+            release_wait = 0;
         }
     }
 }

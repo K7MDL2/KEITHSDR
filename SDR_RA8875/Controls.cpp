@@ -44,7 +44,7 @@ extern struct Transverter xvtr[];
 extern uint8_t user_Profile;
 extern Metro popup_timer; // used to check for popup screen request
 extern Metro TX_Timeout;  // RunawayTX timeout
-extern AudioControlSGTL5000 codec1;
+extern CodecRegisterAccess codec1;
 extern radioNoiseBlanker_F32 NoiseBlanker;
 extern AudioEffectCompressor2_F32 compressor1; // Audio Compressor
 extern AudioEffectCompressor2_F32 compressor2; // Audio Compressor
@@ -756,10 +756,23 @@ COLD void setAtten(int8_t toggle)
     Atten(0);  // 0 = no change to set attenuator level to value in database for this band
 
 #ifdef SV1AFN_BPF
-    // if (bandmem[curr_band].attenuator == ATTEN_OFF)
-    // Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += bandmem[curr_band].attenuator_dB;  // reset back to normal
-    // else
-    // Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // raise floor up due to reduced signal levels coming in
+    // Shift the spectrum display reference to compensate for the attenuator so
+    // the dBm scale stays correct with the relay in or out.  Only apply on an
+    // actual state change, and only when the relay state actually flipped, so
+    // repeated setAtten(1) calls (e.g. from the RF limiter) do not accumulate.
+    static uint8_t atten_spectrum_applied = 0;
+    if (bandmem[curr_band].attenuator_byp && !atten_spectrum_applied)
+    {
+        atten_spectrum_applied = 1;
+        // Attenuator in: incoming signal is reduced, so raise the displayed floor
+        // (less negative) by the attenuation to keep the scale accurate.
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor += bandmem[curr_band].attenuator_dB;
+    }
+    else if (!bandmem[curr_band].attenuator_byp && atten_spectrum_applied)
+    {
+        atten_spectrum_applied = 0;
+        Sp_Parms_Def[user_settings[user_Profile].sp_preset].spect_floor -= bandmem[curr_band].attenuator_dB;  // reset back to normal
+    }
 
     codec1.muteHeadphone();
     //codec1.lineInLevel(0); // Audio out to Line-Out and TX board

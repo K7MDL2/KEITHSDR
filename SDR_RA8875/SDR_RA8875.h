@@ -89,6 +89,15 @@
 #define HOT     FASTRUN     __attribute__((hot))
 #define COLD    FLASHMEM    __attribute__((cold))
 
+// Exposes the SGTL5000's protected I2C register read so the RF limiter can
+// confirm when the codec input gain (CHIP_ANA_ADC_CTRL 0x0020) has hit the floor.
+// (read() is protected in the stock driver, so we subclass it here rather than
+// patching the library.)  Defined here so every translation unit that uses
+// codec1 sees the same type.
+struct CodecRegisterAccess : AudioControlSGTL5000 {
+    uint16_t readRegister(uint16_t reg) { return read(reg); }
+};
+
 #ifndef BYPASS_SPECTRUM_MODULE
 //
 //--------------------------------- RA8875 LCD TOUCH DISPLAY INIT & PINS --------------------------

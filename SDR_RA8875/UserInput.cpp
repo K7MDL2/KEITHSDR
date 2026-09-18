@@ -30,7 +30,7 @@ extern struct Filter_Settings filter[];
 extern struct Standard_Button std_btn[];
 extern struct Label labels[];
 extern uint8_t user_Profile;
-extern AudioControlSGTL5000 codec1;
+extern CodecRegisterAccess codec1;
 extern uint8_t popup;
 extern void set_MF_Service(uint8_t client_name);
 extern struct Frequency_Display disp_Freq[];
