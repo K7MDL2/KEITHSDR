@@ -4,8 +4,8 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 ## Sept 2026
     1. Added protection from incorrect SD card database data.
     2. Added guard for certain spectrum related array out of bounds conditions that cancome from corrupt or wrong side display database on SD card.
-    3. Patched USB to work at 48KHz.
-
+    3. Using TeensyDuino 1.62.
+    4. Now includes the USB audio fixes and vendored Etherkit_Si5351 and Ra8876LiteTeensy libraries  See note below.
 
 ## Bundled Arduino Libraries
 
