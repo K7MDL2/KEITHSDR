@@ -6,6 +6,9 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
     2. Added guard for certain spectrum related array out of bounds conditions that cancome from corrupt or wrong side display database on SD card.
     3. Using TeensyDuino 1.62.
     4. Now includes the USB audio fixes and vendored Etherkit_Si5351 and Ra8876LiteTeensy libraries  See note below.
+    5. WSJT-X / Elecraft K3 CAT over USB serial now works (Rig=K3, COM port, 38400 8N1, PTT Method=CAT). Fixed the debug console echoing CAT bytes (rig ID error), added a short CAT serial read timeout, auto-disabled DEBUG on the shared single-serial-port CAT config, and added the hamlib K3 TQ PTT query/set commands. See summary below.
+    6. TX: corrected the CESSB sideband selection (USB/DATA now on USB), raised the two-tone test level to a usable RF output, mirrored the on-screen TX spectrum/waterfall so it matches the actual RF sideband, and auto-zoom the spectrum (with PAN centered) during TX for modulation detail, restoring the prior zoom/PAN on RX. See summary below.
+    7. Spectrum display: added a live "dB floor..top" window readout (upper-right) and changed the grid lines to truthful, evenly-spaced 5 dB divisions that match the readout and the signal mapping. Previously the grid was labeled with raw pixel rows and disagreed with the window scale.
 
 ## Bundled Arduino Libraries
 
@@ -36,6 +39,30 @@ AGC-OFF: ratchets codec gain down first; the attenuator is a last resort after c
 The attenuator never overrides a manual ATT setting, and has release hysteresis so it doesn't chatter on a fading signal.
 Re-enabled the spectrum reference-level compensation for the attenuator so the dBm scale stays correct with the relay in or out.
 Removed a noisy Si5351 CLK0 debug print that spammed every tune step.
+
+WSJT-X / Elecraft K3 CAT and TX Improvements (2026-09-18)
+Fixed the CAT serial interface so WSJT-X works with Rig = Elecraft K3 over the single USB serial port.
+
+CAT fixes
+
+The debug console handler was reading and echoing every byte on the shared Serial/CAT port before the K3 parser saw it, producing a "rig ID" error in WSJT-X. The handler is now disabled when CAT shares the single USB serial port (ALT_CAT_PORT).
+Added a short CAT serial read timeout (setTimeout(20)) so a partial command during WSJT-X's rapid polling can't block long enough to trip WSJT-X's own timeout.
+DEBUG is now auto-disabled when CAT shares the single USB serial port, per the long-standing note in RadioConfig.h, so debug chatter (CPU/memory report, CAT logs, encoder "Blink" prints) can no longer corrupt the K3 data stream.
+Added the hamlib K3 PTT commands. The K3 backend uses TQ; to query and confirm PTT (expects TQ0;/TQ1;) in addition to TX;/RX;. The parser had no TQ handler, so WSJT-X Test PTT keyed the radio but then reported a communication timeout. TQ; now returns TQ0;/TQ1; and TQ0;/TQ1; set PTT.
+Validated with the WSJT-X bundled hamlib (rigctl-wsjtx.exe -m 2029): frequency, mode, split, get/set PTT all clean.
+
+Transmit fixes
+
+TX sideband: with the CESSB (Weaver) modulator, USB/DATA was landing on the LSB side. The USB/DATA/CW branch now uses cessb1.setSideband(false); LSB/DATA_REV/CW_REV keep setSideband(true). RF verified correct on an external panadapter.
+Two-tone test (ATU button): the test-tone level was 0.05, far too low to produce measurable RF. Raised to 0.45 per the in-code guidance for two tones.
+TX display mirror: the on-screen spectrum/waterfall was sideband-flipped during TX because the FFT is fed the CESSB baseband (opposite orientation to RX). The display read index is now mirrored while transmitting so the on-screen TX display matches the RF. The RX display path is unchanged. A small residual opposite-sideband image on the display is the CESSB modulator's normal sideband image; the RF output itself is clean.
+TX auto-zoom: on transmit the spectrum now auto-zooms to x4 and centers PAN for usable modulation detail, restoring the user's zoom and PAN on receive.
+
+Spectrum display scale
+
+Added a live "dB floor..top" readout (upper-right of the spectrum box) showing the displayed dB window (floor and floor+scale).
+Fixed the grid lines, which were labeled with raw pixel rows and stepped in pixels, so they disagreed with the window scale. The grid now draws evenly-spaced 5 dB divisions across the true window and is labeled in dB, matching the readout and the signal peaks.
+The display is an accurate relative dB meter but is not yet calibrated to absolute dBm. A future calibration offset (measured against a known reference such as S9 = -73 dBm) plus a vertical scale/ref-level control is planned to show true dBm.
 
 
 ## Feb 2024
