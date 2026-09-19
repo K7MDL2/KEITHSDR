@@ -22,6 +22,12 @@
     extern float32_t  sumsq[];      // Required ONLY if power averaging is being done
 #endif
 
+// TX state so the spectrum/waterfall display can be mirrored while transmitting.
+// During TX the FFT is fed the CESSB baseband whose spectral orientation is opposite to RX,
+// so we reverse the read index to make the on-screen TX display match the actual RF.
+extern struct User_Settings user_settings[];
+extern uint8_t             user_Profile;
+
 #ifdef FFT_4096
     #ifndef BETATEST
          extern AudioAnalyzeFFT4096_IQ_F32    myFFT_4096;  // choose which you like, set FFT_SIZE accordingly.
@@ -324,46 +330,54 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
                 */
             // }
 
+            // Mirror the source index while transmitting so the on-screen TX display matches
+            // the actual RF sideband orientation (the TX FFT is fed the CESSB baseband which
+            // is spectrally opposite to the RX path).  RX (src==i) is unchanged.
+            const bool tx_mirror = (user_settings[user_Profile].xmit == ON);
+            int16_t src;
+
             for (i = 0; i < ptr->wf_sp_width; i++)        // Grab all FFT values.  Need to do at one time since averaging is looking at many values in this array
             {
-                if (isnanf(*(pout+i)) || isinff (*(pout+i)))    // trap float 'NotaNumber NaN" and Infinity values
+                src = tx_mirror ? (int16_t)(ptr->wf_sp_width - 1 - i) : i;
+
+                if (isnanf(*(pout+src)) || isinff (*(pout+src)))    // trap float 'NotaNumber NaN" and Infinity values
                 {
                 DPRINTLN(F("FFT Invalid Data INF or NaN"));
-                    //Serial.println(*(pout+i));
+                    //Serial.println(*(pout+src));
                     pixelnew[i] = -200;   // fill in the missing value with somting harmless
                     //pixelnew[i] = sp_FFT.read(i+1);  // hope the next one is better.
                 }
                 // Now capture Spectrum value for use later
-                pixelnew[i] = (int16_t) *(pout+i);
+                pixelnew[i] = (int16_t) *(pout+src);
 
                 // Several different ways to process the FFT data for display. Gather up a complete FFT sample to do averaging then go on to update the display with the results
                 switch (ptr->spect_wf_style)
                 {
                     case 0: if ( i > 1 )  // prevent reading array out of bounds < 1. 
                         {
-                            avg = *(pout+(i*16/10))*0.5 + *(pout+(i-1)*16/10)*0.18 + *(pout+(i-2)*16/10)*0.07 + *(pout+(i+1)*16/10)*0.18 + *(pout+(i+2)*16/10)*0.07;                
+                            avg = *(pout+(src*16/10))*0.5 + *(pout+(src-1)*16/10)*0.18 + *(pout+(src-2)*16/10)*0.07 + *(pout+(src+1)*16/10)*0.18 + *(pout+(src+2)*16/10)*0.07;                
                             //line_buffer[i] = (LPFcoeff * 8 * sqrt (100+(abs(avg)*wf_scale)) + (1 - LPFcoeff) * line_buffer[i]);
                             line_buffer[i] = (ptr->spect_LPFcoeff * 8 * sqrtf(fabsf(avg)) + (1 - ptr->spect_LPFcoeff) * line_buffer[i]);                      
                         }
                             break;
                     case 1: if ( i > 1 )  // prevent reading array out of bounds < 1.
                         {
-                            avg = *(pout+i)*0.5 + *(pout+i-1)*0.18 + *(pout+i-2)*0.07 + *(pout+i+1)*0.18 + *(pout+i+2)*0.07;
+                            avg = *(pout+src)*0.5 + *(pout+src-1)*0.18 + *(pout+src-2)*0.07 + *(pout+src+1)*0.18 + *(pout+src+2)*0.07;
                             line_buffer[i] = ptr->spect_LPFcoeff * 8 * sqrtf(fabsf(avg)) + (1 - ptr->spect_LPFcoeff);
                             line_buffer[i] = _colorMap(line_buffer[i], ptr->spect_wf_colortemp);
                             //Serial.println(line_buffer[i]);
                         }
                             break;
-                    case 2: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)) * 1.9 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
+                    case 2: avg = line_buffer[i] = _colorMap(fabsf(*(pout+src)) * 1.9 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
                             break;
-                    case 3: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)) * 0.4 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
+                    case 3: avg = line_buffer[i] = _colorMap(fabsf(*(pout+src)) * 0.4 *  ptr->spect_wf_scale, ptr->spect_wf_colortemp);
                             break;
-                    case 4: avg = line_buffer[i] = _colorMap(16000 - fabsf(*(pout+i)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale;
+                    case 4: avg = line_buffer[i] = _colorMap(16000 - fabsf(*(pout+src)), ptr->spect_wf_colortemp) * ptr->spect_wf_scale;
                             break;
-                    case 6: avg = line_buffer[i] = _waterfall_color_update(*(pout+i), pix_min);//  * ptr->spect_sp_scale;  // test new waterfall colorization method
+                    case 6: avg = line_buffer[i] = _waterfall_color_update(*(pout+src), pix_min);//  * ptr->spect_sp_scale;  // test new waterfall colorization method
                             break;
                     case 5:
-                    default: avg = line_buffer[i] = _colorMap(fabsf(*(pout+i)), ptr->spect_wf_colortemp);
+                    default: avg = line_buffer[i] = _colorMap(fabsf(*(pout+src)), ptr->spect_wf_colortemp);
                         break;
                 };
 
@@ -671,17 +685,23 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
             tft.setTextColor(LIGHTGREY, BLACK);
             tft.setFont(Arial_10);
             
-            int grid_step = ptr->spect_sp_scale;
-            for (int16_t j = grid_step; j < ptr->sp_height-10; j+=grid_step)
-            {        
-                //if (pix_n16 > ptr->sp_top_line+j+2 && pix_n16 < ptr->sp_bottom_line-2)
-                //{    
-                    // draw bottom most grid line
-                    tft.drawFastHLine(ptr->l_graph_edge+24, ptr->sp_bottom_line-j,   ptr->wf_sp_width-24,    LIGHTGREY); // GREEN);
-                    // write the scale value for the grid line
-                    tft.setCursor(ptr->l_graph_edge+5, ptr->sp_bottom_line-j-5);
-                    tft.print(j); 
-                //}
+            // Draw evenly-spaced dB grid lines across the displayed window.  The window is
+            // spect_sp_scale dB tall, spanning spect_floor (bottom) to spect_floor+spect_sp_scale
+            // (top).  Step the grid in GRID_STEP_DB dB and convert each dB level to its pixel row
+            // so the labels match the "dB floor..top" readout and the signal mapping (map()).
+            // 2026-09-18: previously stepped pixels by spect_sp_scale and labeled with the pixel
+            // row, which made the grid span ~140 "dB" instead of the true spect_sp_scale window.
+            #define GRID_STEP_DB 5
+            int16_t win_bottom = ptr->spect_floor;                       // dB at bottom line
+            int16_t win_top    = ptr->spect_floor + ptr->spect_sp_scale;  // dB at top line
+            for (int16_t db = win_bottom + GRID_STEP_DB; db < win_top; db += GRID_STEP_DB)
+            {
+                // pixel distance up from the bottom line for this dB level
+                int16_t j = (int16_t)(((int32_t)(db - win_bottom) * (ptr->sp_bottom_line - ptr->sp_top_line)) / ptr->spect_sp_scale);
+                if (j <= 0 || j >= ptr->sp_height-10) continue;
+                tft.drawFastHLine(ptr->l_graph_edge+24, ptr->sp_bottom_line-j,   ptr->wf_sp_width-24,    LIGHTGREY);
+                tft.setCursor(ptr->l_graph_edge+5, ptr->sp_bottom_line-j-5);
+                tft.print(db);
             }
            
             // redraw the pitch line if in CW modes (Offset not 0).  Offset is in HZ so corect for current fft bin size
@@ -742,6 +762,20 @@ uint64_t spectrum_update(int16_t s, int16_t VFOA_YES, uint64_t VfoA, uint64_t Vf
         float pk_temp = (2 * (fft_bin_sz * (fft_pk_bin + pan)));   // relate the peak bin to the center bin
         freq_peak = _VFO_ + pk_temp;
         tft.print(_formatFreq(freq_peak));
+
+        // Live dB window readout: shows floor (bottom line) .. top of window (floor+scale).
+        // Window is spect_sp_scale dB tall, positioned by spect_floor.  Values are dBFS
+        // relative (uncalibrated) - useful as "dB above noise floor" within the window.
+        // Placed in the upper-right corner of the spectrum box, clear of the F: readout.
+        tft.setTextColor(LIGHTGREY, BLACK);
+        tft.setFont(Arial_10);
+        tft.fillRect(ptr->r_graph_edge-62, ptr->sp_top_line+2, 60, 12, BLACK);  // clear prior text so it doesn't smear
+        tft.setCursor(ptr->r_graph_edge-60,  ptr->sp_top_line+4);
+        tft.print("dB ");        
+        tft.print(ptr->spect_floor);                 // bottom reference (floor)
+        tft.print("..");
+        tft.print(ptr->spect_floor + ptr->spect_sp_scale);  // top of window = floor + scale
+        tft.setFont(Arial_14);
         /*
         // Write the Scale value 
         tft.setCursor(ptr->l_graph_edge+(ptr->wf_sp_width/2)+50, ptr->sp_txt_row+30);

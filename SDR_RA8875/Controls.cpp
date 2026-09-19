@@ -1495,6 +1495,9 @@ COLD void PAN(int8_t delta)
 COLD void Xmit(uint8_t state) // state ->  TX=1, RX=0; Toggle =2
 {
     uint8_t mode_idx;
+    static uint8_t tx_zoom_saved  = 0xFF;  // saved user zoom level while in TX (0xFF = none saved)
+    static uint8_t tx_pan_state   = 0xFF;  // saved user PAN on/off state while in TX
+    static uint8_t tx_pan_level   = 0xFF;  // saved user PAN level while in TX
 
     mode_idx = bandmem[curr_band].mode_A;
 
@@ -1503,6 +1506,19 @@ COLD void Xmit(uint8_t state) // state ->  TX=1, RX=0; Toggle =2
         user_settings[user_Profile].xmit = OFF;
         if (PTT_OUT1 != 255)
             digitalWrite(PTT_OUT1, HIGH);
+
+        // Restore the user's zoom level and PAN on return to RX (TX auto-zooms/centers for modulation detail)
+        if (tx_zoom_saved != 0xFF)
+        {
+            user_settings[user_Profile].zoom_level = tx_zoom_saved;
+            user_settings[user_Profile].pan_state  = tx_pan_state;
+            user_settings[user_Profile].pan_level  = tx_pan_level;
+            tx_zoom_saved = 0xFF;
+            tx_pan_state  = 0xFF;
+            tx_pan_level  = 0xFF;
+            setPAN(0);  // restore saved PAN state/level
+            Zoom(0);    // apply the restored zoom level
+        }
  
 #ifdef USE_RS_HFIQ
         RS_HFIQ.send_fixed_cmd_to_RSHFIQ("*X0"); // RS-HFIQ TX OFF
@@ -1524,6 +1540,19 @@ COLD void Xmit(uint8_t state) // state ->  TX=1, RX=0; Toggle =2
         user_settings[user_Profile].xmit = ON;
         if (PTT_OUT1 != 255)
             digitalWrite(PTT_OUT1, LOW);
+
+        // Auto-zoom in on TX for usable modulation detail; save user's zoom + PAN to restore on RX.
+        if (tx_zoom_saved == 0xFF)
+        {
+            tx_zoom_saved = user_settings[user_Profile].zoom_level;
+            tx_pan_state  = user_settings[user_Profile].pan_state;
+            tx_pan_level  = user_settings[user_Profile].pan_level;
+            user_settings[user_Profile].zoom_level = ZOOM_NUM - 1;  // x4 (highest) - most detail on the TX signal
+            user_settings[user_Profile].pan_state  = OFF;           // center the TX signal (clear any pan offset)
+            user_settings[user_Profile].pan_level  = 50;            // 50 = centered
+            setPAN(0);  // apply centered PAN
+            Zoom(0);    // apply the zoom
+        }
 
 #ifdef USE_RS_HFIQ
         selectFrequency(0);
