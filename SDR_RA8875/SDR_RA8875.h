@@ -28,6 +28,14 @@
 
 #define DEBUG  //set for debug output
 
+// When CAT control shares the single USB serial port (ALT_CAT_PORT), debug output would be
+// interleaved with K3 CAT replies and corrupt the WSJT-X/OmniRig data stream.  Per the note in
+// RadioConfig.h, debug must be off in that configuration.  Auto-disable it here so users don't
+// have to remember to toggle it by hand.
+#if defined ALT_CAT_PORT && (defined USE_CAT_SER || defined USE_RS_HFIQ)
+    #undef DEBUG
+#endif
+
 #ifdef  DEBUG
 #define DEBUG_ERROR true
 #define DEBUG_ERROR_SERIAL if(DEBUG_ERROR)Serial

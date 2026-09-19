@@ -909,10 +909,12 @@ HOT void loop()
     if (time_n > delta) // Main loop performance timer probe
     {
         delta = time_n;
+        /*
         DPRINTF("Loop T=");
         DPRINT(delta);
         DPRINTF("  Spectrum T=");
         DPRINTLN(millis() - time_sp);
+        */
     }
     time_old = millis();
 
@@ -1001,6 +1003,10 @@ HOT void loop()
 
 // respond to MSG_Serial commands
 #ifdef DEBUG
+    #if defined ALT_CAT_PORT && (defined USE_CAT_SER || defined USE_RS_HFIQ)
+        // CAT shares this Serial port (single-USB build). Do NOT consume/echo bytes here,
+        // or the K3 CAT parser (CAT_Service) never sees WSJT-X's commands -> "rig ID" errors.
+    #else
     while (!popup && Serial.available())
     {
         // char ch = (Serial.peek());
@@ -1028,6 +1034,7 @@ HOT void loop()
                 break;
         }
     }
+    #endif
 
     // check to see whether to print the CPU and Memory Usage
     if (enable_printCPUandMemory)
@@ -1643,6 +1650,10 @@ COLD void TX_RX_Switch(
     TX_Source.gain(3, ToneB);    //  Test Tone B
 
     // use mode to control TX sideband switching.  RX is done elsewhere.
+    // invert is applied to Q_Switch (the Q/quadrature leg of the TX source).  Its sign
+    // selects which output sideband is the "wanted" one vs the suppressed mirror.
+    // 2026-09-18: signs flipped - on-air test showed DATA/USB wanted tone was landing
+    // on the LSB side with the mirror on USB.  Swapping invert moves wanted to USB.
     float invert;
     switch (mode_sel)
     {
@@ -1650,12 +1661,12 @@ COLD void TX_RX_Switch(
         case DATA:
         case AM:
         case USB:
-            invert = -1.0f;
+            invert = 1.0f;
             break;
 		case FM:
             FM_Detector.setSquelchThreshold(0.7f);
         default: // all other modes flip sideband
-            invert = 1.0f;
+            invert = -1.0f;
             break;
     }
 
@@ -1711,7 +1722,7 @@ COLD void TX_RX_Switch(
                 case DATA:
                 case CW:  
                 default: 
-                    cessb1.setSideband(true);   // true reverses the sideband          
+                    cessb1.setSideband(false);  // 2026-09-18: USB/DATA was landing on LSB with true; false puts wanted tone on USB
                     #ifdef CESSB_DIRECT
                         Fc = 0; 
                         selectFrequency(0);
@@ -1756,7 +1767,7 @@ COLD void TX_RX_Switch(
     //   Back to RX
     //  *******************************************************************************************
     {
-        DPRINTLNF("Switching to Rx");
+        //DPRINTLNF("Switching to Rx");
 
         AudioNoInterrupts();
 
@@ -2261,10 +2272,10 @@ COLD void resetCodec(void)
 
 	AudioInterrupts();
     
-	DPRINTLNF(" Reset Codec Almost Completed");
+	//DPRINTLNF(" Reset Codec Almost Completed");
     Xmit(0); // Finish RX audio chain setup
 
-    DPRINTLNF(" Reset Codec Completed");
+    //DPRINTLNF(" Reset Codec Completed");
 }
 
 #ifdef TEST1

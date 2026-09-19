@@ -80,6 +80,7 @@ extern          uint64_t            find_new_band(uint64_t new_frequency, uint8_
 void SDR_CAT_Serial::setup_CAT_Serial()  // 0 non block, 1 blocking
 {   
     CAT_port.begin(38400);
+    CAT_port.setTimeout(20);  // short timeout so readBytesUntil() can't block long enough to break WSJT-X polling
     DPRINTLNF("\nStart of CAT Serial Setup"); 
     tft.setFont(Arial_14);
     tft.setTextColor(BLUE);
@@ -298,6 +299,24 @@ uint64_t SDR_CAT_Serial::cmd_console(uint8_t &_swap_vfo, uint64_t &_VFOA, uint64
             {
                 _VFOB = rs_freq = atoll(&S_Input[2]);   // Pass thru to main program to deal with and reply back to CAT program
             }  
+            else if (!strncmp(S_Input, "TQ", 2) && strlen(S_Input) == 2)   // PTT query (hamlib K3 get_ptt)
+            {
+                CAT_port.printf("TQ%d;", _xmit);   // reply TQ0; (RX) or TQ1; (TX)
+            }
+            else if (!strncmp(S_Input, "TQ0", 3) && strlen(S_Input) == 3)  // PTT set RX (hamlib K3 set_ptt)
+            {
+                _xmit = 0;
+                #ifdef DBG  
+                DPRINTLN(F("SDR_CAT_Serial: TQ0->XMIT OFF"));
+                #endif
+            }
+            else if (!strncmp(S_Input, "TQ1", 3) && strlen(S_Input) == 3)  // PTT set TX (hamlib K3 set_ptt)
+            {
+                _xmit = 1;
+                #ifdef DBG  
+                DPRINTLN(F("SDR_CAT_Serial: TQ1->XMIT ON"));
+                #endif
+            }
             else if (!strncmp(S_Input, "RX", 2))
             {
                 #ifdef DBG  
