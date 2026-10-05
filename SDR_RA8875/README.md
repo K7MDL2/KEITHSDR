@@ -15,7 +15,7 @@ Teensy4.X with PJRC audio card Arduino based SDR Radio project
 The `libraries` folder contains the tested `Etherkit_Si5351` and
 `Ra8876LiteTeensy` versions used by this sketch, including local fixes. Build
 with this folder before global Arduino libraries so package-manager or IDE
-updates cannot replace the versions used by KEITHSDR:
+updates cannot replace the versions used by SDR_RA887x:
 
 ```text
 arduino-cli compile --libraries SDR_RA8875\libraries --libraries D:\Documents\Arduino\libraries ...
